@@ -1,5 +1,5 @@
-import { Button, Group, Paper, Stack, Text, Avatar, Menu, ActionIcon, Loader } from '@mantine/core'
-import { IconBrandGoogle, IconLogout, IconUser, IconChevronDown } from '@tabler/icons-react'
+import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider } from '@mantine/core'
+import { IconBrandGoogle, IconLogout, IconUser, IconLogin } from '@tabler/icons-react'
 import { useAuth } from '../hooks/useAuth'
 import { notifications } from '@mantine/notifications'
 import './LoginForm.css'
@@ -43,85 +43,83 @@ const LoginForm = () => {
 
   if (loading) {
     return (
-      <Paper className="login-form" p="md" withBorder radius="md">
-        <Group justify="center">
-          <Loader size="sm" />
-          <Text size="sm">Loading...</Text>
-        </Group>
-      </Paper>
+      <ActionIcon variant="subtle" size="xl" className="login-icon">
+        <Loader size="sm" />
+      </ActionIcon>
     )
   }
 
   if (user) {
     return (
-      <Paper className="login-form" p="md" withBorder radius="md">
-        <Group justify="space-between" align="center">
-          <Group>
+      <Menu shadow="md" width={250} position="bottom-end">
+        <Menu.Target>
+          <ActionIcon variant="subtle" size="xl" className="login-icon">
             <Avatar
               src={user.user_metadata?.avatar_url}
               alt={user.user_metadata?.full_name || user.email}
-              size="sm"
+              size={40}
               radius="xl"
             >
-              <IconUser size={16} />
+              <IconUser size={24} />
             </Avatar>
-            <Stack gap={0}>
+          </ActionIcon>
+        </Menu.Target>
+
+        <Menu.Dropdown>
+          <Menu.Label>
+            <Stack gap={2}>
               <Text size="sm" fw={500}>
-                {user.user_metadata?.full_name || user.email}
+                {user.user_metadata?.full_name || 'User'}
               </Text>
               <Text size="xs" c="dimmed">
                 {user.email}
               </Text>
             </Stack>
-          </Group>
-          
-          <Menu shadow="md" width={200}>
-            <Menu.Target>
-              <ActionIcon variant="subtle" color="gray">
-                <IconChevronDown size={16} />
-              </ActionIcon>
-            </Menu.Target>
-
-            <Menu.Dropdown>
-              <Menu.Item
-                leftSection={<IconLogout size={16} />}
-                onClick={handleLogout}
-                color="red"
-              >
-                Sign Out
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-        </Group>
-      </Paper>
+          </Menu.Label>
+          <Divider />
+          <Menu.Item
+            leftSection={<IconLogout size={16} />}
+            onClick={handleLogout}
+            color="red"
+          >
+            Sign Out
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     )
   }
 
   return (
-    <Paper className="login-form" p="md" withBorder radius="md">
-      <Stack gap="md">
-        <Text size="sm" ta="center" fw={500}>
-          Sign in to manage the queue
-        </Text>
-        
-        <Stack gap="xs">
+    <Menu shadow="md" width={280} position="bottom-end">
+      <Menu.Target>
+        <ActionIcon variant="subtle" size="xl" className="login-icon">
+          <IconBrandGoogle size={24} stroke={2} />
+        </ActionIcon>
+      </Menu.Target>
+
+      <Menu.Dropdown>
+        <Menu.Label>
+          <Text size="sm" fw={500}>
+            Sign in to manage the queue
+          </Text>
+        </Menu.Label>
+        <Divider mb="xs" />
+        <Stack gap="xs" p="xs">
           <Button
             leftSection={<IconBrandGoogle size={16} />}
             onClick={() => handleSocialLogin('google')}
-            variant="outline"
+            variant="light"
             color="red"
             fullWidth
-            size="sm"
           >
             Continue with Google
           </Button>
+          <Text size="xs" c="dimmed" ta="center">
+            Sign in to add, edit, and manage queue entries
+          </Text>
         </Stack>
-        
-        <Text size="xs" c="dimmed" ta="center">
-          Sign in to add, edit, and manage queue entries
-        </Text>
-      </Stack>
-    </Paper>
+      </Menu.Dropdown>
+    </Menu>
   )
 }
 

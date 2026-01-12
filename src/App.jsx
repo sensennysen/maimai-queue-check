@@ -39,19 +39,20 @@ function AppContent() {
         <Container size="lg" py="xl">
           <Stack gap="lg">
             <Paper p="xl" radius="md" withBorder className="app-header">
-              <Group justify="space-between" align="center" mb="xs">
-                <Title order={1} ta="center" c="white" className="app-title" style={{ flex: 1 }}>
+              <Group justify="center" align="center" mb="xs">
+                <Title order={1} ta="center" c="white" className="app-title">
                   maimai Fairview Queue
                 </Title>
-                <ThemeToggle />
               </Group>
               <Text ta="center" c="white" size="lg" className="app-subtitle">
                 {randomSubtitle}
               </Text>
             </Paper>
             
-            {/* Login Form */}
-            <LoginForm />
+            <Group justify="flex-end" gap="sm">
+              <ThemeToggle />
+              <LoginForm />
+            </Group>
             
             <main>
               <QueueManager />
