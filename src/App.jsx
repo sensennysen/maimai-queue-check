@@ -1,6 +1,7 @@
 import { MantineProvider, Container, Title, Text, Paper, Stack, Group, createTheme } from '@mantine/core'
 import '@mantine/core/styles.css'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
+import { subtitleMessages } from './data/subtitleMessages'
 import QueueManager from './components/QueueManager'
 import ThemeToggle from './components/ThemeToggle'
 import './App.css'
@@ -8,6 +9,9 @@ import './App.css'
 // Mantine theme configuration that syncs with our CSS variables
 function AppContent() {
   const { isDark } = useTheme()
+  
+  // Random subtitle selection
+  const randomSubtitle = subtitleMessages[Math.floor(Math.random() * subtitleMessages.length)]
   
   const mantineTheme = createTheme({
     colorScheme: isDark ? 'dark' : 'light',
@@ -37,7 +41,7 @@ function AppContent() {
                 <ThemeToggle />
               </Group>
               <Text ta="center" c="white" size="lg" className="app-subtitle">
-                Queue check po?
+                {randomSubtitle}
               </Text>
             </Paper>
             
