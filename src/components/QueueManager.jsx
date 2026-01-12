@@ -191,6 +191,7 @@ function QueueManager() {
 
       {user && (showForm || editingId) && (
         <QueueForm 
+          key={editingId || 'new'}
           onSubmit={editingId ? updateQueueEntry : addQueueEntry}
           editingId={editingId}
           editingData={editingId ? queue.find(item => item.id === editingId) : null}

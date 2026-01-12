@@ -11,14 +11,15 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
   // Update form when editing
   useEffect(() => {
     if (editingData) {
-      setPlayer1(editingData.player1)
-      setPlayer2(editingData.player2)
+      // Ensure null/undefined values are converted to empty strings
+      setPlayer1(editingData.player1 ? String(editingData.player1).trim() : '')
+      setPlayer2(editingData.player2 ? String(editingData.player2).trim() : '')
     } else {
       setPlayer1('')
       setPlayer2('')
     }
     setErrors({})
-  }, [editingData])
+  }, [editingData, editingId])
 
   const validateForm = () => {
     const newErrors = {}
