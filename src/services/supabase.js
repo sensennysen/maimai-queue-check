@@ -150,13 +150,20 @@ export const queueService = {
 
   // Update order positions for reordering
   async updateOrderPositions(updates) {
-    const { data, error } = await supabase
-      .from('queue_entries')
-      .upsert(updates, { onConflict: 'id' })
-      .select()
-    
-    if (error) throw error
-    return data
+    // Use individual updates instead of upsert to avoid nulling required fields
+    const results = []
+    for (const update of updates) {
+      const { data, error } = await supabase
+        .from('queue_entries')
+        .update({ order_position: update.order_position })
+        .eq('id', update.id)
+        .select()
+        .single()
+      
+      if (error) throw error
+      results.push(data)
+    }
+    return results
   },
 
   // Clear all waiting queue entries
