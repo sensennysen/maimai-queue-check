@@ -1,77 +1,9 @@
-#root {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
-  text-align: center;
-}
-
 .App {
   width: 100%;
 }
 
-.App-header {
-  margin-bottom: 1.5rem;
-  padding: 1.5rem 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
+.app-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   color: white;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.App-header h1 {
-  margin: 0 0 0.5rem 0;
-  font-size: 2rem;
-  font-weight: bold;
-  line-height: 1.2;
-}
-
-.App-header p {
-  margin: 0;
-  font-size: 1rem;
-  opacity: 0.9;
-  line-height: 1.4;
-}
-
-main {
-  width: 100%;
-  max-width: 100%;
-}
-
-@media (max-width: 768px) {
-  #root {
-    padding: 0.5rem;
-  }
-  
-  .App-header {
-    margin-bottom: 1rem;
-    padding: 1rem 0.75rem;
-    border-radius: 8px;
-  }
-  
-  .App-header h1 {
-    font-size: 1.5rem;
-  }
-  
-  .App-header p {
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 480px) {
-  #root {
-    padding: 0.25rem;
-  }
-  
-  .App-header {
-    padding: 0.75rem 0.5rem;
-    border-radius: 6px;
-  }
-  
-  .App-header h1 {
-    font-size: 1.25rem;
-  }
-  
-  .App-header p {
-    font-size: 0.85rem;
-  }
 }

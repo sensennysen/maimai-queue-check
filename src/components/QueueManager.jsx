@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box } from '@mantine/core'
+import { IconPlayerStop, IconTrash, IconPlus } from '@tabler/icons-react'
 import QueueForm from './QueueForm'
 import QueueList from './QueueList'
 import './QueueManager.css'
@@ -7,6 +9,7 @@ function QueueManager() {
   const [queue, setQueue] = useState([])
   const [nowPlaying, setNowPlaying] = useState(null)
   const [editingId, setEditingId] = useState(null)
+  const [showForm, setShowForm] = useState(false)
 
   // Generate next order number
   const getNextOrder = () => {
@@ -22,6 +25,8 @@ function QueueManager() {
       player2: player2.trim()
     }
     setQueue([...queue, newEntry])
+    setShowForm(false)
+    setShowForm(false)
   }
 
   // Update existing queue entry
@@ -45,32 +50,32 @@ function QueueManager() {
     setQueue(reorderedQueue)
   }
 
-  // Move entry up in queue
-  const moveUp = (id) => {
-    const index = queue.findIndex(item => item.id === id)
-    if (index > 0) {
-      const newQueue = [...queue]
-      // Swap with previous item
-      ;[newQueue[index - 1], newQueue[index]] = [newQueue[index], newQueue[index - 1]]
-      // Update order numbers
-      newQueue[index - 1].order = index
-      newQueue[index].order = index + 1
-      setQueue(newQueue)
+  // Reorder queue by drag and drop
+  const reorderQueue = (draggedId, targetId) => {
+    const draggedIndex = queue.findIndex(item => item.id === draggedId)
+    const targetIndex = queue.findIndex(item => item.id === targetId)
+    
+    if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) {
+      return
     }
-  }
 
-  // Move entry down in queue
-  const moveDown = (id) => {
-    const index = queue.findIndex(item => item.id === id)
-    if (index < queue.length - 1) {
-      const newQueue = [...queue]
-      // Swap with next item
-      ;[newQueue[index], newQueue[index + 1]] = [newQueue[index + 1], newQueue[index]]
-      // Update order numbers
-      newQueue[index].order = index + 1
-      newQueue[index + 1].order = index + 2
-      setQueue(newQueue)
-    }
+    const newQueue = [...queue]
+    const draggedItem = newQueue[draggedIndex]
+    
+    // Remove dragged item
+    newQueue.splice(draggedIndex, 1)
+    
+    // Insert at new position
+    const newTargetIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex
+    newQueue.splice(newTargetIndex, 0, draggedItem)
+    
+    // Update order numbers
+    const reorderedQueue = newQueue.map((item, index) => ({
+      ...item,
+      order: index + 1
+    }))
+    
+    setQueue(reorderedQueue)
   }
 
   // Clear entire queue
@@ -84,11 +89,13 @@ function QueueManager() {
   // Start editing
   const startEdit = (id) => {
     setEditingId(id)
+    setShowForm(true)
   }
 
   // Cancel editing
   const cancelEdit = () => {
     setEditingId(null)
+    setShowForm(false)
   }
 
   // Start a new game with the first queue entry
@@ -124,70 +131,111 @@ function QueueManager() {
   }
 
   return (
-    <div className="queue-manager">
-      <div className="queue-header">
-        <h2>Queue Management</h2>
-        <div className="queue-stats">
-          <span className="queue-count">Total entries: {queue.length}</span>
-          {queue.length > 0 && (
-            <button 
-              className="clear-btn"
-              onClick={clearQueue}
-              title="Clear entire queue"
-            >
-              Clear All
-            </button>
-          )}
-        </div>
-      </div>
+    <Stack gap="md">
+      <Paper p="md" withBorder>
+        <Group justify="space-between" align="center">
+          <Title order={2}>Queue Management</Title>
+          <Group gap="sm">
+            <Badge variant="light" size="lg">
+              Total entries: {queue.length}
+            </Badge>
+            {queue.length > 0 && (
+              <Button 
+                variant="outline"
+                color="red"
+                leftSection={<IconTrash size={16} />}
+                onClick={clearQueue}
+              >
+                Clear All
+              </Button>
+            )}
+          </Group>
+        </Group>
+      </Paper>
 
       {nowPlaying && (
-        <div className="now-playing">
-          <h3>🎮 Now Playing</h3>
-          <div className="current-players">
-            <div className="player-display">
+        <Paper p="md" withBorder>
+          <Group justify="space-between" align="center" mb="md">
+            <Title order={3}>🎮 Now Playing</Title>
+          </Group>
+          <Group gap="sm" justify="space-between">
+            <Flex gap="md" style={{ flex: 1 }}>
               {nowPlaying.player1 && nowPlaying.player1.trim() && (
-                <div className="playing-player">
-                  <span className="player-side-indicator">P1</span>
-                  <span className="player-name">{nowPlaying.player1}</span>
-                </div>
+                <Box style={{ 
+                  flex: 1,
+                  minWidth: 0,
+                  backgroundColor: 'var(--mantine-color-blue-1)', 
+                  padding: '8px 12px', 
+                  borderRadius: '8px',
+                  border: '1px solid var(--mantine-color-blue-4)'
+                }}>
+                  <Group gap="xs">
+                    <Badge variant="filled" color="blue" size="sm">P1</Badge>
+                    <Text fw={500}>{nowPlaying.player1}</Text>
+                  </Group>
+                </Box>
               )}
 
               {nowPlaying.player2 && nowPlaying.player2.trim() && (
-                <div className="playing-player">
-                  <span className="player-side-indicator">P2</span>
-                  <span className="player-name">{nowPlaying.player2}</span>
-                </div>
+                <Box style={{ 
+                  flex: 1,
+                  minWidth: 0,
+                  backgroundColor: 'var(--mantine-color-grape-1)', 
+                  padding: '8px 12px', 
+                  borderRadius: '8px',
+                  border: '1px solid var(--mantine-color-grape-4)'
+                }}>
+                  <Group gap="xs">
+                    <Badge variant="filled" color="grape" size="sm">P2</Badge>
+                    <Text fw={500}>{nowPlaying.player2}</Text>
+                  </Group>
+                </Box>
               )}
-            </div>
-            <button 
-              className="finish-game-btn" 
+            </Flex>
+            <Button 
+              variant="filled"
+              color="green"
+              leftSection={<IconPlayerStop size={16} />}
               onClick={finishGame}
-              title="Finish current game"
             >
               Finish Game
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Group>
+        </Paper>
       )}
 
-      <QueueForm 
-        onSubmit={editingId ? updateQueueEntry : addQueueEntry}
-        editingId={editingId}
-        editingData={editingId ? queue.find(item => item.id === editingId) : null}
-        onCancel={cancelEdit}
-      />
+      {!showForm && !editingId && (
+        <Paper p="md" withBorder>
+          <Group justify="center">
+            <Button 
+              leftSection={<IconPlus size={16} />}
+              onClick={() => setShowForm(true)}
+              size="lg"
+            >
+              Add Queue
+            </Button>
+          </Group>
+        </Paper>
+      )}
+
+      {(showForm || editingId) && (
+        <QueueForm 
+          onSubmit={editingId ? updateQueueEntry : addQueueEntry}
+          editingId={editingId}
+          editingData={editingId ? queue.find(item => item.id === editingId) : null}
+          onCancel={cancelEdit}
+        />
+      )}
 
       <QueueList 
         queue={queue}
         nowPlaying={nowPlaying}
         onEdit={startEdit}
         onRemove={removeQueueEntry}
-        onMoveUp={moveUp}
-        onMoveDown={moveDown}
+        onReorder={reorderQueue}
         onStartGame={startGame}
       />
-    </div>
+    </Stack>
   )
 }
 

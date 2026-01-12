@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { Paper, Title, TextInput, Group, Button, Stack, Alert } from '@mantine/core'
+import { IconPlus, IconEdit, IconX, IconPlayerPlay } from '@tabler/icons-react'
 import './QueueForm.css'
 
 function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
@@ -59,56 +61,60 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
   }
 
   return (
-    <div className="queue-form">
-      <h3>{editingId ? 'Edit Queue Entry' : 'Add New Queue Entry'}</h3>
+    <Paper p="md" withBorder>
+      <Title order={3} mb="md">
+        {editingId ? 'Edit Queue' : 'Add Queue'}
+      </Title>
       <form onSubmit={handleSubmit}>
-        {errors.general && (
-          <div className="general-error">
-            <span className="error-message">{errors.general}</span>
-          </div>
-        )}
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="player1">Player 1 Side</label>
-            <input
-              type="text"
-              id="player1"
+        <Stack gap="md">
+          {errors.general && (
+            <Alert color="red" variant="light">
+              {errors.general}
+            </Alert>
+          )}
+          
+          <Group grow>
+            <TextInput
+              label="Player 1 Side"
+              placeholder="Enter Player 1 name"
               value={player1}
               onChange={(e) => setPlayer1(e.target.value)}
-              placeholder="Enter Player 1 name"
-              className={errors.player1 ? 'error' : ''}
-              maxLength="50"
+              error={errors.player1}
+              maxLength={50}
             />
-            {errors.player1 && <span className="error-message">{errors.player1}</span>}
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="player2">Player 2 Side</label>
-            <input
-              type="text"
-              id="player2"
+            <TextInput
+              label="Player 2 Side"
+              placeholder="Enter Player 2 name"
               value={player2}
               onChange={(e) => setPlayer2(e.target.value)}
-              placeholder="Enter Player 2 name"
-              className={errors.player2 ? 'error' : ''}
-              maxLength="50"
+              error={errors.player2}
+              maxLength={50}
             />
-            {errors.player2 && <span className="error-message">{errors.player2}</span>}
-          </div>
-        </div>
+          </Group>
 
-        <div className="form-actions">
-          <button type="submit" className="submit-btn">
-            {editingId ? 'Update Entry' : 'Add to Queue'}
-          </button>
-          {editingId && (
-            <button type="button" className="cancel-btn" onClick={handleCancel}>
-              Cancel
-            </button>
-          )}
-        </div>
+          <Group justify="flex-end">
+            <Button 
+              type="submit" 
+              leftSection={editingId ? <IconEdit size={16} /> : <IconPlus size={16} />}
+              variant="filled"
+            >
+              {editingId ? 'Update Entry' : 'Add to Queue'}
+            </Button>
+            {editingId && (
+              <Button 
+                variant="outline"
+                color="gray"
+                leftSection={<IconX size={16} />}
+                onClick={handleCancel}
+              >
+                Cancel
+              </Button>
+            )}
+          </Group>
+        </Stack>
       </form>
-    </div>
+    </Paper>
   )
 }
 

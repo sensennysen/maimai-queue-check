@@ -1,50 +1,54 @@
+import { Paper, Title, Group, Button, Stack, Text, Center } from '@mantine/core'
+import { IconPlayerPlay } from '@tabler/icons-react'
 import QueueItem from './QueueItem'
 import './QueueList.css'
 
-function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame }) {
+function QueueList({ queue, nowPlaying, onEdit, onRemove, onReorder, onStartGame }) {
   if (queue.length === 0) {
     return (
-      <div className="queue-list">
-        <div className="empty-queue">
-          <h3>No entries in queue</h3>
-          <p>Add your first queue entry using the form above!</p>
-          <div className="empty-icon">🎮</div>
-        </div>
-      </div>
+      <Paper p="xl" withBorder>
+        <Center>
+          <Stack align="center" gap="md">
+            <Text size="xl" fw={600} c="dimmed">No entries in queue</Text>
+            <Text c="dimmed">Add your first queue entry using the form above!</Text>
+            <Text size="4rem">🎮</Text>
+          </Stack>
+        </Center>
+      </Paper>
     )
   }
 
   return (
-    <div className="queue-list">
-      <div className="queue-list-header">
-        <h3>Current Queue ({queue.length} entries)</h3>
+    <Paper withBorder>
+      <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
+        <Title order={3}>Current Queue ({queue.length} entries)</Title>
         {!nowPlaying && queue.length > 0 && (
-          <button 
-            className="start-game-btn"
+          <Button 
+            leftSection={<IconPlayerPlay size={16} />}
             onClick={() => onStartGame()}
-            title="Start game with next players"
+            variant="filled"
+            color="green"
           >
             Start Game
-          </button>
+          </Button>
         )}
-      </div>
-      <div className="queue-items">
+      </Group>
+      <Stack gap={0}>
         {queue.map((item, index) => (
           <QueueItem
             key={item.id}
             item={item}
             onEdit={onEdit}
             onRemove={onRemove}
-            onMoveUp={onMoveUp}
-            onMoveDown={onMoveDown}
+            onReorder={onReorder}
             isFirst={index === 0}
             isLast={index === queue.length - 1}
             isNextUp={index === 0 && !nowPlaying}
             gameInProgress={!!nowPlaying}
           />
         ))}
-      </div>
-    </div>
+      </Stack>
+    </Paper>
   )
 }
 

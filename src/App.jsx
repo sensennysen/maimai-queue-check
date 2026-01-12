@@ -1,18 +1,30 @@
-import { useState } from 'react'
-import './App.css'
+import { MantineProvider, Container, Title, Text, Paper, Stack } from '@mantine/core'
+import '@mantine/core/styles.css'
 import QueueManager from './components/QueueManager'
+import './App.css'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>🎵 Maimai Queue System</h1>
-        <p>Manage your maimai game queue with ease!</p>
-      </header>
-      <main>
-        <QueueManager />
-      </main>
-    </div>
+    <MantineProvider>
+      <div className="App">
+        <Container size="lg" py="xl">
+          <Stack gap="lg">
+            <Paper p="xl" radius="md" withBorder className="app-header">
+              <Title order={1} ta="center" c="white" mb="xs">
+                🎵 Maimai Queue Manager
+              </Title>
+              <Text ta="center" c="dimmed" size="lg">
+                Manage your maimai rhythm game queue efficiently
+              </Text>
+            </Paper>
+            
+            <main>
+              <QueueManager />
+            </main>
+          </Stack>
+        </Container>
+      </div>
+    </MantineProvider>
   )
 }
 

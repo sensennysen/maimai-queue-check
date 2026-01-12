@@ -6,6 +6,8 @@
   border-bottom: 1px solid #eee;
   transition: all 0.2s ease;
   align-items: center;
+  cursor: move;
+  position: relative;
 }
 
 .queue-item:hover {
@@ -23,6 +25,18 @@
 
 .queue-item.next-up:hover {
   background: linear-gradient(90deg, #fff3cd 0%, #f8f9fa 100%);
+}
+
+.queue-item.dragging {
+  opacity: 0.5;
+  transform: rotate(2deg);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.queue-item.drag-over {
+  border-top: 3px solid #667eea;
+  background: #f0f4ff;
 }
 
 .item-order {
@@ -46,6 +60,22 @@
   letter-spacing: 0.5px;
   margin-top: 0.25rem;
   line-height: 1;
+}
+
+.drag-hint {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 0.25rem;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+.drag-hint {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 0.25rem;
+  line-height: 1;
+  letter-spacing: -2px;
 }
 
 .players-section {
