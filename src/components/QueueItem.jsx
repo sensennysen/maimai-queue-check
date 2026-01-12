@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react'
 import './QueueItem.css'
 
-function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, gameInProgress, isAuthenticated }) {
+function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, gameInProgress, userRoles }) {
   const handleEdit = () => {
     onEdit(item.id)
   }
@@ -20,6 +20,8 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
   const handleMoveDown = () => {
     onMoveDown(item.id)
   }
+
+  const canEdit = userRoles?.can_edit
 
   return (
     <div 
@@ -48,7 +50,7 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
         )}
       </div>
       
-      {isAuthenticated && (
+      {canEdit && (
         <div className="item-actions">
           <div className="move-buttons">
             <button

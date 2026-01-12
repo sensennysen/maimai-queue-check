@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import './QueueList.css'
 
 function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame }) {
-  const { user } = useAuth()
+  const { user, userRoles } = useAuth()
   if (queue.length === 0) {
     return (
       <Paper p="xl" withBorder>
@@ -24,7 +24,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
     <Paper withBorder>
       <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
         <Title order={3}>Current Queue</Title>
-        {user && !nowPlaying && queue.length > 0 && (
+        {user && userRoles?.can_edit && !nowPlaying && queue.length > 0 && (
           <Button 
             leftSection={<IconPlayerPlay size={16} />}
             onClick={() => onStartGame()}
@@ -38,7 +38,14 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
       {!user && (
         <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-blue-0)' }}>
           <Text size="sm" c="blue">
-            🔒 Sign in above to manage the queue, add entries, and start games
+            🔒 Sign in above to manage the queue
+          </Text>
+        </Group>
+      )}
+      {user && !userRoles?.can_edit && (
+        <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-yellow-0)' }}>
+          <Text size="sm" c="orange">
+            👀 You can view the queue but don't have permission to edit it
           </Text>
         </Group>
       )}
@@ -55,7 +62,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
             isLast={index === queue.length - 1}
             isNextUp={index === 0 && !nowPlaying}
             gameInProgress={!!nowPlaying}
-            isAuthenticated={!!user}
+            userRoles={userRoles}
           />
         ))}
       </Stack>

@@ -51,6 +51,44 @@ export const authService = {
   },
 }
 
+// User roles service functions
+export const rolesService = {
+  // Fetch user roles/permissions
+  async getUserRoles(userId) {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', userId)
+        .limit(1)
+      
+      if (error) {
+        console.error(`Error fetching roles for user ${userId}:`, error.message, error.code)
+        return {
+          user_id: userId,
+          can_edit: false
+        }
+      }
+      
+      // If no rows returned, return default permissions
+      if (!data || data.length === 0) {
+        return {
+          user_id: userId,
+          can_edit: false
+        }
+      }
+      
+      return data[0]
+    } catch (err) {
+      console.error(`Exception fetching roles for user ${userId}:`, err)
+      return {
+        user_id: userId,
+        can_edit: false
+      }
+    }
+  }
+}
+
 // Queue service functions
 export const queueService = {
   // Fetch all queue entries ordered by position

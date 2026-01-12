@@ -8,7 +8,7 @@ import { useAuth } from '../hooks/useAuth'
 import './QueueManager.css'
 
 function QueueManager() {
-  const { user } = useAuth()
+  const { user, userRoles } = useAuth()
   const {
     queue,
     nowPlaying,
@@ -27,6 +27,8 @@ function QueueManager() {
 
   const [editingId, setEditingId] = useState(null)
   const [showForm, setShowForm] = useState(false)
+
+  const canEdit = userRoles?.can_edit
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
@@ -126,7 +128,7 @@ function QueueManager() {
             </Indicator>
           </Group>
           <Group gap="sm">
-            {user && !showForm && !editingId && (
+            {user && canEdit && !showForm && !editingId && (
               <Button 
                 leftSection={<IconPlus size={16} />}
                 onClick={() => setShowForm(true)}
@@ -135,7 +137,7 @@ function QueueManager() {
                 Add Queue
               </Button>
             )}
-            {user && queue.length > 0 && (
+            {user && canEdit && queue.length > 0 && (
               <Button 
                 variant="outline"
                 color="red"
@@ -171,7 +173,7 @@ function QueueManager() {
               )}
             </div>
             
-            {user && (
+            {user && canEdit && (
               <button 
                 className="finish-game-btn"
                 onClick={finishGame}
