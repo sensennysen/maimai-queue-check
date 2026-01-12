@@ -4,7 +4,7 @@ import QueueItem from './QueueItem'
 import { useAuth } from '../hooks/useAuth'
 import './QueueList.css'
 
-function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame }) {
+function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen }) {
   const { user, userRoles } = useAuth()
   if (queue.length === 0) {
     return (
@@ -24,7 +24,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
     <Paper withBorder>
       <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
         <Title order={3}>Current Queue</Title>
-        {user && userRoles?.can_edit && !nowPlaying && queue.length > 0 && (
+        {user && userRoles?.can_edit && isMallOpen && !nowPlaying && queue.length > 0 && (
           <Button 
             leftSection={<IconPlayerPlay size={16} />}
             onClick={() => onStartGame()}

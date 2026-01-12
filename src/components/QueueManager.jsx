@@ -5,6 +5,7 @@ import QueueForm from './QueueForm'
 import QueueList from './QueueList'
 import PlayTimer from './PlayTimer'
 import { useQueueManagerPolling as useQueueManager } from '../hooks/useQueueManagerPolling'
+import { useMallSchedule } from '../hooks/useMallSchedule'
 import { useAuth } from '../hooks/useAuth'
 import './QueueManager.css'
 
@@ -30,6 +31,8 @@ function QueueManager() {
   const [showForm, setShowForm] = useState(false)
 
   const canEdit = userRoles?.can_edit
+
+  const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule()
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
@@ -96,7 +99,7 @@ function QueueManager() {
 
   return (
     <Stack gap="md" style={{ position: 'relative' }}>
-      <LoadingOverlay visible={loading} />
+      <LoadingOverlay visible={loading || scheduleLoading} />
       
       {error && (
         <Alert 
@@ -113,7 +116,7 @@ function QueueManager() {
         <Group justify="space-between" align="center">
           <Group gap="md">
             <Badge variant="light" size="lg">
-              Credits: {queue.reduce((sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0), 0)}
+              Credits: {(isMallOpen ? filterQueue(queue) : []).reduce((sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0), 0)}
             </Badge>
             <Indicator 
               color={isConnected ? 'green' : 'red'} 
@@ -130,7 +133,7 @@ function QueueManager() {
             </Indicator>
           </Group>
           <Group gap="sm">
-            {user && canEdit && !showForm && !editingId && (
+            {user && canEdit && isMallOpen && !showForm && !editingId && (
               <Button 
                 leftSection={<IconPlus size={16} />}
                 onClick={() => setShowForm(true)}
@@ -139,7 +142,7 @@ function QueueManager() {
                 Add Queue
               </Button>
             )}
-            {user && canEdit && queue.length > 0 && (
+            {user && canEdit && isMallOpen && queue.length > 0 && (
               <Button 
                 variant="outline"
                 color="red"
@@ -189,7 +192,15 @@ function QueueManager() {
         </div>
       )}
 
-      {user && (showForm || editingId) && (
+      {!isMallOpen && (
+        <Paper p="xl" withBorder>
+          <Flex align="center" justify="center" style={{ height: 200 }}>
+            <Title order={2}>Mall is Closed</Title>
+          </Flex>
+        </Paper>
+      )}
+
+      {user && isMallOpen && (showForm || editingId) && (
         <QueueForm 
           key={editingId || 'new'}
           onSubmit={editingId ? updateQueueEntry : addQueueEntry}
@@ -199,15 +210,18 @@ function QueueManager() {
         />
       )}
 
-      <QueueList 
-        queue={queue}
+      {isMallOpen && (
+        <QueueList 
+        queue={filterQueue(queue)}
         nowPlaying={nowPlaying}
         onEdit={startEdit}
         onRemove={removeQueueEntry}
         onMoveUp={moveUp}
         onMoveDown={moveDown}
         onStartGame={startGame}
+        isMallOpen={isMallOpen}
       />
+      )}
     </Stack>
   )
 }

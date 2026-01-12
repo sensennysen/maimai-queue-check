@@ -308,3 +308,17 @@ export const subscribeToSessionChanges = (callback) => {
 
   return channel
 }
+
+// Mall schedule service functions
+export const scheduleService = {
+  // Fetch full mall schedule
+  async getSchedule() {
+    const { data, error } = await supabase
+      .from('mall_schedule')
+      .select('*')
+      .order('id', { ascending: true })
+
+    if (error) throw error
+    return data || []
+  }
+}
