@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Listen for auth changes - this properly handles session restoration on page load
     let isMounted = true
+    let rolesCheckInterval = null
     
     const {
       data: { subscription },
@@ -35,6 +36,9 @@ export const AuthProvider = ({ children }) => {
         setLoading(false)
         
         if (session?.user) {
+          // Clear any existing roles check interval
+          if (rolesCheckInterval) clearInterval(rolesCheckInterval)
+          
           // Fetch roles in background (non-blocking) with timeout
           const rolesPromise = rolesService.getUserRoles(session.user.id)
           const timeoutPromise = new Promise((_, reject) => 
@@ -46,13 +50,28 @@ export const AuthProvider = ({ children }) => {
             if (isMounted) setUserRoles(roles)
           } catch (roleError) {
             console.error('Error fetching user roles:', roleError)
-            // Set default permissions on error
-            if (isMounted) setUserRoles({
-              user_id: session.user.id,
-              can_edit: false
-            })
+            // Set default permissions on error (keep existing permissions if available)
+            if (isMounted) setUserRoles(prevRoles => 
+              prevRoles || {
+                user_id: session.user.id,
+                can_edit: false
+              }
+            )
           }
+          
+          // Periodically re-check roles every 30 seconds to ensure they don't get lost
+          rolesCheckInterval = setInterval(async () => {
+            if (!isMounted) return
+            try {
+              const roles = await rolesService.getUserRoles(session.user.id)
+              if (isMounted) setUserRoles(roles)
+            } catch (err) {
+              console.error('Error rechecking user roles:', err)
+              // Don't clear roles on recheck error, just log it
+            }
+          }, 30000)
         } else {
+          if (rolesCheckInterval) clearInterval(rolesCheckInterval)
           if (isMounted) setUserRoles(null)
         }
       } catch (unexpectedError) {
@@ -63,6 +82,7 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       isMounted = false
+      if (rolesCheckInterval) clearInterval(rolesCheckInterval)
       subscription?.unsubscribe()
     }
   }, [])

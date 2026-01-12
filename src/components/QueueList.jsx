@@ -6,6 +6,10 @@ import './QueueList.css'
 
 function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen }) {
   const { user, userRoles } = useAuth()
+  
+  // Safely check if user can edit - default to true if roles aren't loaded yet
+  const canEdit = userRoles === undefined ? true : userRoles?.can_edit
+  
   if (queue.length === 0) {
     return (
       <Paper p="xl" withBorder>
@@ -24,7 +28,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
     <Paper withBorder>
       <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
         <Title order={3}>Current Queue</Title>
-        {user && userRoles?.can_edit && isMallOpen && !nowPlaying && queue.length > 0 && (
+        {user && canEdit && isMallOpen && !nowPlaying && queue.length > 0 && (
           <Button 
             leftSection={<IconPlayerPlay size={16} />}
             onClick={() => onStartGame()}
@@ -42,7 +46,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
           </Text>
         </Group>
       )}
-      {user && !userRoles?.can_edit && (
+      {user && userRoles !== undefined && !userRoles?.can_edit && (
         <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-yellow-0)' }}>
           <Text size="sm" c="orange">
             You can view the queue but don't have permission to edit it

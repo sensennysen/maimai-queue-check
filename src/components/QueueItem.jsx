@@ -21,7 +21,9 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
     onMoveDown(item.id)
   }
 
-  const canEdit = userRoles?.can_edit
+  // Safely check if user can edit - default to showing buttons if roles aren't loaded yet
+  // This prevents buttons from disappearing during state transitions
+  const canEdit = userRoles === undefined ? true : userRoles?.can_edit
 
   return (
     <div 
