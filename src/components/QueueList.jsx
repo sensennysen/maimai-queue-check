@@ -3,7 +3,7 @@ import { IconPlayerPlay } from '@tabler/icons-react'
 import QueueItem from './QueueItem'
 import './QueueList.css'
 
-function QueueList({ queue, nowPlaying, onEdit, onRemove, onReorder, onStartGame }) {
+function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame }) {
   if (queue.length === 0) {
     return (
       <Paper p="xl" withBorder>
@@ -21,7 +21,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onReorder, onStartGame
   return (
     <Paper withBorder>
       <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
-        <Title order={3}>Current Queue ({queue.length} entries)</Title>
+        <Title order={3}>Current Queue</Title>
         {!nowPlaying && queue.length > 0 && (
           <Button 
             leftSection={<IconPlayerPlay size={16} />}
@@ -40,7 +40,8 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onReorder, onStartGame
             item={item}
             onEdit={onEdit}
             onRemove={onRemove}
-            onReorder={onReorder}
+            onMoveUp={(id) => onMoveUp(id)}
+            onMoveDown={(id) => onMoveDown(id)}
             isFirst={index === 0}
             isLast={index === queue.length - 1}
             isNextUp={index === 0 && !nowPlaying}

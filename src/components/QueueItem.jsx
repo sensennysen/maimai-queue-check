@@ -1,12 +1,9 @@
 import { useState } from 'react'
 import { Group, Text, Button, ActionIcon, Badge, Box, Flex } from '@mantine/core'
-import { IconEdit, IconTrash, IconGripVertical } from '@tabler/icons-react'
+import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react'
 import './QueueItem.css'
 
-function QueueItem({ item, onEdit, onRemove, onReorder, isFirst, isLast, isNextUp, gameInProgress }) {
-  const [isDragging, setIsDragging] = useState(false)
-  const [isDragOver, setIsDragOver] = useState(false)
-
+function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, gameInProgress }) {
   const handleEdit = () => {
     onEdit(item.id)
   }
@@ -17,33 +14,12 @@ function QueueItem({ item, onEdit, onRemove, onReorder, isFirst, isLast, isNextU
     }
   }
 
-  const handleDragStart = (e) => {
-    setIsDragging(true)
-    e.dataTransfer.setData('text/plain', item.id.toString())
-    e.dataTransfer.effectAllowed = 'move'
+  const handleMoveUp = () => {
+    onMoveUp(item.id)
   }
 
-  const handleDragEnd = () => {
-    setIsDragging(false)
-  }
-
-  const handleDragOver = (e) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-    setIsDragOver(true)
-  }
-
-  const handleDragLeave = () => {
-    setIsDragOver(false)
-  }
-
-  const handleDrop = (e) => {
-    e.preventDefault()
-    setIsDragOver(false)
-    const draggedId = parseInt(e.dataTransfer.getData('text/plain'))
-    if (draggedId !== item.id) {
-      onReorder(draggedId, item.id)
-    }
+  const handleMoveDown = () => {
+    onMoveDown(item.id)
   }
 
   return (
@@ -53,30 +29,15 @@ function QueueItem({ item, onEdit, onRemove, onReorder, isFirst, isLast, isNextU
         borderBottom: isLast ? 'none' : `1px solid ${theme.colors.gray[3]}`,
         backgroundColor: isNextUp ? theme.colors.yellow[0] : 'white',
         borderLeft: isNextUp ? `4px solid ${theme.colors.yellow[6]}` : 'none',
-        cursor: !gameInProgress ? 'move' : 'default',
-        opacity: isDragging ? 0.5 : 1,
-        transform: isDragging ? 'rotate(2deg)' : 'none',
-        borderTop: isDragOver ? `3px solid ${theme.colors.blue[6]}` : 'none',
         transition: 'all 0.2s ease'
       })}
-      draggable={!gameInProgress}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
     >
       <Group justify="space-between" align="center">
         <Group gap="md" style={{ flex: 1, minWidth: 0 }}>
-          <Box style={{ minWidth: 60 }}>
-            <Group gap="xs" align="center">
-              <Text fw={700} size="xl" c="blue.6">#{item.order}</Text>
-              {!gameInProgress && (
-                <IconGripVertical size={16} color="gray" />
-              )}
-            </Group>
+          <Box style={{ minWidth: 80 }}>
+            <Text fw={700} size="xl" c="blue.6">#{item.order}</Text>
             {isNextUp && (
-              <Badge size="xs" color="yellow" variant="filled">
+              <Badge size="xs" color="yellow" variant="filled" mt={2}>
                 Next Up!
               </Badge>
             )}
@@ -118,6 +79,26 @@ function QueueItem({ item, onEdit, onRemove, onReorder, isFirst, isLast, isNextU
         </Group>
         
         <Group gap="xs">
+          <Group gap={2}>
+            <ActionIcon
+              variant="light"
+              color="gray"
+              onClick={handleMoveUp}
+              disabled={isFirst}
+              title="Move up in queue"
+            >
+              <IconChevronUp size={16} />
+            </ActionIcon>
+            <ActionIcon
+              variant="light"
+              color="gray"
+              onClick={handleMoveDown}
+              disabled={isLast}
+              title="Move down in queue"
+            >
+              <IconChevronDown size={16} />
+            </ActionIcon>
+          </Group>
           <ActionIcon
             variant="light"
             color="blue"

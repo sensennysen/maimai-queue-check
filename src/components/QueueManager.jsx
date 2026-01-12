@@ -57,32 +57,32 @@ function QueueManager() {
     setQueue(reorderedQueue)
   }
 
-  // Reorder queue by drag and drop
-  const reorderQueue = (draggedId, targetId) => {
-    const draggedIndex = queue.findIndex(item => item.id === draggedId)
-    const targetIndex = queue.findIndex(item => item.id === targetId)
-    
-    if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) {
-      return
+  // Move entry up in queue
+  const moveUp = (id) => {
+    const index = queue.findIndex(item => item.id === id)
+    if (index > 0) {
+      const newQueue = [...queue]
+      // Swap with previous item
+      ;[newQueue[index - 1], newQueue[index]] = [newQueue[index], newQueue[index - 1]]
+      // Update order numbers
+      newQueue[index - 1].order = index
+      newQueue[index].order = index + 1
+      setQueue(newQueue)
     }
+  }
 
-    const newQueue = [...queue]
-    const draggedItem = newQueue[draggedIndex]
-    
-    // Remove dragged item
-    newQueue.splice(draggedIndex, 1)
-    
-    // Insert at new position
-    const newTargetIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex
-    newQueue.splice(newTargetIndex, 0, draggedItem)
-    
-    // Update order numbers
-    const reorderedQueue = newQueue.map((item, index) => ({
-      ...item,
-      order: index + 1
-    }))
-    
-    setQueue(reorderedQueue)
+  // Move entry down in queue
+  const moveDown = (id) => {
+    const index = queue.findIndex(item => item.id === id)
+    if (index < queue.length - 1) {
+      const newQueue = [...queue]
+      // Swap with next item
+      ;[newQueue[index], newQueue[index + 1]] = [newQueue[index + 1], newQueue[index]]
+      // Update order numbers
+      newQueue[index].order = index + 1
+      newQueue[index + 1].order = index + 2
+      setQueue(newQueue)
+    }
   }
 
   // Clear entire queue
@@ -141,11 +141,10 @@ function QueueManager() {
     <Stack gap="md">
       <Paper p="md" withBorder>
         <Group justify="space-between" align="center">
-          <Title order={2}>Queue Management</Title>
+          <Badge variant="light" size="lg">
+            Total entries: {queue.length}
+          </Badge>
           <Group gap="sm">
-            <Badge variant="light" size="lg">
-              Total entries: {queue.length}
-            </Badge>
             {!showForm && !editingId && (
               <Button 
                 leftSection={<IconPlus size={16} />}
@@ -234,7 +233,8 @@ function QueueManager() {
         nowPlaying={nowPlaying}
         onEdit={startEdit}
         onRemove={removeQueueEntry}
-        onReorder={reorderQueue}
+        onMoveUp={moveUp}
+        onMoveDown={moveDown}
         onStartGame={startGame}
       />
     </Stack>
