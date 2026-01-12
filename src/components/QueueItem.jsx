@@ -26,7 +26,7 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
       className={`queue-item ${isNextUp ? 'next-up' : ''}`}
     >
       <div className="item-order">
-        <span className="order-number">#{item.order}</span>
+        <span className="order-number">#{item.order_position || item.order}</span>
         {isNextUp && (
           <span className="next-label">Next Up!</span>
         )}

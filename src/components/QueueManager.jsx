@@ -1,95 +1,60 @@
 import { useState } from 'react'
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box } from '@mantine/core'
-import { IconPlayerStop, IconTrash, IconPlus } from '@tabler/icons-react'
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator } from '@mantine/core'
+import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconWifi, IconWifiOff } from '@tabler/icons-react'
 import QueueForm from './QueueForm'
 import QueueList from './QueueList'
+import { useQueueManagerPolling as useQueueManager } from '../hooks/useQueueManagerPolling'
 import './QueueManager.css'
 
 function QueueManager() {
-  const [queue, setQueue] = useState([])
-  const [nowPlaying, setNowPlaying] = useState(null)
+  const {
+    queue,
+    nowPlaying,
+    loading,
+    error,
+    isConnected,
+    addQueueEntry: addEntry,
+    updateQueueEntry: updateEntry,
+    removeQueueEntry,
+    moveUp,
+    moveDown,
+    clearQueue: clearAllQueue,
+    endGame,
+    startNextGame
+  } = useQueueManager()
+
   const [editingId, setEditingId] = useState(null)
   const [showForm, setShowForm] = useState(false)
 
-  // Generate next order number
-  const getNextOrder = () => {
-    return queue.length > 0 ? Math.max(...queue.map(item => item.order)) + 1 : 1
-  }
-
   // Add new queue entry
-  const addQueueEntry = (player1, player2) => {
-    const newEntry = {
-      id: Date.now(), // Simple ID generation
-      order: getNextOrder(),
-      player1: player1.trim(),
-      player2: player2.trim()
-    }
-    const updatedQueue = [...queue, newEntry]
-    setShowForm(false)
-    
-    // Auto-start if this is the only entry and no game is currently playing
-    if (updatedQueue.length === 1 && !nowPlaying) {
-      setNowPlaying(newEntry)
-      setQueue([]) // Remove the entry from queue since it's now playing
-    } else {
-      setQueue(updatedQueue)
+  const addQueueEntry = async (player1, player2) => {
+    try {
+      await addEntry(player1, player2)
+      setShowForm(false)
+    } catch (err) {
+      console.error('Failed to add queue entry:', err)
     }
   }
 
   // Update existing queue entry
-  const updateQueueEntry = (id, player1, player2) => {
-    setQueue(queue.map(item => 
-      item.id === id 
-        ? { ...item, player1: player1.trim(), player2: player2.trim() }
-        : item
-    ))
-    setEditingId(null)
-  }
-
-  // Remove queue entry
-  const removeQueueEntry = (id) => {
-    const newQueue = queue.filter(item => item.id !== id)
-    // Reorder the remaining entries
-    const reorderedQueue = newQueue.map((item, index) => ({
-      ...item,
-      order: index + 1
-    }))
-    setQueue(reorderedQueue)
-  }
-
-  // Move entry up in queue
-  const moveUp = (id) => {
-    const index = queue.findIndex(item => item.id === id)
-    if (index > 0) {
-      const newQueue = [...queue]
-      // Swap with previous item
-      ;[newQueue[index - 1], newQueue[index]] = [newQueue[index], newQueue[index - 1]]
-      // Update order numbers
-      newQueue[index - 1].order = index
-      newQueue[index].order = index + 1
-      setQueue(newQueue)
-    }
-  }
-
-  // Move entry down in queue
-  const moveDown = (id) => {
-    const index = queue.findIndex(item => item.id === id)
-    if (index < queue.length - 1) {
-      const newQueue = [...queue]
-      // Swap with next item
-      ;[newQueue[index], newQueue[index + 1]] = [newQueue[index + 1], newQueue[index]]
-      // Update order numbers
-      newQueue[index].order = index + 1
-      newQueue[index + 1].order = index + 2
-      setQueue(newQueue)
+  const updateQueueEntry = async (id, player1, player2) => {
+    try {
+      await updateEntry(id, player1, player2)
+      setEditingId(null)
+    } catch (err) {
+      console.error('Failed to update queue entry:', err)
     }
   }
 
   // Clear entire queue
-  const clearQueue = () => {
+  const clearQueue = async () => {
     if (queue.length > 0 && window.confirm('Are you sure you want to clear the entire queue?')) {
-      setQueue([])
-      setEditingId(null)
+      try {
+        await clearAllQueue()
+        setEditingId(null)
+      } catch (err) {
+        console.error('Failed to clear queue:', err)
+      }
     }
   }
 
@@ -105,45 +70,59 @@ function QueueManager() {
     setShowForm(false)
   }
 
-  // Start a new game with the first queue entry
-  const startGame = () => {
-    if (queue.length > 0) {
-      const firstEntry = queue[0]
-      setNowPlaying(firstEntry)
-      // Remove first entry and reorder remaining queue
-      const newQueue = queue.slice(1).map((item, index) => ({
-        ...item,
-        order: index + 1
-      }))
-      setQueue(newQueue)
+  // Finish current game
+  const finishGame = async () => {
+    try {
+      await endGame()
+    } catch (err) {
+      console.error('Failed to finish game:', err)
     }
   }
 
-  // Finish current game
-  const finishGame = () => {
-    setNowPlaying(null)
-    // Automatically start next game if queue has entries
-    if (queue.length > 0) {
-      setTimeout(() => {
-        const firstEntry = queue[0]
-        setNowPlaying(firstEntry)
-        // Remove first entry and reorder remaining queue
-        const newQueue = queue.slice(1).map((item, index) => ({
-          ...item,
-          order: index + 1
-        }))
-        setQueue(newQueue)
-      }, 100) // Small delay to ensure state updates properly
+  // Start game from queue
+  const startGame = async (id) => {
+    try {
+      await startNextGame()
+    } catch (err) {
+      console.error('Failed to start game:', err)
     }
   }
 
   return (
-    <Stack gap="md">
+    <Stack gap="md" style={{ position: 'relative' }}>
+      <LoadingOverlay visible={loading} />
+      
+      {error && (
+        <Alert 
+          icon={<IconAlertCircle size={16} />} 
+          title="Error" 
+          color="red"
+          variant="light"
+        >
+          {error}
+        </Alert>
+      )}
+
       <Paper p="md" withBorder>
         <Group justify="space-between" align="center">
-          <Badge variant="light" size="lg">
-            Total entries: {queue.length}
-          </Badge>
+          <Group gap="md">
+            <Badge variant="light" size="lg">
+              Total entries: {queue.length}
+            </Badge>
+            <Indicator 
+              color={isConnected ? 'green' : 'red'} 
+              size={8}
+              processing={!isConnected}
+            >
+              <Badge 
+                variant="light" 
+                color={isConnected ? 'green' : 'red'}
+                leftSection={isConnected ? <IconWifi size={12} /> : <IconWifiOff size={12} />}
+              >
+                {isConnected ? 'Live' : 'Offline'}
+              </Badge>
+            </Indicator>
+          </Group>
           <Group gap="sm">
             {!showForm && !editingId && (
               <Button 
