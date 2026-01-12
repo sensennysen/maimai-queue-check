@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Group, Text, Button, ActionIcon, Badge, Box, Flex } from '@mantine/core'
 import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react'
 import './QueueItem.css'
 
@@ -23,101 +22,69 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
   }
 
   return (
-    <Box 
-      p="md"
-      style={(theme) => ({
-        borderBottom: isLast ? 'none' : `1px solid ${theme.colors.gray[3]}`,
-        backgroundColor: isNextUp ? theme.colors.yellow[0] : 'white',
-        borderLeft: isNextUp ? `4px solid ${theme.colors.yellow[6]}` : 'none',
-        transition: 'all 0.2s ease'
-      })}
+    <div 
+      className={`queue-item ${isNextUp ? 'next-up' : ''}`}
     >
-      <Group justify="space-between" align="center">
-        <Group gap="md" style={{ flex: 1, minWidth: 0 }}>
-          <Box style={{ minWidth: 80 }}>
-            <Text fw={700} size="xl" c="blue.6">#{item.order}</Text>
-            {isNextUp && (
-              <Badge size="xs" color="yellow" variant="filled" mt={2}>
-                Next Up!
-              </Badge>
-            )}
-          </Box>
-          
-          <Flex gap="md" wrap="wrap" style={{ flex: 1 }}>
-            {item.player1 && item.player1.trim() && (
-              <Box style={{ 
-                flex: 1, 
-                minWidth: 0, 
-                backgroundColor: 'var(--mantine-color-blue-0)', 
-                padding: '8px 12px', 
-                borderRadius: '8px',
-                border: '1px solid var(--mantine-color-blue-3)'
-              }}>
-                <Group gap="xs" wrap="nowrap">
-                  <Badge variant="filled" color="blue" size="sm">P1</Badge>
-                  <Text fw={500} style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.player1}</Text>
-                </Group>
-              </Box>
-            )}
-            
-            {item.player2 && item.player2.trim() && (
-              <Box style={{ 
-                flex: 1, 
-                minWidth: 0, 
-                backgroundColor: 'var(--mantine-color-grape-0)', 
-                padding: '8px 12px', 
-                borderRadius: '8px',
-                border: '1px solid var(--mantine-color-grape-3)'
-              }}>
-                <Group gap="xs" wrap="nowrap">
-                  <Badge variant="filled" color="grape" size="sm">P2</Badge>
-                  <Text fw={500} style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.player2}</Text>
-                </Group>
-              </Box>
-            )}
-          </Flex>
-        </Group>
+      <div className="item-order">
+        <span className="order-number">#{item.order}</span>
+        {isNextUp && (
+          <span className="next-label">Next Up!</span>
+        )}
+      </div>
+      
+      <div className="players-section">
+        {item.player1 && item.player1.trim() && (
+          <div className={`item-player player-1 ${(!item.player2 || !item.player2.trim()) ? 'player-solo' : ''}`}>
+            <span className="player-side player-side-1">P1</span>
+            <span className="player-name">{item.player1}</span>
+          </div>
+        )}
         
-        <Group gap="xs">
-          <Group gap={2}>
-            <ActionIcon
-              variant="light"
-              color="gray"
-              onClick={handleMoveUp}
-              disabled={isFirst}
-              title="Move up in queue"
-            >
-              <IconChevronUp size={16} />
-            </ActionIcon>
-            <ActionIcon
-              variant="light"
-              color="gray"
-              onClick={handleMoveDown}
-              disabled={isLast}
-              title="Move down in queue"
-            >
-              <IconChevronDown size={16} />
-            </ActionIcon>
-          </Group>
-          <ActionIcon
-            variant="light"
-            color="blue"
+        {item.player2 && item.player2.trim() && (
+          <div className={`item-player player-2 ${(!item.player1 || !item.player1.trim()) ? 'player-solo' : ''}`}>
+            <span className="player-side player-side-2">P2</span>
+            <span className="player-name">{item.player2}</span>
+          </div>
+        )}
+      </div>
+      
+      <div className="item-actions">
+        <div className="move-buttons">
+          <button
+            className="move-btn up"
+            onClick={handleMoveUp}
+            disabled={isFirst}
+            title="Move up in queue"
+          >
+            ▲
+          </button>
+          <button
+            className="move-btn down"
+            onClick={handleMoveDown}
+            disabled={isLast}
+            title="Move down in queue"
+          >
+            ▼
+          </button>
+        </div>
+        <div className="action-buttons">
+          <button
+            className="edit-btn"
             onClick={handleEdit}
             title="Edit this entry"
           >
             <IconEdit size={16} />
-          </ActionIcon>
-          <ActionIcon
-            variant="light"
-            color="red"
+          </button>
+          <button
+            className="remove-btn"
             onClick={handleRemove}
             title="Remove from queue"
           >
             <IconTrash size={16} />
-          </ActionIcon>
-        </Group>
-      </Group>
-    </Box>
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 

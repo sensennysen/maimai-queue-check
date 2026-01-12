@@ -3,9 +3,28 @@
   line-height: 1.5;
   font-weight: 400;
 
+  /* Default theme colors - will be overridden by ThemeContext */
+  --theme-background: #FFF2F8;
+  --theme-surface: #FFFFFF;
+  --theme-primary: #FF4FB7;
+  --theme-secondary: #31E0E7;
+  --theme-accent: #FFE35A;
+  --theme-text-primary: #2B1C2A;
+  --theme-text-muted: #7B5A78;
+  
+  /* Derived colors */
+  --theme-primary-hover: #FF6BC4;
+  --theme-secondary-hover: #4AE6EC;
+  --theme-accent-hover: #FFEB70;
+  --theme-surface-hover: #F8F8FF;
+  --theme-border: #E8D8E8;
+  --theme-error: #FF6B6B;
+  --theme-success: #51CF66;
+  --theme-warning: #FFB800;
+
   color-scheme: light;
-  color: #213547;
-  background-color: #ffffff;
+  color: var(--theme-text-primary);
+  background-color: var(--theme-background);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -21,9 +40,11 @@
 body {
   margin: 0;
   padding: 0;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--theme-background);
+  color: var(--theme-text-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -39,7 +60,7 @@ button {
 }
 
 button:focus {
-  outline: 2px solid #667eea;
+  outline: 2px solid var(--theme-primary);
   outline-offset: 2px;
 }
 
@@ -102,14 +123,74 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--theme-surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--theme-border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
+  background: var(--theme-text-muted);
+}
+
+/* Theme transition animations */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Theme toggle styles */
+.theme-toggle {
+  transition: all 0.3s ease !important;
+}
+
+.theme-toggle:hover {
+  background-color: var(--theme-surface-hover) !important;
+  transform: scale(1.1);
+}
+
+/* Mantine theme integration */
+[data-theme="dark"] {
+  --mantine-color-body: var(--theme-background);
+  --mantine-color-text: var(--theme-text-primary);
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --mantine-color-body: var(--theme-background);
+  --mantine-color-text: var(--theme-text-primary);
+  color-scheme: light;
+}
+
+/* Override Mantine Paper backgrounds to use our theme */
+.mantine-Paper-root {
+  background-color: var(--theme-surface) !important;
+  border-color: var(--theme-border) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+/* Override Mantine Button colors to match theme */
+.mantine-Button-root {
+  transition: all 0.3s ease;
+}
+
+/* Ensure proper text contrast in different themes */
+.mantine-Text-root {
+  color: inherit !important;
+}
+
+.mantine-Title-root {
+  color: inherit !important;
+}
+
+/* Override Mantine Stack and Group backgrounds */
+.mantine-Stack-root,
+.mantine-Group-root {
+  background-color: transparent !important;
+}
+
+/* Override Mantine Container background */
+.mantine-Container-root {
+  background-color: transparent !important;
 }

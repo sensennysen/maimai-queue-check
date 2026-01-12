@@ -11,14 +11,16 @@
   align-items: center;
   margin-bottom: 1rem;
   padding: 1rem;
-  background: #f8f9fa;
+  background: var(--theme-surface);
   border-radius: 8px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--theme-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--theme-border);
 }
 
 .queue-header h2 {
   margin: 0;
-  color: #333;
+  color: var(--theme-text-primary);
   font-size: 1.25rem;
 }
 
@@ -30,13 +32,13 @@
 
 .queue-count {
   font-weight: 500;
-  color: #666;
+  color: var(--theme-text-muted);
   font-size: 0.9rem;
 }
 
 .clear-btn {
   padding: 0.5rem 1rem;
-  background: #dc3545;
+  background: var(--theme-error);
   color: white;
   border: none;
   border-radius: 4px;
@@ -49,7 +51,7 @@
 }
 
 .clear-btn:hover {
-  background: #c82333;
+  background: #FF5757;
   transform: translateY(-1px);
 }
 
@@ -58,15 +60,17 @@
 }
 
 .now-playing {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  background: var(--theme-surface);
   border-radius: 12px;
   padding: 1.25rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-border);
+  border-left: 4px solid var(--theme-primary);
 }
 
-.now-playing h3 {
+.now-playing-header h3 {
   margin: 0 0 1rem 0;
   font-size: 1.25rem;
   font-weight: 600;
@@ -81,23 +85,26 @@
 }
 
 .player-display {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
   flex: 1;
   min-width: 0;
-  justify-content: center;
 }
 
 .playing-player {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: 100%;
+}
+
+.playing-player.player-solo {
+  grid-column: 1 / -1;
 }
 
 .player-side-indicator {
-  background: rgba(255, 255, 255, 0.9);
-  color: #28a745;
+  color: white;
   padding: 0.3rem 0.6rem;
   border-radius: 12px;
   font-size: 0.8rem;
@@ -108,14 +115,23 @@
   flex-shrink: 0;
 }
 
+.player-side-1 {
+  background: var(--theme-player1);
+}
+
+.player-side-2 {
+  background: var(--theme-player2);
+  color: #000000;
+}
+
 .player-display .player-name {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--theme-surface-hover);
+  color: var(--theme-text-primary);
   padding: 0.6rem 1rem;
   border-radius: 20px;
   font-weight: 600;
   font-size: 1rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--theme-border);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -124,8 +140,8 @@
 }
 
 .vs-text {
-  background: rgba(255, 255, 255, 0.9);
-  color: #28a745;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--theme-success);
   padding: 0.4rem 0.8rem;
   border-radius: 50%;
   font-weight: bold;
@@ -137,35 +153,37 @@
 }
 
 .solo-text {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: var(--theme-surface-hover);
+  color: var(--theme-text-muted);
   padding: 0.4rem 0.8rem;
   border-radius: 16px;
   font-weight: 600;
   font-size: 0.85rem;
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--theme-border);
+  width: 100%;
 }
 
 .finish-game-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.6rem 1rem;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--theme-primary);
   color: white;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  border: 2px solid var(--theme-primary);
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
   font-size: 0.9rem;
   transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
   min-height: 44px;
   white-space: nowrap;
 }
 
 .finish-game-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.8);
+  background: var(--theme-primary-hover);
+  border-color: var(--theme-primary-hover);
   transform: translateY(-1px);
 }
 
@@ -215,6 +233,12 @@
   }
   
   .player-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .playing-player {
     justify-content: center;
     gap: 0.5rem;
   }

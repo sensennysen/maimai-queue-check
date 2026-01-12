@@ -169,54 +169,36 @@ function QueueManager() {
       </Paper>
 
       {nowPlaying && (
-        <Paper p="md" withBorder>
-          <Group justify="space-between" align="center" mb="md">
-            <Title order={3}>🎮 Now Playing</Title>
-          </Group>
-          <Group gap="sm" justify="space-between">
-            <Flex gap="md" style={{ flex: 1 }}>
+        <div className="now-playing">
+          <div className="now-playing-header">
+            <h3>🎮 Now Playing</h3>
+          </div>
+          <div className="current-players">
+            <div className="player-display">
               {nowPlaying.player1 && nowPlaying.player1.trim() && (
-                <Box style={{ 
-                  flex: 1,
-                  minWidth: 0,
-                  backgroundColor: 'var(--mantine-color-blue-1)', 
-                  padding: '8px 12px', 
-                  borderRadius: '8px',
-                  border: '1px solid var(--mantine-color-blue-4)'
-                }}>
-                  <Group gap="xs">
-                    <Badge variant="filled" color="blue" size="sm">P1</Badge>
-                    <Text fw={500}>{nowPlaying.player1}</Text>
-                  </Group>
-                </Box>
+                <div className={`playing-player player-1 ${(!nowPlaying.player2 || !nowPlaying.player2.trim()) ? 'player-solo' : ''}`}>
+                  <span className="player-side-indicator player-side-1">P1</span>
+                  <span className="player-name">{nowPlaying.player1}</span>
+                </div>
               )}
-
+              
               {nowPlaying.player2 && nowPlaying.player2.trim() && (
-                <Box style={{ 
-                  flex: 1,
-                  minWidth: 0,
-                  backgroundColor: 'var(--mantine-color-grape-1)', 
-                  padding: '8px 12px', 
-                  borderRadius: '8px',
-                  border: '1px solid var(--mantine-color-grape-4)'
-                }}>
-                  <Group gap="xs">
-                    <Badge variant="filled" color="grape" size="sm">P2</Badge>
-                    <Text fw={500}>{nowPlaying.player2}</Text>
-                  </Group>
-                </Box>
+                <div className={`playing-player player-2 ${(!nowPlaying.player1 || !nowPlaying.player1.trim()) ? 'player-solo' : ''}`}>
+                  <span className="player-side-indicator player-side-2">P2</span>
+                  <span className="player-name">{nowPlaying.player2}</span>
+                </div>
               )}
-            </Flex>
-            <Button 
-              variant="filled"
-              color="green"
-              leftSection={<IconPlayerStop size={16} />}
+            </div>
+            
+            <button 
+              className="finish-game-btn"
               onClick={finishGame}
             >
+              <IconPlayerStop size={16} />
               Finish Game
-            </Button>
-          </Group>
-        </Paper>
+            </button>
+          </div>
+        </div>
       )}
 
       {(showForm || editingId) && (

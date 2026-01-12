@@ -1,16 +1,17 @@
 .queue-form {
-  background: white;
-  border: 1px solid #e0e0e0;
+  background: var(--theme-surface);
+  border: 1px solid var(--theme-border);
   border-radius: 8px;
   padding: 1.25rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
 .queue-form h3 {
   margin: 0 0 1.25rem 0;
-  color: #333;
-  border-bottom: 2px solid #667eea;
+  color: var(--theme-text-primary);
+  border-bottom: 2px solid var(--theme-primary);
   padding-bottom: 0.5rem;
   font-size: 1.2rem;
 }
@@ -18,10 +19,10 @@
 .general-error {
   margin-bottom: 1rem;
   padding: 0.75rem;
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid var(--theme-error);
   border-radius: 4px;
-  color: #721c24;
+  color: var(--theme-error);
   text-align: center;
 }
 
@@ -45,32 +46,34 @@
 .form-group label {
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #555;
+  color: var(--theme-text-muted);
   font-size: 0.95rem;
 }
 
 .form-group input {
   padding: 0.75rem;
-  border: 2px solid #ddd;
+  border: 2px solid var(--theme-border);
   border-radius: 4px;
   font-size: 1rem;
   transition: all 0.2s ease;
   min-height: 44px;
+  background: var(--theme-surface);
+  color: var(--theme-text-primary);
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 3px rgba(255, 79, 183, 0.1);
 }
 
 .form-group input.error {
-  border-color: #dc3545;
+  border-color: var(--theme-error);
 }
 
 .error-message {
   margin-top: 0.25rem;
-  color: #dc3545;
+  color: var(--theme-error);
   font-size: 0.8rem;
 }
 
@@ -82,7 +85,7 @@
 
 .submit-btn {
   padding: 0.75rem 1.5rem;
-  background: #667eea;
+  background: var(--theme-primary);
   color: white;
   border: none;
   border-radius: 4px;
@@ -95,7 +98,7 @@
 }
 
 .submit-btn:hover {
-  background: #5a6fd8;
+  background: var(--theme-primary-hover);
   transform: translateY(-1px);
 }
 
@@ -105,7 +108,7 @@
 
 .cancel-btn {
   padding: 0.75rem 1.5rem;
-  background: #6c757d;
+  background: var(--theme-text-muted);
   color: white;
   border: none;
   border-radius: 4px;
@@ -118,7 +121,7 @@
 }
 
 .cancel-btn:hover {
-  background: #5a6268;
+  background: #5A4C57;
   transform: translateY(-1px);
 }
 
