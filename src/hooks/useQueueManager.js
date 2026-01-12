@@ -333,6 +333,7 @@ export const useQueueManager = () => {
       const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status)
       if (nextEntry) {
         await startGame(nextEntry.id, nextEntry.player1, nextEntry.player2)
+        await loadInitialData()
       }
     } catch (err) {
       setError(err.message)

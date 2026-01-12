@@ -57,6 +57,11 @@ export const useQueueManagerPolling = () => {
       const orderPosition = getNextOrder()
       const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition)
       
+      // Auto-start if this is the first entry and no game is currently playing
+      if (queue.length === 0 && !nowPlaying) {
+        await startGame(newEntry.id, player1, player2)
+      }
+      
       // Immediately refresh data to show changes
       await loadData()
       
@@ -179,6 +184,7 @@ export const useQueueManagerPolling = () => {
       const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status)
       if (nextEntry) {
         await startGame(nextEntry.id, nextEntry.player1, nextEntry.player2)
+        await loadData()
       }
     } catch (err) {
       setError(err.message)
