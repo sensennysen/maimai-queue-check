@@ -1,7 +1,7 @@
 import QueueItem from './QueueItem'
 import './QueueList.css'
 
-function QueueList({ queue, onEdit, onRemove, onMoveUp, onMoveDown }) {
+function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame }) {
   if (queue.length === 0) {
     return (
       <div className="queue-list">
@@ -16,7 +16,18 @@ function QueueList({ queue, onEdit, onRemove, onMoveUp, onMoveDown }) {
 
   return (
     <div className="queue-list">
-      <h3>Current Queue ({queue.length} entries)</h3>
+      <div className="queue-list-header">
+        <h3>Current Queue ({queue.length} entries)</h3>
+        {!nowPlaying && queue.length > 0 && (
+          <button 
+            className="start-game-btn"
+            onClick={() => onStartGame()}
+            title="Start game with next players"
+          >
+            Start Game
+          </button>
+        )}
+      </div>
       <div className="queue-header-row">
         <span className="col-order">Order</span>
         <span className="col-player">Player 1</span>
@@ -34,6 +45,8 @@ function QueueList({ queue, onEdit, onRemove, onMoveUp, onMoveDown }) {
             onMoveDown={onMoveDown}
             isFirst={index === 0}
             isLast={index === queue.length - 1}
+            isNextUp={index === 0 && !nowPlaying}
+            gameInProgress={!!nowPlaying}
           />
         ))}
       </div>

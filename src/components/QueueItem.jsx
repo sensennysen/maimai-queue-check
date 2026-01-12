@@ -1,6 +1,6 @@
 import './QueueItem.css'
 
-function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast }) {
+function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, gameInProgress }) {
   const handleEdit = () => {
     onEdit(item.id)
   }
@@ -20,10 +20,10 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
   }
 
   return (
-    <div className={`queue-item ${item.order === 1 ? 'next-up' : ''}`}>
+    <div className={`queue-item ${isNextUp ? 'next-up' : ''}`}>
       <div className="item-order">
         <span className="order-number">#{item.order}</span>
-        {item.order === 1 && <span className="next-label">Next Up!</span>}
+        {isNextUp && <span className="next-label">Next Up!</span>}
       </div>
       
       <div className="item-player">

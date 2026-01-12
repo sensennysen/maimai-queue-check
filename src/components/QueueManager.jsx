@@ -5,6 +5,7 @@ import './QueueManager.css'
 
 function QueueManager() {
   const [queue, setQueue] = useState([])
+  const [nowPlaying, setNowPlaying] = useState(null)
   const [editingId, setEditingId] = useState(null)
 
   // Generate next order number
@@ -90,6 +91,25 @@ function QueueManager() {
     setEditingId(null)
   }
 
+  // Start a new game with the first queue entry
+  const startGame = () => {
+    if (queue.length > 0) {
+      const firstEntry = queue[0]
+      setNowPlaying(firstEntry)
+      // Remove first entry and reorder remaining queue
+      const newQueue = queue.slice(1).map((item, index) => ({
+        ...item,
+        order: index + 1
+      }))
+      setQueue(newQueue)
+    }
+  }
+
+  // Finish current game
+  const finishGame = () => {
+    setNowPlaying(null)
+  }
+
   return (
     <div className="queue-manager">
       <div className="queue-header">
@@ -108,6 +128,26 @@ function QueueManager() {
         </div>
       </div>
 
+      {nowPlaying && (
+        <div className="now-playing">
+          <h3>🎮 Now Playing</h3>
+          <div className="current-players">
+            <div className="player-display">
+              <span className="player-name">{nowPlaying.player1}</span>
+              <span className="vs-text">VS</span>
+              <span className="player-name">{nowPlaying.player2}</span>
+            </div>
+            <button 
+              className="finish-game-btn" 
+              onClick={finishGame}
+              title="Finish current game"
+            >
+              Finish Game
+            </button>
+          </div>
+        </div>
+      )}
+
       <QueueForm 
         onSubmit={editingId ? updateQueueEntry : addQueueEntry}
         editingId={editingId}
@@ -117,10 +157,12 @@ function QueueManager() {
 
       <QueueList 
         queue={queue}
+        nowPlaying={nowPlaying}
         onEdit={startEdit}
         onRemove={removeQueueEntry}
         onMoveUp={moveUp}
         onMoveDown={moveDown}
+        onStartGame={startGame}
       />
     </div>
   )

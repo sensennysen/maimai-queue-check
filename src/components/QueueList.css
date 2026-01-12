@@ -8,11 +8,38 @@
 
 .queue-list h3 {
   margin: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.queue-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 1rem 1.5rem;
   background: #f8f9fa;
-  color: #333;
   border-bottom: 1px solid #e0e0e0;
+}
+
+.start-game-btn {
+  padding: 0.6rem 1.2rem;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
   font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.start-game-btn:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+.start-game-btn:active {
+  transform: translateY(0);
 }
 
 .queue-header-row {
@@ -70,5 +97,15 @@
     gap: 0.5rem;
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
+  }
+  
+  .queue-list-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+  
+  .start-game-btn {
+    width: 100%;
   }
 }
