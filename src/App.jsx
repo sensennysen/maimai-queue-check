@@ -11,10 +11,10 @@ function App() {
           <Stack gap="lg">
             <Paper p="xl" radius="md" withBorder className="app-header">
               <Title order={1} ta="center" c="white" mb="xs">
-                🎵 Maimai Queue Manager
+                maimai Fairview Queue
               </Title>
-              <Text ta="center" c="dimmed" size="lg">
-                Manage your maimai rhythm game queue efficiently
+              <Text ta="center" c="white" size="lg">
+                Queue check po?
               </Text>
             </Paper>
             

@@ -146,6 +146,15 @@ function QueueManager() {
             <Badge variant="light" size="lg">
               Total entries: {queue.length}
             </Badge>
+            {!showForm && !editingId && (
+              <Button 
+                leftSection={<IconPlus size={16} />}
+                onClick={() => setShowForm(true)}
+                variant="filled"
+              >
+                Add Queue
+              </Button>
+            )}
             {queue.length > 0 && (
               <Button 
                 variant="outline"
@@ -206,20 +215,6 @@ function QueueManager() {
               onClick={finishGame}
             >
               Finish Game
-            </Button>
-          </Group>
-        </Paper>
-      )}
-
-      {!showForm && !editingId && (
-        <Paper p="md" withBorder>
-          <Group justify="center">
-            <Button 
-              leftSection={<IconPlus size={16} />}
-              onClick={() => setShowForm(true)}
-              size="lg"
-            >
-              Add Queue
             </Button>
           </Group>
         </Paper>
