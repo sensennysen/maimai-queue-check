@@ -69,7 +69,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
         )}
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="player1">Player 1 Side (Optional)</label>
+            <label htmlFor="player1">Player 1 Side</label>
             <input
               type="text"
               id="player1"
@@ -83,7 +83,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="player2">Player 2 Side (Optional)</label>
+            <label htmlFor="player2">Player 2 Side</label>
             <input
               type="text"
               id="player2"

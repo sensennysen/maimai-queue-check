@@ -28,11 +28,6 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
           </button>
         )}
       </div>
-      <div className="queue-header-row">
-        <span className="col-order">Order</span>
-        <span className="col-player">Players</span>
-        <span className="col-actions">Actions</span>
-      </div>
       <div className="queue-items">
         {queue.map((item, index) => (
           <QueueItem
