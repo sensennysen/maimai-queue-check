@@ -26,13 +26,15 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
         {isNextUp && <span className="next-label">Next Up!</span>}
       </div>
       
-      <div className="item-player">
-        <span className="player-name">{item.player1}</span>
-      </div>
-      
-      <div className="item-player vs-divider">
-        <span className="vs">vs</span>
-        <span className="player-name">{item.player2}</span>
+      <div className="players-section">
+        <div className="item-player">
+          <span className="player-name">{item.player1}</span>
+        </div>
+        
+        <div className="item-player vs-divider">
+          <span className="vs">vs</span>
+          <span className="player-name">{item.player2}</span>
+        </div>
       </div>
       
       <div className="item-actions">

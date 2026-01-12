@@ -10,13 +10,14 @@
   margin: 0;
   color: #333;
   font-weight: 600;
+  font-size: 1.1rem;
 }
 
 .queue-list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
   background: #f8f9fa;
   border-bottom: 1px solid #e0e0e0;
 }
@@ -31,6 +32,8 @@
   font-weight: 600;
   font-size: 0.9rem;
   transition: all 0.2s ease;
+  min-height: 44px;
+  white-space: nowrap;
 }
 
 .start-game-btn:hover {
@@ -46,12 +49,13 @@
   display: grid;
   grid-template-columns: 80px 1fr 1fr 140px;
   gap: 1rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1.25rem;
   background: #f1f3f4;
   border-bottom: 1px solid #e0e0e0;
   font-weight: 600;
   color: #555;
   text-align: center;
+  font-size: 0.9rem;
 }
 
 .col-order {
@@ -68,7 +72,7 @@
 }
 
 .empty-queue {
-  padding: 3rem 2rem;
+  padding: 2.5rem 1.5rem;
   text-align: center;
   color: #666;
 }
@@ -79,33 +83,108 @@
   background: none;
   border: none;
   padding: 0;
+  font-size: 1.1rem;
 }
 
 .empty-queue p {
   margin: 0 0 1.5rem 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .empty-icon {
-  font-size: 3rem;
+  font-size: 2.5rem;
   opacity: 0.5;
 }
 
 @media (max-width: 768px) {
   .queue-header-row {
-    grid-template-columns: 60px 1fr 1fr 100px;
+    grid-template-columns: 50px 1fr 90px;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
+  }
+  
+  .col-player {
+    display: none;
   }
   
   .queue-list-header {
     flex-direction: column;
     gap: 0.75rem;
     align-items: stretch;
+    padding: 0.75rem 1rem;
+  }
+  
+  .queue-list h3 {
+    text-align: center;
+    font-size: 1rem;
   }
   
   .start-game-btn {
     width: 100%;
+    font-size: 0.9rem;
+  }
+  
+  .queue-items {
+    max-height: 400px;
+  }
+  
+  .empty-queue {
+    padding: 2rem 1rem;
+  }
+  
+  .empty-queue h3 {
+    font-size: 1rem;
+  }
+  
+  .empty-queue p {
+    font-size: 0.9rem;
+  }
+  
+  .empty-icon {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .queue-header-row {
+    grid-template-columns: 40px 1fr 80px;
+    gap: 0.25rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .queue-list-header {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .queue-list h3 {
+    font-size: 0.95rem;
+  }
+  
+  .start-game-btn {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  .queue-items {
+    max-height: 350px;
+  }
+  
+  .empty-queue {
+    padding: 1.5rem 0.75rem;
+  }
+  
+  .empty-queue h3 {
+    font-size: 0.95rem;
+  }
+  
+  .empty-queue p {
+    font-size: 0.85rem;
+  }
+  
+  .empty-icon {
+    font-size: 1.75rem;
   }
 }
