@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { MantineProvider, Container, Title, Text, Paper, Stack, Group, createTheme } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/core/styles.css'
@@ -14,8 +15,10 @@ import './App.css'
 function AppContent() {
   const { isDark } = useTheme()
   
-  // Random subtitle selection
-  const randomSubtitle = subtitleMessages[Math.floor(Math.random() * subtitleMessages.length)]
+  // Random subtitle selection - using useState initializer to avoid impure function during render
+  const [randomSubtitle] = useState(() => 
+    subtitleMessages[Math.floor(Math.random() * subtitleMessages.length)]
+  )
   
   const mantineTheme = createTheme({
     colorScheme: isDark ? 'dark' : 'light',

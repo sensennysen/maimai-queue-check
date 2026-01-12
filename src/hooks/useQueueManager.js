@@ -29,6 +29,7 @@ export const useQueueManager = () => {
         await new Promise(resolve => setTimeout(resolve, 2000))
         
         // Test connection by checking supabase status
+        // eslint-disable-next-line no-unused-vars
         const { data, error } = await supabase.from('queue_entries').select('count').limit(1)
         if (!error) {
           setIsConnected(true)

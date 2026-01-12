@@ -89,7 +89,7 @@ function QueueManager() {
   }
 
   // Start game from queue
-  const startGame = async (id) => {
+  const startGame = async () => {
     try {
       await startNextGame()
     } catch (err) {

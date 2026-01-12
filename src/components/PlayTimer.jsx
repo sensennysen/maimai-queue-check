@@ -1,22 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import './PlayTimer.css'
 
 function PlayTimer({ startTime }) {
-  const [elapsed, setElapsed] = useState(0)
+  // Calculate initial elapsed time
+  const calculateElapsed = useCallback(() => {
+    if (!startTime) return 0
+    const start = new Date(startTime).getTime()
+    const now = Date.now()
+    const diff = Math.floor((now - start) / 1000) // Convert to seconds
+    return diff
+  }, [startTime])
+
+  const [elapsed, setElapsed] = useState(calculateElapsed)
 
   useEffect(() => {
     if (!startTime) return
-
-    // Calculate initial elapsed time
-    const calculateElapsed = () => {
-      const start = new Date(startTime).getTime()
-      const now = Date.now()
-      const diff = Math.floor((now - start) / 1000) // Convert to seconds
-      return diff
-    }
-
-    // Set initial value
-    setElapsed(calculateElapsed())
 
     // Update every second
     const interval = setInterval(() => {
@@ -24,7 +22,7 @@ function PlayTimer({ startTime }) {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [startTime])
+  }, [calculateElapsed, startTime])
 
   // Format time as MM:SS
   const formatTime = (seconds) => {

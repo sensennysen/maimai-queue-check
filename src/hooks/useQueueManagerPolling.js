@@ -16,6 +16,7 @@ export const useQueueManagerPolling = () => {
   const POLL_INTERVAL = 2000
 
   // Load data from server
+  // eslint-disable-next-line no-unused-vars
   const loadData = async (skipConnectionCheck = false) => {
     try {
       const [queueData, sessionData] = await Promise.all([

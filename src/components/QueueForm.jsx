@@ -1,25 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Paper, Title, TextInput, Group, Button, Stack, Alert } from '@mantine/core'
 import { IconPlus, IconEdit, IconX, IconPlayerPlay } from '@tabler/icons-react'
 import './QueueForm.css'
 
 function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
-  const [player1, setPlayer1] = useState('')
-  const [player2, setPlayer2] = useState('')
+  const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : ''
+  const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : ''
+  
+  const [player1, setPlayer1] = useState(initialPlayer1)
+  const [player2, setPlayer2] = useState(initialPlayer2)
   const [errors, setErrors] = useState({})
-
-  // Update form when editing - only depend on editingId to avoid overwriting user input during polling
-  useEffect(() => {
-    if (editingId && editingData) {
-      // Ensure null/undefined values are converted to empty strings
-      setPlayer1(editingData.player1 ? String(editingData.player1).trim() : '')
-      setPlayer2(editingData.player2 ? String(editingData.player2).trim() : '')
-    } else if (!editingId) {
-      setPlayer1('')
-      setPlayer2('')
-    }
-    setErrors({})
-  }, [editingId])
 
   const validateForm = () => {
     const newErrors = {}

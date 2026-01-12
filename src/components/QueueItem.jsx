@@ -1,8 +1,7 @@
-import { useState } from 'react'
 import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react'
 import './QueueItem.css'
 
-function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, gameInProgress, userRoles }) {
+function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, userRoles }) {
   const handleEdit = () => {
     onEdit(item.id)
   }
