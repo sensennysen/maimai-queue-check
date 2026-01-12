@@ -3,6 +3,7 @@ import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOver
 import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconWifi, IconWifiOff } from '@tabler/icons-react'
 import QueueForm from './QueueForm'
 import QueueList from './QueueList'
+import PlayTimer from './PlayTimer'
 import { useQueueManagerPolling as useQueueManager } from '../hooks/useQueueManagerPolling'
 import { useAuth } from '../hooks/useAuth'
 import './QueueManager.css'
@@ -155,6 +156,7 @@ function QueueManager() {
         <div className="now-playing">
           <div className="now-playing-header">
             <h3>🎮 Now Playing</h3>
+            <PlayTimer startTime={nowPlaying.started_at} />
           </div>
           <div className="current-players">
             <div className="player-display">

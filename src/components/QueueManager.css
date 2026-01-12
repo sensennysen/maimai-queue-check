@@ -76,6 +76,15 @@
   font-weight: 600;
 }
 
+.now-playing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
 .current-players {
   display: flex;
   justify-content: space-between;
