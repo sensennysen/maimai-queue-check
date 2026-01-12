@@ -30,7 +30,9 @@ function QueueManager() {
 
   const [editingId, setEditingId] = useState(null)
   const [showForm, setShowForm] = useState(false)
-  const [closedMessage, setClosedMessage] = useState('')
+  const [closedMessage, setClosedMessage] = useState(() => 
+    closedMessages[Math.floor(Math.random() * closedMessages.length)]
+  )
 
   const canEdit = userRoles?.can_edit
 
