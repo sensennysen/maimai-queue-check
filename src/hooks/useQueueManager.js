@@ -225,10 +225,10 @@ export const useQueueManager = () => {
         newQueue[index] = updates[1]
         setQueue(newQueue)
         
-        // Update database
+        // Update database - send all fields to prevent null values
         await queueService.updateOrderPositions([
-          { id: updates[0].id, order_position: updates[0].order_position },
-          { id: updates[1].id, order_position: updates[1].order_position }
+          { id: updates[0].id, order_position: updates[0].order_position, player1: updates[0].player1, player2: updates[0].player2, status: updates[0].status },
+          { id: updates[1].id, order_position: updates[1].order_position, player1: updates[1].player1, player2: updates[1].player2, status: updates[1].status }
         ])
       }
     } catch (err) {
@@ -256,10 +256,10 @@ export const useQueueManager = () => {
         newQueue[index + 1] = updates[1]
         setQueue(newQueue)
         
-        // Update database
+        // Update database - send all fields to prevent null values
         await queueService.updateOrderPositions([
-          { id: updates[0].id, order_position: updates[0].order_position },
-          { id: updates[1].id, order_position: updates[1].order_position }
+          { id: updates[0].id, order_position: updates[0].order_position, player1: updates[0].player1, player2: updates[0].player2, status: updates[0].status },
+          { id: updates[1].id, order_position: updates[1].order_position, player1: updates[1].player1, player2: updates[1].player2, status: updates[1].status }
         ])
       }
     } catch (err) {
