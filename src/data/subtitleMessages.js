@@ -11,4 +11,7 @@ export const subtitleMessages = [
   "Balik 12k na ako",
   "Anong queue yan makauwi na nga",
   "Andito ka nanaman??",
+  "Sino may powerbank?",
+  "ALMOST AP UOOOOOOGGGHHHH",
+  "Wag mo ako kausapin",
 ]
