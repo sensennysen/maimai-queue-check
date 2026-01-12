@@ -156,7 +156,7 @@ function QueueManager() {
       {nowPlaying && (
         <div className="now-playing">
           <div className="now-playing-header">
-            <h3>🎮 Now Playing</h3>
+            <h3>Now Playing</h3>
             <PlayTimer startTime={nowPlaying.started_at} />
           </div>
           <div className="current-players">

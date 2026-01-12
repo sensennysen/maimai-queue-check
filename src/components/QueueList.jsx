@@ -45,7 +45,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
       {user && !userRoles?.can_edit && (
         <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-yellow-0)' }}>
           <Text size="sm" c="orange">
-            👀 You can view the queue but don't have permission to edit it
+            You can view the queue but don't have permission to edit it
           </Text>
         </Group>
       )}
