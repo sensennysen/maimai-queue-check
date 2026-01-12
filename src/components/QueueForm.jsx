@@ -21,12 +21,9 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
   const validateForm = () => {
     const newErrors = {}
     
-    if (!player1.trim()) {
-      newErrors.player1 = 'Player 1 name is required'
-    }
-    
-    if (!player2.trim()) {
-      newErrors.player2 = 'Player 2 name is required'
+    // At least one player is required
+    if (!player1.trim() && !player2.trim()) {
+      newErrors.general = 'At least one player is required'
     }
 
     setErrors(newErrors)
@@ -65,9 +62,14 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
     <div className="queue-form">
       <h3>{editingId ? 'Edit Queue Entry' : 'Add New Queue Entry'}</h3>
       <form onSubmit={handleSubmit}>
+        {errors.general && (
+          <div className="general-error">
+            <span className="error-message">{errors.general}</span>
+          </div>
+        )}
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="player1">Player 1 Name</label>
+            <label htmlFor="player1">Player 1 Side (Optional)</label>
             <input
               type="text"
               id="player1"
@@ -81,7 +83,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="player2">Player 2 Name</label>
+            <label htmlFor="player2">Player 2 Side (Optional)</label>
             <input
               type="text"
               id="player2"

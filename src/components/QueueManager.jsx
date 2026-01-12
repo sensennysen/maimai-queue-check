@@ -108,6 +108,19 @@ function QueueManager() {
   // Finish current game
   const finishGame = () => {
     setNowPlaying(null)
+    // Automatically start next game if queue has entries
+    if (queue.length > 0) {
+      setTimeout(() => {
+        const firstEntry = queue[0]
+        setNowPlaying(firstEntry)
+        // Remove first entry and reorder remaining queue
+        const newQueue = queue.slice(1).map((item, index) => ({
+          ...item,
+          order: index + 1
+        }))
+        setQueue(newQueue)
+      }, 100) // Small delay to ensure state updates properly
+    }
   }
 
   return (
@@ -133,9 +146,19 @@ function QueueManager() {
           <h3>🎮 Now Playing</h3>
           <div className="current-players">
             <div className="player-display">
-              <span className="player-name">{nowPlaying.player1}</span>
-              <span className="vs-text">VS</span>
-              <span className="player-name">{nowPlaying.player2}</span>
+              {nowPlaying.player1 && nowPlaying.player1.trim() && (
+                <div className="playing-player">
+                  <span className="player-side-indicator">P1</span>
+                  <span className="player-name">{nowPlaying.player1}</span>
+                </div>
+              )}
+
+              {nowPlaying.player2 && nowPlaying.player2.trim() && (
+                <div className="playing-player">
+                  <span className="player-side-indicator">P2</span>
+                  <span className="player-name">{nowPlaying.player2}</span>
+                </div>
+              )}
             </div>
             <button 
               className="finish-game-btn" 

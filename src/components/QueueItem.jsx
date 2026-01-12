@@ -27,14 +27,21 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
       </div>
       
       <div className="players-section">
-        <div className="item-player">
-          <span className="player-name">{item.player1}</span>
-        </div>
+        {item.player1 && item.player1.trim() && (
+          <div className="item-player">
+            <span className="player-side">P1</span>
+            <span className="player-name">{item.player1}</span>
+          </div>
+        )}
         
-        <div className="item-player vs-divider">
-          <span className="vs">vs</span>
-          <span className="player-name">{item.player2}</span>
-        </div>
+
+        
+        {item.player2 && item.player2.trim() && (
+          <div className="item-player">
+            <span className="player-side">P2</span>
+            <span className="player-name">{item.player2}</span>
+          </div>
+        )}
       </div>
       
       <div className="item-actions">

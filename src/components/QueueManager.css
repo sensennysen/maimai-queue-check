@@ -86,6 +86,26 @@
   gap: 0.75rem;
   flex: 1;
   min-width: 0;
+  justify-content: center;
+}
+
+.playing-player {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.player-side-indicator {
+  background: rgba(255, 255, 255, 0.9);
+  color: #28a745;
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  min-width: 32px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .player-display .player-name {
@@ -114,6 +134,18 @@
   text-align: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
+}
+
+.solo-text {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 .finish-game-btn {

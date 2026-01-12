@@ -30,8 +30,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
       </div>
       <div className="queue-header-row">
         <span className="col-order">Order</span>
-        <span className="col-player">Player 1</span>
-        <span className="col-player">Player 2</span>
+        <span className="col-player">Players</span>
         <span className="col-actions">Actions</span>
       </div>
       <div className="queue-items">

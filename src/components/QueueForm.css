@@ -15,6 +15,21 @@
   font-size: 1.2rem;
 }
 
+.general-error {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  color: #721c24;
+  text-align: center;
+}
+
+.general-error .error-message {
+  margin: 0;
+  font-weight: 500;
+}
+
 .form-row {
   display: flex;
   gap: 1rem;
