@@ -1,11 +1,25 @@
 import { useEffect, useState } from 'react'
 import { authService, rolesService } from '../services/supabase'
 import { AuthContext } from './AuthContextProvider'
+import { notifications } from '@mantine/notifications'
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [userRoles, setUserRoles] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [previousUser, setPreviousUser] = useState(null)
+
+  useEffect(() => {
+    // Show success toast when user logs in (user changes from null to logged-in state)
+    if (user && !previousUser) {
+      notifications.show({
+        title: 'Login Successful',
+        message: `Welcome! You have been logged in.`,
+        color: 'green',
+      })
+    }
+    setPreviousUser(user)
+  }, [user, previousUser])
 
   useEffect(() => {
     // Listen for auth changes - this properly handles session restoration on page load

@@ -10,11 +10,6 @@ const LoginForm = () => {
   const handleSocialLogin = async (provider) => {
     try {
       await signInWithProvider(provider)
-      notifications.show({
-        title: 'Login Successful',
-        message: `Welcome! You have been logged in with ${provider}.`,
-        color: 'green',
-      })
     } catch (error) {
       notifications.show({
         title: 'Login Failed',
