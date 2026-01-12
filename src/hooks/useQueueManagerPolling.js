@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { queueService, sessionService } from '../services/supabase'
 
 export const useQueueManagerPolling = () => {
@@ -8,11 +8,15 @@ export const useQueueManagerPolling = () => {
   const [error, setError] = useState(null)
   const [isConnected, setIsConnected] = useState(true)
 
+  // Track if an operation is in progress to prevent polling interference
+  const isOperationInProgress = useRef(false)
+  const pollTimeoutRef = useRef(null)
+
   // Polling interval (every 2 seconds)
   const POLL_INTERVAL = 2000
 
   // Load data from server
-  const loadData = async () => {
+  const loadData = async (skipConnectionCheck = false) => {
     try {
       const [queueData, sessionData] = await Promise.all([
         queueService.getQueueEntries(),
@@ -37,14 +41,27 @@ export const useQueueManagerPolling = () => {
     loadData()
   }, [])
 
-  // Polling setup
+  // Polling setup with operation tracking
   useEffect(() => {
-    const interval = setInterval(loadData, POLL_INTERVAL)
-    console.log(`✅ Polling every ${POLL_INTERVAL}ms`)
+    const setupPolling = () => {
+      pollTimeoutRef.current = setInterval(() => {
+        // Only poll if no operation is in progress
+        if (!isOperationInProgress.current) {
+          loadData()
+        } else {
+          console.log('Polling skipped - operation in progress')
+        }
+      }, POLL_INTERVAL)
+      console.log(`✅ Polling every ${POLL_INTERVAL}ms`)
+    }
+
+    setupPolling()
 
     return () => {
-      clearInterval(interval)
-      console.log('Polling stopped')
+      if (pollTimeoutRef.current) {
+        clearInterval(pollTimeoutRef.current)
+        console.log('Polling stopped')
+      }
     }
   }, [])
 
@@ -54,6 +71,7 @@ export const useQueueManagerPolling = () => {
 
   const addQueueEntry = async (player1, player2) => {
     try {
+      isOperationInProgress.current = true
       const orderPosition = getNextOrder()
       const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition)
       
@@ -69,22 +87,28 @@ export const useQueueManagerPolling = () => {
     } catch (err) {
       setError(err.message)
       throw err
+    } finally {
+      isOperationInProgress.current = false
     }
   }
 
   const updateQueueEntry = async (id, player1, player2) => {
     try {
+      isOperationInProgress.current = true
       const updatedEntry = await queueService.updateQueueEntry(id, player1, player2)
       await loadData()
       return updatedEntry
     } catch (err) {
       setError(err.message)
       throw err
+    } finally {
+      isOperationInProgress.current = false
     }
   }
 
   const removeQueueEntry = async (id) => {
     try {
+      isOperationInProgress.current = true
       await queueService.removeQueueEntry(id)
       
       const remainingEntries = queue.filter(item => item.id !== id)
@@ -106,6 +130,7 @@ export const useQueueManagerPolling = () => {
 
   const moveUp = async (id) => {
     try {
+      isOperationInProgress.current = true
       const index = queue.findIndex(item => item.id === id)
       if (index > 0) {
         const updates = [
@@ -118,11 +143,14 @@ export const useQueueManagerPolling = () => {
     } catch (err) {
       setError(err.message)
       throw err
+    } finally {
+      isOperationInProgress.current = false
     }
   }
 
   const moveDown = async (id) => {
     try {
+      isOperationInProgress.current = true
       const index = queue.findIndex(item => item.id === id)
       if (index < queue.length - 1) {
         const updates = [
@@ -135,21 +163,27 @@ export const useQueueManagerPolling = () => {
     } catch (err) {
       setError(err.message)
       throw err
+    } finally {
+      isOperationInProgress.current = false
     }
   }
 
   const clearQueue = async () => {
     try {
+      isOperationInProgress.current = true
       await queueService.clearQueue()
       await loadData()
     } catch (err) {
       setError(err.message)
       throw err
+    } finally {
+      isOperationInProgress.current = false
     }
   }
 
   const startGame = async (queueEntryId, player1, player2) => {
     try {
+      isOperationInProgress.current = true
       if (queueEntryId) {
         await queueService.markAsPlaying(queueEntryId)
       }
@@ -160,11 +194,14 @@ export const useQueueManagerPolling = () => {
     } catch (err) {
       setError(err.message)
       throw err
+    } finally {
+      isOperationInProgress.current = false
     }
   }
 
   const endGame = async () => {
     try {
+      isOperationInProgress.current = true
       await sessionService.endCurrentSession()
       
       const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status)
@@ -176,11 +213,14 @@ export const useQueueManagerPolling = () => {
     } catch (err) {
       setError(err.message)
       throw err
+    } finally {
+      isOperationInProgress.current = false
     }
   }
 
   const startNextGame = async () => {
     try {
+      isOperationInProgress.current = true
       const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status)
       if (nextEntry) {
         await startGame(nextEntry.id, nextEntry.player1, nextEntry.player2)
@@ -189,6 +229,8 @@ export const useQueueManagerPolling = () => {
     } catch (err) {
       setError(err.message)
       throw err
+    } finally {
+      isOperationInProgress.current = false
     }
   }
 
