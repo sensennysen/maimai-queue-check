@@ -15,3 +15,10 @@ export const subtitleMessages = [
   "ALMOST AP UOOOOOOGGGHHHH",
   "Wag mo ako kausapin",
 ]
+
+export const closedMessages = [
+  "Mall is Closed",
+  "why the hell are you qchecking at this time??",
+  "Sir pahinga na po",
+  "Come back when we reopen",
+]

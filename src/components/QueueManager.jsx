@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator } from '@mantine/core'
 import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconWifi, IconWifiOff } from '@tabler/icons-react'
 import QueueForm from './QueueForm'
@@ -7,6 +7,7 @@ import PlayTimer from './PlayTimer'
 import { useQueueManagerPolling as useQueueManager } from '../hooks/useQueueManagerPolling'
 import { useMallSchedule } from '../hooks/useMallSchedule'
 import { useAuth } from '../hooks/useAuth'
+import { closedMessages } from '../data/subtitleMessages'
 import './QueueManager.css'
 
 function QueueManager() {
@@ -29,10 +30,19 @@ function QueueManager() {
 
   const [editingId, setEditingId] = useState(null)
   const [showForm, setShowForm] = useState(false)
+  const [closedMessage, setClosedMessage] = useState('')
+  const previousMallStateRef = useRef(isMallOpen)
 
   const canEdit = userRoles?.can_edit
 
   const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule()
+
+  useEffect(() => {
+    if (previousMallStateRef.current && !isMallOpen) {
+      setClosedMessage(closedMessages[Math.floor(Math.random() * closedMessages.length)])
+    }
+    previousMallStateRef.current = isMallOpen
+  }, [isMallOpen])
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
@@ -195,7 +205,7 @@ function QueueManager() {
       {!isMallOpen && (
         <Paper p="xl" withBorder>
           <Flex align="center" justify="center" style={{ height: 200 }}>
-            <Title order={2}>Mall is Closed</Title>
+            <Title order={2}>{closedMessage}</Title>
           </Flex>
         </Paper>
       )}
