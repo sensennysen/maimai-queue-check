@@ -113,7 +113,7 @@ function QueueManager() {
         <Group justify="space-between" align="center">
           <Group gap="md">
             <Badge variant="light" size="lg">
-              Total entries: {queue.length} | Credits: {queue.reduce((sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0), 0)}
+              Credits: {queue.reduce((sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0), 0)}
             </Badge>
             <Indicator 
               color={isConnected ? 'green' : 'red'} 

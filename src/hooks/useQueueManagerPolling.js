@@ -212,14 +212,20 @@ export const useQueueManagerPolling = () => {
       isOperationInProgress.current = true
       await sessionService.endCurrentSession()
       
+      // Reload data first to get updated queue before starting next game
+      await loadData()
+      
       const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status)
       if (nextEntry) {
-        await startGame(nextEntry.id, nextEntry.player1, nextEntry.player2)
+        await queueService.markAsPlaying(nextEntry.id)
+        await sessionService.startSession(nextEntry.player1, nextEntry.player2)
       }
       
+      // Final reload to reflect new game state
       await loadData()
     } catch (err) {
       setError(err.message)
+      await loadData()
       throw err
     } finally {
       isOperationInProgress.current = false
