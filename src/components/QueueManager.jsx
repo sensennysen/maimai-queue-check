@@ -31,14 +31,16 @@ function QueueManager() {
   const [editingId, setEditingId] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [closedMessage, setClosedMessage] = useState('')
-  const previousMallStateRef = useRef(isMallOpen)
 
   const canEdit = userRoles?.can_edit
 
   const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule()
 
+  const previousMallStateRef = useRef(isMallOpen)
+
   useEffect(() => {
     if (previousMallStateRef.current && !isMallOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setClosedMessage(closedMessages[Math.floor(Math.random() * closedMessages.length)])
     }
     previousMallStateRef.current = isMallOpen

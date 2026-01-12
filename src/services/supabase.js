@@ -9,10 +9,6 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables. Please check your .env file.')
 }
 
-console.log('Initializing Supabase client...')
-console.log('URL:', supabaseUrl)
-console.log('Key exists:', !!supabaseKey)
-
 // Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   realtime: {
