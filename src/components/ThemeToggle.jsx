@@ -1,9 +1,9 @@
-import { ActionIcon, Tooltip } from '@mantine/core'
-import { IconSun, IconMoon } from '@tabler/icons-react'
-import { useTheme } from '../contexts/ThemeContext'
+import { ActionIcon, Tooltip } from '@mantine/core';
+import { IconSun, IconMoon } from '@tabler/icons-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 function ThemeToggle() {
-  const { isDark, toggleTheme } = useTheme()
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <Tooltip 
@@ -27,7 +27,7 @@ function ThemeToggle() {
         )}
       </ActionIcon>
     </Tooltip>
-  )
+  );
 }
 
-export default ThemeToggle
+export default ThemeToggle;

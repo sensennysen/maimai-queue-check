@@ -1,14 +1,14 @@
-import { Paper, Title, Group, Button, Stack, Text, Center } from '@mantine/core'
-import { IconPlayerPlay } from '@tabler/icons-react'
-import QueueItem from './QueueItem'
-import { useAuth } from '../hooks/useAuth'
-import './QueueList.css'
+import { Paper, Title, Group, Button, Stack, Text, Center } from '@mantine/core';
+import { IconPlayerPlay } from '@tabler/icons-react';
+import QueueItem from './QueueItem';
+import { useAuth } from '../hooks/useAuth';
+import './QueueList.css';
 
 function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen }) {
-  const { user, userRoles } = useAuth()
+  const { user, userRoles } = useAuth();
   
   // Safely check if user can edit - default to true if roles aren't loaded yet
-  const canEdit = userRoles === undefined ? true : userRoles?.can_edit
+  const canEdit = userRoles === undefined ? true : userRoles?.can_edit;
   
   if (queue.length === 0) {
     return (
@@ -21,7 +21,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
           </Stack>
         </Center>
       </Paper>
-    )
+    );
   }
 
   return (
@@ -71,7 +71,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
         ))}
       </Stack>
     </Paper>
-  )
+  );
 }
 
-export default QueueList
+export default QueueList;

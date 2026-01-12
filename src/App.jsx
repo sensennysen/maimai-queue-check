@@ -1,24 +1,24 @@
-import { useState } from 'react'
-import { MantineProvider, Container, Title, Text, Paper, Stack, Group, createTheme } from '@mantine/core'
-import { Notifications } from '@mantine/notifications'
-import '@mantine/core/styles.css'
-import '@mantine/notifications/styles.css'
-import { ThemeProvider, useTheme } from './contexts/ThemeContext'
-import { AuthProvider } from './contexts/AuthContext'
-import { subtitleMessages } from './data/subtitleMessages'
-import QueueManager from './components/QueueManager'
-import LoginForm from './components/LoginForm'
-import ThemeToggle from './components/ThemeToggle'
-import './App.css'
+import { useState } from 'react';
+import { MantineProvider, Container, Title, Text, Paper, Stack, Group, createTheme } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
+import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { subtitleMessages } from './data/subtitleMessages';
+import QueueManager from './components/QueueManager';
+import LoginForm from './components/LoginForm';
+import ThemeToggle from './components/ThemeToggle';
+import './App.css';
 
 // Mantine theme configuration that syncs with our CSS variables
 function AppContent() {
-  const { isDark } = useTheme()
+  const { isDark } = useTheme();
   
   // Random subtitle selection - using useState initializer to avoid impure function during render
   const [randomSubtitle] = useState(() => 
     subtitleMessages[Math.floor(Math.random() * subtitleMessages.length)]
-  )
+  );
   
   const mantineTheme = createTheme({
     colorScheme: isDark ? 'dark' : 'light',
@@ -33,7 +33,7 @@ function AppContent() {
       fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
       fontWeight: 600,
     },
-  })
+  });
 
   return (
     <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
@@ -64,7 +64,7 @@ function AppContent() {
         </Container>
       </div>
     </MantineProvider>
-  )
+  );
 }
 
 function App() {
@@ -74,7 +74,7 @@ function App() {
         <AppContent />
       </AuthProvider>
     </ThemeProvider>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
-import { scheduleService } from '../services/supabase'
+import { useEffect, useMemo, useState } from 'react';
+import { scheduleService } from '../services/supabase';
 
 // Helper: parse 'HH:MM' into minutes since midnight
 const parseTimeToMinutes = (hhmm) => {
-  if (!hhmm) return null
-  const [h, m] = hhmm.split(':').map(Number)
-  return h * 60 + (m || 0)
-}
+  if (!hhmm) return null;
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + (m || 0);
+};
 
 // Helper: get Asia/Manila current parts (weekday, hour, minute)
 const getManilaParts = (date) => {
@@ -16,73 +16,73 @@ const getManilaParts = (date) => {
     weekday: 'long',
     hour: '2-digit',
     minute: '2-digit',
-  })
-  const parts = formatter.formatToParts(date)
-  const map = Object.fromEntries(parts.map(p => [p.type, p.value]))
+  });
+  const parts = formatter.formatToParts(date);
+  const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
   return {
     weekday: map.weekday,
     hour: Number(map.hour),
     minute: Number(map.minute),
-  }
-}
+  };
+};
 
 // Helper: get Manila parts for arbitrary ISO datetime
-const getManilaPartsFromISO = (iso) => getManilaParts(new Date(iso))
+const getManilaPartsFromISO = (iso) => getManilaParts(new Date(iso));
 
 export const useMallSchedule = () => {
-  const [schedule, setSchedule] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [schedule, setSchedule] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const rows = await scheduleService.getSchedule()
-        setSchedule(rows)
-        setError(null)
+        const rows = await scheduleService.getSchedule();
+        setSchedule(rows);
+        setError(null);
       } catch (err) {
-        setError(err.message)
-        console.error('Failed to load mall schedule:', err)
+        setError(err.message);
+        console.error('Failed to load mall schedule:', err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    load()
-  }, [])
+    };
+    load();
+  }, []);
 
   // Map schedule by day for quick lookup
   const scheduleMap = useMemo(() => {
-    const map = new Map()
+    const map = new Map();
     for (const row of schedule) {
       map.set(row.day, {
         openMinutes: parseTimeToMinutes(row.time_open),
         closeMinutes: parseTimeToMinutes(row.time_close),
-      })
+      });
     }
-    return map
-  }, [schedule])
+    return map;
+  }, [schedule]);
 
   // Compute mall open state for current Manila time
   const isMallOpen = useMemo(() => {
-    const { weekday, hour, minute } = getManilaParts(new Date())
-    const config = scheduleMap.get(weekday)
-    if (!config || config.openMinutes == null || config.closeMinutes == null) return false
-    const nowMinutes = hour * 60 + minute
-    return nowMinutes >= config.openMinutes && nowMinutes < config.closeMinutes
-  }, [scheduleMap])
+    const { weekday, hour, minute } = getManilaParts(new Date());
+    const config = scheduleMap.get(weekday);
+    if (!config || config.openMinutes == null || config.closeMinutes == null) return false;
+    const nowMinutes = hour * 60 + minute;
+    return nowMinutes >= config.openMinutes && nowMinutes < config.closeMinutes;
+  }, [scheduleMap]);
 
   // Filter queue entries to those created within operating hours of their creation day
   const filterQueueByOperatingHours = (queue) => {
-    if (!Array.isArray(queue) || queue.length === 0) return []
+    if (!Array.isArray(queue) || queue.length === 0) return [];
     return queue.filter(item => {
-      if (!item.created_at) return false // require created_at to validate operating hours
-      const parts = getManilaPartsFromISO(item.created_at)
-      const config = scheduleMap.get(parts.weekday)
-      if (!config || config.openMinutes == null || config.closeMinutes == null) return false
-      const minutes = parts.hour * 60 + parts.minute
-      return minutes >= config.openMinutes && minutes < config.closeMinutes
-    })
-  }
+      if (!item.created_at) return false; // require created_at to validate operating hours
+      const parts = getManilaPartsFromISO(item.created_at);
+      const config = scheduleMap.get(parts.weekday);
+      if (!config || config.openMinutes == null || config.closeMinutes == null) return false;
+      const minutes = parts.hour * 60 + parts.minute;
+      return minutes >= config.openMinutes && minutes < config.closeMinutes;
+    });
+  };
 
   return {
     loading,
@@ -90,5 +90,5 @@ export const useMallSchedule = () => {
     schedule,
     isMallOpen,
     filterQueueByOperatingHours,
-  }
-}
+  };
+};

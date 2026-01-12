@@ -1,55 +1,55 @@
-import { useState } from 'react'
-import { Paper, Title, TextInput, Group, Button, Stack, Alert } from '@mantine/core'
-import { IconPlus, IconEdit, IconX, IconPlayerPlay } from '@tabler/icons-react'
-import './QueueForm.css'
+import { useState } from 'react';
+import { Paper, Title, TextInput, Group, Button, Stack, Alert } from '@mantine/core';
+import { IconPlus, IconEdit, IconX, IconPlayerPlay } from '@tabler/icons-react';
+import './QueueForm.css';
 
 function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
-  const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : ''
-  const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : ''
+  const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : '';
+  const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : '';
   
-  const [player1, setPlayer1] = useState(initialPlayer1)
-  const [player2, setPlayer2] = useState(initialPlayer2)
-  const [errors, setErrors] = useState({})
+  const [player1, setPlayer1] = useState(initialPlayer1);
+  const [player2, setPlayer2] = useState(initialPlayer2);
+  const [errors, setErrors] = useState({});
 
   const validateForm = () => {
-    const newErrors = {}
+    const newErrors = {};
     
     // At least one player is required
     if (!player1.trim() && !player2.trim()) {
-      newErrors.general = 'At least one player is required'
+      newErrors.general = 'At least one player is required';
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     
     if (!validateForm()) {
-      return
+      return;
     }
 
     if (editingId) {
-      onSubmit(editingId, player1, player2)
+      onSubmit(editingId, player1, player2);
     } else {
-      onSubmit(player1, player2)
+      onSubmit(player1, player2);
     }
     
     // Clear form after successful submission (only if not editing)
     if (!editingId) {
-      setPlayer1('')
-      setPlayer2('')
+      setPlayer1('');
+      setPlayer2('');
     }
-    setErrors({})
-  }
+    setErrors({});
+  };
 
   const handleCancel = () => {
-    setPlayer1('')
-    setPlayer2('')
-    setErrors({})
-    onCancel()
-  }
+    setPlayer1('');
+    setPlayer2('');
+    setErrors({});
+    onCancel();
+  };
 
   return (
     <Paper p="md" withBorder>
@@ -106,7 +106,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
         </Stack>
       </form>
     </Paper>
-  )
+  );
 }
 
-export default QueueForm
+export default QueueForm;

@@ -1,28 +1,28 @@
-import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react'
-import './QueueItem.css'
+import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
+import './QueueItem.css';
 
 function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, userRoles }) {
   const handleEdit = () => {
-    onEdit(item.id)
-  }
+    onEdit(item.id);
+  };
 
   const handleRemove = () => {
     if (window.confirm(`Remove ${item.player1} vs ${item.player2} from queue?`)) {
-      onRemove(item.id)
+      onRemove(item.id);
     }
-  }
+  };
 
   const handleMoveUp = () => {
-    onMoveUp(item.id)
-  }
+    onMoveUp(item.id);
+  };
 
   const handleMoveDown = () => {
-    onMoveDown(item.id)
-  }
+    onMoveDown(item.id);
+  };
 
   // Safely check if user can edit - default to showing buttons if roles aren't loaded yet
   // This prevents buttons from disappearing during state transitions
-  const canEdit = userRoles === undefined ? true : userRoles?.can_edit
+  const canEdit = userRoles === undefined ? true : userRoles?.can_edit;
 
   return (
     <div 
@@ -90,7 +90,7 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default QueueItem
+export default QueueItem;

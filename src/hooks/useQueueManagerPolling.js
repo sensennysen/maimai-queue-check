@@ -1,19 +1,19 @@
-import { useState, useEffect, useRef } from 'react'
-import { queueService, sessionService } from '../services/supabase'
+import { useState, useEffect, useRef } from 'react';
+import { queueService, sessionService } from '../services/supabase';
 
 export const useQueueManagerPolling = () => {
-  const [queue, setQueue] = useState([])
-  const [nowPlaying, setNowPlaying] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [isConnected, setIsConnected] = useState(true)
+  const [queue, setQueue] = useState([]);
+  const [nowPlaying, setNowPlaying] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isConnected, setIsConnected] = useState(true);
 
   // Track if an operation is in progress to prevent polling interference
-  const isOperationInProgress = useRef(false)
-  const pollTimeoutRef = useRef(null)
+  const isOperationInProgress = useRef(false);
+  const pollTimeoutRef = useRef(null);
 
   // Polling interval (every 2 seconds)
-  const POLL_INTERVAL = 2000
+  const POLL_INTERVAL = 2000;
 
   // Load data from server
   // eslint-disable-next-line no-unused-vars
@@ -22,25 +22,25 @@ export const useQueueManagerPolling = () => {
       const [queueData, sessionData] = await Promise.all([
         queueService.getQueueEntries(),
         sessionService.getCurrentSession()
-      ])
+      ]);
       
-      setQueue(queueData)
-      setNowPlaying(sessionData)
-      setError(null)
-      setIsConnected(true)
+      setQueue(queueData);
+      setNowPlaying(sessionData);
+      setError(null);
+      setIsConnected(true);
     } catch (err) {
-      setError(err.message)
-      setIsConnected(false)
-      console.error('Error loading data:', err)
+      setError(err.message);
+      setIsConnected(false);
+      console.error('Error loading data:', err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Initial load
   useEffect(() => {
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   // Polling setup with operation tracking
   useEffect(() => {
@@ -48,206 +48,206 @@ export const useQueueManagerPolling = () => {
       pollTimeoutRef.current = setInterval(() => {
         // Only poll if no operation is in progress
         if (!isOperationInProgress.current) {
-          loadData()
+          loadData();
         } else {
-          console.log('Polling skipped - operation in progress')
+          console.log('Polling skipped - operation in progress');
         }
-      }, POLL_INTERVAL)
-      console.log(`✅ Polling every ${POLL_INTERVAL}ms`)
-    }
+      }, POLL_INTERVAL);
+      console.log(`✅ Polling every ${POLL_INTERVAL}ms`);
+    };
 
-    setupPolling()
+    setupPolling();
 
     return () => {
       if (pollTimeoutRef.current) {
-        clearInterval(pollTimeoutRef.current)
-        console.log('Polling stopped')
+        clearInterval(pollTimeoutRef.current);
+        console.log('Polling stopped');
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const getNextOrder = () => {
-    return queue.length > 0 ? Math.max(...queue.map(item => item.order_position)) + 1 : 1
-  }
+    return queue.length > 0 ? Math.max(...queue.map(item => item.order_position)) + 1 : 1;
+  };
 
   const addQueueEntry = async (player1, player2) => {
     try {
-      isOperationInProgress.current = true
-      const orderPosition = getNextOrder()
-      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition)
+      isOperationInProgress.current = true;
+      const orderPosition = getNextOrder();
+      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition);
       
       // Auto-start if this is the first entry and no game is currently playing
       if (queue.length === 0 && !nowPlaying) {
-        await startGame(newEntry.id, player1, player2)
+        await startGame(newEntry.id, player1, player2);
       }
       
       // Immediately refresh data to show changes
-      await loadData()
+      await loadData();
       
-      return newEntry
+      return newEntry;
     } catch (err) {
-      setError(err.message)
-      throw err
+      setError(err.message);
+      throw err;
     } finally {
-      isOperationInProgress.current = false
+      isOperationInProgress.current = false;
     }
-  }
+  };
 
   const updateQueueEntry = async (id, player1, player2) => {
     try {
-      isOperationInProgress.current = true
-      const updatedEntry = await queueService.updateQueueEntry(id, player1, player2)
+      isOperationInProgress.current = true;
+      const updatedEntry = await queueService.updateQueueEntry(id, player1, player2);
       
       // Reload data to ensure consistency with database
-      await loadData()
+      await loadData();
       
-      return updatedEntry
+      return updatedEntry;
     } catch (err) {
-      setError(err.message)
+      setError(err.message);
       // Reload data on error to sync with database
-      await loadData()
-      throw err
+      await loadData();
+      throw err;
     } finally {
-      isOperationInProgress.current = false
+      isOperationInProgress.current = false;
     }
-  }
+  };
 
   const removeQueueEntry = async (id) => {
     try {
-      isOperationInProgress.current = true
-      await queueService.removeQueueEntry(id)
+      isOperationInProgress.current = true;
+      await queueService.removeQueueEntry(id);
       
-      const remainingEntries = queue.filter(item => item.id !== id)
+      const remainingEntries = queue.filter(item => item.id !== id);
       const updates = remainingEntries.map((item, index) => ({
         id: item.id,
         order_position: index + 1
-      }))
+      }));
       
       if (updates.length > 0) {
-        await queueService.updateOrderPositions(updates)
+        await queueService.updateOrderPositions(updates);
       }
       
-      await loadData()
+      await loadData();
     } catch (err) {
-      setError(err.message)
-      throw err
+      setError(err.message);
+      throw err;
     } finally {
-      isOperationInProgress.current = false
+      isOperationInProgress.current = false;
     }
-  }
+  };
 
   const moveUp = async (id) => {
     try {
-      isOperationInProgress.current = true
-      const index = queue.findIndex(item => item.id === id)
+      isOperationInProgress.current = true;
+      const index = queue.findIndex(item => item.id === id);
       if (index > 0) {
         const updates = [
           { id: queue[index - 1].id, order_position: queue[index].order_position },
           { id: queue[index].id, order_position: queue[index - 1].order_position }
-        ]
-        await queueService.updateOrderPositions(updates)
-        await loadData()
+        ];
+        await queueService.updateOrderPositions(updates);
+        await loadData();
       }
     } catch (err) {
-      setError(err.message)
-      throw err
+      setError(err.message);
+      throw err;
     } finally {
-      isOperationInProgress.current = false
+      isOperationInProgress.current = false;
     }
-  }
+  };
 
   const moveDown = async (id) => {
     try {
-      isOperationInProgress.current = true
-      const index = queue.findIndex(item => item.id === id)
+      isOperationInProgress.current = true;
+      const index = queue.findIndex(item => item.id === id);
       if (index < queue.length - 1) {
         const updates = [
           { id: queue[index].id, order_position: queue[index + 1].order_position },
           { id: queue[index + 1].id, order_position: queue[index].order_position }
-        ]
-        await queueService.updateOrderPositions(updates)
-        await loadData()
+        ];
+        await queueService.updateOrderPositions(updates);
+        await loadData();
       }
     } catch (err) {
-      setError(err.message)
-      throw err
+      setError(err.message);
+      throw err;
     } finally {
-      isOperationInProgress.current = false
+      isOperationInProgress.current = false;
     }
-  }
+  };
 
   const clearQueue = async () => {
     try {
-      isOperationInProgress.current = true
-      await queueService.clearQueue()
-      await loadData()
+      isOperationInProgress.current = true;
+      await queueService.clearQueue();
+      await loadData();
     } catch (err) {
-      setError(err.message)
-      await loadData() // Reload on error to sync
-      throw err
+      setError(err.message);
+      await loadData(); // Reload on error to sync
+      throw err;
     } finally {
-      isOperationInProgress.current = false
+      isOperationInProgress.current = false;
     }
-  }
+  };
 
   const startGame = async (queueEntryId, player1, player2) => {
     try {
-      isOperationInProgress.current = true
+      isOperationInProgress.current = true;
       if (queueEntryId) {
-        await queueService.markAsPlaying(queueEntryId)
+        await queueService.markAsPlaying(queueEntryId);
       }
       
-      const session = await sessionService.startSession(player1, player2)
-      await loadData()
-      return session
+      const session = await sessionService.startSession(player1, player2);
+      await loadData();
+      return session;
     } catch (err) {
-      setError(err.message)
-      throw err
+      setError(err.message);
+      throw err;
     } finally {
-      isOperationInProgress.current = false
+      isOperationInProgress.current = false;
     }
-  }
+  };
 
   const endGame = async () => {
     try {
-      isOperationInProgress.current = true
-      await sessionService.endCurrentSession()
+      isOperationInProgress.current = true;
+      await sessionService.endCurrentSession();
       
       // Reload data first to get updated queue before starting next game
-      await loadData()
+      await loadData();
       
-      const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status)
+      const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status);
       if (nextEntry) {
-        await queueService.markAsPlaying(nextEntry.id)
-        await sessionService.startSession(nextEntry.player1, nextEntry.player2)
+        await queueService.markAsPlaying(nextEntry.id);
+        await sessionService.startSession(nextEntry.player1, nextEntry.player2);
       }
       
       // Final reload to reflect new game state
-      await loadData()
+      await loadData();
     } catch (err) {
-      setError(err.message)
-      await loadData()
-      throw err
+      setError(err.message);
+      await loadData();
+      throw err;
     } finally {
-      isOperationInProgress.current = false
+      isOperationInProgress.current = false;
     }
-  }
+  };
 
   const startNextGame = async () => {
     try {
-      isOperationInProgress.current = true
-      const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status)
+      isOperationInProgress.current = true;
+      const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status);
       if (nextEntry) {
-        await startGame(nextEntry.id, nextEntry.player1, nextEntry.player2)
-        await loadData()
+        await startGame(nextEntry.id, nextEntry.player1, nextEntry.player2);
+        await loadData();
       }
     } catch (err) {
-      setError(err.message)
-      throw err
+      setError(err.message);
+      throw err;
     } finally {
-      isOperationInProgress.current = false
+      isOperationInProgress.current = false;
     }
-  }
+  };
 
   return {
     queue,
@@ -266,5 +266,5 @@ export const useQueueManagerPolling = () => {
     startNextGame,
     getNextOrder,
     refreshData: loadData
-  }
-}
+  };
+};

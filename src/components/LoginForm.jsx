@@ -1,47 +1,47 @@
-import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider } from '@mantine/core'
-import { IconBrandGoogle, IconLogout, IconUser, IconLogin } from '@tabler/icons-react'
-import { useAuth } from '../hooks/useAuth'
-import { notifications } from '@mantine/notifications'
-import './LoginForm.css'
+import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider } from '@mantine/core';
+import { IconBrandGoogle, IconLogout, IconUser, IconLogin } from '@tabler/icons-react';
+import { useAuth } from '../hooks/useAuth';
+import { notifications } from '@mantine/notifications';
+import './LoginForm.css';
 
 const LoginForm = () => {
-  const { user, loading, signInWithProvider, signOut } = useAuth()
+  const { user, loading, signInWithProvider, signOut } = useAuth();
 
   const handleSocialLogin = async (provider) => {
     try {
-      await signInWithProvider(provider)
+      await signInWithProvider(provider);
     } catch (error) {
       notifications.show({
         title: 'Login Failed',
         message: error.message || 'An error occurred during login.',
         color: 'red',
-      })
+      });
     }
-  }
+  };
 
   const handleLogout = async () => {
     try {
-      await signOut()
+      await signOut();
       notifications.show({
         title: 'Logged Out',
         message: 'You have been successfully logged out.',
         color: 'blue',
-      })
+      });
     } catch (error) {
       notifications.show({
         title: 'Logout Failed',
         message: error.message || 'An error occurred during logout.',
         color: 'red',
-      })
+      });
     }
-  }
+  };
 
   if (loading) {
     return (
       <ActionIcon variant="subtle" size="xl" className="login-icon">
         <Loader size="sm" />
       </ActionIcon>
-    )
+    );
   }
 
   if (user) {
@@ -81,7 +81,7 @@ const LoginForm = () => {
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
-    )
+    );
   }
 
   return (
@@ -115,7 +115,7 @@ const LoginForm = () => {
         </Stack>
       </Menu.Dropdown>
     </Menu>
-  )
-}
+  );
+};
 
-export default LoginForm
+export default LoginForm;

@@ -1,17 +1,17 @@
-import { useState, useEffect, useRef } from 'react'
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator } from '@mantine/core'
-import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconWifi, IconWifiOff } from '@tabler/icons-react'
-import QueueForm from './QueueForm'
-import QueueList from './QueueList'
-import PlayTimer from './PlayTimer'
-import { useQueueManagerPolling as useQueueManager } from '../hooks/useQueueManagerPolling'
-import { useMallSchedule } from '../hooks/useMallSchedule'
-import { useAuth } from '../hooks/useAuth'
-import { closedMessages } from '../data/subtitleMessages'
-import './QueueManager.css'
+import { useState, useEffect, useRef } from 'react';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator } from '@mantine/core';
+import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconWifi, IconWifiOff } from '@tabler/icons-react';
+import QueueForm from './QueueForm';
+import QueueList from './QueueList';
+import PlayTimer from './PlayTimer';
+import { useQueueManagerPolling as useQueueManager } from '../hooks/useQueueManagerPolling';
+import { useMallSchedule } from '../hooks/useMallSchedule';
+import { useAuth } from '../hooks/useAuth';
+import { closedMessages } from '../data/subtitleMessages';
+import './QueueManager.css';
 
 function QueueManager() {
-  const { user, userRoles } = useAuth()
+  const { user, userRoles } = useAuth();
   const {
     queue,
     nowPlaying,
@@ -26,90 +26,90 @@ function QueueManager() {
     clearQueue: clearAllQueue,
     endGame,
     startNextGame
-  } = useQueueManager()
+  } = useQueueManager();
 
-  const [editingId, setEditingId] = useState(null)
-  const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState(null);
+  const [showForm, setShowForm] = useState(false);
   const [closedMessage, setClosedMessage] = useState(() => 
     closedMessages[Math.floor(Math.random() * closedMessages.length)]
-  )
+  );
 
-  const canEdit = userRoles?.can_edit
+  const canEdit = userRoles?.can_edit;
 
-  const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule()
+  const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule();
 
-  const previousMallStateRef = useRef(isMallOpen)
+  const previousMallStateRef = useRef(isMallOpen);
 
   useEffect(() => {
     if (previousMallStateRef.current && !isMallOpen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setClosedMessage(closedMessages[Math.floor(Math.random() * closedMessages.length)])
+      setClosedMessage(closedMessages[Math.floor(Math.random() * closedMessages.length)]);
     }
-    previousMallStateRef.current = isMallOpen
-  }, [isMallOpen])
+    previousMallStateRef.current = isMallOpen;
+  }, [isMallOpen]);
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
     try {
-      await addEntry(player1, player2)
-      setShowForm(false)
+      await addEntry(player1, player2);
+      setShowForm(false);
     } catch (err) {
-      console.error('Failed to add queue entry:', err)
+      console.error('Failed to add queue entry:', err);
     }
-  }
+  };
 
   // Update existing queue entry
   const updateQueueEntry = async (id, player1, player2) => {
     try {
-      await updateEntry(id, player1, player2)
-      setEditingId(null)
-      setShowForm(false)
+      await updateEntry(id, player1, player2);
+      setEditingId(null);
+      setShowForm(false);
     } catch (err) {
-      console.error('Failed to update queue entry:', err)
+      console.error('Failed to update queue entry:', err);
     }
-  }
+  };
 
   // Clear entire queue
   const clearQueue = async () => {
     if (queue.length > 0 && window.confirm('Are you sure you want to clear the entire queue?')) {
       try {
-        await clearAllQueue()
-        setEditingId(null)
+        await clearAllQueue();
+        setEditingId(null);
       } catch (err) {
-        console.error('Failed to clear queue:', err)
+        console.error('Failed to clear queue:', err);
       }
     }
-  }
+  };
 
   // Start editing
   const startEdit = (id) => {
-    setEditingId(id)
-    setShowForm(true)
-  }
+    setEditingId(id);
+    setShowForm(true);
+  };
 
   // Cancel editing
   const cancelEdit = () => {
-    setEditingId(null)
-    setShowForm(false)
-  }
+    setEditingId(null);
+    setShowForm(false);
+  };
 
   // Finish current game
   const finishGame = async () => {
     try {
-      await endGame()
+      await endGame();
     } catch (err) {
-      console.error('Failed to finish game:', err)
+      console.error('Failed to finish game:', err);
     }
-  }
+  };
 
   // Start game from queue
   const startGame = async () => {
     try {
-      await startNextGame()
+      await startNextGame();
     } catch (err) {
-      console.error('Failed to start game:', err)
+      console.error('Failed to start game:', err);
     }
-  }
+  };
 
   return (
     <Stack gap="md" style={{ position: 'relative' }}>
@@ -237,7 +237,7 @@ function QueueManager() {
       />
       )}
     </Stack>
-  )
+  );
 }
 
-export default QueueManager
+export default QueueManager;
