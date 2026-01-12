@@ -24,9 +24,16 @@ function QueueManager() {
       player1: player1.trim(),
       player2: player2.trim()
     }
-    setQueue([...queue, newEntry])
+    const updatedQueue = [...queue, newEntry]
     setShowForm(false)
-    setShowForm(false)
+    
+    // Auto-start if this is the only entry and no game is currently playing
+    if (updatedQueue.length === 1 && !nowPlaying) {
+      setNowPlaying(newEntry)
+      setQueue([]) // Remove the entry from queue since it's now playing
+    } else {
+      setQueue(updatedQueue)
+    }
   }
 
   // Update existing queue entry
