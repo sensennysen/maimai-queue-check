@@ -113,7 +113,7 @@ function QueueManager() {
         <Group justify="space-between" align="center">
           <Group gap="md">
             <Badge variant="light" size="lg">
-              Total entries: {queue.length}
+              Total entries: {queue.length} | Credits: {queue.length * 2}
             </Badge>
             <Indicator 
               color={isConnected ? 'green' : 'red'} 
