@@ -4,9 +4,11 @@ import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconWifi, IconWif
 import QueueForm from './QueueForm'
 import QueueList from './QueueList'
 import { useQueueManagerPolling as useQueueManager } from '../hooks/useQueueManagerPolling'
+import { useAuth } from '../hooks/useAuth'
 import './QueueManager.css'
 
 function QueueManager() {
+  const { user } = useAuth()
   const {
     queue,
     nowPlaying,
@@ -124,7 +126,7 @@ function QueueManager() {
             </Indicator>
           </Group>
           <Group gap="sm">
-            {!showForm && !editingId && (
+            {user && !showForm && !editingId && (
               <Button 
                 leftSection={<IconPlus size={16} />}
                 onClick={() => setShowForm(true)}
@@ -133,7 +135,7 @@ function QueueManager() {
                 Add Queue
               </Button>
             )}
-            {queue.length > 0 && (
+            {user && queue.length > 0 && (
               <Button 
                 variant="outline"
                 color="red"
@@ -169,18 +171,20 @@ function QueueManager() {
               )}
             </div>
             
-            <button 
-              className="finish-game-btn"
-              onClick={finishGame}
-            >
-              <IconPlayerStop size={16} />
-              Finish Game
-            </button>
+            {user && (
+              <button 
+                className="finish-game-btn"
+                onClick={finishGame}
+              >
+                <IconPlayerStop size={16} />
+                Finish Game
+              </button>
+            )}
           </div>
         </div>
       )}
 
-      {(showForm || editingId) && (
+      {user && (showForm || editingId) && (
         <QueueForm 
           onSubmit={editingId ? updateQueueEntry : addQueueEntry}
           editingId={editingId}

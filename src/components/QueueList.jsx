@@ -1,9 +1,11 @@
 import { Paper, Title, Group, Button, Stack, Text, Center } from '@mantine/core'
 import { IconPlayerPlay } from '@tabler/icons-react'
 import QueueItem from './QueueItem'
+import { useAuth } from '../hooks/useAuth'
 import './QueueList.css'
 
 function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame }) {
+  const { user } = useAuth()
   if (queue.length === 0) {
     return (
       <Paper p="xl" withBorder>
@@ -22,7 +24,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
     <Paper withBorder>
       <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
         <Title order={3}>Current Queue</Title>
-        {!nowPlaying && queue.length > 0 && (
+        {user && !nowPlaying && queue.length > 0 && (
           <Button 
             leftSection={<IconPlayerPlay size={16} />}
             onClick={() => onStartGame()}
@@ -33,6 +35,13 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
           </Button>
         )}
       </Group>
+      {!user && (
+        <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-blue-0)' }}>
+          <Text size="sm" c="blue">
+            🔒 Sign in above to manage the queue, add entries, and start games
+          </Text>
+        </Group>
+      )}
       <Stack gap={0}>
         {queue.map((item, index) => (
           <QueueItem
@@ -46,6 +55,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
             isLast={index === queue.length - 1}
             isNextUp={index === 0 && !nowPlaying}
             gameInProgress={!!nowPlaying}
+            isAuthenticated={!!user}
           />
         ))}
       </Stack>

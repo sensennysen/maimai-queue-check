@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react'
 import './QueueItem.css'
 
-function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, gameInProgress }) {
+function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, gameInProgress, isAuthenticated }) {
   const handleEdit = () => {
     onEdit(item.id)
   }
@@ -48,42 +48,44 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
         )}
       </div>
       
-      <div className="item-actions">
-        <div className="move-buttons">
-          <button
-            className="move-btn up"
-            onClick={handleMoveUp}
-            disabled={isFirst}
-            title="Move up in queue"
-          >
-            ▲
-          </button>
-          <button
-            className="move-btn down"
-            onClick={handleMoveDown}
-            disabled={isLast}
-            title="Move down in queue"
-          >
-            ▼
-          </button>
+      {isAuthenticated && (
+        <div className="item-actions">
+          <div className="move-buttons">
+            <button
+              className="move-btn up"
+              onClick={handleMoveUp}
+              disabled={isFirst}
+              title="Move up in queue"
+            >
+              ▲
+            </button>
+            <button
+              className="move-btn down"
+              onClick={handleMoveDown}
+              disabled={isLast}
+              title="Move down in queue"
+            >
+              ▼
+            </button>
+          </div>
+          <div className="action-buttons">
+            <button
+              className="edit-btn"
+              onClick={handleEdit}
+              title="Edit this entry"
+            >
+              <IconEdit size={16} />
+            </button>
+            <button
+              className="remove-btn"
+              onClick={handleRemove}
+              title="Remove from queue"
+            >
+              <IconTrash size={16} />
+            </button>
+          </div>
         </div>
-        <div className="action-buttons">
-          <button
-            className="edit-btn"
-            onClick={handleEdit}
-            title="Edit this entry"
-          >
-            <IconEdit size={16} />
-          </button>
-          <button
-            className="remove-btn"
-            onClick={handleRemove}
-            title="Remove from queue"
-          >
-            <IconTrash size={16} />
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   )
 }

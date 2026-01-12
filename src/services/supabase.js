@@ -22,6 +22,35 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   },
 })
 
+// Authentication service functions
+export const authService = {
+  // Sign in with OAuth provider
+  async signInWithProvider(provider) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+    })
+    
+    if (error) throw error
+    return data
+  },
+
+  // Sign out
+  async signOut() {
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
+  },
+
+  // Get current user
+  getCurrentUser() {
+    return supabase.auth.getUser()
+  },
+
+  // Subscribe to auth changes
+  onAuthStateChange(callback) {
+    return supabase.auth.onAuthStateChange(callback)
+  },
+}
+
 // Queue service functions
 export const queueService = {
   // Fetch all queue entries ordered by position

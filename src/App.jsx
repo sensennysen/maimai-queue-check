@@ -1,8 +1,12 @@
 import { MantineProvider, Container, Title, Text, Paper, Stack, Group, createTheme } from '@mantine/core'
+import { Notifications } from '@mantine/notifications'
 import '@mantine/core/styles.css'
+import '@mantine/notifications/styles.css'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
+import { AuthProvider } from './contexts/AuthContext'
 import { subtitleMessages } from './data/subtitleMessages'
 import QueueManager from './components/QueueManager'
+import LoginForm from './components/LoginForm'
 import ThemeToggle from './components/ThemeToggle'
 import './App.css'
 
@@ -30,6 +34,7 @@ function AppContent() {
 
   return (
     <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
+      <Notifications position="top-right" />
       <div className="App">
         <Container size="lg" py="xl">
           <Stack gap="lg">
@@ -45,6 +50,9 @@ function AppContent() {
               </Text>
             </Paper>
             
+            {/* Login Form */}
+            <LoginForm />
+            
             <main>
               <QueueManager />
             </main>
@@ -58,7 +66,9 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ThemeProvider>
   )
 }
