@@ -8,18 +8,18 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
   const [player2, setPlayer2] = useState('')
   const [errors, setErrors] = useState({})
 
-  // Update form when editing
+  // Update form when editing - only depend on editingId to avoid overwriting user input during polling
   useEffect(() => {
-    if (editingData) {
+    if (editingId && editingData) {
       // Ensure null/undefined values are converted to empty strings
       setPlayer1(editingData.player1 ? String(editingData.player1).trim() : '')
       setPlayer2(editingData.player2 ? String(editingData.player2).trim() : '')
-    } else {
+    } else if (!editingId) {
       setPlayer1('')
       setPlayer2('')
     }
     setErrors({})
-  }, [editingData, editingId])
+  }, [editingId])
 
   const validateForm = () => {
     const newErrors = {}
