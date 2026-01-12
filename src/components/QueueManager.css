@@ -1,0 +1,53 @@
+.queue-manager {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.queue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.queue-header h2 {
+  margin: 0;
+  color: #333;
+}
+
+.queue-stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.queue-count {
+  font-weight: 500;
+  color: #666;
+}
+
+.clear-btn {
+  padding: 0.5rem 1rem;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+.clear-btn:active {
+  transform: translateY(0);
+}
