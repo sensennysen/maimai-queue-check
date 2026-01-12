@@ -156,7 +156,7 @@ function QueueManager() {
         </Group>
       </Paper>
 
-      {nowPlaying && (
+      {isMallOpen && nowPlaying && (
         <div className="now-playing">
           <div className="now-playing-header">
             <h3>Now Playing</h3>
