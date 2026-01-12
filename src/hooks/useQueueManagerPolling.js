@@ -132,6 +132,8 @@ export const useQueueManagerPolling = () => {
     } catch (err) {
       setError(err.message)
       throw err
+    } finally {
+      isOperationInProgress.current = false
     }
   }
 
@@ -182,6 +184,7 @@ export const useQueueManagerPolling = () => {
       await loadData()
     } catch (err) {
       setError(err.message)
+      await loadData() // Reload on error to sync
       throw err
     } finally {
       isOperationInProgress.current = false
