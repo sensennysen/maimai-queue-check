@@ -46,6 +46,7 @@ function QueueManager() {
     try {
       await updateEntry(id, player1, player2)
       setEditingId(null)
+      setShowForm(false)
     } catch (err) {
       console.error('Failed to update queue entry:', err)
     }
