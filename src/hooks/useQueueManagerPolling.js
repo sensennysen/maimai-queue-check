@@ -97,10 +97,8 @@ export const useQueueManagerPolling = () => {
       isOperationInProgress.current = true
       const updatedEntry = await queueService.updateQueueEntry(id, player1, player2)
       
-      // Update local state immediately instead of reloading everything
-      setQueue(prev => prev.map(item => 
-        item.id === id ? { ...item, player1: updatedEntry.player1, player2: updatedEntry.player2 } : item
-      ))
+      // Reload data to ensure consistency with database
+      await loadData()
       
       return updatedEntry
     } catch (err) {
