@@ -11,6 +11,12 @@ if (!supabaseUrl || !supabaseKey) {
 
 // Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseKey, {
+  global: {
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+  },
   realtime: {
     params: {
       eventsPerSecond: 10,
@@ -203,16 +209,29 @@ export const queueService = {
 export const sessionService = {
   // Get current active session
   async getCurrentSession() {
-    const { data, error } = await supabase
-      .from('game_sessions')
-      .select('*')
-      .eq('status', 'active')
-      .order('started_at', { ascending: false })
-      .limit(1)
-      .single();
-    
-    if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows returned"
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('game_sessions')
+        .select('*')
+        .eq('status', 'active')
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('API Error fetching current session:', {
+          status: error.status,
+          code: error.code,
+          message: error.message,
+          details: error.details
+        });
+        throw error;
+      }
+      return data;
+    } catch (err) {
+      console.error('Exception in getCurrentSession:', err);
+      throw err;
+    }
   },
 
   // Start a new game session
