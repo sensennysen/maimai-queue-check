@@ -198,7 +198,7 @@ export const verifyUserLocationAndPermissions = async (userId) => {
     if (!proximity.isAllowed) {
       return {
         allowed: false,
-        reason: `You must be within 100 meters of an allowed location to edit the queue.`,
+        reason: `You must be within 100 meters of the arcade to edit the queue.`,
         location: userLocation,
         proximity,
       };
