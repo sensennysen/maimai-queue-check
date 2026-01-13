@@ -120,8 +120,18 @@
   min-width: 100px;
 }
 
+[data-theme="light"] .cancel-btn {
+  background: #7B5A78;
+  color: white;
+}
+
+[data-theme="dark"] .cancel-btn {
+  background: #B98AD6;
+  color: #140018;
+}
+
 .cancel-btn:hover {
-  background: #5A4C57;
+  opacity: 0.85;
   transform: translateY(-1px);
 }
 
