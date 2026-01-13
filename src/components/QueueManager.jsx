@@ -55,15 +55,15 @@ function QueueManager() {
     previousMallStateRef.current = isMallOpen;
   }, [isMallOpen]);
 
-  // Show location modal when user has edit permissions but location is not verified
+  // Show location modal only when user has edit permissions and hasn't attempted verification yet
   useEffect(() => {
-    if (user && canEdit && !locationVerified && !locationCheckInProgress) {
+    if (user && canEdit && !locationVerified && !hasAttemptedVerification && !locationCheckInProgress) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowLocationModal(true);
     } else {
       setShowLocationModal(false);
     }
-  }, [user, canEdit, locationVerified, locationCheckInProgress]);
+  }, [user, canEdit, locationVerified, hasAttemptedVerification, locationCheckInProgress]);
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
@@ -160,14 +160,10 @@ function QueueManager() {
             <IconMapPin size={48} color="var(--mantine-color-blue-6)" />
           </Group>
           <Text size="sm" ta="center">
-            {hasAttemptedVerification && locationError 
-              ? locationError 
-              : 'To enable editing the queue, we need to verify your location.'}
+            To enable editing the queue, we need to verify your location.
           </Text>
           <Text size="xs" c="dimmed" ta="center">
-            {hasAttemptedVerification && locationError
-              ? 'Please try again or make sure you are within 100 meters of the arcade.'
-              : 'You must be within 100 meters of the arcade to edit the queue.'}
+            You must be within 100 meters of the arcade to edit the queue.
           </Text>
           <Group justify="center" mt="md">
             <Button
@@ -202,6 +198,28 @@ function QueueManager() {
           variant="light"
         >
           {error}
+        </Alert>
+      )}
+
+      {user && canEdit && !locationVerified && locationError && hasAttemptedVerification && (
+        <Alert 
+          icon={<IconMapPin size={16} />} 
+          title="Location Verification Failed" 
+          color="orange"
+          variant="light"
+          withCloseButton
+          onClose={() => {/* User can dismiss but still won't be able to edit */}}
+        >
+          <Text size="sm" mb="xs">{locationError}</Text>
+          <Button 
+            size="xs" 
+            variant="light" 
+            leftSection={<IconMapPin size={14} />}
+            onClick={verifyLocation}
+            loading={locationCheckInProgress}
+          >
+            Try Again
+          </Button>
         </Alert>
       )}
 
