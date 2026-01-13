@@ -19,6 +19,8 @@ function QueueManager() {
     error,
     isConnected,
     isMutating,
+    locationVerified,
+    locationError,
     addQueueEntry: addEntry,
     updateQueueEntry: updateEntry,
     removeQueueEntry,
@@ -249,6 +251,8 @@ function QueueManager() {
           editingData={editingId ? queue.find(item => item.id === editingId) : null}
           onCancel={cancelEdit}
           isBusy={isMutating}
+          locationVerified={locationVerified}
+          locationError={locationError}
         />
       )}
 
