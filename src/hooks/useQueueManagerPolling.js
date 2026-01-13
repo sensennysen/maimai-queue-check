@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { queueService, sessionService } from '../services/supabase';
+import { queueService, sessionService, supabase } from '../services/supabase';
 import { useAuth } from './useAuth';
 import { verifyUserLocationAndPermissions } from '../services/geolocation';
 
@@ -49,6 +49,26 @@ export const useQueueManagerPolling = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Automatically verify location when user is available and has not attempted verification
+  useEffect(() => {
+    const checkAndVerifyLocation = async () => {
+      if (user && !hasAttemptedVerification && !locationCheckInProgress) {
+        // Check if user has edit permissions first
+        try {
+          const { data: roles } = await supabase.from('user_roles').select('can_edit').eq('user_id', user.id).single();
+          if (roles?.can_edit) {
+            // User has edit permissions, verify location
+            await verifyLocation();
+          }
+        } catch (err) {
+          console.error('Error checking user permissions:', err);
+        }
+      }
+    };
+    
+    checkAndVerifyLocation();
+  }, [user, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
 
   // Function to verify user location and permissions
   const verifyLocation = useCallback(async () => {
