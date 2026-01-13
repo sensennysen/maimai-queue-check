@@ -44,10 +44,10 @@ function AppContent() {
           <Stack gap="lg">
             <Paper p="md" radius="md" withBorder className="app-header">
               <Group justify="space-between" align="center" gap="md" wrap="wrap">
-                <Title order={1} c="white" className="app-title">
+                <Title order={1} className="app-title">
                   maimai Fairview Queue
                 </Title>
-                <Text c="white" size="lg" className="app-subtitle">
+                <Text size="lg" className="app-subtitle">
                   {randomSubtitle}
                 </Text>
               </Group>

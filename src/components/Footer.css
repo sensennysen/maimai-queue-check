@@ -1,13 +1,14 @@
 .footer {
   margin-top: auto;
-  background: var(--surface-color);
-  border-top: 1px solid var(--border-color);
+  background: var(--theme-surface);
+  border-top: 1px solid var(--theme-border);
 }
 
 .footer a {
   transition: color 0.2s ease;
+  color: var(--theme-text-muted);
 }
 
 .footer a:hover {
-  color: var(--primary-color);
+  color: var(--theme-primary);
 }
