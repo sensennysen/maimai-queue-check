@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { queueService, sessionService } from '../services/supabase';
 import { useAuth } from './useAuth';
+import { verifyUserLocationAndPermissions } from '../services/geolocation';
 
 export const useQueueManagerPolling = () => {
   const { user } = useAuth();
@@ -10,6 +11,10 @@ export const useQueueManagerPolling = () => {
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(true);
   const [isMutating, setIsMutating] = useState(false);
+  const [locationVerified, setLocationVerified] = useState(false);
+  const [locationError, setLocationError] = useState(null);
+  const [locationCheckInProgress, setLocationCheckInProgress] = useState(false);
+  const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
 
   // Track if an operation is in progress to prevent polling interference
   const isOperationInProgress = useRef(false);
@@ -45,6 +50,36 @@ export const useQueueManagerPolling = () => {
     loadData();
   }, []);
 
+  // Function to verify user location and permissions
+  const verifyLocation = useCallback(async () => {
+    if (!user) {
+      setLocationVerified(false);
+      setLocationError('Please log in to edit the queue');
+      return;
+    }
+
+    setLocationCheckInProgress(true);
+    setLocationError(null);
+    setHasAttemptedVerification(true);
+
+    try {
+      const result = await verifyUserLocationAndPermissions(user.id);
+      
+      setLocationVerified(result.allowed);
+      if (!result.allowed) {
+        setLocationError(result.reason);
+      } else {
+        setLocationError(null);
+      }
+    } catch (err) {
+      console.error('Location verification error:', err);
+      setLocationVerified(false);
+      setLocationError('Failed to verify location. Please try again.');
+    } finally {
+      setLocationCheckInProgress(false);
+    }
+  }, [user]);
+
   // Polling setup with operation tracking
   useEffect(() => {
     const setupPolling = () => {
@@ -70,6 +105,13 @@ export const useQueueManagerPolling = () => {
   };
 
   const addQueueEntry = async (player1, player2) => {
+    // Check location verification before allowing operations
+    if (!locationVerified) {
+      const errorMsg = locationError || 'Location verification required to edit the queue';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     try {
       isOperationInProgress.current = true;
       setIsMutating(true);
@@ -97,6 +139,13 @@ export const useQueueManagerPolling = () => {
   };
 
   const updateQueueEntry = async (id, player1, player2) => {
+    // Check location verification before allowing operations
+    if (!locationVerified) {
+      const errorMsg = locationError || 'Location verification required to edit the queue';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     try {
       isOperationInProgress.current = true;
       setIsMutating(true);
@@ -118,6 +167,13 @@ export const useQueueManagerPolling = () => {
   };
 
   const removeQueueEntry = async (id) => {
+    // Check location verification before allowing operations
+    if (!locationVerified) {
+      const errorMsg = locationError || 'Location verification required to edit the queue';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     try {
       isOperationInProgress.current = true;
       setIsMutating(true);
@@ -283,6 +339,11 @@ export const useQueueManagerPolling = () => {
     error,
     isConnected,
     isMutating,
+    locationVerified,
+    locationError,
+    locationCheckInProgress,
+    hasAttemptedVerification,
+    verifyLocation,
     addQueueEntry,
     updateQueueEntry,
     removeQueueEntry,

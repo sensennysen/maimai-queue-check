@@ -130,9 +130,10 @@ function QueueManager() {
 
   // Request location permission
   const handleRequestLocation = async () => {
-    setShowLocationModal(false);
+    // Don't close modal, let it stay open during verification
     if (verifyLocation) {
       await verifyLocation();
+      // Modal will automatically close via useEffect when locationVerified becomes true
     }
   };
 
@@ -161,12 +162,12 @@ function QueueManager() {
           <Text size="sm" ta="center">
             {hasAttemptedVerification && locationError 
               ? locationError 
-              : 'To manage the queue, we need to verify that you are at an authorized arcade location.'}
+              : 'To enable editing the queue, we need to verify your location.'}
           </Text>
           <Text size="xs" c="dimmed" ta="center">
             {hasAttemptedVerification && locationError
-              ? 'Please try again or make sure you are within 100 meters of an authorized arcade location.'
-              : 'Your location will be checked against approved arcade locations. You must be within 100 meters of an authorized location to edit the queue.'}
+              ? 'Please try again or make sure you are within 100 meters of the arcade.'
+              : 'You must be within 100 meters of the arcade to edit the queue.'}
           </Text>
           <Group justify="center" mt="md">
             <Button
