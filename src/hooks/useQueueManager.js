@@ -280,6 +280,11 @@ export const useQueueManager = () => {
         // Update local state immediately
         setQueue([]);
       }
+      // End current session if one exists
+      if (nowPlaying) {
+        await sessionService.endCurrentSession();
+        setNowPlaying(null);
+      }
     } catch (err) {
       setError(err.message);
       throw err;
