@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { queueService, sessionService, subscribeToQueueChanges, subscribeToSessionChanges, supabase } from '../services/supabase';
+import { useAuth } from './useAuth';
 
 export const useQueueManager = () => {
+  const { user } = useAuth();
   const [queue, setQueue] = useState([]);
   const [nowPlaying, setNowPlaying] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -134,7 +136,9 @@ export const useQueueManager = () => {
     try {
       setIsMutating(true);
       const orderPosition = getNextOrder();
-      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition);
+      const userId = user?.id || null;
+      const userName = user?.email || user?.user_metadata?.name || null;
+      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition, userId, userName);
       
       // Update local state immediately
       setQueue(prev => [...prev, newEntry]);
@@ -305,7 +309,9 @@ export const useQueueManager = () => {
       }
       
       // Start new session
-      const session = await sessionService.startSession(player1, player2);
+      const userId = user?.id || null;
+      const userName = user?.email || user?.user_metadata?.name || null;
+      const session = await sessionService.startSession(player1, player2, userId, userName);
       // Update local session state
       setNowPlaying(session);
       

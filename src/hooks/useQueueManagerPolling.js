@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { queueService, sessionService } from '../services/supabase';
+import { useAuth } from './useAuth';
 
 export const useQueueManagerPolling = () => {
+  const { user } = useAuth();
   const [queue, setQueue] = useState([]);
   const [nowPlaying, setNowPlaying] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -72,7 +74,9 @@ export const useQueueManagerPolling = () => {
       isOperationInProgress.current = true;
       setIsMutating(true);
       const orderPosition = getNextOrder();
-      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition);
+      const userId = user?.id || null;
+      const userName = user?.email || user?.user_metadata?.name || null;
+      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition, userId, userName);
       
       // Auto-start if this is the first entry and no game is currently playing
       if (queue.length === 0 && !nowPlaying) {
@@ -211,7 +215,9 @@ export const useQueueManagerPolling = () => {
         await queueService.markAsPlaying(queueEntryId);
       }
       
-      const session = await sessionService.startSession(player1, player2);
+      const userId = user?.id || null;
+      const userName = user?.email || user?.user_metadata?.name || null;
+      const session = await sessionService.startSession(player1, player2, userId, userName);
       await loadData();
       return session;
     } catch (err) {
@@ -235,7 +241,9 @@ export const useQueueManagerPolling = () => {
       const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status);
       if (nextEntry) {
         await queueService.markAsPlaying(nextEntry.id);
-        await sessionService.startSession(nextEntry.player1, nextEntry.player2);
+        const userId = user?.id || null;
+        const userName = user?.email || user?.user_metadata?.name || null;
+        await sessionService.startSession(nextEntry.player1, nextEntry.player2, userId, userName);
       }
       
       // Final reload to reflect new game state
