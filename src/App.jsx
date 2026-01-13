@@ -3,6 +3,7 @@ import { MantineProvider, Container, Title, Text, Paper, Stack, Group, createThe
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import { Analytics } from '@vercel/analytics/react';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { subtitleMessages } from './data/subtitleMessages';
@@ -66,6 +67,7 @@ function AppContent() {
           </Stack>
         </Container>
       </div>
+      <Analytics />
     </MantineProvider>
   );
 }
