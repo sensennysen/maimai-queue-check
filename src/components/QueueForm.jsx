@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Paper, Title, TextInput, Group, Button, Stack, Alert } from '@mantine/core';
-import { IconPlus, IconEdit, IconX, IconPlayerPlay } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconX } from '@tabler/icons-react';
 import './QueueForm.css';
 
-function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false }) {
+function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false, locationVerified = false, locationError = null }) {
   const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : '';
   const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : '';
   
@@ -14,6 +14,13 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false 
   const validateForm = () => {
     const newErrors = {};
     
+    // Check location verification first
+    if (!locationVerified) {
+      newErrors.general = locationError || 'Location verification required';
+      setErrors(newErrors);
+      return false;
+    }
+    
     // At least one player is required
     if (!player1.trim() && !player2.trim()) {
       newErrors.general = 'At least one player is required';
@@ -23,7 +30,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false 
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (isBusy) {
       return;
@@ -67,6 +74,12 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false 
             </Alert>
           )}
           
+          {locationError && !locationVerified && (
+            <Alert color="orange" variant="light">
+              {locationError}
+            </Alert>
+          )}
+          
           <Group grow>
             <TextInput
               label="Player 1 Side"
@@ -75,7 +88,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false 
               onChange={(e) => setPlayer1(e.target.value)}
               error={errors.player1}
               maxLength={50}
-              disabled={isBusy}
+              disabled={isBusy || !locationVerified}
             />
 
             <TextInput
@@ -85,7 +98,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false 
               onChange={(e) => setPlayer2(e.target.value)}
               error={errors.player2}
               maxLength={50}
-              disabled={isBusy}
+              disabled={isBusy || !locationVerified}
             />
           </Group>
 
@@ -94,7 +107,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false 
               type="submit" 
               leftSection={editingId ? <IconEdit size={16} /> : <IconPlus size={16} />}
               variant="filled"
-              disabled={isBusy}
+              disabled={isBusy || !locationVerified}
             >
               {editingId ? 'Update Entry' : 'Add to Queue'}
             </Button>

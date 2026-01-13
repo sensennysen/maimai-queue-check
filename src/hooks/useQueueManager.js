@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { queueService, sessionService, subscribeToQueueChanges, subscribeToSessionChanges, supabase } from '../services/supabase';
 import { useAuth } from './useAuth';
+import { verifyUserLocationAndPermissions } from '../services/geolocation';
 
 export const useQueueManager = () => {
   const { user } = useAuth();
@@ -10,11 +11,45 @@ export const useQueueManager = () => {
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
+  const [locationVerified, setLocationVerified] = useState(false);
+  const [locationError, setLocationError] = useState(null);
+  const [locationCheckInProgress, setLocationCheckInProgress] = useState(false);
+  const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
 
   // Load initial data
   useEffect(() => {
     loadInitialData();
   }, []);
+
+  // Function to verify user location and permissions
+  const verifyLocation = useCallback(async () => {
+    if (!user) {
+      setLocationVerified(false);
+      setLocationError('Please log in to edit the queue');
+      return;
+    }
+
+    setLocationCheckInProgress(true);
+    setLocationError(null);
+    setHasAttemptedVerification(true);
+
+    try {
+      const result = await verifyUserLocationAndPermissions(user.id);
+      
+      setLocationVerified(result.allowed);
+      if (!result.allowed) {
+        setLocationError(result.reason);
+      } else {
+        setLocationError(null);
+      }
+    } catch (err) {
+      console.error('Location verification error:', err);
+      setLocationVerified(false);
+      setLocationError('Failed to verify location. Please try again.');
+    } finally {
+      setLocationCheckInProgress(false);
+    }
+  }, [user]);
 
   // Subscribe to real-time changes
   useEffect(() => {
@@ -133,6 +168,13 @@ export const useQueueManager = () => {
   };
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
+    // Check location verification before allowing operations
+    if (!locationVerified) {
+      const errorMsg = locationError || 'Location verification required to edit the queue';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     try {
       setIsMutating(true);
       const orderPosition = getNextOrder();
@@ -159,6 +201,13 @@ export const useQueueManager = () => {
 
   // Update existing queue entry
   const updateQueueEntry = async (id, player1, player2) => {
+    // Check location verification before allowing operations
+    if (!locationVerified) {
+      const errorMsg = locationError || 'Location verification required to edit the queue';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     try {
       setIsMutating(true);
       const updatedEntry = await queueService.updateQueueEntry(id, player1, player2);
@@ -179,6 +228,13 @@ export const useQueueManager = () => {
 
   // Remove queue entry
   const removeQueueEntry = async (id) => {
+    // Check location verification before allowing operations
+    if (!locationVerified) {
+      const errorMsg = locationError || 'Location verification required to edit the queue';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     try {
       setIsMutating(true);
       await queueService.removeQueueEntry(id);
@@ -372,6 +428,10 @@ export const useQueueManager = () => {
     error,
     isConnected,
     isMutating,
+    locationVerified,
+    locationError,
+    locationCheckInProgress,
+    hasAttemptedVerification,
     addQueueEntry,
     updateQueueEntry,
     removeQueueEntry,
@@ -383,6 +443,7 @@ export const useQueueManager = () => {
     startNextGame,
     getNextOrder,
     refreshData: loadInitialData,
-    testRealTimeConnection
+    testRealTimeConnection,
+    verifyLocation
   };
 };

@@ -14,6 +14,9 @@ export const subtitleMessages = [
   '"Sino may powerbank?"',
   '"ALMOST AP UOOOOOOGGGHHHH"',
   '"Wag mo ako kausapin"',
+  '"Enge credit"',
+  '"Tara Ocean King!"',
+  '"No brother, no basketball"',
 ];
 
 export const closedMessages = [

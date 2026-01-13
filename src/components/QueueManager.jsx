@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator, Tooltip, Loader } from '@mantine/core';
-import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconWifi, IconWifiOff } from '@tabler/icons-react';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator, Tooltip, Loader, Modal } from '@mantine/core';
+import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconWifi, IconWifiOff, IconMapPin } from '@tabler/icons-react';
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
 import PlayTimer from './PlayTimer';
@@ -19,6 +19,12 @@ function QueueManager() {
     error,
     isConnected,
     isMutating,
+    locationVerified,
+    locationError,
+    locationCheckInProgress,
+    hasAttemptedVerification,
+    needsLocationPermission,
+    verifyLocation,
     addQueueEntry: addEntry,
     updateQueueEntry: updateEntry,
     removeQueueEntry,
@@ -31,6 +37,7 @@ function QueueManager() {
 
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
   const [closedMessage, setClosedMessage] = useState(() => 
     closedMessages[Math.floor(Math.random() * closedMessages.length)]
   );
@@ -48,6 +55,16 @@ function QueueManager() {
     }
     previousMallStateRef.current = isMallOpen;
   }, [isMallOpen]);
+
+  // Show location modal only when permission is explicitly needed
+  useEffect(() => {
+    if (user && canEdit && needsLocationPermission && !locationCheckInProgress) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowLocationModal(true);
+    } else {
+      setShowLocationModal(false);
+    }
+  }, [user, canEdit, needsLocationPermission, locationCheckInProgress]);
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
@@ -112,6 +129,15 @@ function QueueManager() {
     }
   };
 
+  // Request location permission
+  const handleRequestLocation = async () => {
+    // Don't close modal, let it stay open during verification
+    if (verifyLocation) {
+      await verifyLocation();
+      // Modal will automatically close via useEffect when locationVerified becomes true
+    }
+  };
+
   return (
     <Stack
       gap="md"
@@ -124,6 +150,39 @@ function QueueManager() {
         }
       }}
     >
+      <Modal
+        opened={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        title="Location Permission Required"
+        centered
+      >
+        <Stack gap="md">
+          <Group justify="center">
+            <IconMapPin size={48} color="var(--mantine-color-blue-6)" />
+          </Group>
+          <Text size="sm" ta="center">
+            To enable editing the queue, we need to verify your location.
+          </Text>
+          <Text size="xs" c="dimmed" ta="center">
+            You must be within 100 meters of the arcade to edit the queue.
+          </Text>
+          <Group justify="center" mt="md">
+            <Button
+              leftSection={<IconMapPin size={16} />}
+              onClick={handleRequestLocation}
+              loading={locationCheckInProgress}
+            >
+              Enable Location Services
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowLocationModal(false)}
+            >
+              Not Now
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
       <LoadingOverlay visible={loading || scheduleLoading || isMutating} />
       {isMutating && (
         <Box className="busy-overlay-message">
@@ -140,6 +199,28 @@ function QueueManager() {
           variant="light"
         >
           {error}
+        </Alert>
+      )}
+
+      {user && canEdit && !locationVerified && locationError && hasAttemptedVerification && (
+        <Alert 
+          icon={<IconMapPin size={16} />} 
+          title="Location Verification Failed" 
+          color="orange"
+          variant="light"
+          withCloseButton
+          onClose={() => {/* User can dismiss but still won't be able to edit */}}
+        >
+          <Text size="sm" mb="xs">{locationError}</Text>
+          <Button 
+            size="xs" 
+            variant="light" 
+            leftSection={<IconMapPin size={14} />}
+            onClick={verifyLocation}
+            loading={locationCheckInProgress}
+          >
+            Try Again
+          </Button>
         </Alert>
       )}
 
@@ -176,7 +257,7 @@ function QueueManager() {
                 leftSection={<IconPlus size={16} />}
                 onClick={() => setShowForm(true)}
                 variant="filled"
-                disabled={isMutating}
+                disabled={isMutating || !locationVerified}
               >
                 Add Queue
               </Button>
@@ -249,6 +330,8 @@ function QueueManager() {
           editingData={editingId ? queue.find(item => item.id === editingId) : null}
           onCancel={cancelEdit}
           isBusy={isMutating}
+          locationVerified={locationVerified}
+          locationError={locationError}
         />
       )}
 
