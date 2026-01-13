@@ -23,6 +23,7 @@ function QueueManager() {
     locationError,
     locationCheckInProgress,
     hasAttemptedVerification,
+    needsLocationPermission,
     verifyLocation,
     addQueueEntry: addEntry,
     updateQueueEntry: updateEntry,
@@ -55,15 +56,15 @@ function QueueManager() {
     previousMallStateRef.current = isMallOpen;
   }, [isMallOpen]);
 
-  // Show location modal only when user has edit permissions and hasn't attempted verification yet
+  // Show location modal only when permission is explicitly needed
   useEffect(() => {
-    if (user && canEdit && !locationVerified && !hasAttemptedVerification && !locationCheckInProgress) {
+    if (user && canEdit && needsLocationPermission && !locationCheckInProgress) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowLocationModal(true);
     } else {
       setShowLocationModal(false);
     }
-  }, [user, canEdit, locationVerified, hasAttemptedVerification, locationCheckInProgress]);
+  }, [user, canEdit, needsLocationPermission, locationCheckInProgress]);
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {

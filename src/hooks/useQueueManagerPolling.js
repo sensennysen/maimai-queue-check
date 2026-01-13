@@ -15,6 +15,7 @@ export const useQueueManagerPolling = () => {
   const [locationError, setLocationError] = useState(null);
   const [locationCheckInProgress, setLocationCheckInProgress] = useState(false);
   const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
+  const [needsLocationPermission, setNeedsLocationPermission] = useState(false);
 
   // Track if an operation is in progress to prevent polling interference
   const isOperationInProgress = useRef(false);
@@ -55,6 +56,7 @@ export const useQueueManagerPolling = () => {
     if (!user) {
       setLocationVerified(false);
       setLocationError('Please log in to edit the queue');
+      setNeedsLocationPermission(false);
       return;
     }
 
@@ -66,6 +68,8 @@ export const useQueueManagerPolling = () => {
       const result = await verifyUserLocationAndPermissions(user.id);
       
       setLocationVerified(result.allowed);
+      setNeedsLocationPermission(result.needsPermission || false);
+      
       if (!result.allowed) {
         setLocationError(result.reason);
       } else {
@@ -75,6 +79,7 @@ export const useQueueManagerPolling = () => {
       console.error('Location verification error:', err);
       setLocationVerified(false);
       setLocationError('Failed to verify location. Please try again.');
+      setNeedsLocationPermission(false);
     } finally {
       setLocationCheckInProgress(false);
     }
@@ -363,6 +368,7 @@ export const useQueueManagerPolling = () => {
     locationError,
     locationCheckInProgress,
     hasAttemptedVerification,
+    needsLocationPermission,
     verifyLocation,
     addQueueEntry,
     updateQueueEntry,

@@ -1,6 +1,26 @@
 import { supabase } from './supabase';
 
 /**
+ * Check if geolocation permission is already granted
+ * @returns {Promise<string>} Permission state: 'granted', 'denied', 'prompt', or 'unavailable'
+ */
+export const checkGeolocationPermission = async () => {
+  // Check if Permissions API is available
+  if (!navigator.permissions || !navigator.permissions.query) {
+    // Fallback: check if geolocation is available at all
+    return navigator.geolocation ? 'prompt' : 'unavailable';
+  }
+
+  try {
+    const result = await navigator.permissions.query({ name: 'geolocation' });
+    return result.state; // 'granted', 'denied', or 'prompt'
+  } catch (error) {
+    console.error('Error checking geolocation permission:', error);
+    return navigator.geolocation ? 'prompt' : 'unavailable';
+  }
+};
+
+/**
  * Calculate distance between two coordinates using Haversine formula
  * @param {Object} coord1 - First coordinate {latitude, longitude}
  * @param {Object} coord2 - Second coordinate {latitude, longitude}
