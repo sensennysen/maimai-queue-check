@@ -7,6 +7,7 @@ export const useQueueManager = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [isMutating, setIsMutating] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -131,6 +132,7 @@ export const useQueueManager = () => {
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
     try {
+      setIsMutating(true);
       const orderPosition = getNextOrder();
       const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition);
       
@@ -146,12 +148,15 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Update existing queue entry
   const updateQueueEntry = async (id, player1, player2) => {
     try {
+      setIsMutating(true);
       const updatedEntry = await queueService.updateQueueEntry(id, player1, player2);
       
       // Update local state immediately
@@ -163,12 +168,15 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Remove queue entry
   const removeQueueEntry = async (id) => {
     try {
+      setIsMutating(true);
       await queueService.removeQueueEntry(id);
       
       // Update local state immediately
@@ -190,12 +198,15 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Move entry up in queue
   const moveUp = async (id) => {
     try {
+      setIsMutating(true);
       const index = queue.findIndex(item => item.id === id);
       if (index > 0) {
         // Update local state immediately for better UX
@@ -221,12 +232,15 @@ export const useQueueManager = () => {
       // Reload data on error to sync with database
       await loadInitialData();
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Move entry down in queue
   const moveDown = async (id) => {
     try {
+      setIsMutating(true);
       const index = queue.findIndex(item => item.id === id);
       if (index < queue.length - 1) {
         // Update local state immediately for better UX
@@ -252,12 +266,15 @@ export const useQueueManager = () => {
       // Reload data on error to sync with database
       await loadInitialData();
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Clear entire queue
   const clearQueue = async () => {
     try {
+      setIsMutating(true);
       if (queue.length > 0) {
         await queueService.clearQueue();
         // Update local state immediately
@@ -266,12 +283,15 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Start a new game
   const startGame = async (queueEntryId, player1, player2) => {
     try {
+      setIsMutating(true);
       // Mark queue entry as playing
       if (queueEntryId) {
         await queueService.markAsPlaying(queueEntryId);
@@ -288,12 +308,15 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // End current game and start next
   const endGame = async () => {
     try {
+      setIsMutating(true);
       // End current session
       await sessionService.endCurrentSession();
       setNowPlaying(null);
@@ -309,12 +332,15 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Start next game without ending current one (for manual control)
   const startNextGame = async () => {
     try {
+      setIsMutating(true);
       const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status);
       if (nextEntry) {
         await startGame(nextEntry.id, nextEntry.player1, nextEntry.player2);
@@ -323,6 +349,8 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
@@ -332,6 +360,7 @@ export const useQueueManager = () => {
     loading,
     error,
     isConnected,
+    isMutating,
     addQueueEntry,
     updateQueueEntry,
     removeQueueEntry,
