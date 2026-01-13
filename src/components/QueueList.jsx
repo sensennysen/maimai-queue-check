@@ -17,7 +17,6 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
           <Stack align="center" gap="md">
             <Text size="xl" fw={600} c="dimmed">No entries in queue</Text>
             <Text c="dimmed">Add your first queue entry using the form above!</Text>
-            <Text size="4rem">🎮</Text>
           </Stack>
         </Center>
       </Paper>

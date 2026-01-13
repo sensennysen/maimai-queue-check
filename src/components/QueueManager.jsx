@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator } from '@mantine/core';
-import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconWifi, IconWifiOff } from '@tabler/icons-react';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator, Tooltip } from '@mantine/core';
+import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconWifi, IconWifiOff } from '@tabler/icons-react';
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
 import PlayTimer from './PlayTimer';
@@ -126,25 +126,16 @@ function QueueManager() {
         </Alert>
       )}
 
+      <Alert icon={<IconAlertTriangle size={16} />} color="blue" variant="light">
+        Info here might not reflect the actual queue in the branch
+      </Alert>
+
       <Paper p="md" withBorder>
         <Group justify="space-between" align="center">
           <Group gap="md">
             <Badge variant="light" size="lg">
               Credits: {(isMallOpen ? filterQueue(queue) : []).reduce((sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0), 0)}
             </Badge>
-            <Indicator 
-              color={isConnected ? 'green' : 'red'} 
-              size={8}
-              processing={!isConnected}
-            >
-              <Badge 
-                variant="light" 
-                color={isConnected ? 'green' : 'red'}
-                leftSection={isConnected ? <IconWifi size={12} /> : <IconWifiOff size={12} />}
-              >
-                {isConnected ? 'Live' : 'Offline'}
-              </Badge>
-            </Indicator>
           </Group>
           <Group gap="sm">
             {user && canEdit && isMallOpen && !showForm && !editingId && (
@@ -166,6 +157,22 @@ function QueueManager() {
                 Clear All
               </Button>
             )}
+            <Tooltip label={isConnected ? 'Queue should appear live as it is added' : 'Disconnected from database'} withArrow>
+              <Indicator 
+                color={isConnected ? 'green' : 'red'} 
+                size={8}
+                processing={!isConnected}
+              >
+                <Badge 
+                  variant="light" 
+                  color={isConnected ? 'green' : 'red'}
+                  leftSection={isConnected ? <IconWifi size={12} /> : <IconWifiOff size={12} />}
+                  style={{ cursor: 'help' }}
+                >
+                  {isConnected ? 'Live' : 'Offline'}
+                </Badge>
+              </Indicator>
+            </Tooltip>
           </Group>
         </Group>
       </Paper>

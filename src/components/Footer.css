@@ -1,0 +1,13 @@
+.footer {
+  margin-top: auto;
+  background: var(--surface-color);
+  border-top: 1px solid var(--border-color);
+}
+
+.footer a {
+  transition: color 0.2s ease;
+}
+
+.footer a:hover {
+  color: var(--primary-color);
+}

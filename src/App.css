@@ -3,11 +3,20 @@
 }
 
 .app-header {
-  background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%) !important;
   color: white !important;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--theme-border);
   transition: all 0.3s ease;
+}
+
+/* Light theme gradient - softer, brighter */
+[data-theme="light"] .app-header {
+  background: linear-gradient(135deg, #FFB3D9 0%, #6BEFF3 50%, #FFF780 100%) !important;
+}
+
+/* Dark theme gradient - deeper, more vibrant */
+[data-theme="dark"] .app-header {
+  background: linear-gradient(135deg, #B30066 0%, #007E86 50%, #B39200 100%) !important;
 }
 
 .app-header:hover {
@@ -17,6 +26,8 @@
 .app-title {
   color: white !important;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  font-size: 1.5rem !important;
+  font-weight: 600;
 }
 
 .app-subtitle {
