@@ -43,8 +43,8 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
       {queue.length === 0 ? (
         <Center p="xl">
           <Stack align="center" gap="md">
-            <Text size="xl" fw={600} c="dimmed">No entries in queue</Text>
-            <Text c="dimmed">Add your first queue entry using the form above!</Text>
+            <Text size="xl" fw={600} c="dimmed">No one in line...</Text>
+            <Text c="dimmed">Add to queue by pressing the button above</Text>
           </Stack>
         </Center>
       ) : (
