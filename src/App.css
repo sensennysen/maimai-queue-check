@@ -3,26 +3,53 @@
 }
 
 .app-header {
-  background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%) !important;
-  color: white !important;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--theme-border);
   transition: all 0.3s ease;
+}
+
+/* Light theme gradient */
+[data-theme="light"] .app-header {
+  background: linear-gradient(135deg, #FF4FB7 0%, #31E0E7 100%);
+}
+
+/* Dark theme gradient */
+[data-theme="dark"] .app-header {
+  background: linear-gradient(135deg, #31E0E7 0%, #FF4FB7 100%);
 }
 
 .app-header:hover {
   box-shadow: 0 8px 16px rgba(255, 79, 183, 0.2);
 }
 
+[data-theme="light"] .app-title {
+  color: #2B1C2A !important;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .app-title {
+  color: #000000 !important;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
 .app-title {
-  color: white !important;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  font-size: 1.5rem !important;
+  font-weight: 600;
+}
+
+[data-theme="light"] .app-subtitle {
+  color: #2B1C2A !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="dark"] .app-subtitle {
+  color: #000000 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
 }
 
 .app-subtitle {
-  color: rgba(255, 255, 255, 0.9) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   font-style: italic;
   font-family: 'Georgia', 'Times New Roman', serif;
   font-weight: 300;
+  opacity: 0.9;
 }

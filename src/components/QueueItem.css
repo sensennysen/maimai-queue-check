@@ -100,15 +100,17 @@
   min-width: 28px;
   text-align: center;
   flex-shrink: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .player-side-1 {
   background: var(--theme-player1);
+  color: white;
 }
 
 .player-side-2 {
   background: var(--theme-player2);
-  color: #000000;
+  color: white;
 }
 
 .vs-divider {
@@ -119,7 +121,7 @@
 
 .vs {
   background: var(--theme-accent);
-  color: var(--theme-text-primary);
+  color: #2B1C2A;
   border-radius: 50%;
   width: 28px;
   height: 28px;

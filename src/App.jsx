@@ -9,6 +9,7 @@ import { subtitleMessages } from './data/subtitleMessages';
 import QueueManager from './components/QueueManager';
 import LoginForm from './components/LoginForm';
 import ThemeToggle from './components/ThemeToggle';
+import Footer from './components/Footer';
 import './App.css';
 
 // Mantine theme configuration that syncs with our CSS variables
@@ -41,15 +42,15 @@ function AppContent() {
       <div className="App">
         <Container size="lg" py="xl">
           <Stack gap="lg">
-            <Paper p="xl" radius="md" withBorder className="app-header">
-              <Group justify="center" align="center" mb="xs">
-                <Title order={1} ta="center" c="white" className="app-title">
+            <Paper p="md" radius="md" withBorder className="app-header">
+              <Group justify="space-between" align="center" gap="md" wrap="wrap">
+                <Title order={1} className="app-title">
                   maimai Fairview Queue
                 </Title>
+                <Text size="lg" className="app-subtitle">
+                  {randomSubtitle}
+                </Text>
               </Group>
-              <Text ta="center" c="white" size="lg" className="app-subtitle">
-                {randomSubtitle}
-              </Text>
             </Paper>
             
             <Group justify="flex-end" gap="sm">
@@ -60,6 +61,8 @@ function AppContent() {
             <main>
               <QueueManager />
             </main>
+            
+            <Footer />
           </Stack>
         </Container>
       </div>

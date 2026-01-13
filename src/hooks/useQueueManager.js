@@ -7,6 +7,7 @@ export const useQueueManager = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [isMutating, setIsMutating] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -20,8 +21,6 @@ export const useQueueManager = () => {
 
     const setupSubscriptions = async () => {
       try {
-        console.log('Setting up real-time subscriptions...');
-        
         queueSubscription = subscribeToQueueChanges(handleQueueChange);
         sessionSubscription = subscribeToSessionChanges(handleSessionChange);
         
@@ -33,10 +32,8 @@ export const useQueueManager = () => {
         const { data, error } = await supabase.from('queue_entries').select('count').limit(1);
         if (!error) {
           setIsConnected(true);
-          console.log('✅ Real-time connection established');
         } else {
           setIsConnected(false);
-          console.error('❌ Connection test failed:', error);
         }
       } catch (err) {
         console.error('Subscription setup error:', err);
@@ -49,11 +46,9 @@ export const useQueueManager = () => {
     return () => {
       if (queueSubscription) {
         queueSubscription.unsubscribe();
-        console.log('Queue subscription cleaned up');
       }
       if (sessionSubscription) {
         sessionSubscription.unsubscribe();
-        console.log('Session subscription cleaned up');
       }
       setIsConnected(false);
     };
@@ -78,9 +73,7 @@ export const useQueueManager = () => {
     }
   };
 
-  const handleQueueChange = (payload) => {
-    console.log('Queue change detected:', payload);
-    
+  const handleQueueChange = () => { 
     // Reload queue data when changes occur from other clients
     queueService.getQueueEntries()
       .then(data => {
@@ -89,9 +82,7 @@ export const useQueueManager = () => {
       .catch(err => console.error('Error refreshing queue:', err));
   };
 
-  const handleSessionChange = (payload) => {
-    console.log('Session change detected:', payload);
-    
+  const handleSessionChange = () => {
     // Reload session data when changes occur from other clients  
     sessionService.getCurrentSession()
       .then(data => {
@@ -103,30 +94,24 @@ export const useQueueManager = () => {
   // Test real-time connection
   const testRealTimeConnection = async () => {
     try {
-      console.log('🔍 Testing real-time connection...');
-      console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-      console.log('Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
-      
       // Test basic connection
-      const { data, error } = await supabase.from('queue_entries').select('*').limit(1);
+      const { error } = await supabase.from('queue_entries').select('*').limit(1);
       
       if (error) {
         console.error('❌ Database connection failed:', error);
         return false;
       }
       
-      console.log('✅ Database connection successful');
-      console.log('Current queue data:', data);
       
       // Test real-time subscriptions
       const testChannel = supabase
         .channel('test_channel')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'queue_entries' }, 
-          (payload) => {
-            console.log('🔔 Test real-time event received:', payload);
+          () => {
+            // Real-time event received
           })
-        .subscribe((status) => {
-          console.log('Test channel status:', status);
+        .subscribe(() => {
+            // Channel subscribed
         });
       
       setTimeout(() => {
@@ -147,6 +132,7 @@ export const useQueueManager = () => {
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
     try {
+      setIsMutating(true);
       const orderPosition = getNextOrder();
       const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition);
       
@@ -162,12 +148,15 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Update existing queue entry
   const updateQueueEntry = async (id, player1, player2) => {
     try {
+      setIsMutating(true);
       const updatedEntry = await queueService.updateQueueEntry(id, player1, player2);
       
       // Update local state immediately
@@ -179,12 +168,15 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Remove queue entry
   const removeQueueEntry = async (id) => {
     try {
+      setIsMutating(true);
       await queueService.removeQueueEntry(id);
       
       // Update local state immediately
@@ -206,12 +198,15 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Move entry up in queue
   const moveUp = async (id) => {
     try {
+      setIsMutating(true);
       const index = queue.findIndex(item => item.id === id);
       if (index > 0) {
         // Update local state immediately for better UX
@@ -237,12 +232,15 @@ export const useQueueManager = () => {
       // Reload data on error to sync with database
       await loadInitialData();
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Move entry down in queue
   const moveDown = async (id) => {
     try {
+      setIsMutating(true);
       const index = queue.findIndex(item => item.id === id);
       if (index < queue.length - 1) {
         // Update local state immediately for better UX
@@ -268,12 +266,15 @@ export const useQueueManager = () => {
       // Reload data on error to sync with database
       await loadInitialData();
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Clear entire queue
   const clearQueue = async () => {
     try {
+      setIsMutating(true);
       if (queue.length > 0) {
         await queueService.clearQueue();
         // Update local state immediately
@@ -282,12 +283,15 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Start a new game
   const startGame = async (queueEntryId, player1, player2) => {
     try {
+      setIsMutating(true);
       // Mark queue entry as playing
       if (queueEntryId) {
         await queueService.markAsPlaying(queueEntryId);
@@ -304,12 +308,15 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // End current game and start next
   const endGame = async () => {
     try {
+      setIsMutating(true);
       // End current session
       await sessionService.endCurrentSession();
       setNowPlaying(null);
@@ -325,12 +332,15 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
   // Start next game without ending current one (for manual control)
   const startNextGame = async () => {
     try {
+      setIsMutating(true);
       const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status);
       if (nextEntry) {
         await startGame(nextEntry.id, nextEntry.player1, nextEntry.player2);
@@ -339,6 +349,8 @@ export const useQueueManager = () => {
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setIsMutating(false);
     }
   };
 
@@ -348,6 +360,7 @@ export const useQueueManager = () => {
     loading,
     error,
     isConnected,
+    isMutating,
     addQueueEntry,
     updateQueueEntry,
     removeQueueEntry,

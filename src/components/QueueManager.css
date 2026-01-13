@@ -122,15 +122,17 @@
   text-align: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .player-side-1 {
   background: var(--theme-player1);
+  color: white;
 }
 
 .player-side-2 {
   background: var(--theme-player2);
-  color: #000000;
+  color: white;
 }
 
 .player-display .player-name {
@@ -149,8 +151,8 @@
 }
 
 .vs-text {
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--theme-success);
+  background: var(--theme-accent);
+  color: #2B1C2A;
   padding: 0.4rem 0.8rem;
   border-radius: 50%;
   font-weight: bold;
@@ -194,6 +196,24 @@
   background: var(--theme-primary-hover);
   border-color: var(--theme-primary-hover);
   transform: translateY(-1px);
+}
+
+/* Busy overlay message displayed above loading overlay */
+.busy-overlay-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--mantine-color-gray-0);
+  color: var(--mantine-color-gray-7);
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  border: 1px solid var(--mantine-color-gray-3);
+  z-index: 1000;
 }
 
 @media (max-width: 768px) {

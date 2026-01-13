@@ -3,7 +3,7 @@ import { Paper, Title, TextInput, Group, Button, Stack, Alert } from '@mantine/c
 import { IconPlus, IconEdit, IconX, IconPlayerPlay } from '@tabler/icons-react';
 import './QueueForm.css';
 
-function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
+function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false }) {
   const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : '';
   const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : '';
   
@@ -25,6 +25,9 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (isBusy) {
+      return;
+    }
     
     if (!validateForm()) {
       return;
@@ -56,7 +59,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
       <Title order={3} mb="md">
         {editingId ? 'Edit Queue' : 'Add Queue'}
       </Title>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} onKeyDown={(e) => { if (isBusy) { e.preventDefault(); e.stopPropagation(); } }}>
         <Stack gap="md">
           {errors.general && (
             <Alert color="red" variant="light">
@@ -72,6 +75,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
               onChange={(e) => setPlayer1(e.target.value)}
               error={errors.player1}
               maxLength={50}
+              disabled={isBusy}
             />
 
             <TextInput
@@ -81,6 +85,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
               onChange={(e) => setPlayer2(e.target.value)}
               error={errors.player2}
               maxLength={50}
+              disabled={isBusy}
             />
           </Group>
 
@@ -89,6 +94,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
               type="submit" 
               leftSection={editingId ? <IconEdit size={16} /> : <IconPlus size={16} />}
               variant="filled"
+              disabled={isBusy}
             >
               {editingId ? 'Update Entry' : 'Add to Queue'}
             </Button>
@@ -98,6 +104,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel }) {
                 color="gray"
                 leftSection={<IconX size={16} />}
                 onClick={handleCancel}
+                disabled={isBusy}
               >
                 Cancel
               </Button>
