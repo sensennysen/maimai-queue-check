@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator, Tooltip, Loader } from '@mantine/core';
-import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconWifi, IconWifiOff } from '@tabler/icons-react';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator, Tooltip, Loader, Modal } from '@mantine/core';
+import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconWifi, IconWifiOff, IconMapPin } from '@tabler/icons-react';
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
 import PlayTimer from './PlayTimer';
@@ -21,6 +21,8 @@ function QueueManager() {
     isMutating,
     locationVerified,
     locationError,
+    locationCheckInProgress,
+    verifyLocation,
     addQueueEntry: addEntry,
     updateQueueEntry: updateEntry,
     removeQueueEntry,
@@ -33,6 +35,7 @@ function QueueManager() {
 
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
   const [closedMessage, setClosedMessage] = useState(() => 
     closedMessages[Math.floor(Math.random() * closedMessages.length)]
   );
@@ -50,6 +53,16 @@ function QueueManager() {
     }
     previousMallStateRef.current = isMallOpen;
   }, [isMallOpen]);
+
+  // Show location modal when user has edit permissions but location is not verified
+  useEffect(() => {
+    if (user && canEdit && !locationVerified && !locationCheckInProgress && locationError) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowLocationModal(true);
+    } else {
+      setShowLocationModal(false);
+    }
+  }, [user, canEdit, locationVerified, locationCheckInProgress, locationError]);
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
@@ -114,6 +127,14 @@ function QueueManager() {
     }
   };
 
+  // Request location permission
+  const handleRequestLocation = async () => {
+    setShowLocationModal(false);
+    if (verifyLocation) {
+      await verifyLocation();
+    }
+  };
+
   return (
     <Stack
       gap="md"
@@ -126,6 +147,39 @@ function QueueManager() {
         }
       }}
     >
+      <Modal
+        opened={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        title="Location Permission Required"
+        centered
+      >
+        <Stack gap="md">
+          <Group justify="center">
+            <IconMapPin size={48} color="var(--mantine-color-blue-6)" />
+          </Group>
+          <Text size="sm" ta="center">
+            {locationError || 'To manage the queue, we need to verify that you are at an authorized arcade location.'}
+          </Text>
+          <Text size="xs" c="dimmed" ta="center">
+            Your location will be checked against approved arcade locations. You must be within 100 meters of an authorized location to edit the queue.
+          </Text>
+          <Group justify="center" mt="md">
+            <Button
+              leftSection={<IconMapPin size={16} />}
+              onClick={handleRequestLocation}
+              loading={locationCheckInProgress}
+            >
+              Enable Location Services
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowLocationModal(false)}
+            >
+              Not Now
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
       <LoadingOverlay visible={loading || scheduleLoading || isMutating} />
       {isMutating && (
         <Box className="busy-overlay-message">
