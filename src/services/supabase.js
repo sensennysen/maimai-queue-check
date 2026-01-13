@@ -106,7 +106,7 @@ export const queueService = {
   },
 
   // Add a new queue entry
-  async addQueueEntry(player1, player2, orderPosition) {
+  async addQueueEntry(player1, player2, orderPosition, userId, userName) {
     const { data, error } = await supabase
       .from('queue_entries')
       .insert([
@@ -114,7 +114,9 @@ export const queueService = {
           player1: player1.trim(),
           player2: player2.trim(),
           order_position: orderPosition,
-          status: 'waiting'
+          status: 'waiting',
+          created_by: userId || null,
+          created_by_name: userName || null
         }
       ])
       .select()
@@ -235,7 +237,7 @@ export const sessionService = {
   },
 
   // Start a new game session
-  async startSession(player1, player2) {
+  async startSession(player1, player2, userId, userName) {
     // End any existing active sessions first
     await this.endCurrentSession();
     
@@ -245,7 +247,9 @@ export const sessionService = {
         {
           player1: player1.trim(),
           player2: player2.trim(),
-          status: 'active'
+          status: 'active',
+          created_by: userId || null,
+          created_by_name: userName || null
         }
       ])
       .select()
