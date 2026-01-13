@@ -257,7 +257,7 @@ function QueueManager() {
                 leftSection={<IconPlus size={16} />}
                 onClick={() => setShowForm(true)}
                 variant="filled"
-                disabled={isMutating}
+                disabled={isMutating || !locationVerified}
               >
                 Add Queue
               </Button>
