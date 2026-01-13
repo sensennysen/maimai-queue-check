@@ -14,18 +14,12 @@ export const useQueueManager = () => {
   const [locationVerified, setLocationVerified] = useState(false);
   const [locationError, setLocationError] = useState(null);
   const [locationCheckInProgress, setLocationCheckInProgress] = useState(false);
+  const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
 
   // Load initial data
   useEffect(() => {
     loadInitialData();
   }, []);
-
-  // Verify location when user is available
-  useEffect(() => {
-    if (user && !locationCheckInProgress) {
-      verifyLocation();
-    }
-  }, [locationCheckInProgress, user, verifyLocation]);
 
   // Function to verify user location and permissions
   const verifyLocation = useCallback(async () => {
@@ -37,6 +31,7 @@ export const useQueueManager = () => {
 
     setLocationCheckInProgress(true);
     setLocationError(null);
+    setHasAttemptedVerification(true);
 
     try {
       const result = await verifyUserLocationAndPermissions(user.id);
@@ -436,6 +431,7 @@ export const useQueueManager = () => {
     locationVerified,
     locationError,
     locationCheckInProgress,
+    hasAttemptedVerification,
     addQueueEntry,
     updateQueueEntry,
     removeQueueEntry,

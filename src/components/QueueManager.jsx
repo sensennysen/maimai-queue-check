@@ -22,6 +22,7 @@ function QueueManager() {
     locationVerified,
     locationError,
     locationCheckInProgress,
+    hasAttemptedVerification,
     verifyLocation,
     addQueueEntry: addEntry,
     updateQueueEntry: updateEntry,
@@ -56,13 +57,13 @@ function QueueManager() {
 
   // Show location modal when user has edit permissions but location is not verified
   useEffect(() => {
-    if (user && canEdit && !locationVerified && !locationCheckInProgress && locationError) {
+    if (user && canEdit && !locationVerified && !locationCheckInProgress) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowLocationModal(true);
     } else {
       setShowLocationModal(false);
     }
-  }, [user, canEdit, locationVerified, locationCheckInProgress, locationError]);
+  }, [user, canEdit, locationVerified, locationCheckInProgress]);
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
@@ -158,10 +159,14 @@ function QueueManager() {
             <IconMapPin size={48} color="var(--mantine-color-blue-6)" />
           </Group>
           <Text size="sm" ta="center">
-            {locationError || 'To manage the queue, we need to verify that you are at an authorized arcade location.'}
+            {hasAttemptedVerification && locationError 
+              ? locationError 
+              : 'To manage the queue, we need to verify that you are at an authorized arcade location.'}
           </Text>
           <Text size="xs" c="dimmed" ta="center">
-            Your location will be checked against approved arcade locations. You must be within 100 meters of an authorized location to edit the queue.
+            {hasAttemptedVerification && locationError
+              ? 'Please try again or make sure you are within 100 meters of an authorized arcade location.'
+              : 'Your location will be checked against approved arcade locations. You must be within 100 meters of an authorized location to edit the queue.'}
           </Text>
           <Group justify="center" mt="md">
             <Button
