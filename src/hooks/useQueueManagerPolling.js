@@ -49,11 +49,8 @@ export const useQueueManagerPolling = () => {
         // Only poll if no operation is in progress
         if (!isOperationInProgress.current) {
           loadData();
-        } else {
-          console.log('Polling skipped - operation in progress');
         }
       }, POLL_INTERVAL);
-      console.log(`✅ Polling every ${POLL_INTERVAL}ms`);
     };
 
     setupPolling();
@@ -61,7 +58,6 @@ export const useQueueManagerPolling = () => {
     return () => {
       if (pollTimeoutRef.current) {
         clearInterval(pollTimeoutRef.current);
-        console.log('Polling stopped');
       }
     };
   }, []);

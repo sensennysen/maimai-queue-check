@@ -20,8 +20,6 @@ export const useQueueManager = () => {
 
     const setupSubscriptions = async () => {
       try {
-        console.log('Setting up real-time subscriptions...');
-        
         queueSubscription = subscribeToQueueChanges(handleQueueChange);
         sessionSubscription = subscribeToSessionChanges(handleSessionChange);
         
@@ -33,10 +31,8 @@ export const useQueueManager = () => {
         const { data, error } = await supabase.from('queue_entries').select('count').limit(1);
         if (!error) {
           setIsConnected(true);
-          console.log('✅ Real-time connection established');
         } else {
           setIsConnected(false);
-          console.error('❌ Connection test failed:', error);
         }
       } catch (err) {
         console.error('Subscription setup error:', err);
@@ -49,11 +45,9 @@ export const useQueueManager = () => {
     return () => {
       if (queueSubscription) {
         queueSubscription.unsubscribe();
-        console.log('Queue subscription cleaned up');
       }
       if (sessionSubscription) {
         sessionSubscription.unsubscribe();
-        console.log('Session subscription cleaned up');
       }
       setIsConnected(false);
     };
@@ -78,9 +72,7 @@ export const useQueueManager = () => {
     }
   };
 
-  const handleQueueChange = (payload) => {
-    console.log('Queue change detected:', payload);
-    
+  const handleQueueChange = () => { 
     // Reload queue data when changes occur from other clients
     queueService.getQueueEntries()
       .then(data => {
@@ -89,9 +81,7 @@ export const useQueueManager = () => {
       .catch(err => console.error('Error refreshing queue:', err));
   };
 
-  const handleSessionChange = (payload) => {
-    console.log('Session change detected:', payload);
-    
+  const handleSessionChange = () => {
     // Reload session data when changes occur from other clients  
     sessionService.getCurrentSession()
       .then(data => {
@@ -103,30 +93,24 @@ export const useQueueManager = () => {
   // Test real-time connection
   const testRealTimeConnection = async () => {
     try {
-      console.log('🔍 Testing real-time connection...');
-      console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-      console.log('Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
-      
       // Test basic connection
-      const { data, error } = await supabase.from('queue_entries').select('*').limit(1);
+      const { error } = await supabase.from('queue_entries').select('*').limit(1);
       
       if (error) {
         console.error('❌ Database connection failed:', error);
         return false;
       }
       
-      console.log('✅ Database connection successful');
-      console.log('Current queue data:', data);
       
       // Test real-time subscriptions
       const testChannel = supabase
         .channel('test_channel')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'queue_entries' }, 
-          (payload) => {
-            console.log('🔔 Test real-time event received:', payload);
+          () => {
+            // Real-time event received
           })
-        .subscribe((status) => {
-          console.log('Test channel status:', status);
+        .subscribe(() => {
+            // Channel subscribed
         });
       
       setTimeout(() => {
