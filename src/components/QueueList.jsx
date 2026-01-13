@@ -10,19 +10,6 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
   // Safely check if user can edit - default to true if roles aren't loaded yet
   const canEdit = userRoles === undefined ? true : userRoles?.can_edit;
   
-  if (queue.length === 0) {
-    return (
-      <Paper p="xl" withBorder>
-        <Center>
-          <Stack align="center" gap="md">
-            <Text size="xl" fw={600} c="dimmed">No entries in queue</Text>
-            <Text c="dimmed">Add your first queue entry using the form above!</Text>
-          </Stack>
-        </Center>
-      </Paper>
-    );
-  }
-
   return (
     <Paper withBorder>
       <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
@@ -41,7 +28,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
       {!user && (
         <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-blue-0)' }}>
           <Text size="sm" c="blue">
-            🔒 Sign in above to manage the queue
+            🔒 Sign in above and receive permission to edit the queue
           </Text>
         </Group>
       )}
@@ -52,23 +39,32 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
           </Text>
         </Group>
       )}
-      <Stack gap={0}>
-        {queue.map((item, index) => (
-          <QueueItem
-            key={item.id}
-            item={item}
-            onEdit={onEdit}
-            onRemove={onRemove}
-            onMoveUp={(id) => onMoveUp(id)}
-            onMoveDown={(id) => onMoveDown(id)}
-            isFirst={index === 0}
-            isLast={index === queue.length - 1}
-            isNextUp={index === 0 && !nowPlaying}
-            gameInProgress={!!nowPlaying}
-            userRoles={userRoles}
-          />
-        ))}
-      </Stack>
+      {queue.length === 0 ? (
+        <Center p="xl">
+          <Stack align="center" gap="md">
+            <Text size="xl" fw={600} c="dimmed">No entries in queue</Text>
+            <Text c="dimmed">Add your first queue entry using the form above!</Text>
+          </Stack>
+        </Center>
+      ) : (
+        <Stack gap={0}>
+          {queue.map((item, index) => (
+            <QueueItem
+              key={item.id}
+              item={item}
+              onEdit={onEdit}
+              onRemove={onRemove}
+              onMoveUp={(id) => onMoveUp(id)}
+              onMoveDown={(id) => onMoveDown(id)}
+              isFirst={index === 0}
+              isLast={index === queue.length - 1}
+              isNextUp={index === 0 && !nowPlaying}
+              gameInProgress={!!nowPlaying}
+              userRoles={userRoles}
+            />
+          ))}
+        </Stack>
+      )}
     </Paper>
   );
 }
