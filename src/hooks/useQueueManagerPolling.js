@@ -188,6 +188,10 @@ export const useQueueManagerPolling = () => {
       isOperationInProgress.current = true;
       setIsMutating(true);
       await queueService.clearQueue();
+      // End current session if one exists
+      if (nowPlaying) {
+        await sessionService.endCurrentSession();
+      }
       await loadData();
     } catch (err) {
       setError(err.message);
