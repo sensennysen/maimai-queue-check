@@ -1,7 +1,7 @@
 import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
 import './QueueItem.css';
 
-function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, userRoles }) {
+function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, userRoles, isBusy = false }) {
   const handleEdit = () => {
     onEdit(item.id);
   };
@@ -57,7 +57,7 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
             <button
               className="move-btn up"
               onClick={handleMoveUp}
-              disabled={isFirst}
+              disabled={isFirst || isBusy}
               title="Move up in queue"
             >
               ▲
@@ -65,7 +65,7 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
             <button
               className="move-btn down"
               onClick={handleMoveDown}
-              disabled={isLast}
+              disabled={isLast || isBusy}
               title="Move down in queue"
             >
               ▼
@@ -75,6 +75,7 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
             <button
               className="edit-btn"
               onClick={handleEdit}
+              disabled={isBusy}
               title="Edit this entry"
             >
               <IconEdit size={16} />
@@ -82,6 +83,7 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
             <button
               className="remove-btn"
               onClick={handleRemove}
+              disabled={isBusy}
               title="Remove from queue"
             >
               <IconTrash size={16} />

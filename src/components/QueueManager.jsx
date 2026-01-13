@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator, Tooltip } from '@mantine/core';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator, Tooltip, Loader } from '@mantine/core';
 import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconWifi, IconWifiOff } from '@tabler/icons-react';
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
@@ -18,6 +18,7 @@ function QueueManager() {
     loading,
     error,
     isConnected,
+    isMutating,
     addQueueEntry: addEntry,
     updateQueueEntry: updateEntry,
     removeQueueEntry,
@@ -112,8 +113,24 @@ function QueueManager() {
   };
 
   return (
-    <Stack gap="md" style={{ position: 'relative' }}>
-      <LoadingOverlay visible={loading || scheduleLoading} />
+    <Stack
+      gap="md"
+      style={{ position: 'relative' }}
+      aria-busy={isMutating}
+      onKeyDownCapture={(e) => {
+        if (isMutating) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }}
+    >
+      <LoadingOverlay visible={loading || scheduleLoading || isMutating} />
+      {isMutating && (
+        <Box className="busy-overlay-message">
+          <Loader size="sm" mr={8} />
+          <Text size="sm" c="dimmed">Saving…</Text>
+        </Box>
+      )}
       
       {error && (
         <Alert 
@@ -136,27 +153,6 @@ function QueueManager() {
             <Badge variant="light" size="lg">
               Credits: {(isMallOpen ? filterQueue(queue) : []).reduce((sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0), 0)}
             </Badge>
-          </Group>
-          <Group gap="sm">
-            {user && canEdit && isMallOpen && !showForm && !editingId && (
-              <Button 
-                leftSection={<IconPlus size={16} />}
-                onClick={() => setShowForm(true)}
-                variant="filled"
-              >
-                Add Queue
-              </Button>
-            )}
-            {user && canEdit && isMallOpen && queue.length > 0 && (
-              <Button 
-                variant="outline"
-                color="red"
-                leftSection={<IconTrash size={16} />}
-                onClick={clearQueue}
-              >
-                Clear All
-              </Button>
-            )}
             <Tooltip label={isConnected ? 'Queue should appear live as it is added' : 'Disconnected from database'} withArrow>
               <Indicator 
                 color={isConnected ? 'green' : 'red'} 
@@ -173,6 +169,29 @@ function QueueManager() {
                 </Badge>
               </Indicator>
             </Tooltip>
+          </Group>
+          <Group gap="sm">
+            {user && canEdit && isMallOpen && !showForm && !editingId && (
+              <Button 
+                leftSection={<IconPlus size={16} />}
+                onClick={() => setShowForm(true)}
+                variant="filled"
+                disabled={isMutating}
+              >
+                Add Queue
+              </Button>
+            )}
+            {user && canEdit && isMallOpen && queue.length > 0 && (
+              <Button 
+                variant="outline"
+                color="red"
+                leftSection={<IconTrash size={16} />}
+                onClick={clearQueue}
+                disabled={isMutating}
+              >
+                Clear All
+              </Button>
+            )}
           </Group>
         </Group>
       </Paper>
@@ -204,6 +223,7 @@ function QueueManager() {
               <button 
                 className="finish-game-btn"
                 onClick={finishGame}
+                disabled={isMutating}
               >
                 <IconPlayerStop size={16} />
                 Finish Game
@@ -228,6 +248,7 @@ function QueueManager() {
           editingId={editingId}
           editingData={editingId ? queue.find(item => item.id === editingId) : null}
           onCancel={cancelEdit}
+          isBusy={isMutating}
         />
       )}
 
@@ -241,6 +262,7 @@ function QueueManager() {
         onMoveDown={moveDown}
         onStartGame={startGame}
         isMallOpen={isMallOpen}
+        isBusy={isMutating}
       />
       )}
     </Stack>

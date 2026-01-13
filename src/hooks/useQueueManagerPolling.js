@@ -7,6 +7,7 @@ export const useQueueManagerPolling = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(true);
+  const [isMutating, setIsMutating] = useState(false);
 
   // Track if an operation is in progress to prevent polling interference
   const isOperationInProgress = useRef(false);
@@ -69,6 +70,7 @@ export const useQueueManagerPolling = () => {
   const addQueueEntry = async (player1, player2) => {
     try {
       isOperationInProgress.current = true;
+      setIsMutating(true);
       const orderPosition = getNextOrder();
       const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition);
       
@@ -86,12 +88,14 @@ export const useQueueManagerPolling = () => {
       throw err;
     } finally {
       isOperationInProgress.current = false;
+      setIsMutating(false);
     }
   };
 
   const updateQueueEntry = async (id, player1, player2) => {
     try {
       isOperationInProgress.current = true;
+      setIsMutating(true);
       const updatedEntry = await queueService.updateQueueEntry(id, player1, player2);
       
       // Reload data to ensure consistency with database
@@ -105,12 +109,14 @@ export const useQueueManagerPolling = () => {
       throw err;
     } finally {
       isOperationInProgress.current = false;
+      setIsMutating(false);
     }
   };
 
   const removeQueueEntry = async (id) => {
     try {
       isOperationInProgress.current = true;
+      setIsMutating(true);
       await queueService.removeQueueEntry(id);
       
       const remainingEntries = queue.filter(item => item.id !== id);
@@ -129,12 +135,14 @@ export const useQueueManagerPolling = () => {
       throw err;
     } finally {
       isOperationInProgress.current = false;
+      setIsMutating(false);
     }
   };
 
   const moveUp = async (id) => {
     try {
       isOperationInProgress.current = true;
+      setIsMutating(true);
       const index = queue.findIndex(item => item.id === id);
       if (index > 0) {
         const updates = [
@@ -149,12 +157,14 @@ export const useQueueManagerPolling = () => {
       throw err;
     } finally {
       isOperationInProgress.current = false;
+      setIsMutating(false);
     }
   };
 
   const moveDown = async (id) => {
     try {
       isOperationInProgress.current = true;
+      setIsMutating(true);
       const index = queue.findIndex(item => item.id === id);
       if (index < queue.length - 1) {
         const updates = [
@@ -169,12 +179,14 @@ export const useQueueManagerPolling = () => {
       throw err;
     } finally {
       isOperationInProgress.current = false;
+      setIsMutating(false);
     }
   };
 
   const clearQueue = async () => {
     try {
       isOperationInProgress.current = true;
+      setIsMutating(true);
       await queueService.clearQueue();
       await loadData();
     } catch (err) {
@@ -183,12 +195,14 @@ export const useQueueManagerPolling = () => {
       throw err;
     } finally {
       isOperationInProgress.current = false;
+      setIsMutating(false);
     }
   };
 
   const startGame = async (queueEntryId, player1, player2) => {
     try {
       isOperationInProgress.current = true;
+      setIsMutating(true);
       if (queueEntryId) {
         await queueService.markAsPlaying(queueEntryId);
       }
@@ -201,12 +215,14 @@ export const useQueueManagerPolling = () => {
       throw err;
     } finally {
       isOperationInProgress.current = false;
+      setIsMutating(false);
     }
   };
 
   const endGame = async () => {
     try {
       isOperationInProgress.current = true;
+      setIsMutating(true);
       await sessionService.endCurrentSession();
       
       // Reload data first to get updated queue before starting next game
@@ -226,12 +242,14 @@ export const useQueueManagerPolling = () => {
       throw err;
     } finally {
       isOperationInProgress.current = false;
+      setIsMutating(false);
     }
   };
 
   const startNextGame = async () => {
     try {
       isOperationInProgress.current = true;
+      setIsMutating(true);
       const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status);
       if (nextEntry) {
         await startGame(nextEntry.id, nextEntry.player1, nextEntry.player2);
@@ -242,6 +260,7 @@ export const useQueueManagerPolling = () => {
       throw err;
     } finally {
       isOperationInProgress.current = false;
+      setIsMutating(false);
     }
   };
 
@@ -251,6 +270,7 @@ export const useQueueManagerPolling = () => {
     loading,
     error,
     isConnected,
+    isMutating,
     addQueueEntry,
     updateQueueEntry,
     removeQueueEntry,

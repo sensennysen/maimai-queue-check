@@ -4,7 +4,7 @@ import QueueItem from './QueueItem';
 import { useAuth } from '../hooks/useAuth';
 import './QueueList.css';
 
-function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen }) {
+function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false }) {
   const { user, userRoles } = useAuth();
   
   // Safely check if user can edit - default to true if roles aren't loaded yet
@@ -20,6 +20,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
             onClick={() => onStartGame()}
             variant="filled"
             color="green"
+            disabled={isBusy}
           >
             Start Game
           </Button>
@@ -61,6 +62,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
               isNextUp={index === 0 && !nowPlaying}
               gameInProgress={!!nowPlaying}
               userRoles={userRoles}
+              isBusy={isBusy}
             />
           ))}
         </Stack>

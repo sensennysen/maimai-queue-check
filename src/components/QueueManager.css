@@ -198,6 +198,24 @@
   transform: translateY(-1px);
 }
 
+/* Busy overlay message displayed above loading overlay */
+.busy-overlay-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--mantine-color-gray-0);
+  color: var(--mantine-color-gray-7);
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  border: 1px solid var(--mantine-color-gray-3);
+  z-index: 1000;
+}
+
 @media (max-width: 768px) {
   .queue-header {
     flex-direction: column;
