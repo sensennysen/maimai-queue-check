@@ -267,6 +267,13 @@ export const useQueueManager = () => {
 
   // Move entry up in queue
   const moveUp = async (id) => {
+    // Check location verification before allowing operations
+    if (!locationVerified) {
+      const errorMsg = locationError || 'Location verification required to edit the queue';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     try {
       setIsMutating(true);
       const index = queue.findIndex(item => item.id === id);
@@ -301,6 +308,13 @@ export const useQueueManager = () => {
 
   // Move entry down in queue
   const moveDown = async (id) => {
+    // Check location verification before allowing operations
+    if (!locationVerified) {
+      const errorMsg = locationError || 'Location verification required to edit the queue';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     try {
       setIsMutating(true);
       const index = queue.findIndex(item => item.id === id);
@@ -335,6 +349,13 @@ export const useQueueManager = () => {
 
   // Clear entire queue
   const clearQueue = async () => {
+    // Check location verification before allowing operations
+    if (!locationVerified) {
+      const errorMsg = locationError || 'Location verification required to edit the queue';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     try {
       setIsMutating(true);
       if (queue.length > 0) {
