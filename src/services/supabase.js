@@ -280,23 +280,17 @@ export const subscribeToQueueChanges = (callback) => {
     .on(
       'postgres_changes',
       {
-        event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+        event: '*',
         schema: 'public',
         table: 'queue_entries'
       },
       (payload) => {
-        // ...existing code...
-        callback(payload);
+        if (callback && typeof callback === 'function') {
+          callback(payload);
+        }
       }
     )
-    .subscribe((status) => {
-      // ...existing code...
-      if (status === 'SUBSCRIBED') {
-        // ...existing code...
-      } else if (status === 'CHANNEL_ERROR') {
-        console.error('❌ Queue subscription error');
-      }
-    });
+    .subscribe();
 
   return channel;
 };
@@ -307,23 +301,17 @@ export const subscribeToSessionChanges = (callback) => {
     .on(
       'postgres_changes',
       {
-        event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+        event: '*',
         schema: 'public',
         table: 'game_sessions'
       },
       (payload) => {
-        // ...existing code...
-        callback(payload);
+        if (callback && typeof callback === 'function') {
+          callback(payload);
+        }
       }
     )
-    .subscribe((status) => {
-      // ...existing code...
-      if (status === 'SUBSCRIBED') {
-        // ...existing code...
-      } else if (status === 'CHANNEL_ERROR') {
-        console.error('❌ Session subscription error');
-      }
-    });
+    .subscribe();
 
   return channel;
 };
