@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { queueService, sessionService, subscribeToQueueChanges, subscribeToSessionChanges, supabase } from '../services/supabase';
+
 import { useAuth } from './useAuth';
 import { verifyUserLocationAndPermissions } from '../services/geolocation';
 
 export const useQueueManager = () => {
-  const { user } = useAuth();
+
+  const { user, userRoles } = useAuth();
   const [queue, setQueue] = useState([]);
   const [nowPlaying, setNowPlaying] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -171,10 +173,13 @@ export const useQueueManager = () => {
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
     // Check location verification before allowing operations
-    if (!locationVerified) {
-      const errorMsg = locationError || 'Location verification required to edit the queue';
-      setError(errorMsg);
-      throw new Error(errorMsg);
+    // Bypass all checks if admin
+    if (!(userRoles?.is_admin || false)) {
+      if (!locationVerified) {
+        const errorMsg = locationError || 'Location verification required to edit the queue';
+        setError(errorMsg);
+        throw new Error(errorMsg);
+      }
     }
 
     try {
@@ -204,10 +209,12 @@ export const useQueueManager = () => {
   // Update existing queue entry
   const updateQueueEntry = async (id, player1, player2) => {
     // Check location verification before allowing operations
-    if (!locationVerified) {
-      const errorMsg = locationError || 'Location verification required to edit the queue';
-      setError(errorMsg);
-      throw new Error(errorMsg);
+    if (!(userRoles?.is_admin || false)) {
+      if (!locationVerified) {
+        const errorMsg = locationError || 'Location verification required to edit the queue';
+        setError(errorMsg);
+        throw new Error(errorMsg);
+      }
     }
 
     try {
@@ -231,10 +238,12 @@ export const useQueueManager = () => {
   // Remove queue entry
   const removeQueueEntry = async (id) => {
     // Check location verification before allowing operations
-    if (!locationVerified) {
-      const errorMsg = locationError || 'Location verification required to edit the queue';
-      setError(errorMsg);
-      throw new Error(errorMsg);
+    if (!(userRoles?.is_admin || false)) {
+      if (!locationVerified) {
+        const errorMsg = locationError || 'Location verification required to edit the queue';
+        setError(errorMsg);
+        throw new Error(errorMsg);
+      }
     }
 
     try {
@@ -268,10 +277,12 @@ export const useQueueManager = () => {
   // Move entry up in queue
   const moveUp = async (id) => {
     // Check location verification before allowing operations
-    if (!locationVerified) {
-      const errorMsg = locationError || 'Location verification required to edit the queue';
-      setError(errorMsg);
-      throw new Error(errorMsg);
+    if (!(userRoles?.is_admin || false)) {
+      if (!locationVerified) {
+        const errorMsg = locationError || 'Location verification required to edit the queue';
+        setError(errorMsg);
+        throw new Error(errorMsg);
+      }
     }
 
     try {
@@ -309,10 +320,12 @@ export const useQueueManager = () => {
   // Move entry down in queue
   const moveDown = async (id) => {
     // Check location verification before allowing operations
-    if (!locationVerified) {
-      const errorMsg = locationError || 'Location verification required to edit the queue';
-      setError(errorMsg);
-      throw new Error(errorMsg);
+    if (!(userRoles?.is_admin || false)) {
+      if (!locationVerified) {
+        const errorMsg = locationError || 'Location verification required to edit the queue';
+        setError(errorMsg);
+        throw new Error(errorMsg);
+      }
     }
 
     try {
