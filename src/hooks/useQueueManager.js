@@ -98,17 +98,21 @@ export const useQueueManager = () => {
   // Subscribe to real-time changes
   useEffect(() => {
     // Define handlers inside effect to avoid stale closure issues
-    const handleQueueChange = () => {
+    const handleQueueChange = (payload) => {
+      console.log('🔄 handleQueueChange called, fetching queue...', payload?.eventType);
       queueService.getQueueEntries()
         .then(data => {
+          console.log('✅ Queue updated with', data.length, 'entries');
           setQueue(data);
         })
         .catch(err => console.error('Error refreshing queue:', err));
     };
 
-    const handleSessionChange = () => {
+    const handleSessionChange = (payload) => {
+      console.log('🔄 handleSessionChange called, fetching session...', payload?.eventType);
       sessionService.getCurrentSession()
         .then(data => {
+          console.log('✅ Session updated:', data);
           setNowPlaying(data);
         })
         .catch(err => console.error('Error refreshing session:', err));

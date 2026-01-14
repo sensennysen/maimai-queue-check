@@ -285,14 +285,18 @@ export const subscribeToQueueChanges = (callback) => {
         table: 'queue_entries'
       },
       (payload) => {
+        console.log('📥 Queue change received:', payload.eventType, payload);
         callback(payload);
       }
     )
-    .subscribe((status) => {
+    .subscribe((status, err) => {
+      console.log('📡 Queue subscription status:', status, err || '');
       if (status === 'SUBSCRIBED') {
         console.log('✅ Subscribed to queue changes');
       } else if (status === 'CHANNEL_ERROR') {
-        console.error('❌ Queue subscription error');
+        console.error('❌ Queue subscription error:', err);
+      } else if (status === 'TIMED_OUT') {
+        console.error('❌ Queue subscription timed out');
       }
     });
 
@@ -310,14 +314,18 @@ export const subscribeToSessionChanges = (callback) => {
         table: 'game_sessions'
       },
       (payload) => {
+        console.log('📥 Session change received:', payload.eventType, payload);
         callback(payload);
       }
     )
-    .subscribe((status) => {
+    .subscribe((status, err) => {
+      console.log('📡 Session subscription status:', status, err || '');
       if (status === 'SUBSCRIBED') {
         console.log('✅ Subscribed to session changes');
       } else if (status === 'CHANNEL_ERROR') {
-        console.error('❌ Session subscription error');
+        console.error('❌ Session subscription error:', err);
+      } else if (status === 'TIMED_OUT') {
+        console.error('❌ Session subscription timed out');
       }
     });
 
