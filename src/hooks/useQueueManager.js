@@ -76,46 +76,6 @@ export const useQueueManager = () => {
     checkAndVerifyLocation();
   }, [user, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
 
-  // Subscribe to real-time changes
-  useEffect(() => {
-    let queueSubscription;
-    let sessionSubscription;
-
-    const setupSubscriptions = async () => {
-      try {
-        queueSubscription = subscribeToQueueChanges(handleQueueChange);
-        sessionSubscription = subscribeToSessionChanges(handleSessionChange);
-        
-        // Wait a bit for subscriptions to establish
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Test connection by checking supabase status
-        // eslint-disable-next-line no-unused-vars
-        const { data, error } = await supabase.from('queue_entries').select('count').limit(1);
-        if (!error) {
-          setIsConnected(true);
-        } else {
-          setIsConnected(false);
-        }
-      } catch (err) {
-        console.error('Subscription setup error:', err);
-        setIsConnected(false);
-      }
-    };
-
-    setupSubscriptions();
-
-    return () => {
-      if (queueSubscription) {
-        queueSubscription.unsubscribe();
-      }
-      if (sessionSubscription) {
-        sessionSubscription.unsubscribe();
-      }
-      setIsConnected(false);
-    };
-  }, []);
-
   const loadInitialData = async () => {
     try {
       setLoading(true);
@@ -135,23 +95,45 @@ export const useQueueManager = () => {
     }
   };
 
-  const handleQueueChange = () => { 
-    // Reload queue data when changes occur from other clients
-    queueService.getQueueEntries()
-      .then(data => {
-        setQueue(data);
-      })
-      .catch(err => console.error('Error refreshing queue:', err));
-  };
+  // Subscribe to real-time changes
+  useEffect(() => {
+    // Define handlers inside effect to avoid stale closure issues
+    const handleQueueChange = () => {
+      queueService.getQueueEntries()
+        .then(data => {
+          setQueue(data);
+        })
+        .catch(err => console.error('Error refreshing queue:', err));
+    };
 
-  const handleSessionChange = () => {
-    // Reload session data when changes occur from other clients  
-    sessionService.getCurrentSession()
-      .then(data => {
-        setNowPlaying(data);
+    const handleSessionChange = () => {
+      sessionService.getCurrentSession()
+        .then(data => {
+          setNowPlaying(data);
+        })
+        .catch(err => console.error('Error refreshing session:', err));
+    };
+
+    const queueSubscription = subscribeToQueueChanges(handleQueueChange);
+    const sessionSubscription = subscribeToSessionChanges(handleSessionChange);
+
+    // Test connection
+    supabase.from('queue_entries').select('count').limit(1)
+      .then(({ error }) => {
+        setIsConnected(!error);
       })
-      .catch(err => console.error('Error refreshing session:', err));
-  };
+      .catch(() => setIsConnected(false));
+
+    return () => {
+      if (queueSubscription) {
+        queueSubscription.unsubscribe();
+      }
+      if (sessionSubscription) {
+        sessionSubscription.unsubscribe();
+      }
+      setIsConnected(false);
+    };
+  }, []);
 
   // Test real-time connection
   const testRealTimeConnection = async () => {
