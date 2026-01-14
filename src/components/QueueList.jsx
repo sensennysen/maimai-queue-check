@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import './QueueList.css';
 
 function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, locationVerified }) {
-  const { user, userRoles } = useAuth();
+  const { user, userRoles, loading: authLoading } = useAuth();
   const isAdmin = userRoles?.is_admin;
   const canEdit = userRoles?.can_edit;
   const canActuallyEdit = isAdmin || (canEdit && locationVerified);
@@ -62,6 +62,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
               gameInProgress={!!nowPlaying}
               canActuallyEdit={canActuallyEdit}
               isBusy={isBusy}
+              loadingRoles={authLoading}
             />
           ))}
         </Stack>

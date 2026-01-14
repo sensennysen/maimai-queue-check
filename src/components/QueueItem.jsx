@@ -1,7 +1,8 @@
 import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
+import { Skeleton } from '@mantine/core';
 import './QueueItem.css';
 
-function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false }) {
+function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false }) {
   const handleEdit = () => {
     onEdit(item.id);
   };
@@ -48,7 +49,11 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
         )}
       </div>
       
-      {canActuallyEdit && (
+      {loadingRoles ? (
+        <div className="item-actions">
+          <Skeleton height={32} width={120} radius="md" />
+        </div>
+      ) : canActuallyEdit ? (
         <div className="item-actions">
           <div className="move-buttons">
             <button
@@ -87,7 +92,7 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
             </button>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
