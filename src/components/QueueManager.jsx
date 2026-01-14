@@ -336,6 +336,7 @@ function QueueManager() {
           isBusy={isMutating}
           locationVerified={locationVerified}
           locationError={locationError}
+          isAdmin={userRoles?.is_admin}
         />
       )}
 
