@@ -7,15 +7,15 @@ import PlayTimer from './PlayTimer';
 import { useQueueManager } from '../hooks/useQueueManager';
 import { useMallSchedule } from '../hooks/useMallSchedule';
 import { useAuth } from '../hooks/useAuth';
-import { closedMessages } from '../data/subtitleMessages';
+import { closedMessages, loadingMessages } from '../data/subtitleMessages';
 import './QueueManager.css';
 
 function QueueManager() {
-  const { user, userRoles } = useAuth();
+  const { user, userRoles, loading: authLoading } = useAuth();
   const {
     queue,
     nowPlaying,
-    loading,
+    loading: queueLoading,
     error,
     isConnected,
     isMutating,
@@ -35,6 +35,13 @@ function QueueManager() {
     startNextGame
   } = useQueueManager();
 
+  // Wait for all relevant data to be loaded before showing action buttons
+  const locationChecked = !!(
+    userRoles &&
+    (userRoles.is_admin || locationVerified || locationError || needsLocationPermission)
+  );
+  const actionLoading = queueLoading || authLoading || !locationChecked;
+
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
@@ -43,6 +50,8 @@ function QueueManager() {
   );
 
   const canEdit = userRoles?.can_edit;
+  const isAdmin = userRoles?.is_admin;
+  const canActuallyEdit = isAdmin || (canEdit && locationVerified);
 
   const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule();
 
@@ -58,13 +67,15 @@ function QueueManager() {
 
   // Show location modal only when permission is explicitly needed
   useEffect(() => {
-    if (user && canEdit && needsLocationPermission && !locationCheckInProgress) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShowLocationModal(true);
-    } else {
-      setShowLocationModal(false);
-    }
-  }, [user, canEdit, needsLocationPermission, locationCheckInProgress]);
+    const shouldShow = user && canEdit && !isAdmin && needsLocationPermission && !locationCheckInProgress;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setShowLocationModal(prev => {
+      if (prev !== shouldShow) {
+        return shouldShow;
+      }
+      return prev;
+    });
+  }, [user, canEdit, isAdmin, needsLocationPermission, locationCheckInProgress]);
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
@@ -138,6 +149,16 @@ function QueueManager() {
     }
   };
 
+  const [loadingMessage] = useState(() => loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
+  if (queueLoading || scheduleLoading || actionLoading) {
+    return (
+      <Stack gap="md" style={{ position: 'relative', minHeight: 200, justifyContent: 'center', alignItems: 'center' }}>
+        <LoadingOverlay visible={true} zIndex={100} />
+        <Text size="lg" c="dimmed" style={{ zIndex: 101, position: 'relative' }}>{loadingMessage}</Text>
+      </Stack>
+    );
+  }
+
   return (
     <Stack
       gap="md"
@@ -183,7 +204,6 @@ function QueueManager() {
           </Group>
         </Stack>
       </Modal>
-      <LoadingOverlay visible={loading || scheduleLoading || isMutating} />
       {isMutating && (
         <Box className="busy-overlay-message">
           <Loader size="sm" mr={8} />
@@ -202,7 +222,7 @@ function QueueManager() {
         </Alert>
       )}
 
-      {user && canEdit && !locationVerified && locationError && hasAttemptedVerification && (
+      {user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification && (
         <Alert 
           icon={<IconMapPin size={16} />} 
           title="Location Verification Failed" 
@@ -252,17 +272,17 @@ function QueueManager() {
             </Tooltip>
           </Group>
           <Group gap="sm">
-            {user && canEdit && isMallOpen && !showForm && !editingId && (
+            {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
               <Button 
                 leftSection={<IconPlus size={16} />}
                 onClick={() => setShowForm(true)}
                 variant="filled"
-                disabled={isMutating || !locationVerified}
+                disabled={isMutating}
               >
                 Add Queue
               </Button>
             )}
-            {user && canEdit && isMallOpen && queue.length > 0 && (
+            {user && canActuallyEdit && isMallOpen && queue.length > 0 && (
               <Button 
                 variant="outline"
                 color="red"
@@ -300,7 +320,7 @@ function QueueManager() {
               )}
             </div>
             
-            {user && canEdit && (
+            {user && canActuallyEdit && (
               <button 
                 className="finish-game-btn"
                 onClick={finishGame}
@@ -332,21 +352,24 @@ function QueueManager() {
           isBusy={isMutating}
           locationVerified={locationVerified}
           locationError={locationError}
+          isAdmin={userRoles?.is_admin}
         />
       )}
 
       {isMallOpen && (
         <QueueList 
-        queue={filterQueue(queue)}
-        nowPlaying={nowPlaying}
-        onEdit={startEdit}
-        onRemove={removeQueueEntry}
-        onMoveUp={moveUp}
-        onMoveDown={moveDown}
-        onStartGame={startGame}
-        isMallOpen={isMallOpen}
-        isBusy={isMutating}
-      />
+          queue={filterQueue(queue)}
+          nowPlaying={nowPlaying}
+          onEdit={startEdit}
+          onRemove={removeQueueEntry}
+          onMoveUp={moveUp}
+          onMoveDown={moveDown}
+          onStartGame={startGame}
+          isMallOpen={isMallOpen}
+          isBusy={isMutating}
+          locationVerified={locationVerified}
+          loading={actionLoading}
+        />
       )}
     </Stack>
   );

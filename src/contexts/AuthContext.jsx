@@ -54,7 +54,8 @@ export const AuthProvider = ({ children }) => {
             if (isMounted) setUserRoles(prevRoles => 
               prevRoles || {
                 user_id: session.user.id,
-                can_edit: false
+                can_edit: false,
+                is_admin: false
               }
             );
           }
