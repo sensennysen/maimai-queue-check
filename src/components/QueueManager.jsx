@@ -352,6 +352,7 @@ function QueueManager() {
           isMallOpen={isMallOpen}
           isBusy={isMutating}
           locationVerified={locationVerified}
+          loading={loading}
         />
       )}
     </Stack>
