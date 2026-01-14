@@ -342,16 +342,17 @@ function QueueManager() {
 
       {isMallOpen && (
         <QueueList 
-        queue={filterQueue(queue)}
-        nowPlaying={nowPlaying}
-        onEdit={startEdit}
-        onRemove={removeQueueEntry}
-        onMoveUp={moveUp}
-        onMoveDown={moveDown}
-        onStartGame={startGame}
-        isMallOpen={isMallOpen}
-        isBusy={isMutating}
-      />
+          queue={filterQueue(queue)}
+          nowPlaying={nowPlaying}
+          onEdit={startEdit}
+          onRemove={removeQueueEntry}
+          onMoveUp={moveUp}
+          onMoveDown={moveDown}
+          onStartGame={startGame}
+          isMallOpen={isMallOpen}
+          isBusy={isMutating}
+          locationVerified={locationVerified}
+        />
       )}
     </Stack>
   );

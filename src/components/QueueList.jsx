@@ -4,12 +4,11 @@ import QueueItem from './QueueItem';
 import { useAuth } from '../hooks/useAuth';
 import './QueueList.css';
 
-function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false }) {
+function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, locationVerified }) {
   const { user, userRoles } = useAuth();
-  
-  // Safely check if user can edit - default to true if roles aren't loaded yet
-  const canEdit = userRoles === undefined ? true : userRoles?.can_edit;
-  
+  const isAdmin = userRoles?.is_admin;
+  const canEdit = userRoles?.can_edit;
+  const canActuallyEdit = isAdmin || (canEdit && locationVerified);
   return (
     <Paper withBorder>
       <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
@@ -49,28 +48,22 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
         </Center>
       ) : (
         <Stack gap={0}>
-          {queue.map((item, index) => {
-            const isAdmin = userRoles?.is_admin;
-            const canEdit = userRoles?.can_edit;
-            const locationVerified = userRoles?.locationVerified;
-            const canActuallyEdit = isAdmin || (canEdit && locationVerified);
-            return (
-              <QueueItem
-                key={item.id}
-                item={item}
-                onEdit={onEdit}
-                onRemove={onRemove}
-                onMoveUp={(id) => onMoveUp(id)}
-                onMoveDown={(id) => onMoveDown(id)}
-                isFirst={index === 0}
-                isLast={index === queue.length - 1}
-                isNextUp={index === 0 && !nowPlaying}
-                gameInProgress={!!nowPlaying}
-                canActuallyEdit={canActuallyEdit}
-                isBusy={isBusy}
-              />
-            );
-          })}
+          {queue.map((item, index) => (
+            <QueueItem
+              key={item.id}
+              item={item}
+              onEdit={onEdit}
+              onRemove={onRemove}
+              onMoveUp={(id) => onMoveUp(id)}
+              onMoveDown={(id) => onMoveDown(id)}
+              isFirst={index === 0}
+              isLast={index === queue.length - 1}
+              isNextUp={index === 0 && !nowPlaying}
+              gameInProgress={!!nowPlaying}
+              canActuallyEdit={canActuallyEdit}
+              isBusy={isBusy}
+            />
+          ))}
         </Stack>
       )}
     </Paper>
