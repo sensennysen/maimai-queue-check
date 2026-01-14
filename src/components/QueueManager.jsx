@@ -153,17 +153,6 @@ function QueueManager() {
     return (
       <Stack gap="md" style={{ position: 'relative' }}>
         <LoadingOverlay visible={true} />
-        <Paper withBorder p="md" mt="md">
-          <Stack gap="sm">
-            {[...Array(4)].map((_, i) => (
-              <Box key={i} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <Box style={{ flex: 1 }}>
-                  <div className="queue-item-skeleton" style={{ height: 48, background: 'var(--mantine-color-gray-2)', borderRadius: 8 }} />
-                </Box>
-              </Box>
-            ))}
-          </Stack>
-        </Paper>
       </Stack>
     );
   }
