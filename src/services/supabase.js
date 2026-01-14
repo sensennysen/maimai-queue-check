@@ -275,6 +275,7 @@ export const sessionService = {
 
 // Real-time subscriptions
 export const subscribeToQueueChanges = (callback) => {
+  console.log('🔧 Setting up queue subscription with callback:', typeof callback);
   const channel = supabase
     .channel('queue_realtime')
     .on(
@@ -286,7 +287,13 @@ export const subscribeToQueueChanges = (callback) => {
       },
       (payload) => {
         console.log('📥 Queue change received:', payload.eventType, payload);
-        callback(payload);
+        console.log('🎯 About to call callback, type:', typeof callback);
+        if (callback && typeof callback === 'function') {
+          callback(payload);
+          console.log('✅ Callback invoked');
+        } else {
+          console.error('❌ Callback is not a function!', callback);
+        }
       }
     )
     .subscribe((status, err) => {
@@ -304,6 +311,7 @@ export const subscribeToQueueChanges = (callback) => {
 };
 
 export const subscribeToSessionChanges = (callback) => {
+  console.log('🔧 Setting up session subscription with callback:', typeof callback);
   const channel = supabase
     .channel('session_realtime')
     .on(
@@ -315,7 +323,13 @@ export const subscribeToSessionChanges = (callback) => {
       },
       (payload) => {
         console.log('📥 Session change received:', payload.eventType, payload);
-        callback(payload);
+        console.log('🎯 About to call callback, type:', typeof callback);
+        if (callback && typeof callback === 'function') {
+          callback(payload);
+          console.log('✅ Callback invoked');
+        } else {
+          console.error('❌ Callback is not a function!', callback);
+        }
       }
     )
     .subscribe((status, err) => {
