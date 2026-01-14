@@ -97,30 +97,17 @@ export const useQueueManager = () => {
 
   // Subscribe to real-time changes
   useEffect(() => {
-    console.log('🚀 Setting up realtime subscriptions...');
-    
-    // Define handlers inside effect to avoid stale closure issues
-    const handleQueueChange = (payload) => {
-      console.log('🔄 handleQueueChange called, fetching queue...', payload?.eventType);
+    const handleQueueChange = () => {
       queueService.getQueueEntries()
-        .then(data => {
-          console.log('✅ Queue updated with', data.length, 'entries');
-          setQueue(data);
-        })
-        .catch(err => console.error('Error refreshing queue:', err));
+        .then(data => setQueue(data))
+        .catch(() => {});
     };
 
-    const handleSessionChange = (payload) => {
-      console.log('🔄 handleSessionChange called, fetching session...', payload?.eventType);
+    const handleSessionChange = () => {
       sessionService.getCurrentSession()
-        .then(data => {
-          console.log('✅ Session updated:', data);
-          setNowPlaying(data);
-        })
-        .catch(err => console.error('Error refreshing session:', err));
+        .then(data => setNowPlaying(data))
+        .catch(() => {});
     };
-
-    console.log('📞 Registering callbacks - queue:', typeof handleQueueChange, 'session:', typeof handleSessionChange);
 
     const queueSubscription = subscribeToQueueChanges(handleQueueChange);
     const sessionSubscription = subscribeToSessionChanges(handleSessionChange);
