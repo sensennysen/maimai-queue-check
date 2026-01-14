@@ -11,11 +11,11 @@ import { closedMessages } from '../data/subtitleMessages';
 import './QueueManager.css';
 
 function QueueManager() {
-  const { user, userRoles } = useAuth();
+  const { user, userRoles, loading: authLoading } = useAuth();
   const {
     queue,
     nowPlaying,
-    loading,
+    loading: queueLoading,
     error,
     isConnected,
     isMutating,
@@ -34,6 +34,13 @@ function QueueManager() {
     endGame,
     startNextGame
   } = useQueueManager();
+
+  // Wait for all relevant data to be loaded before showing action buttons
+  const locationChecked = !!(
+    userRoles &&
+    (userRoles.is_admin || locationVerified || locationError || needsLocationPermission)
+  );
+  const actionLoading = queueLoading || authLoading || !locationChecked;
 
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -187,7 +194,7 @@ function QueueManager() {
           </Group>
         </Stack>
       </Modal>
-      <LoadingOverlay visible={loading || scheduleLoading || isMutating} />
+      <LoadingOverlay visible={queueLoading || scheduleLoading || isMutating} />
       {isMutating && (
         <Box className="busy-overlay-message">
           <Loader size="sm" mr={8} />
@@ -352,7 +359,7 @@ function QueueManager() {
           isMallOpen={isMallOpen}
           isBusy={isMutating}
           locationVerified={locationVerified}
-          loading={loading}
+          loading={actionLoading}
         />
       )}
     </Stack>
