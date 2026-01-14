@@ -49,22 +49,28 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
         </Center>
       ) : (
         <Stack gap={0}>
-          {queue.map((item, index) => (
-            <QueueItem
-              key={item.id}
-              item={item}
-              onEdit={onEdit}
-              onRemove={onRemove}
-              onMoveUp={(id) => onMoveUp(id)}
-              onMoveDown={(id) => onMoveDown(id)}
-              isFirst={index === 0}
-              isLast={index === queue.length - 1}
-              isNextUp={index === 0 && !nowPlaying}
-              gameInProgress={!!nowPlaying}
-              userRoles={userRoles}
-              isBusy={isBusy}
-            />
-          ))}
+          {queue.map((item, index) => {
+            const isAdmin = userRoles?.is_admin;
+            const canEdit = userRoles?.can_edit;
+            const locationVerified = userRoles?.locationVerified;
+            const canActuallyEdit = isAdmin || (canEdit && locationVerified);
+            return (
+              <QueueItem
+                key={item.id}
+                item={item}
+                onEdit={onEdit}
+                onRemove={onRemove}
+                onMoveUp={(id) => onMoveUp(id)}
+                onMoveDown={(id) => onMoveDown(id)}
+                isFirst={index === 0}
+                isLast={index === queue.length - 1}
+                isNextUp={index === 0 && !nowPlaying}
+                gameInProgress={!!nowPlaying}
+                canActuallyEdit={canActuallyEdit}
+                isBusy={isBusy}
+              />
+            );
+          })}
         </Stack>
       )}
     </Paper>

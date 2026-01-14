@@ -1,7 +1,7 @@
 import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
 import './QueueItem.css';
 
-function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, userRoles, isBusy = false }) {
+function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false }) {
   const handleEdit = () => {
     onEdit(item.id);
   };
@@ -20,9 +20,6 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
     onMoveDown(item.id);
   };
 
-  // Safely check if user can edit - default to showing buttons if roles aren't loaded yet
-  // This prevents buttons from disappearing during state transitions
-  const canEdit = userRoles === undefined ? true : userRoles?.can_edit;
 
   return (
     <div 
@@ -51,7 +48,7 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
         )}
       </div>
       
-      {canEdit && (
+      {canActuallyEdit && (
         <div className="item-actions">
           <div className="move-buttons">
             <button
