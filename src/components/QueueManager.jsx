@@ -153,8 +153,8 @@ function QueueManager() {
   if (queueLoading || scheduleLoading || actionLoading) {
     return (
       <Stack gap="md" style={{ position: 'relative', minHeight: 200, justifyContent: 'center', alignItems: 'center' }}>
+        <Text size="lg" c="dimmed" style={{ zIndex: 101, position: 'relative', marginBottom: 16 }}>{loadingMessage}</Text>
         <LoadingOverlay visible={true} zIndex={100} />
-        <Text size="lg" c="dimmed" style={{ zIndex: 101, position: 'relative' }}>{loadingMessage}</Text>
       </Stack>
     );
   }
