@@ -43,6 +43,8 @@ function QueueManager() {
   );
 
   const canEdit = userRoles?.can_edit;
+  const isAdmin = userRoles?.is_admin;
+  const canActuallyEdit = isAdmin || (canEdit && locationVerified);
 
   const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule();
 
@@ -58,13 +60,15 @@ function QueueManager() {
 
   // Show location modal only when permission is explicitly needed
   useEffect(() => {
-    if (user && canEdit && needsLocationPermission && !locationCheckInProgress) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShowLocationModal(true);
-    } else {
-      setShowLocationModal(false);
-    }
-  }, [user, canEdit, needsLocationPermission, locationCheckInProgress]);
+    const shouldShow = user && canEdit && !isAdmin && needsLocationPermission && !locationCheckInProgress;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setShowLocationModal(prev => {
+      if (prev !== shouldShow) {
+        return shouldShow;
+      }
+      return prev;
+    });
+  }, [user, canEdit, isAdmin, needsLocationPermission, locationCheckInProgress]);
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
@@ -202,7 +206,7 @@ function QueueManager() {
         </Alert>
       )}
 
-      {user && canEdit && !locationVerified && locationError && hasAttemptedVerification && (
+      {user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification && (
         <Alert 
           icon={<IconMapPin size={16} />} 
           title="Location Verification Failed" 
@@ -252,17 +256,17 @@ function QueueManager() {
             </Tooltip>
           </Group>
           <Group gap="sm">
-            {user && canEdit && isMallOpen && !showForm && !editingId && (
+            {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
               <Button 
                 leftSection={<IconPlus size={16} />}
                 onClick={() => setShowForm(true)}
                 variant="filled"
-                disabled={isMutating || !locationVerified}
+                disabled={isMutating}
               >
                 Add Queue
               </Button>
             )}
-            {user && canEdit && isMallOpen && queue.length > 0 && (
+            {user && canActuallyEdit && isMallOpen && queue.length > 0 && (
               <Button 
                 variant="outline"
                 color="red"
@@ -300,7 +304,7 @@ function QueueManager() {
               )}
             </div>
             
-            {user && canEdit && (
+            {user && canActuallyEdit && (
               <button 
                 className="finish-game-btn"
                 onClick={finishGame}
