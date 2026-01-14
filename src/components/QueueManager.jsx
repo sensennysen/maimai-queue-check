@@ -4,7 +4,7 @@ import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
 import PlayTimer from './PlayTimer';
-import { useQueueManagerPolling as useQueueManager } from '../hooks/useQueueManagerPolling';
+import { useQueueManager } from '../hooks/useQueueManager';
 import { useMallSchedule } from '../hooks/useMallSchedule';
 import { useAuth } from '../hooks/useAuth';
 import { closedMessages } from '../data/subtitleMessages';

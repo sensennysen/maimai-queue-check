@@ -285,14 +285,12 @@ export const subscribeToQueueChanges = (callback) => {
         table: 'queue_entries'
       },
       (payload) => {
-        // ...existing code...
         callback(payload);
       }
     )
     .subscribe((status) => {
-      // ...existing code...
       if (status === 'SUBSCRIBED') {
-        // ...existing code...
+        console.log('✅ Subscribed to queue changes');
       } else if (status === 'CHANNEL_ERROR') {
         console.error('❌ Queue subscription error');
       }
@@ -312,14 +310,12 @@ export const subscribeToSessionChanges = (callback) => {
         table: 'game_sessions'
       },
       (payload) => {
-        // ...existing code...
         callback(payload);
       }
     )
     .subscribe((status) => {
-      // ...existing code...
       if (status === 'SUBSCRIBED') {
-        // ...existing code...
+        console.log('✅ Subscribed to session changes');
       } else if (status === 'CHANNEL_ERROR') {
         console.error('❌ Session subscription error');
       }

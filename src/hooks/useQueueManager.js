@@ -15,6 +15,7 @@ export const useQueueManager = () => {
   const [locationError, setLocationError] = useState(null);
   const [locationCheckInProgress, setLocationCheckInProgress] = useState(false);
   const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
+  const [needsLocationPermission, setNeedsLocationPermission] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -26,6 +27,7 @@ export const useQueueManager = () => {
     if (!user) {
       setLocationVerified(false);
       setLocationError('Please log in to edit the queue');
+      setNeedsLocationPermission(false);
       return;
     }
 
@@ -37,6 +39,8 @@ export const useQueueManager = () => {
       const result = await verifyUserLocationAndPermissions(user.id);
       
       setLocationVerified(result.allowed);
+      setNeedsLocationPermission(result.needsPermission || false);
+      
       if (!result.allowed) {
         setLocationError(result.reason);
       } else {
@@ -46,10 +50,31 @@ export const useQueueManager = () => {
       console.error('Location verification error:', err);
       setLocationVerified(false);
       setLocationError('Failed to verify location. Please try again.');
+      setNeedsLocationPermission(false);
     } finally {
       setLocationCheckInProgress(false);
     }
   }, [user]);
+
+  // Automatically verify location when user is available and has not attempted verification
+  useEffect(() => {
+    const checkAndVerifyLocation = async () => {
+      if (user && !hasAttemptedVerification && !locationCheckInProgress) {
+        // Check if user has edit permissions first
+        try {
+          const { data: roles } = await supabase.from('user_roles').select('can_edit').eq('user_id', user.id).single();
+          if (roles?.can_edit) {
+            // User has edit permissions, verify location
+            await verifyLocation();
+          }
+        } catch (err) {
+          console.error('Error checking user permissions:', err);
+        }
+      }
+    };
+    
+    checkAndVerifyLocation();
+  }, [user, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
 
   // Subscribe to real-time changes
   useEffect(() => {
@@ -432,6 +457,7 @@ export const useQueueManager = () => {
     locationError,
     locationCheckInProgress,
     hasAttemptedVerification,
+    needsLocationPermission,
     addQueueEntry,
     updateQueueEntry,
     removeQueueEntry,
