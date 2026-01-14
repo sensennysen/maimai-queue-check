@@ -7,7 +7,7 @@ import PlayTimer from './PlayTimer';
 import { useQueueManager } from '../hooks/useQueueManager';
 import { useMallSchedule } from '../hooks/useMallSchedule';
 import { useAuth } from '../hooks/useAuth';
-import { closedMessages } from '../data/subtitleMessages';
+import { closedMessages, loadingMessages } from '../data/subtitleMessages';
 import './QueueManager.css';
 
 function QueueManager() {
@@ -149,10 +149,12 @@ function QueueManager() {
     }
   };
 
+  const [loadingMessage] = useState(() => loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
   if (queueLoading || scheduleLoading || actionLoading) {
     return (
-      <Stack gap="md" style={{ position: 'relative' }}>
-        <LoadingOverlay visible={true} />
+      <Stack gap="md" style={{ position: 'relative', minHeight: 200, justifyContent: 'center', alignItems: 'center' }}>
+        <LoadingOverlay visible={true} zIndex={100} />
+        <Text size="lg" c="dimmed" style={{ zIndex: 101, position: 'relative' }}>{loadingMessage}</Text>
       </Stack>
     );
   }
