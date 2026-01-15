@@ -1,4 +1,4 @@
-import { Paper, Text, Group, Anchor, Stack } from '@mantine/core';
+import { Text, Group, Anchor, Stack } from '@mantine/core';
 import { IconBrandGithub, IconMail, IconBrandDiscord } from '@tabler/icons-react';
 import './Footer.css';
 
@@ -6,7 +6,7 @@ function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <Paper className="footer" p="md" mt="xl" withBorder>
+    <div style={{ marginTop: '2rem' }}>
       <Group justify="space-between" align="center">
         <Stack gap="sm">
           <Text size="sm" c="dimmed">
@@ -36,7 +36,7 @@ function Footer() {
           </Group>
         </Anchor>
       </Group>
-    </Paper>
+    </div>
   );
 }
 

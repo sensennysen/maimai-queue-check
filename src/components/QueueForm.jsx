@@ -3,7 +3,7 @@ import { Paper, Title, TextInput, Group, Button, Stack, Alert } from '@mantine/c
 import { IconPlus, IconEdit, IconX } from '@tabler/icons-react';
 import './QueueForm.css';
 
-function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false, locationVerified = false, locationError = null, isAdmin = false }) {
+function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false, locationVerified = false, locationError = null, isAdmin = false, showCancelButton = false }) {
   const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : '';
   const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : '';
   
@@ -111,7 +111,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
             >
               {editingId ? 'Update Entry' : 'Add to Queue'}
             </Button>
-            {editingId && (
+            {(editingId || showCancelButton) && (
               <Button 
                 variant="outline"
                 color="gray"

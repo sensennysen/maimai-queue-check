@@ -1,3 +1,19 @@
+/* Show full sign-in message on desktop, only icon on mobile */
+.sign-in-message .sign-in-mobile {
+  display: none;
+}
+.sign-in-message .sign-in-desktop {
+  display: inline;
+}
+
+@media (max-width: 728px) {
+  .sign-in-message .sign-in-mobile {
+    display: inline;
+  }
+  .sign-in-message .sign-in-desktop {
+    display: none;
+  }
+}
 .queue-list {
   background: var(--theme-surface);
   border: 1px solid var(--theme-border);
