@@ -33,18 +33,18 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
         )}
       </div>
       
-      <div className="players-section">
+      <div className={`players-section${(!loadingRoles && !canActuallyEdit ? ' full-width-row' : '')}`}>
         {item.player1 && item.player1.trim() && (
-          <div className={`item-player player-1 ${(!item.player2 || !item.player2.trim()) ? 'player-solo' : ''}`}>
+          <div className={`item-player player-1${(!item.player2 || !item.player2.trim()) ? ' player-solo' : ''}${(!loadingRoles && !canActuallyEdit ? ' full-width-row' : '')}`}>
             <span className="player-side player-side-1">P1</span>
-            <span className="player-name">{item.player1}</span>
+            <span className={`player-name${(!loadingRoles && !canActuallyEdit ? ' full-width' : '')}`}>{item.player1}</span>
           </div>
         )}
-        
+
         {item.player2 && item.player2.trim() && (
-          <div className={`item-player player-2 ${(!item.player1 || !item.player1.trim()) ? 'player-solo' : ''}`}>
+          <div className={`item-player player-2${(!item.player1 || !item.player1.trim()) ? ' player-solo' : ''}${(!loadingRoles && !canActuallyEdit ? ' full-width-row' : '')}`}>
             <span className="player-side player-side-2">P2</span>
-            <span className="player-name">{item.player2}</span>
+            <span className={`player-name${(!loadingRoles && !canActuallyEdit ? ' full-width' : '')}`}>{item.player2}</span>
           </div>
         )}
       </div>

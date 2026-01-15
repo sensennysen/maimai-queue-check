@@ -1,3 +1,8 @@
+/* When no actions (move/edit/delete), make name take full width */
+.player-display .player-name.full-width {
+  width: 100%;
+  grid-column: 1 / -1;
+}
 .queue-manager {
   width: 100%;
   max-width: 1000px;
