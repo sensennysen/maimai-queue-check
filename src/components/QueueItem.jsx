@@ -3,6 +3,9 @@ import { Skeleton } from '@mantine/core';
 import './QueueItem.css';
 
 function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false }) {
+  // Named conditionals for clarity
+  const canShowActions = canActuallyEdit && !loadingRoles;
+
   const handleEdit = () => {
     onEdit(item.id);
   };
@@ -20,7 +23,6 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
   const handleMoveDown = () => {
     onMoveDown(item.id);
   };
-
 
   return (
     <div 
@@ -53,7 +55,7 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
         <div className="item-actions">
           <Skeleton height={32} width={120} radius="md" />
         </div>
-      ) : canActuallyEdit ? (
+      ) : canShowActions ? (
         <div className="item-actions">
           <div className="move-buttons">
             <button

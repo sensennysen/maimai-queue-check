@@ -57,6 +57,11 @@ function QueueManager() {
   const canEdit = userRoles?.can_edit;
   const isAdmin = userRoles?.is_admin;
   const canActuallyEdit = isAdmin || (canEdit && locationVerified);
+  // Named conditionals for clarity
+  const canShowEditControls = user && canActuallyEdit && isMallOpen;
+  const canShowLocationModal = user && canEdit && !isAdmin && needsLocationPermission && !locationCheckInProgress;
+  const canShowLocationError = user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification;
+  const canShowQueueForm = user && isMallOpen && (showForm || editingId);
 
   const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule();
 
@@ -72,15 +77,13 @@ function QueueManager() {
 
   // Show location modal only when permission is explicitly needed
   useEffect(() => {
-    const shouldShow = user && canEdit && !isAdmin && needsLocationPermission && !locationCheckInProgress;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShowLocationModal(prev => {
-      if (prev !== shouldShow) {
-        return shouldShow;
+      if (prev !== canShowLocationModal) {
+        return canShowLocationModal;
       }
       return prev;
     });
-  }, [user, canEdit, isAdmin, needsLocationPermission, locationCheckInProgress]);
+  }, [canShowLocationModal]);
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
@@ -229,7 +232,7 @@ function QueueManager() {
         </Alert>
       )}
 
-      {user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification && (
+      {canShowLocationError && (
         <Alert 
           icon={<IconMapPin size={16} />} 
           title="Location Verification Failed" 
@@ -257,7 +260,7 @@ function QueueManager() {
 
 
       {/* Add Queue Form always appears above Now Playing */}
-      {user && isMallOpen && (showForm || editingId) && (
+      {canShowQueueForm && (
         <QueueForm 
           key={editingId || 'new'}
           onSubmit={editingId ? updateQueueEntry : addQueueEntry}
@@ -280,7 +283,7 @@ function QueueManager() {
             </Badge>
           </Group>
           <Group gap="sm">
-            {user && canActuallyEdit && isMallOpen && queue.length > 0 && (
+            {canShowEditControls && queue.length > 0 && (
               <Button 
                 variant="outline"
                 color="red"
@@ -291,7 +294,7 @@ function QueueManager() {
                 Clear All
               </Button>
             )}
-            {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
+            {canShowEditControls && !showForm && !editingId && (
               <Button 
                 leftSection={<IconPlus size={16} />}
                 onClick={() => setShowForm(true)}
