@@ -10,8 +10,9 @@ import { useAuth } from '../hooks/useAuth';
 import { closedMessages, loadingMessages } from '../data/subtitleMessages';
 import './QueueManager.css';
 
+
 function QueueManager() {
-  const { user, userRoles, loading: authLoading } = useAuth();
+  // Phase 1: Load queue/session data
   const {
     queue,
     nowPlaying,
@@ -35,9 +36,16 @@ function QueueManager() {
     startNextGame
   } = useQueueManager();
 
-  // Only gate editing actions by permissions; always show queue/session
-  // Only block editing actions if userRoles are loading, but never block queue display
-  const actionLoading = queueLoading || authLoading;
+  // Phase 2: Load actions/roles after queue loads
+  const [actionsLoaded, setActionsLoaded] = useState(false);
+  const { user, userRoles, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!queueLoading && !authLoading) {
+      // Avoid React warning by deferring setState
+      setTimeout(() => setActionsLoaded(true), 0);
+    }
+  }, [queueLoading, authLoading]);
 
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -56,8 +64,8 @@ function QueueManager() {
 
   useEffect(() => {
     if (previousMallStateRef.current && !isMallOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setClosedMessage(closedMessages[Math.floor(Math.random() * closedMessages.length)]);
+      // Avoid React warning by deferring setState
+      setTimeout(() => setClosedMessage(closedMessages[Math.floor(Math.random() * closedMessages.length)]), 0);
     }
     previousMallStateRef.current = isMallOpen;
   }, [isMallOpen]);
@@ -146,8 +154,10 @@ function QueueManager() {
     }
   };
 
+
+  // Only block everything if queue or schedule is loading
   const [loadingMessage] = useState(() => loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
-  if (queueLoading || scheduleLoading || actionLoading) {
+  if (queueLoading || scheduleLoading) {
     return (
       <Stack gap="md" style={{ position: 'relative', minHeight: 200, justifyContent: 'center', alignItems: 'center' }}>
         <LoadingOverlay visible={true} zIndex={100} />
@@ -365,7 +375,7 @@ function QueueManager() {
           isMallOpen={isMallOpen}
           isBusy={isMutating}
           locationVerified={locationVerified}
-          loading={actionLoading}
+          loadingRoles={!actionsLoaded}
         />
       )}
     </Stack>
