@@ -255,13 +255,29 @@ function QueueManager() {
         Info here might not reflect the actual queue in the branch
       </Alert>
 
+
+      {/* Add Queue Form always appears above Now Playing */}
+      {user && isMallOpen && (showForm || editingId) && (
+        <QueueForm 
+          key={editingId || 'new'}
+          onSubmit={editingId ? updateQueueEntry : addQueueEntry}
+          editingId={editingId}
+          editingData={editingId ? queue.find(item => item.id === editingId) : null}
+          onCancel={cancelEdit}
+          isBusy={isMutating}
+          locationVerified={locationVerified}
+          locationError={locationError}
+          isAdmin={userRoles?.is_admin}
+          showCancelButton={true}
+        />
+      )}
+
       <div>
         <Group justify="space-between" align="center">
           <Group gap="md">
             <Badge variant="light" size="lg">
               Credits: {(isMallOpen ? filterQueue(queue) : []).reduce((sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0), 0)}
             </Badge>
-            {/* Live/Offline label and connection status removed */}
           </Group>
           <Group gap="sm">
             {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
@@ -332,20 +348,6 @@ function QueueManager() {
             <Title order={2}>{closedMessage}</Title>
           </Flex>
         </Paper>
-      )}
-
-      {user && isMallOpen && (showForm || editingId) && (
-        <QueueForm 
-          key={editingId || 'new'}
-          onSubmit={editingId ? updateQueueEntry : addQueueEntry}
-          editingId={editingId}
-          editingData={editingId ? queue.find(item => item.id === editingId) : null}
-          onCancel={cancelEdit}
-          isBusy={isMutating}
-          locationVerified={locationVerified}
-          locationError={locationError}
-          isAdmin={userRoles?.is_admin}
-        />
       )}
 
       {isMallOpen && (
