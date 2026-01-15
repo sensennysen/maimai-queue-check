@@ -35,12 +35,9 @@ function QueueManager() {
     startNextGame
   } = useQueueManager();
 
-  // Wait for all relevant data to be loaded before showing action buttons
-  const locationChecked = !!(
-    userRoles &&
-    (userRoles.is_admin || locationVerified || locationError || needsLocationPermission)
-  );
-  const actionLoading = queueLoading || authLoading || !locationChecked;
+  // Only gate editing actions by permissions; always show queue/session
+  // Only block editing actions if userRoles are loading, but never block queue display
+  const actionLoading = queueLoading || authLoading;
 
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
