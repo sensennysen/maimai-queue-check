@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { queueService, sessionService, subscribeToQueueChanges, subscribeToSessionChanges, supabase } from '../services/supabase';
+
 import { useAuth } from './useAuth';
 import { verifyUserLocationAndPermissions } from '../services/geolocation';
 
 export const useQueueManager = () => {
-  const { user } = useAuth();
+
+  const { user, userRoles } = useAuth();
   const [queue, setQueue] = useState([]);
   const [nowPlaying, setNowPlaying] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,6 +17,7 @@ export const useQueueManager = () => {
   const [locationError, setLocationError] = useState(null);
   const [locationCheckInProgress, setLocationCheckInProgress] = useState(false);
   const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
+  const [needsLocationPermission, setNeedsLocationPermission] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -26,6 +29,7 @@ export const useQueueManager = () => {
     if (!user) {
       setLocationVerified(false);
       setLocationError('Please log in to edit the queue');
+      setNeedsLocationPermission(false);
       return;
     }
 
@@ -37,6 +41,8 @@ export const useQueueManager = () => {
       const result = await verifyUserLocationAndPermissions(user.id);
       
       setLocationVerified(result.allowed);
+      setNeedsLocationPermission(result.needsPermission || false);
+      
       if (!result.allowed) {
         setLocationError(result.reason);
       } else {
@@ -46,50 +52,31 @@ export const useQueueManager = () => {
       console.error('Location verification error:', err);
       setLocationVerified(false);
       setLocationError('Failed to verify location. Please try again.');
+      setNeedsLocationPermission(false);
     } finally {
       setLocationCheckInProgress(false);
     }
   }, [user]);
 
-  // Subscribe to real-time changes
+  // Automatically verify location when user is available and has not attempted verification
   useEffect(() => {
-    let queueSubscription;
-    let sessionSubscription;
-
-    const setupSubscriptions = async () => {
-      try {
-        queueSubscription = subscribeToQueueChanges(handleQueueChange);
-        sessionSubscription = subscribeToSessionChanges(handleSessionChange);
-        
-        // Wait a bit for subscriptions to establish
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Test connection by checking supabase status
-        // eslint-disable-next-line no-unused-vars
-        const { data, error } = await supabase.from('queue_entries').select('count').limit(1);
-        if (!error) {
-          setIsConnected(true);
-        } else {
-          setIsConnected(false);
+    const checkAndVerifyLocation = async () => {
+      if (user && !hasAttemptedVerification && !locationCheckInProgress) {
+        // Check if user has edit permissions first
+        try {
+          const { data: roles } = await supabase.from('user_roles').select('can_edit').eq('user_id', user.id).single();
+          if (roles?.can_edit) {
+            // User has edit permissions, verify location
+            await verifyLocation();
+          }
+        } catch (err) {
+          console.error('Error checking user permissions:', err);
         }
-      } catch (err) {
-        console.error('Subscription setup error:', err);
-        setIsConnected(false);
       }
     };
-
-    setupSubscriptions();
-
-    return () => {
-      if (queueSubscription) {
-        queueSubscription.unsubscribe();
-      }
-      if (sessionSubscription) {
-        sessionSubscription.unsubscribe();
-      }
-      setIsConnected(false);
-    };
-  }, []);
+    
+    checkAndVerifyLocation();
+  }, [user, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
 
   const loadInitialData = async () => {
     try {
@@ -110,23 +97,40 @@ export const useQueueManager = () => {
     }
   };
 
-  const handleQueueChange = () => { 
-    // Reload queue data when changes occur from other clients
-    queueService.getQueueEntries()
-      .then(data => {
-        setQueue(data);
-      })
-      .catch(err => console.error('Error refreshing queue:', err));
-  };
+  // Subscribe to real-time changes
+  useEffect(() => {
+    const handleQueueChange = () => {
+      queueService.getQueueEntries()
+        .then(data => setQueue(data))
+        .catch(() => {});
+    };
 
-  const handleSessionChange = () => {
-    // Reload session data when changes occur from other clients  
-    sessionService.getCurrentSession()
-      .then(data => {
-        setNowPlaying(data);
+    const handleSessionChange = () => {
+      sessionService.getCurrentSession()
+        .then(data => setNowPlaying(data))
+        .catch(() => {});
+    };
+
+    const queueSubscription = subscribeToQueueChanges(handleQueueChange);
+    const sessionSubscription = subscribeToSessionChanges(handleSessionChange);
+
+    // Test connection
+    supabase.from('queue_entries').select('count').limit(1)
+      .then(({ error }) => {
+        setIsConnected(!error);
       })
-      .catch(err => console.error('Error refreshing session:', err));
-  };
+      .catch(() => setIsConnected(false));
+
+    return () => {
+      if (queueSubscription) {
+        queueSubscription.unsubscribe();
+      }
+      if (sessionSubscription) {
+        sessionSubscription.unsubscribe();
+      }
+      setIsConnected(false);
+    };
+  }, []);
 
   // Test real-time connection
   const testRealTimeConnection = async () => {
@@ -169,10 +173,13 @@ export const useQueueManager = () => {
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
     // Check location verification before allowing operations
-    if (!locationVerified) {
-      const errorMsg = locationError || 'Location verification required to edit the queue';
-      setError(errorMsg);
-      throw new Error(errorMsg);
+    // Bypass all checks if admin
+    if (!(userRoles?.is_admin || false)) {
+      if (!locationVerified) {
+        const errorMsg = locationError || 'Location verification required to edit the queue';
+        setError(errorMsg);
+        throw new Error(errorMsg);
+      }
     }
 
     try {
@@ -202,10 +209,12 @@ export const useQueueManager = () => {
   // Update existing queue entry
   const updateQueueEntry = async (id, player1, player2) => {
     // Check location verification before allowing operations
-    if (!locationVerified) {
-      const errorMsg = locationError || 'Location verification required to edit the queue';
-      setError(errorMsg);
-      throw new Error(errorMsg);
+    if (!(userRoles?.is_admin || false)) {
+      if (!locationVerified) {
+        const errorMsg = locationError || 'Location verification required to edit the queue';
+        setError(errorMsg);
+        throw new Error(errorMsg);
+      }
     }
 
     try {
@@ -229,10 +238,12 @@ export const useQueueManager = () => {
   // Remove queue entry
   const removeQueueEntry = async (id) => {
     // Check location verification before allowing operations
-    if (!locationVerified) {
-      const errorMsg = locationError || 'Location verification required to edit the queue';
-      setError(errorMsg);
-      throw new Error(errorMsg);
+    if (!(userRoles?.is_admin || false)) {
+      if (!locationVerified) {
+        const errorMsg = locationError || 'Location verification required to edit the queue';
+        setError(errorMsg);
+        throw new Error(errorMsg);
+      }
     }
 
     try {
@@ -265,6 +276,15 @@ export const useQueueManager = () => {
 
   // Move entry up in queue
   const moveUp = async (id) => {
+    // Check location verification before allowing operations
+    if (!(userRoles?.is_admin || false)) {
+      if (!locationVerified) {
+        const errorMsg = locationError || 'Location verification required to edit the queue';
+        setError(errorMsg);
+        throw new Error(errorMsg);
+      }
+    }
+
     try {
       setIsMutating(true);
       const index = queue.findIndex(item => item.id === id);
@@ -299,6 +319,15 @@ export const useQueueManager = () => {
 
   // Move entry down in queue
   const moveDown = async (id) => {
+    // Check location verification before allowing operations
+    if (!(userRoles?.is_admin || false)) {
+      if (!locationVerified) {
+        const errorMsg = locationError || 'Location verification required to edit the queue';
+        setError(errorMsg);
+        throw new Error(errorMsg);
+      }
+    }
+
     try {
       setIsMutating(true);
       const index = queue.findIndex(item => item.id === id);
@@ -333,6 +362,13 @@ export const useQueueManager = () => {
 
   // Clear entire queue
   const clearQueue = async () => {
+    // Check location verification before allowing operations
+    if (!locationVerified) {
+      const errorMsg = locationError || 'Location verification required to edit the queue';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     try {
       setIsMutating(true);
       if (queue.length > 0) {
@@ -432,6 +468,7 @@ export const useQueueManager = () => {
     locationError,
     locationCheckInProgress,
     hasAttemptedVerification,
+    needsLocationPermission,
     addQueueEntry,
     updateQueueEntry,
     removeQueueEntry,

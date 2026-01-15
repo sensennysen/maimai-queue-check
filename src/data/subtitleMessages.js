@@ -25,3 +25,10 @@ export const closedMessages = [
   "Sir pahinga na po",
   "Come back when we reopen",
 ];
+
+export const loadingMessages = [
+  "Loading queue...",
+  "Fetching players...",
+  "Preparing the queue...",
+  "Just a moment please...",
+];

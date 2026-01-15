@@ -4,12 +4,12 @@ import QueueItem from './QueueItem';
 import { useAuth } from '../hooks/useAuth';
 import './QueueList.css';
 
-function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false }) {
-  const { user, userRoles } = useAuth();
-  
-  // Safely check if user can edit - default to true if roles aren't loaded yet
-  const canEdit = userRoles === undefined ? true : userRoles?.can_edit;
-  
+function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, locationVerified, loading }) {
+  const { user, userRoles, loading: authLoading } = useAuth();
+  const isAdmin = userRoles?.is_admin;
+  const canEdit = userRoles?.can_edit;
+  const canActuallyEdit = isAdmin || (canEdit && locationVerified);
+  const showLoading = loading || authLoading;
   return (
     <Paper withBorder>
       <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
@@ -61,8 +61,9 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
               isLast={index === queue.length - 1}
               isNextUp={index === 0 && !nowPlaying}
               gameInProgress={!!nowPlaying}
-              userRoles={userRoles}
+              canActuallyEdit={canActuallyEdit}
               isBusy={isBusy}
+              loadingRoles={showLoading}
             />
           ))}
         </Stack>

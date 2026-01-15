@@ -68,7 +68,8 @@ export const rolesService = {
         console.error(`Error fetching roles for user ${userId}:`, error.message, error.code);
         return {
           user_id: userId,
-          can_edit: false
+          can_edit: false,
+          is_admin: false
         };
       }
       
@@ -76,16 +77,19 @@ export const rolesService = {
       if (!data || data.length === 0) {
         return {
           user_id: userId,
-          can_edit: false
+          can_edit: false,
+          is_admin: false
         };
       }
       
-      return data[0];
+      // Ensure is_admin is always present (default false if missing)
+      return { ...data[0], is_admin: !!data[0].is_admin };
     } catch (err) {
       console.error(`Exception fetching roles for user ${userId}:`, err);
       return {
         user_id: userId,
-        can_edit: false
+        can_edit: false,
+        is_admin: false
       };
     }
   }
@@ -280,23 +284,17 @@ export const subscribeToQueueChanges = (callback) => {
     .on(
       'postgres_changes',
       {
-        event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+        event: '*',
         schema: 'public',
         table: 'queue_entries'
       },
       (payload) => {
-        // ...existing code...
-        callback(payload);
+        if (callback && typeof callback === 'function') {
+          callback(payload);
+        }
       }
     )
-    .subscribe((status) => {
-      // ...existing code...
-      if (status === 'SUBSCRIBED') {
-        // ...existing code...
-      } else if (status === 'CHANNEL_ERROR') {
-        console.error('❌ Queue subscription error');
-      }
-    });
+    .subscribe();
 
   return channel;
 };
@@ -307,23 +305,17 @@ export const subscribeToSessionChanges = (callback) => {
     .on(
       'postgres_changes',
       {
-        event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+        event: '*',
         schema: 'public',
         table: 'game_sessions'
       },
       (payload) => {
-        // ...existing code...
-        callback(payload);
+        if (callback && typeof callback === 'function') {
+          callback(payload);
+        }
       }
     )
-    .subscribe((status) => {
-      // ...existing code...
-      if (status === 'SUBSCRIBED') {
-        // ...existing code...
-      } else if (status === 'CHANNEL_ERROR') {
-        console.error('❌ Session subscription error');
-      }
-    });
+    .subscribe();
 
   return channel;
 };

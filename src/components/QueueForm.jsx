@@ -3,7 +3,7 @@ import { Paper, Title, TextInput, Group, Button, Stack, Alert } from '@mantine/c
 import { IconPlus, IconEdit, IconX } from '@tabler/icons-react';
 import './QueueForm.css';
 
-function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false, locationVerified = false, locationError = null }) {
+function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false, locationVerified = false, locationError = null, isAdmin = false }) {
   const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : '';
   const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : '';
   
@@ -15,7 +15,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
     const newErrors = {};
     
     // Check location verification first
-    if (!locationVerified) {
+    if (!locationVerified && !isAdmin) {
       newErrors.general = locationError || 'Location verification required';
       setErrors(newErrors);
       return false;
@@ -74,7 +74,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
             </Alert>
           )}
           
-          {locationError && !locationVerified && (
+          {locationError && !locationVerified && !isAdmin && (
             <Alert color="orange" variant="light">
               {locationError}
             </Alert>
@@ -88,7 +88,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
               onChange={(e) => setPlayer1(e.target.value)}
               error={errors.player1}
               maxLength={50}
-              disabled={isBusy || !locationVerified}
+              disabled={isBusy || (!locationVerified && !isAdmin)}
             />
 
             <TextInput
@@ -98,7 +98,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
               onChange={(e) => setPlayer2(e.target.value)}
               error={errors.player2}
               maxLength={50}
-              disabled={isBusy || !locationVerified}
+              disabled={isBusy || (!locationVerified && !isAdmin)}
             />
           </Group>
 
@@ -107,7 +107,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
               type="submit" 
               leftSection={editingId ? <IconEdit size={16} /> : <IconPlus size={16} />}
               variant="filled"
-              disabled={isBusy || !locationVerified}
+              disabled={isBusy || (!locationVerified && !isAdmin)}
             >
               {editingId ? 'Update Entry' : 'Add to Queue'}
             </Button>
