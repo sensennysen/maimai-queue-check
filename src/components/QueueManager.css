@@ -72,7 +72,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   color: var(--theme-text-primary);
   border: 1px solid var(--theme-border);
-  border-left: 4px solid var(--theme-primary);
 }
 
 .now-playing-header h3 {

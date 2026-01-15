@@ -255,7 +255,7 @@ function QueueManager() {
         Info here might not reflect the actual queue in the branch
       </Alert>
 
-      <Paper p="md" withBorder>
+      <div>
         <Group justify="space-between" align="center">
           <Group gap="md">
             <Badge variant="light" size="lg">
@@ -287,7 +287,7 @@ function QueueManager() {
             )}
           </Group>
         </Group>
-      </Paper>
+      </div>
 
       {isMallOpen && nowPlaying && (
         <div className="now-playing">
