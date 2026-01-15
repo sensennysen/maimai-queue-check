@@ -280,16 +280,6 @@ function QueueManager() {
             </Badge>
           </Group>
           <Group gap="sm">
-            {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
-              <Button 
-                leftSection={<IconPlus size={16} />}
-                onClick={() => setShowForm(true)}
-                variant="filled"
-                disabled={isMutating}
-              >
-                Add Queue
-              </Button>
-            )}
             {user && canActuallyEdit && isMallOpen && queue.length > 0 && (
               <Button 
                 variant="outline"
@@ -299,6 +289,16 @@ function QueueManager() {
                 disabled={isMutating}
               >
                 Clear All
+              </Button>
+            )}
+            {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
+              <Button 
+                leftSection={<IconPlus size={16} />}
+                onClick={() => setShowForm(true)}
+                variant="filled"
+                disabled={isMutating}
+              >
+                Add Queue
               </Button>
             )}
           </Group>
