@@ -54,14 +54,9 @@ function QueueManager() {
     closedMessages[Math.floor(Math.random() * closedMessages.length)]
   );
 
-  const canEdit = !!userRoles?.can_edit;
-  const isAdmin = !!userRoles?.is_admin;
+  const canEdit = userRoles?.can_edit;
+  const isAdmin = userRoles?.is_admin;
   const canActuallyEdit = isAdmin || (canEdit && locationVerified);
-  // Named conditionals for clarity (simplified)
-  const canShowEditControls = !!(user && canActuallyEdit && isMallOpen);
-  const canShowLocationModal = !!(user && canEdit && !isAdmin && needsLocationPermission && !locationCheckInProgress);
-  const canShowLocationError = !!(user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification);
-  const canShowQueueForm = !!(user && isMallOpen && (showForm || editingId));
 
   const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule();
 
@@ -77,13 +72,15 @@ function QueueManager() {
 
   // Show location modal only when permission is explicitly needed
   useEffect(() => {
+    const shouldShow = user && canEdit && !isAdmin && needsLocationPermission && !locationCheckInProgress;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShowLocationModal(prev => {
-      if (prev !== canShowLocationModal) {
-        return canShowLocationModal;
+      if (prev !== shouldShow) {
+        return shouldShow;
       }
       return prev;
     });
-  }, [canShowLocationModal]);
+  }, [user, canEdit, isAdmin, needsLocationPermission, locationCheckInProgress]);
 
   // Add new queue entry
   const addQueueEntry = async (player1, player2) => {
@@ -232,7 +229,7 @@ function QueueManager() {
         </Alert>
       )}
 
-      {canShowLocationError && (
+      {user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification && (
         <Alert 
           icon={<IconMapPin size={16} />} 
           title="Location Verification Failed" 
@@ -260,7 +257,7 @@ function QueueManager() {
 
 
       {/* Add Queue Form always appears above Now Playing */}
-      {canShowQueueForm && (
+      {user && isMallOpen && (showForm || editingId) && (
         <QueueForm 
           key={editingId || 'new'}
           onSubmit={editingId ? updateQueueEntry : addQueueEntry}
@@ -283,7 +280,17 @@ function QueueManager() {
             </Badge>
           </Group>
           <Group gap="sm">
-            {canShowEditControls && queue.length > 0 && (
+            {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
+              <Button 
+                leftSection={<IconPlus size={16} />}
+                onClick={() => setShowForm(true)}
+                variant="filled"
+                disabled={isMutating}
+              >
+                Add Queue
+              </Button>
+            )}
+            {user && canActuallyEdit && isMallOpen && queue.length > 0 && (
               <Button 
                 variant="outline"
                 color="red"
@@ -292,16 +299,6 @@ function QueueManager() {
                 disabled={isMutating}
               >
                 Clear All
-              </Button>
-            )}
-            {canShowEditControls && !showForm && !editingId && (
-              <Button 
-                leftSection={<IconPlus size={16} />}
-                onClick={() => setShowForm(true)}
-                variant="filled"
-                disabled={isMutating}
-              >
-                Add Queue
               </Button>
             )}
           </Group>

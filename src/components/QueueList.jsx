@@ -9,9 +9,6 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
   const isAdmin = userRoles?.is_admin;
   const canEdit = userRoles?.can_edit;
   const canActuallyEdit = isAdmin || (canEdit && locationVerified);
-  // Named conditionals for clarity
-  const canShowStartGame = user && canEdit && isMallOpen && !nowPlaying && queue.length > 0;
-  const canShowNoEditWarning = user && userRoles !== undefined && !userRoles?.can_edit;
   return (
     <Paper withBorder>
       <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--theme-border)', alignItems: 'center', minHeight: 48 }}>
@@ -29,7 +26,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
             </span>
           </span>
         )}
-        {canShowStartGame && (
+        {user && canEdit && isMallOpen && !nowPlaying && queue.length > 0 && (
           <Button 
             leftSection={<IconPlayerPlay size={16} />}
             onClick={() => onStartGame()}
@@ -41,7 +38,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
           </Button>
         )}
       </Group>
-      {canShowNoEditWarning && (
+      {user && userRoles !== undefined && !userRoles?.can_edit && (
         <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-yellow-0)' }}>
           <Text size="sm" c="orange">
             You can view the queue but don't have permission to edit it
