@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Indicator, Tooltip, Loader, Modal } from '@mantine/core';
-import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconWifi, IconWifiOff, IconMapPin } from '@tabler/icons-react';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Loader, Modal } from '@mantine/core';
+import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconMapPin } from '@tabler/icons-react';
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
 import PlayTimer from './PlayTimer';
@@ -18,7 +18,7 @@ function QueueManager() {
     nowPlaying,
     loading: queueLoading,
     error,
-    isConnected,
+    // isConnected removed
     isMutating,
     locationVerified,
     locationError,
@@ -261,22 +261,7 @@ function QueueManager() {
             <Badge variant="light" size="lg">
               Credits: {(isMallOpen ? filterQueue(queue) : []).reduce((sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0), 0)}
             </Badge>
-            <Tooltip label={isConnected ? 'Queue should appear live as it is added' : 'Disconnected from database'} withArrow>
-              <Indicator 
-                color={isConnected ? 'green' : 'red'} 
-                size={8}
-                processing={!isConnected}
-              >
-                <Badge 
-                  variant="light" 
-                  color={isConnected ? 'green' : 'red'}
-                  leftSection={isConnected ? <IconWifi size={12} /> : <IconWifiOff size={12} />}
-                  style={{ cursor: 'help' }}
-                >
-                  {isConnected ? 'Live' : 'Offline'}
-                </Badge>
-              </Indicator>
-            </Tooltip>
+            {/* Live/Offline label and connection status removed */}
           </Group>
           <Group gap="sm">
             {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (

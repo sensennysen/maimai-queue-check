@@ -76,13 +76,51 @@
   font-weight: 600;
 }
 
+/* Responsive: Make PlayTimer smaller and avoid overlap in mobile */
 .now-playing-header {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+  flex-wrap: nowrap;
+  gap: 0;
+}
+.now-playing-header h3 {
+  margin-top: 0.25em;
+}
+.now-playing-header h3 {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+.now-playing-header .play-timer {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+  .now-playing-header {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .now-playing-header h3 {
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    margin-top: 0.25em;
+  }
+  .now-playing-header .play-timer {
+    margin-left: auto;
+    margin-top: 0;
+    margin-bottom: 0;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+  }
 }
 
 .current-players {
