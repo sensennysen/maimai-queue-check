@@ -7,51 +7,47 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userRoles, setUserRoles] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [previousUser, setPreviousUser] = useState(null);
-
-  useEffect(() => {
-    // Show success toast when user logs in (user changes from null to logged-in state)
-    if (user && !previousUser) {
-      notifications.show({
-        title: 'Login Successful',
-        message: `Welcome! You have been logged in.`,
-        color: 'green',
-      });
-    }
-    setPreviousUser(user);
-  }, [user, previousUser]);
 
   useEffect(() => {
     // Listen for auth changes - this properly handles session restoration on page load
     let isMounted = true;
     let rolesCheckInterval = null;
-    
+
     const {
       data: { subscription },
     } = authService.onAuthStateChange(async (event, session) => {
       try {
         setUser(session?.user ?? null);
-        
+
         // Set loading to false immediately - don't wait for roles
         setLoading(false);
-        
+
+        // Show success toast only on actual sign-in, not on session restoration
+        if (event === 'SIGNED_IN') {
+          notifications.show({
+            title: 'Login Successful',
+            message: `Welcome! You have been logged in.`,
+            color: 'green',
+          });
+        }
+
         if (session?.user) {
           // Clear any existing roles check interval
           if (rolesCheckInterval) clearInterval(rolesCheckInterval);
-          
+
           // Fetch roles in background (non-blocking) with timeout
           const rolesPromise = rolesService.getUserRoles(session.user.id);
-          const timeoutPromise = new Promise((_, reject) => 
+          const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Role fetch timeout')), 5000)
           );
-          
+
           try {
             const roles = await Promise.race([rolesPromise, timeoutPromise]);
             if (isMounted) setUserRoles(roles);
           } catch (roleError) {
             console.error('Error fetching user roles:', roleError);
             // Set default permissions on error (keep existing permissions if available)
-            if (isMounted) setUserRoles(prevRoles => 
+            if (isMounted) setUserRoles(prevRoles =>
               prevRoles || {
                 user_id: session.user.id,
                 can_edit: false,
@@ -59,7 +55,7 @@ export const AuthProvider = ({ children }) => {
               }
             );
           }
-          
+
           // Periodically re-check roles every 30 seconds to ensure they don't get lost
           rolesCheckInterval = setInterval(async () => {
             if (!isMounted) return;
