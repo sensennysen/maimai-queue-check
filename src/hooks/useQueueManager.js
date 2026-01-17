@@ -398,8 +398,22 @@ export const useQueueManager = () => {
       // Mark queue entry as playing
       if (queueEntryId) {
         await queueService.markAsPlaying(queueEntryId);
-        // Update local queue to reflect status change
-        setQueue(prev => prev.filter(item => item.id !== queueEntryId));
+        // Update local queue to reflect status change and reorder
+        const remainingEntries = queue.filter(item => item.id !== queueEntryId);
+        const reorderedEntries = remainingEntries.map((item, index) => ({
+          ...item,
+          order_position: index + 1
+        }));
+        setQueue(reorderedEntries);
+        
+        // Update order positions in database
+        if (reorderedEntries.length > 0) {
+          const updates = reorderedEntries.map(item => ({
+            id: item.id,
+            order_position: item.order_position
+          }));
+          await queueService.updateOrderPositions(updates);
+        }
       }
       
       // Start new session
@@ -429,23 +443,8 @@ export const useQueueManager = () => {
       // Mark current playing entry as completed (if any)
       // Note: We don't need to do anything here since the entry was already removed from queue when started
       
-      // Reorder remaining queue entries to ensure order labels are correct
-      if (queue.length > 0) {
-        const reorderedEntries = queue.map((item, index) => ({
-          ...item,
-          order_position: index + 1
-        }));
-        setQueue(reorderedEntries);
-        
-        // Update order positions in database
-        const updates = reorderedEntries.map(item => ({
-          id: item.id,
-          order_position: item.order_position
-        }));
-        await queueService.updateOrderPositions(updates);
-      }
-      
       // Start next game if queue is not empty
+      // Note: startGame will handle reordering the queue after removing the entry
       const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status);
       if (nextEntry) {
         await startGame(nextEntry.id, nextEntry.player1, nextEntry.player2);
