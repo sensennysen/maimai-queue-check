@@ -1,5 +1,5 @@
 import { Paper, Title, Group, Button, Stack, Text, Center } from '@mantine/core';
-import { IconPlayerPlay } from '@tabler/icons-react';
+import { IconPlayerPlay, IconLock } from '@tabler/icons-react';
 import QueueItem from './QueueItem';
 import { useAuth } from '../hooks/useAuth';
 import './QueueList.css';
@@ -11,8 +11,21 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
   const canActuallyEdit = isAdmin || (canEdit && locationVerified);
   return (
     <Paper withBorder>
-      <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
-        <Title order={3}>Current Queue</Title>
+      <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--theme-border)', alignItems: 'center', minHeight: 48 }}>
+        <Title order={3} style={{ margin: 0 }}>Current Queue</Title>
+        {!user && (
+          <span className="sign-in-message">
+            <span className="sign-in-desktop">
+              <Text size="sm" c="blue" style={{ marginLeft: 16, marginBottom: 0 }}>
+                <IconLock size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                Sign in above and receive permission to edit the queue
+              </Text>
+            </span>
+            <span className="sign-in-mobile">
+              <IconLock size={20} color="#228be6" style={{ marginLeft: 16, marginBottom: 0, verticalAlign: 'middle' }} />
+            </span>
+          </span>
+        )}
         {user && canEdit && isMallOpen && !nowPlaying && queue.length > 0 && (
           <Button 
             leftSection={<IconPlayerPlay size={16} />}
@@ -25,13 +38,6 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
           </Button>
         )}
       </Group>
-      {!user && (
-        <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-blue-0)' }}>
-          <Text size="sm" c="blue">
-            🔒 Sign in above and receive permission to edit the queue
-          </Text>
-        </Group>
-      )}
       {user && userRoles !== undefined && !userRoles?.can_edit && (
         <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-yellow-0)' }}>
           <Text size="sm" c="orange">

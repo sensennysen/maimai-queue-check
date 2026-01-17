@@ -362,11 +362,13 @@ export const useQueueManager = () => {
 
   // Clear entire queue
   const clearQueue = async () => {
-    // Check location verification before allowing operations
-    if (!locationVerified) {
-      const errorMsg = locationError || 'Location verification required to edit the queue';
-      setError(errorMsg);
-      throw new Error(errorMsg);
+    // Allow admins to clear queue without location verification
+    if (!(userRoles?.is_admin || false)) {
+      if (!locationVerified) {
+        const errorMsg = locationError || 'Location verification required to edit the queue';
+        setError(errorMsg);
+        throw new Error(errorMsg);
+      }
     }
 
     try {
