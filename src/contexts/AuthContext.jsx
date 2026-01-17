@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { authService, rolesService } from '../services/supabase';
 import { AuthContext } from './AuthContextProvider';
 import { notifications } from '@mantine/notifications';
@@ -7,6 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userRoles, setUserRoles] = useState(null);
   const [loading, setLoading] = useState(true);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
     // Listen for auth changes - this properly handles session restoration on page load
@@ -17,26 +18,24 @@ export const AuthProvider = ({ children }) => {
       data: { subscription },
     } = authService.onAuthStateChange(async (event, session) => {
       try {
-        const prevUser = user;
         setUser(session?.user ?? null);
 
         // Set loading to false immediately - don't wait for roles
         setLoading(false);
 
-        // Show success toast only when user logs in for the first time in this browser session
-        // Use sessionStorage to track if we've shown the toast already
-        if (session?.user && !prevUser && !sessionStorage.getItem('login_toast_shown')) {
+        // Show success toast only on actual new login
+        // Skip on initial mount (session restoration from localStorage)
+        if (session?.user && !isInitialMount.current) {
           notifications.show({
             title: 'Login Successful',
             message: `Welcome! You have been logged in.`,
             color: 'green',
           });
-          sessionStorage.setItem('login_toast_shown', 'true');
         }
 
-        // Clear the flag when user logs out
-        if (!session?.user && prevUser) {
-          sessionStorage.removeItem('login_toast_shown');
+        // Mark that we've passed the initial mount
+        if (isInitialMount.current) {
+          isInitialMount.current = false;
         }
 
         if (session?.user) {
