@@ -9,8 +9,15 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables. Please check your .env file.');
 }
 
-// Create Supabase client
+// Create Supabase client with explicit session persistence configuration
 export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: true,
+    storageKey: 'smf-queue-auth',
+    storage: window.localStorage,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
   global: {
     headers: {
       'Accept': 'application/json',
