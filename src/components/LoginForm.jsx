@@ -82,7 +82,7 @@ const LoginForm = () => {
         color="red"
         fullWidth
       >
-        Continue with Google
+        Login with Google
       </Button>
     </div>
   );
