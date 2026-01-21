@@ -16,12 +16,33 @@ import './App.css';
 // Mantine theme configuration that syncs with our CSS variables
 function AppContent() {
   const { isDark } = useTheme();
-  
-  // Random subtitle selection - using useState initializer to avoid impure function during render
-  const [randomSubtitle] = useState(() => 
-    subtitleMessages[Math.floor(Math.random() * subtitleMessages.length)]
-  );
-  
+
+  // Random subtitle selection - using weighted chances
+  const [randomSubtitle] = useState(() => {
+    const totalWeight = subtitleMessages.reduce((sum, msg) => sum + msg.weight, 0);
+    let random = Math.random() * totalWeight;
+
+    for (const msg of subtitleMessages) {
+      if (random < msg.weight) {
+        const chance = ((msg.weight / totalWeight) * 100).toFixed(2);
+        return { text: msg.text };
+      }
+      random -= msg.weight;
+    }
+
+    // Fallback
+    const firstMsg = subtitleMessages[0];
+    const chance = ((firstMsg.weight / totalWeight) * 100).toFixed(2);
+    return { text: firstMsg.text };
+  });
+
+  const getSubtitleColor = (weight) => {
+    if (weight === 10) return undefined;
+    if (weight > 5) return '#CD7F32'; // Bronze
+    if (weight > 2) return '#C0C0C0'; // Silver
+    return '#FFD700'; // Gold
+  };
+
   const mantineTheme = createTheme({
     colorScheme: isDark ? 'dark' : 'light',
     colors: {
@@ -48,21 +69,29 @@ function AppContent() {
                 <Title order={1} className="app-title">
                   maimai Fairview Queue
                 </Title>
-                <Text size="lg" className="app-subtitle">
-                  {randomSubtitle}
+                <Text
+                  size="lg"
+                  className="app-subtitle"
+                  style={{
+                    color: getSubtitleColor(randomSubtitle.weight),
+                    fontWeight: randomSubtitle.weight <= 2 ? 700 : 400,
+                    textShadow: randomSubtitle.weight <= 2 ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none'
+                  }}
+                >
+                  {randomSubtitle.text}
                 </Text>
               </Group>
             </Paper>
-            
+
             <Group justify="flex-end" gap="sm">
               <ThemeToggle />
               <LoginForm />
             </Group>
-            
+
             <main>
               <QueueManager />
             </main>
-            
+
             <Footer />
           </Stack>
         </Container>
