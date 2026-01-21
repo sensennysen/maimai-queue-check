@@ -7,7 +7,6 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userRoles, setUserRoles] = useState(null);
   const [loading, setLoading] = useState(true);
-  const isInitialMount = useRef(true);
 
   useEffect(() => {
     // Listen for auth changes - this properly handles session restoration on page load
@@ -17,26 +16,15 @@ export const AuthProvider = ({ children }) => {
     const {
       data: { subscription },
     } = authService.onAuthStateChange(async (event, session) => {
+      console.log('Auth event detected:', event, !!session);
       try {
         setUser(session?.user ?? null);
 
         // Set loading to false immediately - don't wait for roles
         setLoading(false);
 
-        // Show success toast only on actual new login
-        // Skip on initial mount (session restoration from localStorage)
-        if (session?.user && !isInitialMount.current) {
-          notifications.show({
-            title: 'Login Successful',
-            message: `Welcome! You have been logged in.`,
-            color: 'green',
-          });
-        }
-
-        // Mark that we've passed the initial mount
-        if (isInitialMount.current) {
-          isInitialMount.current = false;
-        }
+        // Success notifications are shown from explicit login actions
+        // (avoid showing toasts during automatic session restoration on page load)
 
         if (session?.user) {
           // Clear any existing roles check interval
