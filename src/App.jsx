@@ -24,7 +24,6 @@ function AppContent() {
 
     for (const msg of subtitleMessages) {
       if (random < msg.weight) {
-        const chance = ((msg.weight / totalWeight) * 100).toFixed(2);
         return { text: msg.text };
       }
       random -= msg.weight;
@@ -32,7 +31,6 @@ function AppContent() {
 
     // Fallback
     const firstMsg = subtitleMessages[0];
-    const chance = ((firstMsg.weight / totalWeight) * 100).toFixed(2);
     return { text: firstMsg.text };
   });
 
