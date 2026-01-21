@@ -16,20 +16,15 @@ export const AuthProvider = ({ children }) => {
     const {
       data: { subscription },
     } = authService.onAuthStateChange(async (event, session) => {
+      console.log('Auth event detected:', event, !!session);
       try {
         setUser(session?.user ?? null);
 
         // Set loading to false immediately - don't wait for roles
         setLoading(false);
 
-        // Show success toast only on actual new login (not on initial session restoration)
-        if (event === 'SIGNED_IN') {
-          notifications.show({
-            title: 'Login Successful',
-            message: `Welcome! You have been logged in.`,
-            color: 'green',
-          });
-        }
+        // Success notifications are shown from explicit login actions
+        // (avoid showing toasts during automatic session restoration on page load)
 
         if (session?.user) {
           // Clear any existing roles check interval
