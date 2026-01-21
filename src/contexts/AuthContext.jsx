@@ -1,7 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { authService, rolesService } from '../services/supabase';
 import { AuthContext } from './AuthContextProvider';
-import { notifications } from '@mantine/notifications';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
