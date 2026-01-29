@@ -29,7 +29,13 @@ export const changelogData = [
         type: 'fix',
         title: 'Session & CSS Fixes',
         description: 'Resolved issues with session transitions and fixed UI glitches in queue item displays and disabled buttons.',
-      }
+      },
+      {
+        type: 'feature',
+        title: 'Flavor Texts',
+        description: 'Added flavor texts to some parts of the app.',
+        footnote: 'If you have any suggestions for flavor texts, feel free to message me on Discord!'
+      },
     ]
   }
 ];
