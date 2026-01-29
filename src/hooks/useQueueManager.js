@@ -490,13 +490,15 @@ export const useQueueManager = () => {
   const endGame = async () => {
     try {
       setIsMutating(true);
-      // End current session
-      await sessionService.endCurrentSession();
+      // End current session for this branch only
+      if (selectedBranch?.id) {
+        await sessionService.endCurrentSession(selectedBranch.id);
+      }
       setNowPlaying(null);
-      
+
       // Mark current playing entry as completed (if any)
       // Note: We don't need to do anything here since the entry was already removed from queue when started
-      
+
       // Start next game if queue is not empty
       // Note: startGame will handle reordering the queue after removing the entry
       const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status);
