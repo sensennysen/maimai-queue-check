@@ -1,6 +1,6 @@
 .queue-item {
   display: grid;
-  /* grid-template-columns: 140px minmax(0, 1fr) 140px; */
+  grid-template-columns: 140px minmax(0, 1fr) 140px;
   gap: 1rem;
   padding: 1rem 1.25rem;
   align-items: center;
