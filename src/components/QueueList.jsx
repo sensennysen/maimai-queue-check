@@ -27,7 +27,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
           </span>
         )}
         {user && canEdit && isMallOpen && !nowPlaying && queue.length > 0 && (
-          <Button 
+          <Button
             leftSection={<IconPlayerPlay size={16} />}
             onClick={() => onStartGame()}
             variant="filled"
@@ -64,7 +64,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
               onMoveDown={(id) => onMoveDown(id)}
               isFirst={index === 0}
               isLast={index === queue.length - 1}
-              isNextUp={index === 0 && !nowPlaying}
+              isNextUp={index === 0}
               gameInProgress={!!nowPlaying}
               canActuallyEdit={canActuallyEdit}
               isBusy={isBusy}
