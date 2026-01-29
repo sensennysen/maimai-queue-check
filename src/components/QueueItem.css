@@ -224,6 +224,17 @@
   transform: translateY(-1px);
 }
 
+.edit-btn:disabled,
+.remove-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(100%);
+  transform: none;
+  background: var(--theme-surface-hover);
+  color: var(--theme-text-muted);
+  border: 1px solid var(--theme-border);
+}
+
 @media (max-width: 768px) {
   .queue-item {
     display: grid;
