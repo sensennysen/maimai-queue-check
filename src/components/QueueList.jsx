@@ -1,11 +1,22 @@
+import { useState, useEffect } from 'react';
 import { Paper, Title, Group, Button, Stack, Text, Center } from '@mantine/core';
 import { IconPlayerPlay, IconLock } from '@tabler/icons-react';
 import QueueItem from './QueueItem';
 import { useAuth } from '../hooks/useAuth';
+import { emptyQueueMessages } from '../data/subtitleMessages';
 import './QueueList.css';
 
 function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, locationVerified, loadingRoles = false }) {
   const { user, userRoles } = useAuth();
+  const [emptyMessage, setEmptyMessage] = useState('');
+
+  useEffect(() => {
+    if (queue.length === 0) {
+      const randomMsg = emptyQueueMessages[Math.floor(Math.random() * emptyQueueMessages.length)];
+      setEmptyMessage(randomMsg);
+    }
+  }, [queue.length]);
+
   const isAdmin = userRoles?.is_admin;
   const canEdit = userRoles?.can_edit;
   const canActuallyEdit = isAdmin || (canEdit && locationVerified);
@@ -48,7 +59,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
       {queue.length === 0 ? (
         <Center p="xl">
           <Stack align="center" gap="md">
-            <Text size="xl" fw={600} c="dimmed">No one in line...</Text>
+            <Text size="xl" fw={600} c="dimmed">{emptyMessage}</Text>
             {user && (
               <Text c="dimmed">Add to queue by pressing the Add to Queue button above</Text>
             )}

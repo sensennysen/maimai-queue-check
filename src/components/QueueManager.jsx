@@ -159,7 +159,7 @@ function QueueManager() {
 
 
   // Only block everything if queue or schedule is loading
-  // const [loadingMessage] = useState(() => loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
+  const [loadingMessage] = useState(() => loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
 
   // NOTE: Blocking loader removed in favor of granular skeletons below
 
@@ -271,7 +271,10 @@ function QueueManager() {
 
       <div>
         {queueLoading || scheduleLoading ? (
-          <Skeleton height={40} radius="md" />
+          <Group justify="space-between" align="center">
+            <Skeleton height={40} width={120} radius="md" />
+            <Text size="sm" c="dimmed" italic>{loadingMessage}</Text>
+          </Group>
         ) : (
           <Group justify="space-between" align="center">
             <Group gap="md">
