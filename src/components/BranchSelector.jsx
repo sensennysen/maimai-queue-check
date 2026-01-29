@@ -52,13 +52,14 @@ function BranchSelector() {
           variant="light"
           leftSection={<IconMapPin size={16} />}
           rightSection={<IconChevronDown size={14} />}
+          className="branch-selector-button"
           styles={() => ({
             root: {
               paddingRight: 8,
             },
           })}
         >
-          <Text size="sm" fw={500} truncate style={{ maxWidth: 150 }}>
+          <Text size="sm" fw={500} truncate="end">
             {selectedBranch.arcade_name}
           </Text>
         </Button>

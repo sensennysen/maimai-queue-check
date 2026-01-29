@@ -179,11 +179,14 @@ export const queueService = {
     return data;
   },
 
-  // Remove a queue entry
+  // Remove a queue entry (cancel it)
   async removeQueueEntry(id) {
     const { error } = await supabase
       .from('queue_entries')
-      .delete()
+      .update({ 
+        status: 'cancelled',
+        ended_at: new Date().toISOString()
+      })
       .eq('id', id);
     
     if (error) throw error;
@@ -211,7 +214,10 @@ export const queueService = {
   async clearQueue(branchId) {
     let query = supabase
       .from('queue_entries')
-      .delete()
+      .update({ 
+        status: 'completed',
+        ended_at: new Date().toISOString()
+      })
       .in('status', ['waiting', 'playing']);
 
     if (branchId) {
