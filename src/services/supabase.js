@@ -63,28 +63,23 @@ export const authService = {
 // User roles service functions
 export const rolesService = {
   // Fetch user roles/permissions
-  async getUserRoles(userId, branchId = null) {
+  async getUserRoles(userId) {
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('user_roles')
         .select('*')
-        .eq('user_id', userId);
-      
-      if (branchId) {
-        query = query.eq('branch_id', branchId);
-      }
-      
-      const { data, error } = await query.limit(1);
-      
+        .eq('user_id', userId)
+        .limit(1);
+
       if (error) {
-        console.error(`Error fetching roles for user ${userId}${branchId ? ` for branch ${branchId}` : ''}:`, error.message, error.code);
+        console.error(`Error fetching roles for user ${userId}:`, error.message, error.code);
         return {
           user_id: userId,
           can_edit: false,
           is_admin: false
         };
       }
-      
+
       // If no rows returned, return default permissions
       if (!data || data.length === 0) {
         return {
@@ -93,7 +88,7 @@ export const rolesService = {
           is_admin: false
         };
       }
-      
+
       // Ensure is_admin is always present (default false if missing)
       return { ...data[0], is_admin: !!data[0].is_admin };
     } catch (err) {
