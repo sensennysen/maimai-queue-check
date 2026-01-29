@@ -41,6 +41,10 @@
   line-height: 1;
 }
 
+[data-theme="light"] .next-label {
+  color: var(--theme-text-primary);
+}
+
 .players-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
