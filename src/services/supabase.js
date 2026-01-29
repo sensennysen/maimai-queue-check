@@ -355,6 +355,7 @@ export const branchService = {
     const { data, error } = await supabase
       .from('allowed_places')
       .select('*')
+      .eq('enabled', true)
       .order('arcade_name', { ascending: true });
 
     if (error) throw error;
@@ -367,6 +368,7 @@ export const branchService = {
       .from('allowed_places')
       .select('*')
       .eq('id', branchId)
+      .eq('enabled', true)
       .single();
 
     if (error) throw error;
