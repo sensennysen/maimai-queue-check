@@ -53,3 +53,21 @@
   font-weight: 300;
   opacity: 0.9;
 }
+
+.branch-selector-button {
+  width: 250px;
+  justify-content: space-between;
+}
+
+.branch-selector-button .mantine-Button-label {
+  overflow: hidden;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+@media (max-width: 768px) {
+  .branch-selector-button {
+    width: 100%;
+    max-width: 150px;
+  }
+}
