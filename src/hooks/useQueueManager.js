@@ -216,7 +216,7 @@ export const useQueueManager = () => {
       setIsMutating(true);
       const orderPosition = getNextOrder();
       const userId = user?.id || null;
-      const userName = user?.email || user?.user_metadata?.name || null;
+      const userName = user?.user_metadata?.display_name || user?.user_metadata?.full_name || 'Player';
       
       // Logic handled in service: if no playing, it becomes playing.
       const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition, userId, userName, selectedBranch.id);

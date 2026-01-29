@@ -95,7 +95,6 @@ export const findNearestBranch = async (userLocation) => {
       .select('*')
       .eq('enabled', true);
 
-    console.log('places data:', places);
 
     if (error) {
       throw error;
