@@ -104,17 +104,21 @@ export const rolesService = {
 
 // Queue service functions
 export const queueService = {
-  // Fetch all queue entries ordered by position
+  // Fetch all queue entries (waiting and playing)
   async getQueueEntries(branchId) {
+    if (!branchId) return [];
+
     let query = supabase
       .from('queue_entries')
       .select('*')
-      .eq('status', 'waiting');
+      .in('status', ['waiting', 'playing']);
     
     if (branchId) {
       query = query.eq('branch_id', branchId);
     }
     
+    // Order by created_at or order_position to ensure list stability
+    // 'playing' should ideally be 0 or handled by status check, but let's stick to order_position
     query = query.order('order_position', { ascending: true });
 
     const { data, error } = await query;
@@ -125,6 +129,19 @@ export const queueService = {
 
   // Add a new queue entry
   async addQueueEntry(player1, player2, orderPosition, userId, userName, branchId) {
+    // Check if there is currently a playing session
+    const { count, error: countError } = await supabase
+        .from('queue_entries')
+        .select('*', { count: 'exact', head: true })
+        .eq('branch_id', branchId)
+        .eq('status', 'playing');
+    
+    if (countError) throw countError;
+
+    const initialStatus = count === 0 ? 'playing' : 'waiting';
+    // If auto-playing, maybe we set order_position to 0 or something? 
+    // For now keeping orderPosition logic from caller, but 'playing' status takes precedence in UI.
+
     const { data, error } = await supabase
       .from('queue_entries')
       .insert([
@@ -132,10 +149,11 @@ export const queueService = {
           player1: player1.trim(),
           player2: player2.trim(),
           order_position: orderPosition,
-          status: 'waiting',
+          status: initialStatus,
           created_by: userId || null,
           created_by_name: userName || null,
-          branch_id: branchId
+          branch_id: branchId,
+          started_at: initialStatus === 'playing' ? new Date().toISOString() : null
         }
       ])
       .select()
@@ -189,21 +207,59 @@ export const queueService = {
     return results;
   },
 
-  // Clear all waiting queue entries
-  async clearQueue() {
-    const { error } = await supabase
+  // Clear all queue entries (waiting and playing)
+  async clearQueue(branchId) {
+    let query = supabase
       .from('queue_entries')
       .delete()
-      .eq('status', 'waiting');
+      .in('status', ['waiting', 'playing']);
+
+    if (branchId) {
+        query = query.eq('branch_id', branchId);
+    }
     
+    const { error } = await query;
     if (error) throw error;
   },
 
-  // Move entry to playing status
+  // Move to next game
+  async finishGame(currentPlayingId, nextWaitingId) {
+    // 1. Mark current as completed
+    if (currentPlayingId) {
+        const { error: completeError } = await supabase
+            .from('queue_entries')
+            .update({ 
+                status: 'completed',
+                ended_at: new Date().toISOString()
+            })
+            .eq('id', currentPlayingId);
+        
+        if (completeError) throw completeError;
+    }
+
+    // 2. Mark next as playing
+    if (nextWaitingId) {
+        const { error: startError } = await supabase
+            .from('queue_entries')
+            .update({ 
+                status: 'playing',
+                started_at: new Date().toISOString()
+                 // potentially update order_position to 0 or 1?
+            })
+            .eq('id', nextWaitingId);
+        
+        if (startError) throw startError;
+    }
+  },
+
+  // Legacy/Helper to manually mark as playing (if needed)
   async markAsPlaying(id) {
     const { data, error } = await supabase
       .from('queue_entries')
-      .update({ status: 'playing' })
+      .update({ 
+          status: 'playing',
+          started_at: new Date().toISOString()
+      })
       .eq('id', id)
       .select()
       .single();
@@ -211,94 +267,16 @@ export const queueService = {
     if (error) throw error;
     return data;
   },
-
-  // Complete a playing session
-  async markAsCompleted(id) {
-    const { data, error } = await supabase
-      .from('queue_entries')
-      .update({ status: 'completed' })
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  }
 };
 
 // Game session service functions
 export const sessionService = {
-  // Get current active session
+  // DEPRECATED: Current session is now just the queue entry with status='playing'
   async getCurrentSession(branchId) {
-    try {
-      let query = supabase
-        .from('game_sessions')
-        .select('*')
-        .eq('status', 'active');
-      
-      if (branchId) {
-        query = query.eq('branch_id', branchId);
-      }
-      
-      query = query.order('started_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error('API Error fetching current session:', {
-          status: error.status,
-          code: error.code,
-          message: error.message,
-          details: error.details
-        });
-        throw error;
-      }
-      return data;
-    } catch (err) {
-      console.error('Exception in getCurrentSession:', err);
-      throw err;
-    }
+    return null; 
   },
-
-  // Start a new game session
-  async startSession(player1, player2, userId, userName, branchId) {
-    // End any existing active sessions first
-    await this.endCurrentSession(branchId);
-    
-    const { data, error } = await supabase
-      .from('game_sessions')
-      .insert([
-        {
-          player1: player1.trim(),
-          player2: player2.trim(),
-          status: 'active',
-          created_by: userId || null,
-          created_by_name: userName || null,
-          branch_id: branchId
-        }
-      ])
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  },
-
-  // End the current active session for a branch
-  async endCurrentSession(branchId) {
-    if (!branchId) throw new Error('branchId is required to end a session for a branch');
-    const { error } = await supabase
-      .from('game_sessions')
-      .update({ 
-        status: 'completed',
-        ended_at: new Date().toISOString()
-      })
-      .eq('status', 'active')
-      .eq('branch_id', branchId);
-    if (error) throw error;
-  }
+  async startSession() { return null; },
+  async endCurrentSession() { return null; }
 };
 
 // Real-time subscriptions

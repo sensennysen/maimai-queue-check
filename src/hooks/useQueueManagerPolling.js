@@ -4,6 +4,7 @@ import { useAuth } from './useAuth';
 import { useBranch } from './useBranch';
 import { verifyUserLocationAndPermissions } from '../services/geolocation';
 
+export const useQueueManagerPolling = () => {
   const { user } = useAuth();
   const { selectedBranch } = useBranch();
   const [queue, setQueue] = useState([]);
@@ -27,9 +28,14 @@ import { verifyUserLocationAndPermissions } from '../services/geolocation';
 
   // Load data from server
   // eslint-disable-next-line no-unused-vars
-  const loadData = async (skipConnectionCheck = false) => {
+  const loadData = useCallback(async (skipConnectionCheck = false) => {
+    const branchId = selectedBranch?.id;
+    if (!branchId) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const branchId = selectedBranch?.id;
       const [queueData, sessionData] = await Promise.all([
         queueService.getQueueEntries(branchId),
         sessionService.getCurrentSession(branchId)
@@ -45,12 +51,7 @@ import { verifyUserLocationAndPermissions } from '../services/geolocation';
     } finally {
       setLoading(false);
     }
-  };
-
-  // Initial load
-  useEffect(() => {
-    loadData();
-  }, []);
+  }, [selectedBranch?.id]);
 
   // Function to verify user location and permissions
   const verifyLocation = useCallback(async () => {
@@ -108,23 +109,23 @@ import { verifyUserLocationAndPermissions } from '../services/geolocation';
 
   // Polling setup with operation tracking
   useEffect(() => {
-    const setupPolling = () => {
-      pollTimeoutRef.current = setInterval(() => {
-        // Only poll if no operation is in progress
-        if (!isOperationInProgress.current) {
-          loadData();
-        }
-      }, POLL_INTERVAL);
-    };
+    loadData();
 
-    setupPolling();
+    const intervalId = setInterval(() => {
+      // Only poll if no operation is in progress
+      if (!isOperationInProgress.current) {
+        loadData();
+      }
+    }, POLL_INTERVAL);
+
+    pollTimeoutRef.current = intervalId;
 
     return () => {
-      if (pollTimeoutRef.current) {
-        clearInterval(pollTimeoutRef.current);
+      if (intervalId) {
+        clearInterval(intervalId);
       }
     };
-  }, []);
+  }, [loadData]);
 
   const getNextOrder = () => {
     return queue.length > 0 ? Math.max(...queue.map(item => item.order_position)) + 1 : 1;

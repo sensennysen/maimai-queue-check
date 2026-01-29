@@ -24,46 +24,74 @@ export const BranchProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      // Fetch all branches from database
-      const allBranches = await branchService.getAllBranches();
-      setBranches(allBranches);
+      // Start both requests in parallel
+      const branchesPromise = branchService.getAllBranches();
+      const locationPromise = requestUserLocation();
+
+      // Wait for both to complete (success or fail)
+      const [branchesResult, locationResult] = await Promise.allSettled([
+        branchesPromise,
+        locationPromise
+      ]);
+
+      // Handle branches
+      let allBranches = [];
+      if (branchesResult.status === 'fulfilled') {
+        allBranches = branchesResult.value;
+        setBranches(allBranches);
+      } else {
+        throw new Error(branchesResult.reason?.message || 'Failed to load branches');
+      }
 
       if (allBranches.length === 0) {
         setError('No branches found');
         return;
       }
 
-      // Check if there's a saved branch in localStorage
+      // Handle location
+      let location = null;
+      if (locationResult.status === 'fulfilled') {
+        location = locationResult.value;
+        setUserLocation(location);
+      } else {
+        console.log('Location request failed or denied:', locationResult.reason);
+      }
+
+      // Logic to select branch
+      // 1. Check for saved branch
       const savedBranchId = localStorage.getItem(STORAGE_KEY);
       if (savedBranchId) {
         const savedBranch = allBranches.find(b => b.id === savedBranchId);
         if (savedBranch) {
           setSelectedBranchState(savedBranch);
+
+          // Even if we used saved branch, if we have location, we can check if another is effectively closer?
+          // For now, respect the saved choice, but we have the location stored in state if needed.
           setLoading(false);
           return;
         }
       }
 
-      // Try to detect nearest branch using geolocation
-      try {
-        const location = await requestUserLocation();
-        setUserLocation(location);
-
-        const { nearestBranch } = await findNearestBranch(location);
-        if (nearestBranch) {
-          setSelectedBranchState(nearestBranch);
-          localStorage.setItem(STORAGE_KEY, nearestBranch.id);
-        } else {
-          // Fallback to first branch
-          setSelectedBranchState(allBranches[0]);
-          localStorage.setItem(STORAGE_KEY, allBranches[0].id);
+      // 2. Use location if available
+      if (location) {
+        try {
+          // We already have the location, just find the branch
+          const { nearestBranch } = await findNearestBranch(location);
+          if (nearestBranch) {
+            setSelectedBranchState(nearestBranch);
+            localStorage.setItem(STORAGE_KEY, nearestBranch.id);
+            setLoading(false);
+            return;
+          }
+        } catch (findError) {
+          console.warn('Error finding nearest branch with location:', findError);
         }
-      } catch (geoError) {
-        console.log('Geolocation not available, using first branch:', geoError.message);
-        // Fallback to first branch if geolocation fails
-        setSelectedBranchState(allBranches[0]);
-        localStorage.setItem(STORAGE_KEY, allBranches[0].id);
       }
+
+      // 3. Fallback to first branch
+      setSelectedBranchState(allBranches[0]);
+      localStorage.setItem(STORAGE_KEY, allBranches[0].id);
+
     } catch (err) {
       console.error('Error loading branches:', err);
       setError(err.message);
