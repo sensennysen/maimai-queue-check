@@ -92,7 +92,8 @@ export const findNearestBranch = async (userLocation) => {
   try {
     const { data: places, error } = await supabase
       .from('allowed_places')
-      .select('*');
+      .select('*')
+      .eq('enabled', true);
 
     if (error) {
       throw error;
@@ -142,8 +143,9 @@ export const checkUserProximity = async (userLocation, maxDistance = 100, branch
   try {
     let query = supabase
       .from('allowed_places')
-      .select('*');
-    
+      .select('*')
+      .eq('enabled', true);
+
     // If branchId is provided, only check that specific branch
     if (branchId) {
       query = query.eq('id', branchId);

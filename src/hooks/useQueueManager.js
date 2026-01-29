@@ -21,6 +21,28 @@ export const useQueueManager = () => {
   const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
   const [needsLocationPermission, setNeedsLocationPermission] = useState(false);
 
+  const loadInitialData = useCallback(async () => {
+    if (!selectedBranch?.id) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const [queueData, sessionData] = await Promise.all([
+        queueService.getQueueEntries(selectedBranch.id),
+        sessionService.getCurrentSession(selectedBranch.id)
+      ]);
+      
+      setQueue(queueData);
+      setNowPlaying(sessionData);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error loading initial data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedBranch?.id]);
   // Load initial data when branch changes
   useEffect(() => {
     if (selectedBranch?.id) {
@@ -89,29 +111,7 @@ export const useQueueManager = () => {
     checkAndVerifyLocation();
   }, [user, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const loadInitialData = useCallback(async () => {
-    if (!selectedBranch?.id) {
-      return;
-    }
 
-    try {
-      setLoading(true);
-      const [queueData, sessionData] = await Promise.all([
-        queueService.getQueueEntries(selectedBranch.id),
-        sessionService.getCurrentSession(selectedBranch.id)
-      ]);
-      
-      setQueue(queueData);
-      setNowPlaying(sessionData);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-      console.error('Error loading initial data:', err);
-    } finally {
-      setLoading(false);
-    }
-  });
 
   // Subscribe to real-time changes
   useEffect(() => {
