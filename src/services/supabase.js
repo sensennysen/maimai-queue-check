@@ -212,19 +212,19 @@ export const queueService = {
 
   // Clear all queue entries (waiting and playing)
   async clearQueue(branchId) {
-    let query = supabase
+    if (!branchId) {
+      throw new Error('branchId is required to clear the queue');
+    }
+
+    const { error } = await supabase
       .from('queue_entries')
       .update({ 
         status: 'completed',
         ended_at: new Date().toISOString()
       })
+      .eq('branch_id', branchId)
       .in('status', ['waiting', 'playing']);
 
-    if (branchId) {
-        query = query.eq('branch_id', branchId);
-    }
-    
-    const { error } = await query;
     if (error) throw error;
   },
 
