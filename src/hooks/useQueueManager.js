@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { queueService, sessionService, subscribeToQueueChanges, subscribeToSessionChanges, supabase } from '../services/supabase';
+import { queueService, subscribeToQueueChanges, supabase } from '../services/supabase';
 
 import { useAuth } from './useAuth';
 import { useBranch } from './useBranch';
@@ -10,7 +10,12 @@ export const useQueueManager = () => {
   const { user, userRoles } = useAuth();
   const { selectedBranch } = useBranch();
   const [queue, setQueue] = useState([]);
-  const [nowPlaying, setNowPlaying] = useState(null);
+  
+  // Derived state: nowPlaying is just the item with status='playing'
+  const nowPlaying = queue.find(item => item.status === 'playing') || null;
+  // Waiting queue (for internal logic, though we might still expose the full list or filtered list)
+  const waitingQueue = queue.filter(item => item.status === 'waiting');
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -21,6 +26,7 @@ export const useQueueManager = () => {
   const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
   const [needsLocationPermission, setNeedsLocationPermission] = useState(false);
 
+  // Load initial data
   const loadInitialData = useCallback(async () => {
     if (!selectedBranch?.id) {
       return;
@@ -28,13 +34,10 @@ export const useQueueManager = () => {
 
     try {
       setLoading(true);
-      const [queueData, sessionData] = await Promise.all([
-        queueService.getQueueEntries(selectedBranch.id),
-        sessionService.getCurrentSession(selectedBranch.id)
-      ]);
+      // Fetch everything (playing + waiting) in one go
+      const queueData = await queueService.getQueueEntries(selectedBranch.id);
       
       setQueue(queueData);
-      setNowPlaying(sessionData);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -43,6 +46,7 @@ export const useQueueManager = () => {
       setLoading(false);
     }
   }, [selectedBranch?.id]);
+
   // Load initial data when branch changes
   useEffect(() => {
     if (selectedBranch?.id) {
@@ -71,11 +75,13 @@ export const useQueueManager = () => {
     setHasAttemptedVerification(true);
 
     try {
-      const result = await verifyUserLocationAndPermissions(user.id, selectedBranch.id);
-      
+      const result = await verifyUserLocationAndPermissions(
+        user.id,
+        selectedBranch.id,
+        userRoles?.is_admin || false
+      );
       setLocationVerified(result.allowed);
       setNeedsLocationPermission(result.needsPermission || false);
-      
       if (!result.allowed) {
         setLocationError(result.reason);
       } else {
@@ -89,7 +95,7 @@ export const useQueueManager = () => {
     } finally {
       setLocationCheckInProgress(false);
     }
-  }, [user, selectedBranch?.id]);
+  }, [user, selectedBranch?.id, userRoles?.is_admin]);
 
   // Automatically verify location when user is available and has not attempted verification
   useEffect(() => {
@@ -130,31 +136,15 @@ export const useQueueManager = () => {
         (oldRow && oldRow.branch_id === selectedBranch.id);
       
       if (isRelevantBranch) {
+        // Refresh the whole list (simpler and safer sync)
         queueService.getQueueEntries(selectedBranch.id)
           .then(data => setQueue(data))
           .catch(() => {});
       }
     };
 
-    const handleSessionChange = (payload) => {
-      // Only process changes for the selected branch
-      const newRow = payload.new;
-      const oldRow = payload.old;
-      
-      // Check if the event is for the current branch
-      const isRelevantBranch = 
-        (newRow && newRow.branch_id === selectedBranch.id) ||
-        (oldRow && oldRow.branch_id === selectedBranch.id);
-      
-      if (isRelevantBranch) {
-        sessionService.getCurrentSession(selectedBranch.id)
-          .then(data => setNowPlaying(data))
-          .catch(() => {});
-      }
-    };
-
+    // We only need one subscription now!
     const queueSubscription = subscribeToQueueChanges(handleQueueChange);
-    const sessionSubscription = subscribeToSessionChanges(handleSessionChange);
 
     // Test connection
     supabase.from('queue_entries').select('count').limit(1)
@@ -166,9 +156,6 @@ export const useQueueManager = () => {
     return () => {
       if (queueSubscription) {
         queueSubscription.unsubscribe();
-      }
-      if (sessionSubscription) {
-        sessionSubscription.unsubscribe();
       }
       setIsConnected(false);
     };
@@ -235,15 +222,14 @@ export const useQueueManager = () => {
       const orderPosition = getNextOrder();
       const userId = user?.id || null;
       const userName = user?.email || user?.user_metadata?.name || null;
+      
+      // Logic handled in service: if no playing, it becomes playing.
       const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition, userId, userName, selectedBranch.id);
       
-      // Update local state immediately
-      setQueue(prev => [...prev, newEntry]);
-      
-      // Auto-start if this is the first entry and no game is currently playing
-      if (queue.length === 0 && !nowPlaying) {
-        await startGame(newEntry.id, player1, player2);
-      }
+      // Optimistic update? Better to just wait for re-fetch or subscription 
+      // but we can append locally if we want instant feedback.
+      // However, since status is determined by server logic (count check), better rely on returned data.
+      setQueue(prev => [...prev, newEntry]); 
       
       return newEntry;
     } catch (err) {
@@ -300,20 +286,13 @@ export const useQueueManager = () => {
       
       // Update local state immediately
       const remainingEntries = queue.filter(item => item.id !== id);
-      const reorderedEntries = remainingEntries.map((item, index) => ({
-        ...item,
-        order_position: index + 1
-      }));
-      setQueue(reorderedEntries);
+      // We might need to handle if the removed item was 'playing' - UI handles it by seeing null nowPlaying
       
-      // Update order positions in database
-      if (reorderedEntries.length > 0) {
-        const updates = reorderedEntries.map(item => ({
-          id: item.id,
-          order_position: item.order_position
-        }));
-        await queueService.updateOrderPositions(updates);
-      }
+      // Re-order if needed? Order positions might have gaps, but that's fine for sorting.
+      // If strict 1,2,3... is needed, we should update DB.
+      // Keeping it simple: Just remove.
+      setQueue(remainingEntries);
+
     } catch (err) {
       setError(err.message);
       throw err;
@@ -335,30 +314,29 @@ export const useQueueManager = () => {
 
     try {
       setIsMutating(true);
-      const index = queue.findIndex(item => item.id === id);
+      // We should only swap items that are 'waiting'. Be careful not to swap with 'playing'.
+      const waitingItems = queue.filter(item => item.status === 'waiting');
+      const index = waitingItems.findIndex(item => item.id === id);
+      
       if (index > 0) {
-        // Update local state immediately for better UX
-        const newQueue = [...queue];
-        const updates = [
-          { ...newQueue[index - 1], order_position: newQueue[index].order_position },
-          { ...newQueue[index], order_position: newQueue[index - 1].order_position }
-        ];
+        // Swap logic for waitingItems...
+        const itemA = waitingItems[index - 1];
+        const itemB = waitingItems[index];
+
+        // Update local state is tricky with mixed status list. 
+        // Simpler: Just call DB update and let subscription refresh.
+        // Or Optimistic:
         
-        // Swap items locally
-        newQueue[index - 1] = updates[0];
-        newQueue[index] = updates[1];
-        setQueue(newQueue);
-        
-        // Update database
         await queueService.updateOrderPositions([
-          { id: updates[0].id, order_position: updates[0].order_position },
-          { id: updates[1].id, order_position: updates[1].order_position }
+          { id: itemA.id, order_position: itemB.order_position },
+          { id: itemB.id, order_position: itemA.order_position }
         ]);
+
+        // Trigger reload to be safe and sync
+        await loadInitialData();
       }
     } catch (err) {
       setError(err.message);
-      // Reload data on error to sync with database
-      await loadInitialData();
       throw err;
     } finally {
       setIsMutating(false);
@@ -378,30 +356,22 @@ export const useQueueManager = () => {
 
     try {
       setIsMutating(true);
-      const index = queue.findIndex(item => item.id === id);
-      if (index < queue.length - 1) {
-        // Update local state immediately for better UX
-        const newQueue = [...queue];
-        const updates = [
-          { ...newQueue[index], order_position: newQueue[index + 1].order_position },
-          { ...newQueue[index + 1], order_position: newQueue[index].order_position }
-        ];
-        
-        // Swap items locally
-        newQueue[index] = updates[0];
-        newQueue[index + 1] = updates[1];
-        setQueue(newQueue);
-        
-        // Update database
-        await queueService.updateOrderPositions([
-          { id: updates[0].id, order_position: updates[0].order_position },
-          { id: updates[1].id, order_position: updates[1].order_position }
+      const waitingItems = queue.filter(item => item.status === 'waiting');
+      const index = waitingItems.findIndex(item => item.id === id);
+      
+      if (index < waitingItems.length - 1) {
+         const itemA = waitingItems[index];
+         const itemB = waitingItems[index + 1];
+
+         await queueService.updateOrderPositions([
+          { id: itemA.id, order_position: itemB.order_position },
+          { id: itemB.id, order_position: itemA.order_position }
         ]);
+        
+        await loadInitialData();
       }
     } catch (err) {
       setError(err.message);
-      // Reload data on error to sync with database
-      await loadInitialData();
       throw err;
     } finally {
       setIsMutating(false);
@@ -422,60 +392,9 @@ export const useQueueManager = () => {
     try {
       setIsMutating(true);
       if (queue.length > 0) {
-        await queueService.clearQueue();
-        // Update local state immediately
+        await queueService.clearQueue(selectedBranch.id);
         setQueue([]);
       }
-      // End current session if one exists
-      if (nowPlaying) {
-        await sessionService.endCurrentSession();
-        setNowPlaying(null);
-      }
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsMutating(false);
-    }
-  };
-
-  // Start a new game
-  const startGame = async (queueEntryId, player1, player2) => {
-    if (!selectedBranch?.id) {
-      throw new Error('No branch selected');
-    }
-
-    try {
-      setIsMutating(true);
-      // Mark queue entry as playing
-      if (queueEntryId) {
-        await queueService.markAsPlaying(queueEntryId);
-        // Update local queue to reflect status change and reorder
-        const remainingEntries = queue.filter(item => item.id !== queueEntryId);
-        const reorderedEntries = remainingEntries.map((item, index) => ({
-          ...item,
-          order_position: index + 1
-        }));
-        setQueue(reorderedEntries);
-        
-        // Update order positions in database
-        if (reorderedEntries.length > 0) {
-          const updates = reorderedEntries.map(item => ({
-            id: item.id,
-            order_position: item.order_position
-          }));
-          await queueService.updateOrderPositions(updates);
-        }
-      }
-      
-      // Start new session
-      const userId = user?.id || null;
-      const userName = user?.email || user?.user_metadata?.name || null;
-      const session = await sessionService.startSession(player1, player2, userId, userName, selectedBranch.id);
-      // Update local session state
-      setNowPlaying(session);
-      
-      return session;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -488,19 +407,18 @@ export const useQueueManager = () => {
   const endGame = async () => {
     try {
       setIsMutating(true);
-      // End current session
-      await sessionService.endCurrentSession();
-      setNowPlaying(null);
       
-      // Mark current playing entry as completed (if any)
-      // Note: We don't need to do anything here since the entry was already removed from queue when started
+      const currentPlaying = queue.find(item => item.status === 'playing');
+      // Find the first waiting item
+      // We trust the order of 'queue' array because it's sorted by order_position
+      const nextWaiting = queue.find(item => item.status === 'waiting');
+
+      await queueService.finishGame(currentPlaying?.id, nextWaiting?.id);
       
-      // Start next game if queue is not empty
-      // Note: startGame will handle reordering the queue after removing the entry
-      const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status);
-      if (nextEntry) {
-        await startGame(nextEntry.id, nextEntry.player1, nextEntry.player2);
-      }
+      // Update local state implicitly via subscription or reload
+      // But we can reload explicitly to ensure stability
+      await loadInitialData();
+
     } catch (err) {
       setError(err.message);
       throw err;
@@ -509,26 +427,24 @@ export const useQueueManager = () => {
     }
   };
 
-  // Start next game without ending current one (for manual control)
+  // Start next game (manual override?) - largely redundant with endGame logic now
+  // But maybe used if no one is playing?
   const startNextGame = async () => {
-    try {
-      setIsMutating(true);
-      const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status);
-      if (nextEntry) {
-        await startGame(nextEntry.id, nextEntry.player1, nextEntry.player2);
-        await loadInitialData();
-      }
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsMutating(false);
-    }
+      // Just call endGame, it handles the transitions logic (finish current if exists, start next)
+      return endGame();
   };
+  
+  // Legacy stub - start game directly? 
+  // Should ideally just use remove/update/finish logic.
+  const startGame = async () => {
+       // Not really needed if logic is automatic, but keeping for compatibility
+       return startNextGame();
+  };
+
 
   return {
-    queue,
-    nowPlaying,
+    queue: waitingQueue, // Return only waiting items for the list view
+    nowPlaying, // Return the playing item
     loading,
     error,
     isConnected,
