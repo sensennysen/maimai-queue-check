@@ -265,7 +265,7 @@ export const sessionService = {
   // Start a new game session
   async startSession(player1, player2, userId, userName, branchId) {
     // End any existing active sessions first
-    await this.endCurrentSession();
+    await this.endCurrentSession(branchId);
     
     const { data, error } = await supabase
       .from('game_sessions')
