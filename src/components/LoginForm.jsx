@@ -1,7 +1,7 @@
 import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider } from '@mantine/core';
 import { IconBrandGoogle, IconLogout, IconUser, IconLogin } from '@tabler/icons-react';
 import { useAuth } from '../hooks/useAuth';
-import { notifications } from '@mantine/notifications';
+// notifications removed: toasts suppressed per UX change
 import './LoginForm.css';
 
 const LoginForm = () => {
@@ -11,28 +11,16 @@ const LoginForm = () => {
     try {
       await signInWithProvider(provider);
     } catch (error) {
-      notifications.show({
-        title: 'Login Failed',
-        message: error.message || 'An error occurred during login.',
-        color: 'red',
-      });
+      // swallow UI toasts; log for debugging
+      console.error('Login failed:', error);
     }
   };
 
   const handleLogout = async () => {
     try {
       await signOut();
-      notifications.show({
-        title: 'Logged Out',
-        message: 'You have been successfully logged out.',
-        color: 'blue',
-      });
     } catch (error) {
-      notifications.show({
-        title: 'Logout Failed',
-        message: error.message || 'An error occurred during logout.',
-        color: 'red',
-      });
+      console.error('Logout failed:', error);
     }
   };
 
@@ -84,37 +72,19 @@ const LoginForm = () => {
     );
   }
 
+  // When not authenticated, show a prominent login button.
   return (
-    <Menu shadow="md" width={280} position="bottom-end">
-      <Menu.Target>
-        <ActionIcon variant="subtle" size="xl" className="login-icon">
-          <IconBrandGoogle size={24} stroke={2} />
-        </ActionIcon>
-      </Menu.Target>
-
-      <Menu.Dropdown>
-        <Menu.Label>
-          <Text size="sm" fw={500}>
-            Sign in to manage the queue
-          </Text>
-        </Menu.Label>
-        <Divider mb="xs" />
-        <Stack gap="xs" p="xs">
-          <Button
-            leftSection={<IconBrandGoogle size={16} />}
-            onClick={() => handleSocialLogin('google')}
-            variant="light"
-            color="red"
-            fullWidth
-          >
-            Continue with Google
-          </Button>
-          <Text size="xs" c="dimmed" ta="center">
-            Sign in to add, edit, and manage queue entries
-          </Text>
-        </Stack>
-      </Menu.Dropdown>
-    </Menu>
+    <div className="login-button-container">
+      <Button
+        leftSection={<IconBrandGoogle size={16} />}
+        onClick={() => handleSocialLogin('google')}
+        variant="light"
+        color="red"
+        fullWidth
+      >
+        Login with Google
+      </Button>
+    </div>
   );
 };
 
