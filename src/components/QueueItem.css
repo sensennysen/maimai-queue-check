@@ -51,6 +51,7 @@
   gap: 1rem;
   align-items: center;
   width: 100%;
+  min-width: 0;
 }
 
 .item-player {
@@ -238,15 +239,33 @@
 @media (max-width: 768px) {
   .queue-item {
     display: grid;
+    grid-template-columns: 60px minmax(0, 1fr) 90px;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
     align-items: center;
+  }
+
+  .item-order {
+    /* Center align order number in its wider column */
+    min-width: 0;
+    align-items: center;
+    justify-self: center;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .next-label {
+    font-size: 0.6rem;
+    margin-left: 0;
+    margin-top: 0.25rem;
+    text-align: center;
   }
 
   .players-section {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    width: 85%;
   }
 
   .item-player {
@@ -260,10 +279,6 @@
 
   .order-number {
     font-size: 1.2rem;
-  }
-
-  .next-label {
-    font-size: 0.6rem;
   }
 
   .player-name {
@@ -294,9 +309,28 @@
 @media (max-width: 480px) {
   .queue-item {
     display: grid;
-
+    grid-template-columns: 40px minmax(0, 1fr) 80px;
     gap: 0.5rem;
     padding: 0.6rem 0.75rem;
+  }
+
+  .item-order {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .players-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 80%;
+  }
+
+  .next-label {
+    margin-left: 0;
+    margin-top: 0.25rem;
+    font-size: 0.5rem;
   }
 
   .order-number {
