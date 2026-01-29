@@ -286,16 +286,17 @@ export const sessionService = {
     return data;
   },
 
-  // End the current active session
-  async endCurrentSession() {
+  // End the current active session for a branch
+  async endCurrentSession(branchId) {
+    if (!branchId) throw new Error('branchId is required to end a session for a branch');
     const { error } = await supabase
       .from('game_sessions')
       .update({ 
         status: 'completed',
         ended_at: new Date().toISOString()
       })
-      .eq('status', 'active');
-    
+      .eq('status', 'active')
+      .eq('branch_id', branchId);
     if (error) throw error;
   }
 };

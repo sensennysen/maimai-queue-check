@@ -429,8 +429,8 @@ export const useQueueManager = () => {
         setQueue([]);
       }
       // End current session if one exists
-      if (nowPlaying) {
-        await sessionService.endCurrentSession();
+      if (nowPlaying && selectedBranch?.id) {
+        await sessionService.endCurrentSession(selectedBranch.id);
         setNowPlaying(null);
       }
     } catch (err) {
