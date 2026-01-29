@@ -12,18 +12,18 @@ function Footer() {
           <Text size="sm" c="dimmed">
             © {currentYear} Made with ❤️ by Senny
           </Text>
-          <Anchor 
-            href="mailto:dev.bille.lagarde@gmail.com" 
-            size="sm"
-            c="dimmed"
-          >
-            <Group gap="xs">
-              <IconMail size={16} />
-              <span>dev.bille.lagarde@gmail.com</span>
-            </Group>
-          </Anchor>
         </Stack>
-        <Anchor 
+        <Anchor
+          href="mailto:dev.bille.lagarde@gmail.com"
+          size="sm"
+          c="dimmed"
+        >
+          <Group gap="xs">
+            <IconMail size={16} />
+            <span>dev.bille.lagarde@gmail.com</span>
+          </Group>
+        </Anchor>
+        {/* <Anchor 
           href="https://discord.gg/6XXyeWbzq9" 
           target="_blank"
           rel="noopener noreferrer"
@@ -34,7 +34,7 @@ function Footer() {
             <IconBrandDiscord size={16} />
             <span>Join maimai Fairview Discord</span>
           </Group>
-        </Anchor>
+        </Anchor> */}
       </Group>
     </div>
   );

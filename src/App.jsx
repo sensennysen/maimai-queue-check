@@ -6,10 +6,12 @@ import '@mantine/notifications/styles.css';
 import { Analytics } from '@vercel/analytics/react';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { BranchProvider } from './contexts/BranchContext';
 import { subtitleMessages } from './data/subtitleMessages';
 import QueueManager from './components/QueueManager';
 import LoginForm from './components/LoginForm';
 import ThemeToggle from './components/ThemeToggle';
+import BranchSelector from './components/BranchSelector';
 import Footer from './components/Footer';
 import './App.css';
 
@@ -18,6 +20,7 @@ function AppContent() {
   const { isDark } = useTheme();
 
   // Random subtitle selection - using weighted chances
+  // eslint-disable-next-line
   const [randomSubtitle] = useState(() => {
     const totalWeight = subtitleMessages.reduce((sum, msg) => sum + msg.weight, 0);
     let random = Math.random() * totalWeight;
@@ -34,6 +37,7 @@ function AppContent() {
     return { text: firstMsg.text };
   });
 
+  // eslint-disable-next-line
   const getSubtitleColor = (weight) => {
     if (weight === 10) return undefined;
     if (weight > 5) return '#CD7F32'; // Bronze
@@ -64,10 +68,12 @@ function AppContent() {
           <Stack gap="lg">
             <Paper p="md" radius="md" withBorder className="app-header">
               <Group justify="space-between" align="center" gap="md" wrap="wrap">
-                <Title order={1} className="app-title">
-                  maimai Fairview Queue
-                </Title>
-                <Text
+                <Group gap="md">
+                  <Title order={1} className="app-title">
+                    maimai Queue Check
+                  </Title>
+                </Group>
+                {/* <Text
                   size="lg"
                   className="app-subtitle"
                   style={{
@@ -77,13 +83,16 @@ function AppContent() {
                   }}
                 >
                   {randomSubtitle.text}
-                </Text>
+                </Text> */}
               </Group>
             </Paper>
 
-            <Group justify="flex-end" gap="sm">
-              <ThemeToggle />
-              <LoginForm />
+            <Group justify="space-between" gap="sm">
+              <BranchSelector />
+              <Group gap="sm">
+                <ThemeToggle />
+                <LoginForm />
+              </Group>
             </Group>
 
             <main>
@@ -102,9 +111,11 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <BranchProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </BranchProvider>
     </ThemeProvider>
   );
 }

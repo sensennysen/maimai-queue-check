@@ -63,16 +63,21 @@ export const authService = {
 // User roles service functions
 export const rolesService = {
   // Fetch user roles/permissions
-  async getUserRoles(userId) {
+  async getUserRoles(userId, branchId = null) {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('user_roles')
         .select('*')
-        .eq('user_id', userId)
-        .limit(1);
+        .eq('user_id', userId);
+      
+      if (branchId) {
+        query = query.eq('branch_id', branchId);
+      }
+      
+      const { data, error } = await query.limit(1);
       
       if (error) {
-        console.error(`Error fetching roles for user ${userId}:`, error.message, error.code);
+        console.error(`Error fetching roles for user ${userId}${branchId ? ` for branch ${branchId}` : ''}:`, error.message, error.code);
         return {
           user_id: userId,
           can_edit: false,
@@ -105,19 +110,26 @@ export const rolesService = {
 // Queue service functions
 export const queueService = {
   // Fetch all queue entries ordered by position
-  async getQueueEntries() {
-    const { data, error } = await supabase
+  async getQueueEntries(branchId) {
+    let query = supabase
       .from('queue_entries')
       .select('*')
-      .eq('status', 'waiting')
-      .order('order_position', { ascending: true });
+      .eq('status', 'waiting');
+    
+    if (branchId) {
+      query = query.eq('branch_id', branchId);
+    }
+    
+    query = query.order('order_position', { ascending: true });
+
+    const { data, error } = await query;
     
     if (error) throw error;
     return data || [];
   },
 
   // Add a new queue entry
-  async addQueueEntry(player1, player2, orderPosition, userId, userName) {
+  async addQueueEntry(player1, player2, orderPosition, userId, userName, branchId) {
     const { data, error } = await supabase
       .from('queue_entries')
       .insert([
@@ -127,7 +139,8 @@ export const queueService = {
           order_position: orderPosition,
           status: 'waiting',
           created_by: userId || null,
-          created_by_name: userName || null
+          created_by_name: userName || null,
+          branch_id: branchId
         }
       ])
       .select()
@@ -221,15 +234,22 @@ export const queueService = {
 // Game session service functions
 export const sessionService = {
   // Get current active session
-  async getCurrentSession() {
+  async getCurrentSession(branchId) {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('game_sessions')
         .select('*')
-        .eq('status', 'active')
-        .order('started_at', { ascending: false })
+        .eq('status', 'active');
+      
+      if (branchId) {
+        query = query.eq('branch_id', branchId);
+      }
+      
+      query = query.order('started_at', { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      const { data, error } = await query;
       
       if (error) {
         console.error('API Error fetching current session:', {
@@ -248,7 +268,7 @@ export const sessionService = {
   },
 
   // Start a new game session
-  async startSession(player1, player2, userId, userName) {
+  async startSession(player1, player2, userId, userName, branchId) {
     // End any existing active sessions first
     await this.endCurrentSession();
     
@@ -260,7 +280,8 @@ export const sessionService = {
           player2: player2.trim(),
           status: 'active',
           created_by: userId || null,
-          created_by_name: userName || null
+          created_by_name: userName || null,
+          branch_id: branchId
         }
       ])
       .select()
@@ -327,14 +348,47 @@ export const subscribeToSessionChanges = (callback) => {
   return channel;
 };
 
+// Branch service functions
+export const branchService = {
+  // Fetch all branches from allowed_places
+  async getAllBranches() {
+    const { data, error } = await supabase
+      .from('allowed_places')
+      .select('*')
+      .order('arcade_name', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Fetch a single branch by ID
+  async getBranchById(branchId) {
+    const { data, error } = await supabase
+      .from('allowed_places')
+      .select('*')
+      .eq('id', branchId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+};
+
 // Mall schedule service functions
 export const scheduleService = {
   // Fetch full mall schedule
-  async getSchedule() {
-    const { data, error } = await supabase
+  async getSchedule(branchId) {
+    let query = supabase
       .from('mall_schedule')
-      .select('*')
-      .order('id', { ascending: true });
+      .select('*');
+    
+    if (branchId) {
+      query = query.eq('branch_id', branchId);
+    }
+    
+    query = query.order('id', { ascending: true });
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data || [];

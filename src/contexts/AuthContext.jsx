@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { authService, rolesService } from '../services/supabase';
+import { useBranch } from '../hooks/useBranch';
 import { AuthContext } from './AuthContextProvider';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userRoles, setUserRoles] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const { selectedBranch } = useBranch();
 
   useEffect(() => {
     // Listen for auth changes - this properly handles session restoration on page load
@@ -30,7 +33,8 @@ export const AuthProvider = ({ children }) => {
           if (rolesCheckInterval) clearInterval(rolesCheckInterval);
 
           // Fetch roles in background (non-blocking) with timeout
-          const rolesPromise = rolesService.getUserRoles(session.user.id);
+          const branchId = selectedBranch?.id;
+          const rolesPromise = rolesService.getUserRoles(session.user.id, branchId);
           const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Role fetch timeout')), 5000)
           );
@@ -54,7 +58,7 @@ export const AuthProvider = ({ children }) => {
           rolesCheckInterval = setInterval(async () => {
             if (!isMounted) return;
             try {
-              const roles = await rolesService.getUserRoles(session.user.id);
+              const roles = await rolesService.getUserRoles(session.user.id, selectedBranch?.id);
               if (isMounted) setUserRoles(roles);
             } catch (err) {
               console.error('Error rechecking user roles:', err);
@@ -76,7 +80,7 @@ export const AuthProvider = ({ children }) => {
       if (rolesCheckInterval) clearInterval(rolesCheckInterval);
       subscription?.unsubscribe();
     };
-  }, []);
+  }, [selectedBranch?.id]); // Re-subscribe/re-run when branch changes to ensure correct roles are fetched
 
   const signInWithProvider = async (provider) => {
     try {

@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { queueService, sessionService, subscribeToQueueChanges, subscribeToSessionChanges, supabase } from '../services/supabase';
 
 import { useAuth } from './useAuth';
+import { useBranch } from './useBranch';
 import { verifyUserLocationAndPermissions } from '../services/geolocation';
 
 export const useQueueManager = () => {
 
   const { user, userRoles } = useAuth();
+  const { selectedBranch } = useBranch();
   const [queue, setQueue] = useState([]);
   const [nowPlaying, setNowPlaying] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,10 +21,12 @@ export const useQueueManager = () => {
   const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
   const [needsLocationPermission, setNeedsLocationPermission] = useState(false);
 
-  // Load initial data
+  // Load initial data when branch changes
   useEffect(() => {
-    loadInitialData();
-  }, []);
+    if (selectedBranch?.id) {
+      loadInitialData();
+    }
+  }, [loadInitialData, selectedBranch?.id]);
 
   // Function to verify user location and permissions
   const verifyLocation = useCallback(async () => {
@@ -33,12 +37,19 @@ export const useQueueManager = () => {
       return;
     }
 
+    if (!selectedBranch?.id) {
+      setLocationVerified(false);
+      setLocationError('Please select a branch');
+      setNeedsLocationPermission(false);
+      return;
+    }
+
     setLocationCheckInProgress(true);
     setLocationError(null);
     setHasAttemptedVerification(true);
 
     try {
-      const result = await verifyUserLocationAndPermissions(user.id);
+      const result = await verifyUserLocationAndPermissions(user.id, selectedBranch.id);
       
       setLocationVerified(result.allowed);
       setNeedsLocationPermission(result.needsPermission || false);
@@ -56,7 +67,7 @@ export const useQueueManager = () => {
     } finally {
       setLocationCheckInProgress(false);
     }
-  }, [user]);
+  }, [user, selectedBranch?.id]);
 
   // Automatically verify location when user is available and has not attempted verification
   useEffect(() => {
@@ -78,12 +89,17 @@ export const useQueueManager = () => {
     checkAndVerifyLocation();
   }, [user, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
 
-  const loadInitialData = async () => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const loadInitialData = useCallback(async () => {
+    if (!selectedBranch?.id) {
+      return;
+    }
+
     try {
       setLoading(true);
       const [queueData, sessionData] = await Promise.all([
-        queueService.getQueueEntries(),
-        sessionService.getCurrentSession()
+        queueService.getQueueEntries(selectedBranch.id),
+        sessionService.getCurrentSession(selectedBranch.id)
       ]);
       
       setQueue(queueData);
@@ -95,20 +111,46 @@ export const useQueueManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   // Subscribe to real-time changes
   useEffect(() => {
-    const handleQueueChange = () => {
-      queueService.getQueueEntries()
-        .then(data => setQueue(data))
-        .catch(() => {});
+    if (!selectedBranch?.id) {
+      return; // Don't subscribe if no branch selected
+    }
+
+    const handleQueueChange = (payload) => {
+      // Only process changes for the selected branch
+      const newRow = payload.new;
+      const oldRow = payload.old;
+      
+      // Check if the event is for the current branch
+      const isRelevantBranch = 
+        (newRow && newRow.branch_id === selectedBranch.id) ||
+        (oldRow && oldRow.branch_id === selectedBranch.id);
+      
+      if (isRelevantBranch) {
+        queueService.getQueueEntries(selectedBranch.id)
+          .then(data => setQueue(data))
+          .catch(() => {});
+      }
     };
 
-    const handleSessionChange = () => {
-      sessionService.getCurrentSession()
-        .then(data => setNowPlaying(data))
-        .catch(() => {});
+    const handleSessionChange = (payload) => {
+      // Only process changes for the selected branch
+      const newRow = payload.new;
+      const oldRow = payload.old;
+      
+      // Check if the event is for the current branch
+      const isRelevantBranch = 
+        (newRow && newRow.branch_id === selectedBranch.id) ||
+        (oldRow && oldRow.branch_id === selectedBranch.id);
+      
+      if (isRelevantBranch) {
+        sessionService.getCurrentSession(selectedBranch.id)
+          .then(data => setNowPlaying(data))
+          .catch(() => {});
+      }
     };
 
     const queueSubscription = subscribeToQueueChanges(handleQueueChange);
@@ -130,7 +172,7 @@ export const useQueueManager = () => {
       }
       setIsConnected(false);
     };
-  }, []);
+  }, [selectedBranch?.id]);
 
   // Test real-time connection
   const testRealTimeConnection = async () => {
@@ -182,12 +224,18 @@ export const useQueueManager = () => {
       }
     }
 
+    if (!selectedBranch?.id) {
+      const errorMsg = 'No branch selected';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
     try {
       setIsMutating(true);
       const orderPosition = getNextOrder();
       const userId = user?.id || null;
       const userName = user?.email || user?.user_metadata?.name || null;
-      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition, userId, userName);
+      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition, userId, userName, selectedBranch.id);
       
       // Update local state immediately
       setQueue(prev => [...prev, newEntry]);
@@ -393,6 +441,10 @@ export const useQueueManager = () => {
 
   // Start a new game
   const startGame = async (queueEntryId, player1, player2) => {
+    if (!selectedBranch?.id) {
+      throw new Error('No branch selected');
+    }
+
     try {
       setIsMutating(true);
       // Mark queue entry as playing
@@ -419,7 +471,7 @@ export const useQueueManager = () => {
       // Start new session
       const userId = user?.id || null;
       const userName = user?.email || user?.user_metadata?.name || null;
-      const session = await sessionService.startSession(player1, player2, userId, userName);
+      const session = await sessionService.startSession(player1, player2, userId, userName, selectedBranch.id);
       // Update local session state
       setNowPlaying(session);
       

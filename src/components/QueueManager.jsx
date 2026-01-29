@@ -6,12 +6,15 @@ import QueueList from './QueueList';
 import PlayTimer from './PlayTimer';
 import { useQueueManager } from '../hooks/useQueueManager';
 import { useMallSchedule } from '../hooks/useMallSchedule';
+import { useBranch } from '../hooks/useBranch';
 import { useAuth } from '../hooks/useAuth';
 import { closedMessages, loadingMessages } from '../data/subtitleMessages';
 import './QueueManager.css';
 
 
 function QueueManager() {
+  const { selectedBranch } = useBranch();
+
   // Phase 1: Load queue/session data
   const {
     queue,
@@ -50,7 +53,7 @@ function QueueManager() {
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [closedMessage, setClosedMessage] = useState(() => 
+  const [closedMessage, setClosedMessage] = useState(() =>
     closedMessages[Math.floor(Math.random() * closedMessages.length)]
   );
 
@@ -58,7 +61,7 @@ function QueueManager() {
   const isAdmin = userRoles?.is_admin;
   const canActuallyEdit = isAdmin || (canEdit && locationVerified);
 
-  const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule();
+  const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule(selectedBranch?.id);
 
   const previousMallStateRef = useRef(isMallOpen);
 
@@ -217,11 +220,11 @@ function QueueManager() {
           <Text size="sm" c="dimmed">Saving…</Text>
         </Box>
       )}
-      
+
       {error && (
-        <Alert 
-          icon={<IconAlertCircle size={16} />} 
-          title="Error" 
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          title="Error"
           color="red"
           variant="light"
         >
@@ -230,18 +233,18 @@ function QueueManager() {
       )}
 
       {user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification && (
-        <Alert 
-          icon={<IconMapPin size={16} />} 
-          title="Location Verification Failed" 
+        <Alert
+          icon={<IconMapPin size={16} />}
+          title="Location Verification Failed"
           color="orange"
           variant="light"
           withCloseButton
-          onClose={() => {/* User can dismiss but still won't be able to edit */}}
+          onClose={() => {/* User can dismiss but still won't be able to edit */ }}
         >
           <Text size="sm" mb="xs">{locationError}</Text>
-          <Button 
-            size="xs" 
-            variant="light" 
+          <Button
+            size="xs"
+            variant="light"
             leftSection={<IconMapPin size={14} />}
             onClick={verifyLocation}
             loading={locationCheckInProgress}
@@ -258,7 +261,7 @@ function QueueManager() {
 
       {/* Add Queue Form always appears above Now Playing */}
       {user && isMallOpen && (showForm || editingId) && (
-        <QueueForm 
+        <QueueForm
           key={editingId || 'new'}
           onSubmit={editingId ? updateQueueEntry : addQueueEntry}
           editingId={editingId}
@@ -281,7 +284,7 @@ function QueueManager() {
           </Group>
           <Group gap="sm">
             {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
-              <Button 
+              <Button
                 leftSection={<IconPlus size={16} />}
                 onClick={() => setShowForm(true)}
                 variant="filled"
@@ -291,7 +294,7 @@ function QueueManager() {
               </Button>
             )}
             {user && canActuallyEdit && isMallOpen && queue.length > 0 && (
-              <Button 
+              <Button
                 variant="outline"
                 color="red"
                 leftSection={<IconTrash size={16} />}
@@ -319,7 +322,7 @@ function QueueManager() {
                   <span className="player-name">{nowPlaying.player1}</span>
                 </div>
               )}
-              
+
               {nowPlaying.player2 && nowPlaying.player2.trim() && (
                 <div className={`playing-player player-2 ${(!nowPlaying.player1 || !nowPlaying.player1.trim()) ? 'player-solo' : ''}`}>
                   <span className="player-side-indicator player-side-2">P2</span>
@@ -327,9 +330,9 @@ function QueueManager() {
                 </div>
               )}
             </div>
-            
+
             {user && canActuallyEdit && (
-              <button 
+              <button
                 className="finish-game-btn"
                 onClick={finishGame}
                 disabled={isMutating}
@@ -351,7 +354,7 @@ function QueueManager() {
       )}
 
       {isMallOpen && (
-        <QueueList 
+        <QueueList
           queue={filterQueue(queue)}
           nowPlaying={nowPlaying}
           onEdit={startEdit}
