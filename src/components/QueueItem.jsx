@@ -2,7 +2,7 @@ import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/ico
 import { Skeleton } from '@mantine/core';
 import './QueueItem.css';
 
-function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false }) {
+function QueueItem({ item, order, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false }) {
   const handleEdit = () => {
     onEdit(item.id);
   };
@@ -27,7 +27,7 @@ function QueueItem({ item, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLa
       className={`queue-item ${isNextUp ? 'next-up' : ''}`}
     >
       <div className="item-order">
-        <span className="order-number">#{item.order_position || item.order}</span>
+        <span className="order-number">#{order}</span>
         {isNextUp && (
           <span className="next-label">Next Up!</span>
         )}

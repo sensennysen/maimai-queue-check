@@ -58,6 +58,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
             <QueueItem
               key={item.id}
               item={item}
+              order={index + 1}
               onEdit={onEdit}
               onRemove={onRemove}
               onMoveUp={(id) => onMoveUp(id)}
