@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { queueService, sessionService, supabase } from '../services/supabase';
 import { useAuth } from './useAuth';
+import { useBranch } from './useBranch';
 import { verifyUserLocationAndPermissions } from '../services/geolocation';
 
-export const useQueueManagerPolling = () => {
   const { user } = useAuth();
+  const { selectedBranch } = useBranch();
   const [queue, setQueue] = useState([]);
   const [nowPlaying, setNowPlaying] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,11 +29,11 @@ export const useQueueManagerPolling = () => {
   // eslint-disable-next-line no-unused-vars
   const loadData = async (skipConnectionCheck = false) => {
     try {
+      const branchId = selectedBranch?.id;
       const [queueData, sessionData] = await Promise.all([
-        queueService.getQueueEntries(),
-        sessionService.getCurrentSession()
+        queueService.getQueueEntries(branchId),
+        sessionService.getCurrentSession(branchId)
       ]);
-      
       setQueue(queueData);
       setNowPlaying(sessionData);
       setError(null);
@@ -143,7 +144,8 @@ export const useQueueManagerPolling = () => {
       const orderPosition = getNextOrder();
       const userId = user?.id || null;
       const userName = user?.email || user?.user_metadata?.name || null;
-      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition, userId, userName);
+      const branchId = selectedBranch?.id;
+      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition, userId, userName, branchId);
       
       // Auto-start if this is the first entry and no game is currently playing
       if (queue.length === 0 && !nowPlaying) {
@@ -272,10 +274,10 @@ export const useQueueManagerPolling = () => {
     try {
       isOperationInProgress.current = true;
       setIsMutating(true);
-      await queueService.clearQueue();
+      await queueService.clearQueue(selectedBranch?.id);
       // End current session if one exists
-      if (nowPlaying) {
-        await sessionService.endCurrentSession();
+      if (nowPlaying && selectedBranch?.id) {
+        await sessionService.endCurrentSession(selectedBranch.id);
       }
       await loadData();
     } catch (err) {
@@ -295,10 +297,10 @@ export const useQueueManagerPolling = () => {
       if (queueEntryId) {
         await queueService.markAsPlaying(queueEntryId);
       }
-      
+      const branchId = selectedBranch?.id;
       const userId = user?.id || null;
       const userName = user?.email || user?.user_metadata?.name || null;
-      const session = await sessionService.startSession(player1, player2, userId, userName);
+      const session = await sessionService.startSession(player1, player2, userId, userName, branchId);
       await loadData();
       return session;
     } catch (err) {
@@ -314,19 +316,17 @@ export const useQueueManagerPolling = () => {
     try {
       isOperationInProgress.current = true;
       setIsMutating(true);
-      await sessionService.endCurrentSession();
-      
+      const branchId = selectedBranch?.id;
+      await sessionService.endCurrentSession(branchId);
       // Reload data first to get updated queue before starting next game
       await loadData();
-      
       const nextEntry = queue.find(entry => entry.status === 'waiting' || !entry.status);
       if (nextEntry) {
         await queueService.markAsPlaying(nextEntry.id);
         const userId = user?.id || null;
         const userName = user?.email || user?.user_metadata?.name || null;
-        await sessionService.startSession(nextEntry.player1, nextEntry.player2, userId, userName);
+        await sessionService.startSession(nextEntry.player1, nextEntry.player2, userId, userName, branchId);
       }
-      
       // Final reload to reflect new game state
       await loadData();
     } catch (err) {
