@@ -100,22 +100,17 @@ export const useQueueManager = () => {
   // Automatically verify location when user is available and has not attempted verification
   useEffect(() => {
     const checkAndVerifyLocation = async () => {
+      // If user is logged in and we haven't checked location yet
       if (user && !hasAttemptedVerification && !locationCheckInProgress) {
-        // Check if user has edit permissions first
-        try {
-          const { data: roles } = await supabase.from('user_roles').select('can_edit').eq('user_id', user.id).single();
-          if (roles?.can_edit) {
-            // User has edit permissions, verify location
-            await verifyLocation();
-          }
-        } catch (err) {
-          console.error('Error checking user permissions:', err);
+        // If they have the editor role, verify their location
+        if (userRoles?.can_edit) {
+          await verifyLocation();
         }
       }
     };
     
     checkAndVerifyLocation();
-  }, [user, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
+  }, [user, userRoles?.can_edit, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
 
 
 

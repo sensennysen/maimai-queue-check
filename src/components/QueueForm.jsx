@@ -6,21 +6,21 @@ import './QueueForm.css';
 function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false, locationVerified = false, locationError = null, isAdmin = false, showCancelButton = false }) {
   const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : '';
   const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : '';
-  
+
   const [player1, setPlayer1] = useState(initialPlayer1);
   const [player2, setPlayer2] = useState(initialPlayer2);
   const [errors, setErrors] = useState({});
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Check location verification first
     if (!locationVerified && !isAdmin) {
       newErrors.general = locationError || 'Location verification required';
       setErrors(newErrors);
       return false;
     }
-    
+
     // At least one player is required
     if (!player1.trim() && !player2.trim()) {
       newErrors.general = 'At least one player is required';
@@ -35,17 +35,22 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
     if (isBusy) {
       return;
     }
-    
+
     if (!validateForm()) {
       return;
     }
 
+    // Basic sanitization: trim and remove potential HTML tag signatures
+    const sanitize = (text) => text.trim().replace(/<[^>]*>?/gm, '');
+    const cleanP1 = sanitize(player1);
+    const cleanP2 = sanitize(player2);
+
     if (editingId) {
-      onSubmit(editingId, player1, player2);
+      onSubmit(editingId, cleanP1, cleanP2);
     } else {
-      onSubmit(player1, player2);
+      onSubmit(cleanP1, cleanP2);
     }
-    
+
     // Clear form after successful submission (only if not editing)
     if (!editingId) {
       setPlayer1('');
@@ -73,13 +78,13 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
               {errors.general}
             </Alert>
           )}
-          
+
           {locationError && !locationVerified && !isAdmin && (
             <Alert color="orange" variant="light">
               {locationError}
             </Alert>
           )}
-          
+
           <Group grow>
             <TextInput
               label="Player 1 Side"
@@ -103,8 +108,8 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
           </Group>
 
           <Group justify="flex-end">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               leftSection={editingId ? <IconEdit size={16} /> : <IconPlus size={16} />}
               variant="filled"
               disabled={isBusy || (!locationVerified && !isAdmin)}
@@ -112,7 +117,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
               {editingId ? 'Update Entry' : 'Add to Queue'}
             </Button>
             {(editingId || showCancelButton) && (
-              <Button 
+              <Button
                 variant="outline"
                 color="gray"
                 leftSection={<IconX size={16} />}
