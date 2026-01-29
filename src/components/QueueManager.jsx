@@ -1,17 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Loader, Modal } from '@mantine/core';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Loader, Modal, Skeleton } from '@mantine/core';
 import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconMapPin } from '@tabler/icons-react';
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
 import PlayTimer from './PlayTimer';
 import { useQueueManager } from '../hooks/useQueueManager';
 import { useMallSchedule } from '../hooks/useMallSchedule';
+import { useBranch } from '../hooks/useBranch';
 import { useAuth } from '../hooks/useAuth';
 import { closedMessages, loadingMessages } from '../data/subtitleMessages';
 import './QueueManager.css';
 
 
 function QueueManager() {
+  const { selectedBranch } = useBranch();
+
   // Phase 1: Load queue/session data
   const {
     queue,
@@ -50,7 +53,7 @@ function QueueManager() {
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [closedMessage, setClosedMessage] = useState(() => 
+  const [closedMessage, setClosedMessage] = useState(() =>
     closedMessages[Math.floor(Math.random() * closedMessages.length)]
   );
 
@@ -58,7 +61,7 @@ function QueueManager() {
   const isAdmin = userRoles?.is_admin;
   const canActuallyEdit = isAdmin || (canEdit && locationVerified);
 
-  const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule();
+  const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule(selectedBranch?.id);
 
   const previousMallStateRef = useRef(isMallOpen);
 
@@ -156,15 +159,9 @@ function QueueManager() {
 
 
   // Only block everything if queue or schedule is loading
-  const [loadingMessage] = useState(() => loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
-  if (queueLoading || scheduleLoading) {
-    return (
-      <Stack gap="md" style={{ position: 'relative', minHeight: 200, justifyContent: 'center', alignItems: 'center' }}>
-        <LoadingOverlay visible={true} zIndex={100} />
-        <Text size="lg" c="dimmed" style={{ zIndex: 101, position: 'relative' }}>{loadingMessage}</Text>
-      </Stack>
-    );
-  }
+  // const [loadingMessage] = useState(() => loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
+
+  // NOTE: Blocking loader removed in favor of granular skeletons below
 
   return (
     <Stack
@@ -217,11 +214,11 @@ function QueueManager() {
           <Text size="sm" c="dimmed">Saving…</Text>
         </Box>
       )}
-      
+
       {error && (
-        <Alert 
-          icon={<IconAlertCircle size={16} />} 
-          title="Error" 
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          title="Error"
           color="red"
           variant="light"
         >
@@ -230,18 +227,18 @@ function QueueManager() {
       )}
 
       {user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification && (
-        <Alert 
-          icon={<IconMapPin size={16} />} 
-          title="Location Verification Failed" 
+        <Alert
+          icon={<IconMapPin size={16} />}
+          title="Location Verification Failed"
           color="orange"
           variant="light"
           withCloseButton
-          onClose={() => {/* User can dismiss but still won't be able to edit */}}
+          onClose={() => {/* User can dismiss but still won't be able to edit */ }}
         >
           <Text size="sm" mb="xs">{locationError}</Text>
-          <Button 
-            size="xs" 
-            variant="light" 
+          <Button
+            size="xs"
+            variant="light"
             leftSection={<IconMapPin size={14} />}
             onClick={verifyLocation}
             loading={locationCheckInProgress}
@@ -257,8 +254,8 @@ function QueueManager() {
 
 
       {/* Add Queue Form always appears above Now Playing */}
-      {user && isMallOpen && (showForm || editingId) && (
-        <QueueForm 
+      {user && !scheduleLoading && isMallOpen && (showForm || editingId) && (
+        <QueueForm
           key={editingId || 'new'}
           onSubmit={editingId ? updateQueueEntry : addQueueEntry}
           editingId={editingId}
@@ -273,76 +270,84 @@ function QueueManager() {
       )}
 
       <div>
-        <Group justify="space-between" align="center">
-          <Group gap="md">
-            <Badge variant="light" size="lg">
-              Credits: {(isMallOpen ? filterQueue(queue) : []).reduce((sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0), 0)}
-            </Badge>
+        {queueLoading || scheduleLoading ? (
+          <Skeleton height={40} radius="md" />
+        ) : (
+          <Group justify="space-between" align="center">
+            <Group gap="md">
+              <Badge variant="light" size="lg">
+                Credits: {(isMallOpen ? filterQueue(queue) : []).reduce((sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0), 0)}
+              </Badge>
+            </Group>
+            <Group gap="sm">
+              {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
+                <Button
+                  leftSection={<IconPlus size={16} />}
+                  onClick={() => setShowForm(true)}
+                  variant="filled"
+                  disabled={isMutating}
+                >
+                  Add Queue
+                </Button>
+              )}
+              {user && canActuallyEdit && isMallOpen && queue.length > 0 && (
+                <Button
+                  variant="outline"
+                  color="red"
+                  leftSection={<IconTrash size={16} />}
+                  onClick={clearQueue}
+                  disabled={isMutating}
+                >
+                  Clear All
+                </Button>
+              )}
+            </Group>
           </Group>
-          <Group gap="sm">
-            {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
-              <Button 
-                leftSection={<IconPlus size={16} />}
-                onClick={() => setShowForm(true)}
-                variant="filled"
-                disabled={isMutating}
-              >
-                Add Queue
-              </Button>
-            )}
-            {user && canActuallyEdit && isMallOpen && queue.length > 0 && (
-              <Button 
-                variant="outline"
-                color="red"
-                leftSection={<IconTrash size={16} />}
-                onClick={clearQueue}
-                disabled={isMutating}
-              >
-                Clear All
-              </Button>
-            )}
-          </Group>
-        </Group>
+        )}
       </div>
 
-      {isMallOpen && nowPlaying && (
-        <div className="now-playing">
-          <div className="now-playing-header">
-            <h3>Now Playing</h3>
-            <PlayTimer startTime={nowPlaying.started_at} />
-          </div>
-          <div className="current-players">
-            <div className="player-display">
-              {nowPlaying.player1 && nowPlaying.player1.trim() && (
-                <div className={`playing-player player-1 ${(!nowPlaying.player2 || !nowPlaying.player2.trim()) ? 'player-solo' : ''}`}>
-                  <span className="player-side-indicator player-side-1">P1</span>
-                  <span className="player-name">{nowPlaying.player1}</span>
-                </div>
-              )}
-              
-              {nowPlaying.player2 && nowPlaying.player2.trim() && (
-                <div className={`playing-player player-2 ${(!nowPlaying.player1 || !nowPlaying.player1.trim()) ? 'player-solo' : ''}`}>
-                  <span className="player-side-indicator player-side-2">P2</span>
-                  <span className="player-name">{nowPlaying.player2}</span>
-                </div>
+      {queueLoading || scheduleLoading ? (
+        <Skeleton height={120} radius="md" />
+      ) : (
+        isMallOpen && nowPlaying && (
+          <div className="now-playing">
+            <div className="now-playing-header">
+              <h3>Now Playing</h3>
+              <PlayTimer startTime={nowPlaying.started_at} />
+            </div>
+            <div className="current-players">
+              <div className="player-display">
+                {nowPlaying.player1 && nowPlaying.player1.trim() && (
+                  <div className={`playing-player player-1 ${(!nowPlaying.player2 || !nowPlaying.player2.trim()) ? 'player-solo' : ''}`}>
+                    <span className="player-side-indicator player-side-1">P1</span>
+                    <span className="player-name">{nowPlaying.player1}</span>
+                  </div>
+                )}
+
+                {nowPlaying.player2 && nowPlaying.player2.trim() && (
+                  <div className={`playing-player player-2 ${(!nowPlaying.player1 || !nowPlaying.player1.trim()) ? 'player-solo' : ''}`}>
+                    <span className="player-side-indicator player-side-2">P2</span>
+                    <span className="player-name">{nowPlaying.player2}</span>
+                  </div>
+                )}
+              </div>
+
+              {user && canActuallyEdit && (
+                <button
+                  className="finish-game-btn"
+                  onClick={finishGame}
+                  disabled={isMutating}
+                >
+                  <IconPlayerStop size={16} />
+                  Finish Game
+                </button>
               )}
             </div>
-            
-            {user && canActuallyEdit && (
-              <button 
-                className="finish-game-btn"
-                onClick={finishGame}
-                disabled={isMutating}
-              >
-                <IconPlayerStop size={16} />
-                Finish Game
-              </button>
-            )}
           </div>
-        </div>
+        )
       )}
 
-      {!isMallOpen && (
+      {!scheduleLoading && !isMallOpen && (
         <Paper p="xl" withBorder>
           <Flex align="center" justify="center" style={{ height: 200 }}>
             <Title order={2}>{closedMessage}</Title>
@@ -350,20 +355,28 @@ function QueueManager() {
         </Paper>
       )}
 
-      {isMallOpen && (
-        <QueueList 
-          queue={filterQueue(queue)}
-          nowPlaying={nowPlaying}
-          onEdit={startEdit}
-          onRemove={removeQueueEntry}
-          onMoveUp={moveUp}
-          onMoveDown={moveDown}
-          onStartGame={startGame}
-          isMallOpen={isMallOpen}
-          isBusy={isMutating}
-          locationVerified={locationVerified}
-          loadingRoles={!actionsLoaded}
-        />
+      {queueLoading || scheduleLoading ? (
+        <Stack>
+          <Skeleton height={60} radius="md" />
+          <Skeleton height={60} radius="md" />
+          <Skeleton height={60} radius="md" />
+        </Stack>
+      ) : (
+        isMallOpen && (
+          <QueueList
+            queue={filterQueue(queue)}
+            nowPlaying={nowPlaying}
+            onEdit={startEdit}
+            onRemove={removeQueueEntry}
+            onMoveUp={moveUp}
+            onMoveDown={moveDown}
+            onStartGame={startGame}
+            isMallOpen={isMallOpen}
+            isBusy={isMutating}
+            locationVerified={locationVerified}
+            loadingRoles={!actionsLoaded}
+          />
+        )
       )}
     </Stack>
   );

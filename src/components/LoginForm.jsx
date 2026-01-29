@@ -80,9 +80,9 @@ const LoginForm = () => {
         onClick={() => handleSocialLogin('google')}
         variant="light"
         color="red"
-        fullWidth
+        className="google-login-button"
       >
-        Login with Google
+        <span className="login-button-text">Login with Google</span>
       </Button>
     </div>
   );

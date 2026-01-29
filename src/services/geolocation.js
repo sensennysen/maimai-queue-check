@@ -84,16 +84,75 @@ export const requestUserLocation = () => {
 };
 
 /**
- * Check if user is within allowed distance of any allowed place
+ * Find the nearest branch to the user's location
  * @param {Object} userLocation - User's location {latitude, longitude}
- * @param {number} maxDistance - Maximum allowed distance in meters (default: 100)
- * @returns {Promise<Object>} Promise that resolves to {isAllowed, nearestPlace, distance}
+ * @returns {Promise<Object>} Promise that resolves to {nearestBranch, distance}
  */
-export const checkUserProximity = async (userLocation, maxDistance = 100) => {
+export const findNearestBranch = async (userLocation) => {
   try {
     const { data: places, error } = await supabase
       .from('allowed_places')
-      .select('*');
+      .select('*')
+      .eq('enabled', true);
+
+
+    if (error) {
+      throw error;
+    }
+
+    if (!places || places.length === 0) {
+      return {
+        nearestBranch: null,
+        distance: null,
+        error: 'No branches found in database',
+      };
+    }
+
+    let nearestBranch = null;
+    let minDistance = Infinity;
+
+    places.forEach((place) => {
+      const distance = getDistance(userLocation, {
+        latitude: place.latitude,
+        longitude: place.longitude,
+      });
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestBranch = place;
+      }
+    });
+
+    return {
+      nearestBranch,
+      distance: Math.round(minDistance),
+    };
+  } catch (error) {
+    console.error('Error finding nearest branch:', error);
+    throw error;
+  }
+};
+
+/**
+ * Check if user is within allowed distance of any allowed place
+ * @param {Object} userLocation - User's location {latitude, longitude}
+ * @param {number} maxDistance - Maximum allowed distance in meters (default: 100)
+ * @param {string} branchId - Optional: Check proximity to specific branch only
+ * @returns {Promise<Object>} Promise that resolves to {isAllowed, nearestPlace, distance}
+ */
+export const checkUserProximity = async (userLocation, maxDistance = 100, branchId = null) => {
+  try {
+    let query = supabase
+      .from('allowed_places')
+      .select('*')
+      .eq('enabled', true);
+
+    // If branchId is provided, only check that specific branch
+    if (branchId) {
+      query = query.eq('id', branchId);
+    }
+
+    const { data: places, error } = await query;
 
     if (error) {
       throw error;
@@ -104,7 +163,7 @@ export const checkUserProximity = async (userLocation, maxDistance = 100) => {
         isAllowed: false,
         nearestPlace: null,
         distance: null,
-        error: 'No allowed locations found in database',
+        error: branchId ? 'Branch not found in database' : 'No allowed locations found in database',
       };
     }
 
@@ -160,15 +219,27 @@ export const checkEditPermissions = async (userId) => {
 };
 
 /**
+/**
  * Verify user location and permissions
  * @param {string} userId - User's ID
+ * @param {string} branchId - Optional: Verify proximity to specific branch
+ * @param {boolean} isAdmin - Optional: If true, always allow
  * @returns {Promise<Object>} Promise that resolves to {allowed, reason, location, proximity}
  */
-export const verifyUserLocationAndPermissions = async (userId) => {
+export const verifyUserLocationAndPermissions = async (userId, branchId = null, isAdmin = false) => {
   try {
+    // Admins can always edit
+    if (isAdmin) {
+      return {
+        allowed: true,
+        reason: 'Admin override: you can edit any queue regardless of location.',
+        location: null,
+        proximity: null,
+      };
+    }
+
     // Check if user has edit permissions
     const hasEditPermissions = await checkEditPermissions(userId);
-    
     if (!hasEditPermissions) {
       return {
         allowed: false,
@@ -193,12 +264,13 @@ export const verifyUserLocationAndPermissions = async (userId) => {
     }
 
     // Check proximity to allowed places
-    const proximity = await checkUserProximity(userLocation, 100);
+    const proximity = await checkUserProximity(userLocation, 100, branchId);
 
     if (!proximity.isAllowed) {
+      const branchMsg = branchId ? 'the selected branch' : 'the arcade';
       return {
         allowed: false,
-        reason: `You must be within 100 meters of the arcade to edit the queue.`,
+        reason: `You must be within 100 meters of ${branchMsg} to edit the queue.`,
         location: userLocation,
         proximity,
       };

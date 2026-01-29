@@ -38,7 +38,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
           </Button>
         )}
       </Group>
-      {user && userRoles !== undefined && !userRoles?.can_edit && (
+      {user && userRoles !== undefined && !userRoles?.can_edit && !userRoles?.is_admin && (
         <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-yellow-0)' }}>
           <Text size="sm" c="orange">
             You can view the queue but don't have permission to edit it
@@ -58,6 +58,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
             <QueueItem
               key={item.id}
               item={item}
+              order={index + 1}
               onEdit={onEdit}
               onRemove={onRemove}
               onMoveUp={(id) => onMoveUp(id)}

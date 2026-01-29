@@ -12,3 +12,12 @@
 .footer a:hover {
   color: var(--theme-primary);
 }
+
+.changelog-trigger {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.changelog-trigger:hover {
+  opacity: 1;
+}

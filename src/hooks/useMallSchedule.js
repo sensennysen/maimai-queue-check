@@ -29,7 +29,7 @@ const getManilaParts = (date) => {
 // Helper: get Manila parts for arbitrary ISO datetime
 const getManilaPartsFromISO = (iso) => getManilaParts(new Date(iso));
 
-export const useMallSchedule = () => {
+export const useMallSchedule = (branchId) => {
   const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,7 +37,8 @@ export const useMallSchedule = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const rows = await scheduleService.getSchedule();
+        setLoading(true);
+        const rows = await scheduleService.getSchedule(branchId);
         setSchedule(rows);
         setError(null);
       } catch (err) {
@@ -47,8 +48,12 @@ export const useMallSchedule = () => {
         setLoading(false);
       }
     };
-    load();
-  }, []);
+    
+    // Only load if branchId is available
+    if (branchId) {
+      load();
+    }
+  }, [branchId]);
 
   // Map schedule by day for quick lookup
   const scheduleMap = useMemo(() => {

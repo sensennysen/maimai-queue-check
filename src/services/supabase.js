@@ -70,7 +70,7 @@ export const rolesService = {
         .select('*')
         .eq('user_id', userId)
         .limit(1);
-      
+
       if (error) {
         console.error(`Error fetching roles for user ${userId}:`, error.message, error.code);
         return {
@@ -79,7 +79,7 @@ export const rolesService = {
           is_admin: false
         };
       }
-      
+
       // If no rows returned, return default permissions
       if (!data || data.length === 0) {
         return {
@@ -88,7 +88,7 @@ export const rolesService = {
           is_admin: false
         };
       }
-      
+
       // Ensure is_admin is always present (default false if missing)
       return { ...data[0], is_admin: !!data[0].is_admin };
     } catch (err) {
@@ -104,20 +104,44 @@ export const rolesService = {
 
 // Queue service functions
 export const queueService = {
-  // Fetch all queue entries ordered by position
-  async getQueueEntries() {
-    const { data, error } = await supabase
+  // Fetch all queue entries (waiting and playing)
+  async getQueueEntries(branchId) {
+    if (!branchId) return [];
+
+    let query = supabase
       .from('queue_entries')
       .select('*')
-      .eq('status', 'waiting')
-      .order('order_position', { ascending: true });
+      .in('status', ['waiting', 'playing']);
+    
+    if (branchId) {
+      query = query.eq('branch_id', branchId);
+    }
+    
+    // Order by created_at or order_position to ensure list stability
+    // 'playing' should ideally be 0 or handled by status check, but let's stick to order_position
+    query = query.order('order_position', { ascending: true });
+
+    const { data, error } = await query;
     
     if (error) throw error;
     return data || [];
   },
 
   // Add a new queue entry
-  async addQueueEntry(player1, player2, orderPosition, userId, userName) {
+  async addQueueEntry(player1, player2, orderPosition, userId, userName, branchId) {
+    // Check if there is currently a playing session
+    const { count, error: countError } = await supabase
+        .from('queue_entries')
+        .select('*', { count: 'exact', head: true })
+        .eq('branch_id', branchId)
+        .eq('status', 'playing');
+    
+    if (countError) throw countError;
+
+    const initialStatus = count === 0 ? 'playing' : 'waiting';
+    // If auto-playing, maybe we set order_position to 0 or something? 
+    // For now keeping orderPosition logic from caller, but 'playing' status takes precedence in UI.
+
     const { data, error } = await supabase
       .from('queue_entries')
       .insert([
@@ -125,9 +149,11 @@ export const queueService = {
           player1: player1.trim(),
           player2: player2.trim(),
           order_position: orderPosition,
-          status: 'waiting',
+          status: initialStatus,
           created_by: userId || null,
-          created_by_name: userName || null
+          created_by_name: userName || null,
+          branch_id: branchId,
+          started_at: initialStatus === 'playing' ? new Date().toISOString() : null
         }
       ])
       .select()
@@ -153,11 +179,14 @@ export const queueService = {
     return data;
   },
 
-  // Remove a queue entry
+  // Remove a queue entry (cancel it)
   async removeQueueEntry(id) {
     const { error } = await supabase
       .from('queue_entries')
-      .delete()
+      .update({ 
+        status: 'cancelled',
+        ended_at: new Date().toISOString()
+      })
       .eq('id', id);
     
     if (error) throw error;
@@ -181,107 +210,79 @@ export const queueService = {
     return results;
   },
 
-  // Clear all waiting queue entries
-  async clearQueue() {
-    const { error } = await supabase
-      .from('queue_entries')
-      .delete()
-      .eq('status', 'waiting');
-    
-    if (error) throw error;
-  },
-
-  // Move entry to playing status
-  async markAsPlaying(id) {
-    const { data, error } = await supabase
-      .from('queue_entries')
-      .update({ status: 'playing' })
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  },
-
-  // Complete a playing session
-  async markAsCompleted(id) {
-    const { data, error } = await supabase
-      .from('queue_entries')
-      .update({ status: 'completed' })
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  }
-};
-
-// Game session service functions
-export const sessionService = {
-  // Get current active session
-  async getCurrentSession() {
-    try {
-      const { data, error } = await supabase
-        .from('game_sessions')
-        .select('*')
-        .eq('status', 'active')
-        .order('started_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('API Error fetching current session:', {
-          status: error.status,
-          code: error.code,
-          message: error.message,
-          details: error.details
-        });
-        throw error;
-      }
-      return data;
-    } catch (err) {
-      console.error('Exception in getCurrentSession:', err);
-      throw err;
+  // Clear all queue entries (waiting and playing)
+  async clearQueue(branchId) {
+    if (!branchId) {
+      throw new Error('branchId is required to clear the queue');
     }
-  },
 
-  // Start a new game session
-  async startSession(player1, player2, userId, userName) {
-    // End any existing active sessions first
-    await this.endCurrentSession();
-    
-    const { data, error } = await supabase
-      .from('game_sessions')
-      .insert([
-        {
-          player1: player1.trim(),
-          player2: player2.trim(),
-          status: 'active',
-          created_by: userId || null,
-          created_by_name: userName || null
-        }
-      ])
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  },
-
-  // End the current active session
-  async endCurrentSession() {
     const { error } = await supabase
-      .from('game_sessions')
+      .from('queue_entries')
       .update({ 
         status: 'completed',
         ended_at: new Date().toISOString()
       })
-      .eq('status', 'active');
+      .eq('branch_id', branchId)
+      .in('status', ['waiting', 'playing']);
+
+    if (error) throw error;
+  },
+
+  // Move to next game
+  async finishGame(currentPlayingId, nextWaitingId) {
+    // 1. Mark current as completed
+    if (currentPlayingId) {
+        const { error: completeError } = await supabase
+            .from('queue_entries')
+            .update({ 
+                status: 'completed',
+                ended_at: new Date().toISOString()
+            })
+            .eq('id', currentPlayingId);
+        
+        if (completeError) throw completeError;
+    }
+
+    // 2. Mark next as playing
+    if (nextWaitingId) {
+        const { error: startError } = await supabase
+            .from('queue_entries')
+            .update({ 
+                status: 'playing',
+                started_at: new Date().toISOString()
+                 // potentially update order_position to 0 or 1?
+            })
+            .eq('id', nextWaitingId);
+        
+        if (startError) throw startError;
+    }
+  },
+
+  // Legacy/Helper to manually mark as playing (if needed)
+  async markAsPlaying(id) {
+    const { data, error } = await supabase
+      .from('queue_entries')
+      .update({ 
+          status: 'playing',
+          started_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
     
     if (error) throw error;
-  }
+    return data;
+  },
+};
+
+// Game session service functions
+export const sessionService = {
+  // DEPRECATED: Current session is now just the queue entry with status='playing'
+  async getCurrentSession(branchId) {
+    return null; 
+  },
+  async startSession() { return null; },
+  async endCurrentSession() { return null; }
 };
 
 // Real-time subscriptions
@@ -327,14 +328,49 @@ export const subscribeToSessionChanges = (callback) => {
   return channel;
 };
 
+// Branch service functions
+export const branchService = {
+  // Fetch all branches from allowed_places
+  async getAllBranches() {
+    const { data, error } = await supabase
+      .from('allowed_places')
+      .select('*')
+      .eq('enabled', true)
+      .order('arcade_name', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Fetch a single branch by ID
+  async getBranchById(branchId) {
+    const { data, error } = await supabase
+      .from('allowed_places')
+      .select('*')
+      .eq('id', branchId)
+      .eq('enabled', true)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+};
+
 // Mall schedule service functions
 export const scheduleService = {
   // Fetch full mall schedule
-  async getSchedule() {
-    const { data, error } = await supabase
+  async getSchedule(branchId) {
+    let query = supabase
       .from('mall_schedule')
-      .select('*')
-      .order('id', { ascending: true });
+      .select('*');
+    
+    if (branchId) {
+      query = query.eq('branch_id', branchId);
+    }
+    
+    query = query.order('id', { ascending: true });
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data || [];
