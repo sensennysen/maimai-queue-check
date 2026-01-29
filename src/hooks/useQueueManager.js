@@ -71,11 +71,13 @@ export const useQueueManager = () => {
     setHasAttemptedVerification(true);
 
     try {
-      const result = await verifyUserLocationAndPermissions(user.id, selectedBranch.id);
-      
+      const result = await verifyUserLocationAndPermissions(
+        user.id,
+        selectedBranch.id,
+        userRoles?.is_admin || false
+      );
       setLocationVerified(result.allowed);
       setNeedsLocationPermission(result.needsPermission || false);
-      
       if (!result.allowed) {
         setLocationError(result.reason);
       } else {
@@ -89,7 +91,7 @@ export const useQueueManager = () => {
     } finally {
       setLocationCheckInProgress(false);
     }
-  }, [user, selectedBranch?.id]);
+  }, [user, selectedBranch?.id, userRoles?.is_admin]);
 
   // Automatically verify location when user is available and has not attempted verification
   useEffect(() => {

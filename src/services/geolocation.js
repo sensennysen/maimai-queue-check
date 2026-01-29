@@ -220,16 +220,27 @@ export const checkEditPermissions = async (userId) => {
 };
 
 /**
+/**
  * Verify user location and permissions
  * @param {string} userId - User's ID
  * @param {string} branchId - Optional: Verify proximity to specific branch
+ * @param {boolean} isAdmin - Optional: If true, always allow
  * @returns {Promise<Object>} Promise that resolves to {allowed, reason, location, proximity}
  */
-export const verifyUserLocationAndPermissions = async (userId, branchId = null) => {
+export const verifyUserLocationAndPermissions = async (userId, branchId = null, isAdmin = false) => {
   try {
+    // Admins can always edit
+    if (isAdmin) {
+      return {
+        allowed: true,
+        reason: 'Admin override: you can edit any queue regardless of location.',
+        location: null,
+        proximity: null,
+      };
+    }
+
     // Check if user has edit permissions
     const hasEditPermissions = await checkEditPermissions(userId);
-    
     if (!hasEditPermissions) {
       return {
         allowed: false,
