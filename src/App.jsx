@@ -8,6 +8,7 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';
 import { subtitleMessages } from './data/subtitleMessages';
+import { theme as mantineTheme, getSubtitleColor } from './config/theme';
 import QueueManager from './components/QueueManager';
 import LoginForm from './components/LoginForm';
 import ThemeToggle from './components/ThemeToggle';
@@ -35,29 +36,6 @@ function AppContent() {
     // Fallback
     const firstMsg = subtitleMessages[0];
     return { text: firstMsg.text };
-  });
-
-  // eslint-disable-next-line
-  const getSubtitleColor = (weight) => {
-    if (weight === 10) return undefined;
-    if (weight > 5) return '#CD7F32'; // Bronze
-    if (weight > 2) return '#C0C0C0'; // Silver
-    return '#FFD700'; // Gold
-  };
-
-  const mantineTheme = createTheme({
-    colorScheme: isDark ? 'dark' : 'light',
-    colors: {
-      primary: ['#FFE5F3', '#FFB3D9', '#FF80BF', '#FF4FB7', '#FF1FA5', '#E6008C', '#B30066', '#80004D', '#4D0033', '#1A0019'],
-      secondary: ['#E8FDFE', '#A8F5F8', '#6BEFF3', '#31E0E7', '#00D4DB', '#00B8C0', '#009BA3', '#007E86', '#006169', '#00444C'],
-      accent: ['#FFFCE6', '#FFFAB3', '#FFF780', '#FFE35A', '#FFD000', '#E6BB00', '#B39200', '#806900', '#4D4000', '#1A1600'],
-    },
-    primaryColor: 'primary',
-    fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
-    headings: {
-      fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
-      fontWeight: 600,
-    },
   });
 
   return (

@@ -1,31 +1,7 @@
 import { Modal, Text, List, Stack, Group } from '@mantine/core';
+import { changelogData } from '../data/changelog';
 
 function ChangelogModal({ opened, onClose }) {
-  const changelogData = [
-    {
-      version: 'v0.0.7',
-      date: 'January 29, 2026',
-      changes: [
-        {
-          type: 'feature',
-          title: 'Branch Selection',
-          description: 'Added the ability for users to select specific branches/locations for queue viewing.',
-          footnote: 'Currently, we have 2 branches but we will soon add more as I connect to communities and continue to develop it to handle branches that have multiple cabinets.',
-        },
-        {
-          type: 'feature',
-          title: 'Geolocation Support',
-          description: 'Integrated user geolocation to filter and display nearby places automatically.',
-          footnote: 'Gelocation accuracy depends on your device and browser settings.'
-        },
-        {
-          type: 'fix',
-          title: 'Session & CSS Fixes',
-          description: 'Resolved issues with session transitions and fixed UI glitches in queue item displays and disabled buttons.',
-        }
-      ]
-    }
-  ];
 
   return (
     <Modal
