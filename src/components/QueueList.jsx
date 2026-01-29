@@ -49,7 +49,9 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
         <Center p="xl">
           <Stack align="center" gap="md">
             <Text size="xl" fw={600} c="dimmed">No one in line...</Text>
-            <Text c="dimmed">Add to queue by pressing the button above</Text>
+            {user && (
+              <Text c="dimmed">Add to queue by pressing the Add to Queue button above</Text>
+            )}
           </Stack>
         </Center>
       ) : (
