@@ -43,7 +43,6 @@ export const useMallSchedule = (branchId) => {
         setError(null);
       } catch (err) {
         setError(err.message);
-        console.error('Failed to load mall schedule:', err);
       } finally {
         setLoading(false);
       }

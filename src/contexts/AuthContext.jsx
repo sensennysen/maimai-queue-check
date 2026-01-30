@@ -18,7 +18,6 @@ export const AuthProvider = ({ children }) => {
     const {
       data: { subscription },
     } = authService.onAuthStateChange(async (event, session) => {
-      console.log('Auth event detected:', event, !!session);
       try {
         setUser(session?.user ?? null);
 
@@ -43,7 +42,6 @@ export const AuthProvider = ({ children }) => {
             const roles = await Promise.race([rolesPromise, timeoutPromise]);
             if (isMounted) setUserRoles(roles);
           } catch (roleError) {
-            console.error('Error fetching user roles:', roleError);
             // Set default permissions on error (keep existing permissions if available)
             if (isMounted) setUserRoles(prevRoles =>
               prevRoles || {
@@ -61,8 +59,7 @@ export const AuthProvider = ({ children }) => {
               const roles = await rolesService.getUserRoles(session.user.id, selectedBranch?.id);
               if (isMounted) setUserRoles(roles);
             } catch (err) {
-              console.error('Error rechecking user roles:', err);
-              // Don't clear roles on recheck error, just log it
+              // Don't clear roles on recheck error
             }
           }, 30000);
         } else {
@@ -70,7 +67,6 @@ export const AuthProvider = ({ children }) => {
           if (isMounted) setUserRoles(null);
         }
       } catch (unexpectedError) {
-        console.error('Unexpected error in auth state change:', unexpectedError);
         setLoading(false);
       }
     });
@@ -87,7 +83,6 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       await authService.signInWithProvider(provider);
     } catch (error) {
-      console.error('Error signing in:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -101,7 +96,6 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setUserRoles(null);
     } catch (error) {
-      console.error('Error signing out:', error);
       throw error;
     } finally {
       setLoading(false);

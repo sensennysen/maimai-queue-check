@@ -46,8 +46,6 @@ export const useQueueManagerPolling = () => {
       setIsConnected(true);
     } catch (err) {
       setError(err.message);
-      setIsConnected(false);
-      console.error('Error loading data:', err);
     } finally {
       setLoading(false);
     }
@@ -78,7 +76,6 @@ export const useQueueManagerPolling = () => {
         setLocationError(null);
       }
     } catch (err) {
-      console.error('Location verification error:', err);
       setLocationVerified(false);
       setLocationError('Failed to verify location. Please try again.');
       setNeedsLocationPermission(false);
@@ -99,7 +96,7 @@ export const useQueueManagerPolling = () => {
             await verifyLocation();
           }
         } catch (err) {
-          console.error('Error checking user permissions:', err);
+          // Failed to check permissions
         }
       }
     };

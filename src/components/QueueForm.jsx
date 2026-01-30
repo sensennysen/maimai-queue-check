@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { TextInput, Group, Button, Stack, Alert } from '@mantine/core';
 import { IconPlus, IconEdit } from '@tabler/icons-react';
+import DOMPurify from 'dompurify';
 import './QueueForm.css';
 
 function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationVerified = false, locationError = null, isAdmin = false }) {
@@ -40,8 +41,8 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
       return;
     }
 
-    // Basic sanitization: trim and remove potential HTML tag signatures
-    const sanitize = (text) => text.trim().replace(/<[^>]*>?/gm, '');
+    // Sanitize input using DOMPurify to prevent XSS
+    const sanitize = (text) => DOMPurify.sanitize(text.trim(), { ALLOWED_TAGS: [] });
     const cleanP1 = sanitize(player1);
     const cleanP2 = sanitize(player2);
 

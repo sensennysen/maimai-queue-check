@@ -15,7 +15,6 @@ export const checkGeolocationPermission = async () => {
     const result = await navigator.permissions.query({ name: 'geolocation' });
     return result.state; // 'granted', 'denied', or 'prompt'
   } catch (error) {
-    console.error('Error checking geolocation permission:', error);
     return navigator.geolocation ? 'prompt' : 'unavailable';
   }
 };
@@ -128,7 +127,6 @@ export const findNearestBranch = async (userLocation) => {
       distance: Math.round(minDistance),
     };
   } catch (error) {
-    console.error('Error finding nearest branch:', error);
     throw error;
   }
 };
@@ -188,7 +186,6 @@ export const checkUserProximity = async (userLocation, maxDistance = 100, branch
       distance: Math.round(minDistance),
     };
   } catch (error) {
-    console.error('Error checking proximity:', error);
     throw error;
   }
 };
@@ -207,13 +204,11 @@ export const checkEditPermissions = async (userId) => {
       .single();
 
     if (error) {
-      console.error('Error checking permissions:', error);
       return false;
     }
 
     return roles?.can_edit || false;
   } catch (error) {
-    console.error('Error checking permissions:', error);
     return false;
   }
 };
@@ -283,7 +278,6 @@ export const verifyUserLocationAndPermissions = async (userId, branchId = null, 
       proximity,
     };
   } catch (error) {
-    console.error('Error verifying location and permissions:', error);
     return {
       allowed: false,
       reason: 'An error occurred while verifying your location',

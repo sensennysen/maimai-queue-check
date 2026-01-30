@@ -91,7 +91,7 @@ function QueueManager() {
       await addEntry(player1, player2);
       setShowForm(false);
     } catch (err) {
-      console.error('Failed to add queue entry:', err);
+      // Error handled by hook
     }
   };
 
@@ -102,7 +102,7 @@ function QueueManager() {
       setEditingId(null);
       setShowForm(false);
     } catch (err) {
-      console.error('Failed to update queue entry:', err);
+      // Error handled by hook
     }
   };
 
@@ -113,7 +113,7 @@ function QueueManager() {
         await clearAllQueue();
         setEditingId(null);
       } catch (err) {
-        console.error('Failed to clear queue:', err);
+        // Error handled by hook
       }
     }
   };
@@ -135,7 +135,7 @@ function QueueManager() {
     try {
       await endGame();
     } catch (err) {
-      console.error('Failed to finish game:', err);
+      // Error handled by hook
     }
   };
 
@@ -144,7 +144,7 @@ function QueueManager() {
     try {
       await startNextGame();
     } catch (err) {
-      console.error('Failed to start game:', err);
+      // Error handled by hook
     }
   };
 

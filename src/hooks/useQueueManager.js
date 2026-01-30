@@ -41,7 +41,6 @@ export const useQueueManager = () => {
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Error loading initial data:', err);
     } finally {
       setLoading(false);
     }
@@ -88,7 +87,6 @@ export const useQueueManager = () => {
         setLocationError(null);
       }
     } catch (err) {
-      console.error('Location verification error:', err);
       setLocationVerified(false);
       setLocationError('Failed to verify location. Please try again.');
       setNeedsLocationPermission(false);
@@ -163,7 +161,6 @@ export const useQueueManager = () => {
       const { error } = await supabase.from('queue_entries').select('*').limit(1);
       
       if (error) {
-        console.error('❌ Database connection failed:', error);
         return false;
       }
       
@@ -185,7 +182,6 @@ export const useQueueManager = () => {
       
       return true;
     } catch (err) {
-      console.error('❌ Connection test error:', err);
       return false;
     }
   };

@@ -54,7 +54,7 @@ export const BranchProvider = ({ children }) => {
         location = locationResult.value;
         setUserLocation(location);
       } else {
-        console.log('Location request failed or denied:', locationResult.reason);
+        // Location request failed or denied
       }
 
       // Logic to select branch
@@ -84,7 +84,7 @@ export const BranchProvider = ({ children }) => {
             return;
           }
         } catch (findError) {
-          console.warn('Error finding nearest branch with location:', findError);
+          // Failed to find nearest branch
         }
       }
 
@@ -93,7 +93,6 @@ export const BranchProvider = ({ children }) => {
       localStorage.setItem(STORAGE_KEY, allBranches[0].id);
 
     } catch (err) {
-      console.error('Error loading branches:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -112,7 +111,6 @@ export const BranchProvider = ({ children }) => {
       setUserLocation(location);
       return location;
     } catch (err) {
-      console.error('Error refreshing location:', err);
       return null;
     }
   };

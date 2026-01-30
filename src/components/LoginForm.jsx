@@ -11,8 +11,7 @@ const LoginForm = () => {
     try {
       await signInWithProvider(provider);
     } catch (error) {
-      // swallow UI toasts; log for debugging
-      console.error('Login failed:', error);
+      // Error handled silently
     }
   };
 
@@ -20,7 +19,7 @@ const LoginForm = () => {
     try {
       await signOut();
     } catch (error) {
-      console.error('Logout failed:', error);
+      // Error handled silently
     }
   };
 

@@ -72,7 +72,6 @@ export const rolesService = {
         .limit(1);
 
       if (error) {
-        console.error(`Error fetching roles for user ${userId}:`, error.message, error.code);
         return {
           user_id: userId,
           can_edit: false,
@@ -92,7 +91,6 @@ export const rolesService = {
       // Ensure is_admin is always present (default false if missing)
       return { ...data[0], is_admin: !!data[0].is_admin };
     } catch (err) {
-      console.error(`Exception fetching roles for user ${userId}:`, err);
       return {
         user_id: userId,
         can_edit: false,
