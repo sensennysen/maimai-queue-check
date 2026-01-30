@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Paper, Title, TextInput, Group, Button, Stack, Alert } from '@mantine/core';
+import { TextInput, Group, Button, Stack, Alert } from '@mantine/core';
 import { IconPlus, IconEdit, IconX } from '@tabler/icons-react';
 import './QueueForm.css';
 
@@ -67,10 +67,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
   };
 
   return (
-    <Paper p="md" withBorder>
-      <Title order={3} mb="md">
-        {editingId ? 'Edit Queue' : 'Add Queue'}
-      </Title>
+    <div>
       <form onSubmit={handleSubmit} onKeyDown={(e) => { if (isBusy) { e.preventDefault(); e.stopPropagation(); } }}>
         <Stack gap="md">
           {errors.general && (
@@ -130,7 +127,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
           </Group>
         </Stack>
       </form>
-    </Paper>
+    </div>
   );
 }
 

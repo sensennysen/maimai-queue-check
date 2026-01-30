@@ -253,8 +253,13 @@ function QueueManager() {
       </Alert>
 
 
-      {/* Add Queue Form always appears above Now Playing */}
-      {user && !scheduleLoading && isMallOpen && (showForm || editingId) && (
+      {/* Add Queue Form Modal */}
+      <Modal
+        opened={user && !scheduleLoading && isMallOpen && (showForm || editingId)}
+        onClose={cancelEdit}
+        title={editingId ? 'Edit Queue' : 'Add Queue'}
+        centered
+      >
         <QueueForm
           key={editingId || 'new'}
           onSubmit={editingId ? updateQueueEntry : addQueueEntry}
@@ -267,7 +272,7 @@ function QueueManager() {
           isAdmin={userRoles?.is_admin}
           showCancelButton={true}
         />
-      )}
+      </Modal>
 
       <div>
         {queueLoading || scheduleLoading ? (
