@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { TextInput, Group, Button, Stack, Alert } from '@mantine/core';
-import { IconPlus, IconEdit, IconX } from '@tabler/icons-react';
+import { IconPlus, IconEdit } from '@tabler/icons-react';
 import './QueueForm.css';
 
-function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false, locationVerified = false, locationError = null, isAdmin = false, showCancelButton = false }) {
+function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationVerified = false, locationError = null, isAdmin = false }) {
   const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : '';
   const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : '';
 
@@ -59,12 +59,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
     setErrors({});
   };
 
-  const handleCancel = () => {
-    setPlayer1('');
-    setPlayer2('');
-    setErrors({});
-    onCancel();
-  };
+
 
   return (
     <div>
@@ -82,7 +77,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
             </Alert>
           )}
 
-          <Group grow>
+          <Stack gap="md">
             <TextInput
               label="Player 1 Side"
               placeholder="Enter Player 1 name"
@@ -102,7 +97,7 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
               maxLength={50}
               disabled={isBusy || (!locationVerified && !isAdmin)}
             />
-          </Group>
+          </Stack>
 
           <Group justify="flex-end">
             <Button
@@ -113,17 +108,6 @@ function QueueForm({ onSubmit, editingId, editingData, onCancel, isBusy = false,
             >
               {editingId ? 'Update Entry' : 'Add to Queue'}
             </Button>
-            {(editingId || showCancelButton) && (
-              <Button
-                variant="outline"
-                color="gray"
-                leftSection={<IconX size={16} />}
-                onClick={handleCancel}
-                disabled={isBusy}
-              >
-                Cancel
-              </Button>
-            )}
           </Group>
         </Stack>
       </form>

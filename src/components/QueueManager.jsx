@@ -265,12 +265,10 @@ function QueueManager() {
           onSubmit={editingId ? updateQueueEntry : addQueueEntry}
           editingId={editingId}
           editingData={editingId ? queue.find(item => item.id === editingId) : null}
-          onCancel={cancelEdit}
           isBusy={isMutating}
           locationVerified={locationVerified}
           locationError={locationError}
           isAdmin={userRoles?.is_admin}
-          showCancelButton={true}
         />
       </Modal>
 
