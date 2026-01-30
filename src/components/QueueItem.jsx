@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
 import { Skeleton } from '@mantine/core';
 import './QueueItem.css';
 
-function QueueItem({ item, order, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false }) {
+const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false }) {
   const handleEdit = () => {
     onEdit(item.id);
   };
@@ -95,6 +96,6 @@ function QueueItem({ item, order, onEdit, onRemove, onMoveUp, onMoveDown, isFirs
       )}
     </div>
   );
-}
+});
 
 export default QueueItem;

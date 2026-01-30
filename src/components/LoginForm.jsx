@@ -10,7 +10,7 @@ const LoginForm = () => {
   const handleSocialLogin = async (provider) => {
     try {
       await signInWithProvider(provider);
-    } catch (error) {
+    } catch {
       // Error handled silently
     }
   };
@@ -18,7 +18,7 @@ const LoginForm = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-    } catch (error) {
+    } catch {
       // Error handled silently
     }
   };

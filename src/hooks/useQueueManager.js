@@ -86,7 +86,7 @@ export const useQueueManager = () => {
       } else {
         setLocationError(null);
       }
-    } catch (err) {
+    } catch {
       setLocationVerified(false);
       setLocationError('Failed to verify location. Please try again.');
       setNeedsLocationPermission(false);
@@ -181,7 +181,7 @@ export const useQueueManager = () => {
       }, 5000);
       
       return true;
-    } catch (err) {
+    } catch {
       return false;
     }
   };

@@ -90,7 +90,7 @@ function QueueManager() {
     try {
       await addEntry(player1, player2);
       setShowForm(false);
-    } catch (err) {
+    } catch {
       // Error handled by hook
     }
   };
@@ -101,7 +101,7 @@ function QueueManager() {
       await updateEntry(id, player1, player2);
       setEditingId(null);
       setShowForm(false);
-    } catch (err) {
+    } catch {
       // Error handled by hook
     }
   };
@@ -112,7 +112,7 @@ function QueueManager() {
       try {
         await clearAllQueue();
         setEditingId(null);
-      } catch (err) {
+      } catch {
         // Error handled by hook
       }
     }
@@ -134,7 +134,7 @@ function QueueManager() {
   const finishGame = async () => {
     try {
       await endGame();
-    } catch (err) {
+    } catch {
       // Error handled by hook
     }
   };
@@ -143,7 +143,7 @@ function QueueManager() {
   const startGame = async () => {
     try {
       await startNextGame();
-    } catch (err) {
+    } catch {
       // Error handled by hook
     }
   };
