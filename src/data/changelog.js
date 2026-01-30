@@ -4,14 +4,9 @@ export const changelogData = [
     date: 'January 30, 2026',
     changes: [
       {
-        type: 'feature',
-        title: 'Input Modal',
-        description: 'Converted the queue input section into a dedicated modal for a cleaner interface.',
-      },
-      {
         type: 'maintenance',
         title: 'Code Cleanup & Optimization',
-        description: 'Implemented performance fixes, improved memoization, and resolved linting errors.',
+        description: 'Wala sobrang tinamad ako magcode nung start nitong project so need ko ayusin. Para madali na rin imaintain.',
       },
       {
         type: 'security',
