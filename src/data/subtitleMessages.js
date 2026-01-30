@@ -32,9 +32,9 @@ export const subtitleMessages = [
 
 export const closedMessages = [
   "Mall is Closed",
-  "why the hell are you qchecking at this time??",
+  "Why the hell are you qchecking at this time??",
   "Sir pahinga na po",
-  "Come back when we reopen",
+  "Come back when the arcade reopens",
 ];
 
 export const loadingMessages = [
@@ -42,4 +42,16 @@ export const loadingMessages = [
   "Fetching players...",
   "Preparing the queue...",
   "Just a moment please...",
+];
+
+export const emptyQueueMessages = [
+  "No one in line...",
+  "The queue is looking a bit lonely.",
+  "It's quiet... too quiet.",
+  "Nobody's here yet!",
+  "The machine is waiting for you!",
+  "Is it time for a solo session?",
+  "Queue is empty. Go ahead!",
+  "Zero players in line.",
+  "Empty queue! Grab your chance!",
 ];

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { authService, rolesService } from '../services/supabase';
+import { useBranch } from '../hooks/useBranch';
 import { AuthContext } from './AuthContextProvider';
 
 export const AuthProvider = ({ children }) => {
@@ -7,15 +8,15 @@ export const AuthProvider = ({ children }) => {
   const [userRoles, setUserRoles] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const { selectedBranch } = useBranch();
+
   useEffect(() => {
     // Listen for auth changes - this properly handles session restoration on page load
     let isMounted = true;
-    let rolesCheckInterval = null;
 
     const {
       data: { subscription },
     } = authService.onAuthStateChange(async (event, session) => {
-      console.log('Auth event detected:', event, !!session);
       try {
         setUser(session?.user ?? null);
 
@@ -26,11 +27,9 @@ export const AuthProvider = ({ children }) => {
         // (avoid showing toasts during automatic session restoration on page load)
 
         if (session?.user) {
-          // Clear any existing roles check interval
-          if (rolesCheckInterval) clearInterval(rolesCheckInterval);
-
           // Fetch roles in background (non-blocking) with timeout
-          const rolesPromise = rolesService.getUserRoles(session.user.id);
+          const branchId = selectedBranch?.id;
+          const rolesPromise = rolesService.getUserRoles(session.user.id, branchId);
           const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Role fetch timeout')), 5000)
           );
@@ -38,8 +37,7 @@ export const AuthProvider = ({ children }) => {
           try {
             const roles = await Promise.race([rolesPromise, timeoutPromise]);
             if (isMounted) setUserRoles(roles);
-          } catch (roleError) {
-            console.error('Error fetching user roles:', roleError);
+          } catch {
             // Set default permissions on error (keep existing permissions if available)
             if (isMounted) setUserRoles(prevRoles =>
               prevRoles || {
@@ -50,55 +48,36 @@ export const AuthProvider = ({ children }) => {
             );
           }
 
-          // Periodically re-check roles every 30 seconds to ensure they don't get lost
-          rolesCheckInterval = setInterval(async () => {
-            if (!isMounted) return;
-            try {
-              const roles = await rolesService.getUserRoles(session.user.id);
-              if (isMounted) setUserRoles(roles);
-            } catch (err) {
-              console.error('Error rechecking user roles:', err);
-              // Don't clear roles on recheck error, just log it
-            }
-          }, 30000);
+          // Roles are fetched on auth state change or branch change - no need for polling
         } else {
-          if (rolesCheckInterval) clearInterval(rolesCheckInterval);
           if (isMounted) setUserRoles(null);
         }
-      } catch (unexpectedError) {
-        console.error('Unexpected error in auth state change:', unexpectedError);
+      } catch {
         setLoading(false);
       }
     });
 
     return () => {
       isMounted = false;
-      if (rolesCheckInterval) clearInterval(rolesCheckInterval);
       subscription?.unsubscribe();
     };
-  }, []);
+  }, [selectedBranch?.id]); // Re-subscribe/re-run when branch changes to ensure correct roles are fetched
 
   const signInWithProvider = async (provider) => {
+    setLoading(true);
     try {
-      setLoading(true);
       await authService.signInWithProvider(provider);
-    } catch (error) {
-      console.error('Error signing in:', error);
-      throw error;
     } finally {
       setLoading(false);
     }
   };
 
   const signOut = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       await authService.signOut();
       setUser(null);
       setUserRoles(null);
-    } catch (error) {
-      console.error('Error signing out:', error);
-      throw error;
     } finally {
       setLoading(false);
     }

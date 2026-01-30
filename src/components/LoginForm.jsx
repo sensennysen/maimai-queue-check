@@ -10,17 +10,16 @@ const LoginForm = () => {
   const handleSocialLogin = async (provider) => {
     try {
       await signInWithProvider(provider);
-    } catch (error) {
-      // swallow UI toasts; log for debugging
-      console.error('Login failed:', error);
+    } catch {
+      // Error handled silently
     }
   };
 
   const handleLogout = async () => {
     try {
       await signOut();
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch {
+      // Error handled silently
     }
   };
 
@@ -80,9 +79,9 @@ const LoginForm = () => {
         onClick={() => handleSocialLogin('google')}
         variant="light"
         color="red"
-        fullWidth
+        className="google-login-button"
       >
-        Login with Google
+        <span className="login-button-text">Login with Google</span>
       </Button>
     </div>
   );

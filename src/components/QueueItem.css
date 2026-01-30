@@ -1,13 +1,13 @@
 .queue-item {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 140px minmax(0, 1fr) 140px;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--theme-border);
-  transition: all 0.2s ease;
   align-items: center;
-  cursor: move;
-  position: relative;
+
+  border-bottom: 1px solid var(--theme-border);
+  /* align-items: center;
+  position: relative; */
   background: var(--theme-surface);
   color: var(--theme-text-primary);
 }
@@ -19,7 +19,7 @@
 
 .item-order {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: flex-start;
 }
 
@@ -31,13 +31,18 @@
 }
 
 .next-label {
-  font-size: 0.65rem;
+  font-size: 1rem;
   font-weight: bold;
   color: var(--theme-accent);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 0.25rem;
+  margin-top: 0.15rem;
+  margin-left: 2rem;
   line-height: 1;
+}
+
+[data-theme="light"] .next-label {
+  color: var(--theme-text-primary);
 }
 
 .players-section {
@@ -46,6 +51,7 @@
   gap: 1rem;
   align-items: center;
   width: 100%;
+  min-width: 0;
 }
 
 .item-player {
@@ -219,76 +225,65 @@
   transform: translateY(-1px);
 }
 
+.edit-btn:disabled,
+.remove-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(100%);
+  transform: none;
+  background: var(--theme-surface-hover);
+  color: var(--theme-text-muted);
+  border: 1px solid var(--theme-border);
+}
+
 @media (max-width: 768px) {
   .queue-item {
-    display: flex;
-    flex-direction: row;
-    gap: 0.5rem;
+    display: grid;
+    grid-template-columns: 60px minmax(0, 1fr) 90px;
+    gap: 0.75rem;
     padding: 0.75rem 1rem;
     align-items: center;
   }
-  
+
   .item-order {
-    min-width: 50px;
-    flex-shrink: 0;
-    align-self: center;
+    /* Center align order number in its wider column */
+    min-width: 0;
+    align-items: center;
+    justify-self: center;
+    flex-direction: column;
+    justify-content: center;
   }
-  
+
+  .next-label {
+    font-size: 0.6rem;
+    margin-left: 0;
+    margin-top: 0.25rem;
+    text-align: center;
+  }
+
   .players-section {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    width: 85%;
   }
-  
+
   .item-player {
-    display: flex;
-    align-items: center;
     justify-content: flex-start;
-    width: 100%;
   }
-  
-  .item-player.vs-divider {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    width: 100%;
-  }
-  
-  .player-side {
-    font-size: 0.7rem;
-    padding: 0.15rem 0.4rem;
-    min-width: 24px;
-  }
-  
-  .vs {
-    width: 24px;
-    height: 24px;
-    font-size: 0.7rem;
-    margin: 0;
-    flex-shrink: 0;
-  }
-  
+
   .item-actions {
-    min-width: 90px;
-    flex-shrink: 0;
-    align-self: center;
+    min-width: 0;
+    justify-self: end;
   }
 
   .order-number {
     font-size: 1.2rem;
   }
 
-  .next-label {
-    font-size: 0.6rem;
-  }
-
   .player-name {
     padding: 0.4rem 0.75rem;
     font-size: 0.85rem;
-    border-radius: 12px;
     white-space: normal;
     word-break: break-word;
     width: 100%;
@@ -298,16 +293,14 @@
   }
 
   .move-btn {
-    width: 20px;
-    height: 18px;
-    font-size: 0.7rem;
+    width: 24px;
+    height: 20px;
   }
 
   .edit-btn,
   .remove-btn {
-    width: 28px;
-    height: 28px;
-    font-size: 0.8rem;
+    width: 32px;
+    height: 32px;
     min-height: 44px;
     min-width: 44px;
   }
@@ -315,58 +308,45 @@
 
 @media (max-width: 480px) {
   .queue-item {
-    grid-template-columns: 40px 1fr 80px;
-    gap: 0.25rem;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 80px;
+    gap: 0.5rem;
     padding: 0.6rem 0.75rem;
   }
 
-  .order-number {
-    font-size: 1rem;
+  .item-order {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .players-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 80%;
   }
 
   .next-label {
-    font-size: 0.55rem;
-    margin-top: 0.1rem;
+    margin-left: 0;
+    margin-top: 0.25rem;
+    font-size: 0.5rem;
   }
 
-  .vs {
-    width: 18px;
-    height: 18px;
-    font-size: 0.55rem;
-    margin: 0.4rem auto;
-  }
-
-  .player-name {
-    padding: 0.35rem 0.5rem;
-    font-size: 0.8rem;
-    border-radius: 10px;
-  }
-
-  .item-actions {
-    gap: 0.25rem;
-  }
-
-  .move-buttons {
-    gap: 1px;
+  .order-number {
+    font-size: 1.1rem;
   }
 
   .move-btn {
-    width: 18px;
-    height: 16px;
-    font-size: 0.6rem;
-  }
-
-  .action-buttons {
-    gap: 0.2rem;
+    width: 20px;
+    height: 18px;
   }
 
   .edit-btn,
   .remove-btn {
-    width: 24px;
-    height: 24px;
-    font-size: 0.7rem;
-    min-height: 44px;
-    min-width: 44px;
-    border-radius: 3px;
+    width: 28px;
+    height: 28px;
+    min-height: 36px;
+    min-width: 36px;
   }
 }

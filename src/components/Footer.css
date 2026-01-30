@@ -12,3 +12,16 @@
 .footer a:hover {
   color: var(--theme-primary);
 }
+
+.footer-link-group {
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.footer-link-group:hover {
+  opacity: 1;
+}
+
+.footer-link-text {
+  border-bottom: 1px dashed var(--mantine-color-dimmed);
+}

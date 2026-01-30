@@ -1,11 +1,18 @@
+import { useState, memo } from 'react';
 import { Paper, Title, Group, Button, Stack, Text, Center } from '@mantine/core';
 import { IconPlayerPlay, IconLock } from '@tabler/icons-react';
 import QueueItem from './QueueItem';
 import { useAuth } from '../hooks/useAuth';
+import { emptyQueueMessages } from '../data/subtitleMessages';
 import './QueueList.css';
 
-function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, locationVerified, loadingRoles = false }) {
+const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, locationVerified, loadingRoles = false }) {
   const { user, userRoles } = useAuth();
+
+  // Lazy initialization - the function is only called once on mount, not during render
+  const [emptyMessageIndex] = useState(() => Math.floor(Math.random() * emptyQueueMessages.length));
+  const emptyMessage = queue.length === 0 ? emptyQueueMessages[emptyMessageIndex] : '';
+
   const isAdmin = userRoles?.is_admin;
   const canEdit = userRoles?.can_edit;
   const canActuallyEdit = isAdmin || (canEdit && locationVerified);
@@ -38,7 +45,7 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
           </Button>
         )}
       </Group>
-      {user && userRoles !== undefined && !userRoles?.can_edit && (
+      {user && userRoles !== undefined && !userRoles?.can_edit && !userRoles?.is_admin && (
         <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-yellow-0)' }}>
           <Text size="sm" c="orange">
             You can view the queue but don't have permission to edit it
@@ -48,8 +55,10 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
       {queue.length === 0 ? (
         <Center p="xl">
           <Stack align="center" gap="md">
-            <Text size="xl" fw={600} c="dimmed">No one in line...</Text>
-            <Text c="dimmed">Add to queue by pressing the button above</Text>
+            <Text size="xl" fw={600} c="dimmed">{emptyMessage}</Text>
+            {user && (
+              <Text c="dimmed">Add to queue by pressing the Add to Queue button above</Text>
+            )}
           </Stack>
         </Center>
       ) : (
@@ -58,10 +67,11 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
             <QueueItem
               key={item.id}
               item={item}
+              order={index + 1}
               onEdit={onEdit}
               onRemove={onRemove}
-              onMoveUp={(id) => onMoveUp(id)}
-              onMoveDown={(id) => onMoveDown(id)}
+              onMoveUp={onMoveUp}
+              onMoveDown={onMoveDown}
               isFirst={index === 0}
               isLast={index === queue.length - 1}
               isNextUp={index === 0}
@@ -81,6 +91,6 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
       )}
     </Paper>
   );
-}
+});
 
 export default QueueList;
