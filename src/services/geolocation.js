@@ -14,7 +14,7 @@ export const checkGeolocationPermission = async () => {
   try {
     const result = await navigator.permissions.query({ name: 'geolocation' });
     return result.state; // 'granted', 'denied', or 'prompt'
-  } catch (error) {
+  } catch {
     return navigator.geolocation ? 'prompt' : 'unavailable';
   }
 };
@@ -88,47 +88,42 @@ export const requestUserLocation = () => {
  * @returns {Promise<Object>} Promise that resolves to {nearestBranch, distance}
  */
 export const findNearestBranch = async (userLocation) => {
-  try {
-    const { data: places, error } = await supabase
-      .from('allowed_places')
-      .select('*')
-      .eq('enabled', true);
+  const { data: places, error } = await supabase
+    .from('allowed_places')
+    .select('*')
+    .eq('enabled', true);
 
-
-    if (error) {
-      throw error;
-    }
-
-    if (!places || places.length === 0) {
-      return {
-        nearestBranch: null,
-        distance: null,
-        error: 'No branches found in database',
-      };
-    }
-
-    let nearestBranch = null;
-    let minDistance = Infinity;
-
-    places.forEach((place) => {
-      const distance = getDistance(userLocation, {
-        latitude: place.latitude,
-        longitude: place.longitude,
-      });
-
-      if (distance < minDistance) {
-        minDistance = distance;
-        nearestBranch = place;
-      }
-    });
-
-    return {
-      nearestBranch,
-      distance: Math.round(minDistance),
-    };
-  } catch (error) {
+  if (error) {
     throw error;
   }
+
+  if (!places || places.length === 0) {
+    return {
+      nearestBranch: null,
+      distance: null,
+      error: 'No branches found in database',
+    };
+  }
+
+  let nearestBranch = null;
+  let minDistance = Infinity;
+
+  places.forEach((place) => {
+    const distance = getDistance(userLocation, {
+      latitude: place.latitude,
+      longitude: place.longitude,
+    });
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearestBranch = place;
+    }
+  });
+
+  return {
+    nearestBranch,
+    distance: Math.round(minDistance),
+  };
 };
 
 /**
@@ -139,55 +134,51 @@ export const findNearestBranch = async (userLocation) => {
  * @returns {Promise<Object>} Promise that resolves to {isAllowed, nearestPlace, distance}
  */
 export const checkUserProximity = async (userLocation, maxDistance = 100, branchId = null) => {
-  try {
-    let query = supabase
-      .from('allowed_places')
-      .select('*')
-      .eq('enabled', true);
+  let query = supabase
+    .from('allowed_places')
+    .select('*')
+    .eq('enabled', true);
 
-    // If branchId is provided, only check that specific branch
-    if (branchId) {
-      query = query.eq('id', branchId);
-    }
+  // If branchId is provided, only check that specific branch
+  if (branchId) {
+    query = query.eq('id', branchId);
+  }
 
-    const { data: places, error } = await query;
+  const { data: places, error } = await query;
 
-    if (error) {
-      throw error;
-    }
-
-    if (!places || places.length === 0) {
-      return {
-        isAllowed: false,
-        nearestPlace: null,
-        distance: null,
-        error: branchId ? 'Branch not found in database' : 'No allowed locations found in database',
-      };
-    }
-
-    let nearestPlace = null;
-    let minDistance = Infinity;
-
-    places.forEach((place) => {
-      const distance = getDistance(userLocation, {
-        latitude: place.latitude,
-        longitude: place.longitude,
-      });
-
-      if (distance < minDistance) {
-        minDistance = distance;
-        nearestPlace = place;
-      }
-    });
-
-    return {
-      isAllowed: minDistance <= maxDistance,
-      nearestPlace,
-      distance: Math.round(minDistance),
-    };
-  } catch (error) {
+  if (error) {
     throw error;
   }
+
+  if (!places || places.length === 0) {
+    return {
+      isAllowed: false,
+      nearestPlace: null,
+      distance: null,
+      error: branchId ? 'Branch not found in database' : 'No allowed locations found in database',
+    };
+  }
+
+  let nearestPlace = null;
+  let minDistance = Infinity;
+
+  places.forEach((place) => {
+    const distance = getDistance(userLocation, {
+      latitude: place.latitude,
+      longitude: place.longitude,
+    });
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearestPlace = place;
+    }
+  });
+
+  return {
+    isAllowed: minDistance <= maxDistance,
+    nearestPlace,
+    distance: Math.round(minDistance),
+  };
 };
 
 /**
@@ -208,7 +199,7 @@ export const checkEditPermissions = async (userId) => {
     }
 
     return roles?.can_edit || false;
-  } catch (error) {
+  } catch {
     return false;
   }
 };

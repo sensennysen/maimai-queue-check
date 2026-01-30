@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MantineProvider, Container, Title, Text, Paper, Stack, Group, createTheme } from '@mantine/core';
+import { MantineProvider, Container, Title, Text, Paper, Stack, Group } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -8,7 +8,7 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';
 import { subtitleMessages } from './data/subtitleMessages';
-import { theme as mantineTheme, getSubtitleColor } from './config/theme';
+import { theme as mantineTheme } from './config/theme';
 import QueueManager from './components/QueueManager';
 import LoginForm from './components/LoginForm';
 import ThemeToggle from './components/ThemeToggle';

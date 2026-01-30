@@ -90,7 +90,7 @@ export const rolesService = {
 
       // Ensure is_admin is always present (default false if missing)
       return { ...data[0], is_admin: !!data[0].is_admin };
-    } catch (err) {
+    } catch {
       return {
         user_id: userId,
         can_edit: false,
@@ -271,16 +271,6 @@ export const queueService = {
     if (error) throw error;
     return data;
   },
-};
-
-// Game session service functions
-export const sessionService = {
-  // DEPRECATED: Current session is now just the queue entry with status='playing'
-  async getCurrentSession(branchId) {
-    return null; 
-  },
-  async startSession() { return null; },
-  async endCurrentSession() { return null; }
 };
 
 // Real-time subscriptions

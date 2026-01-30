@@ -13,7 +13,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Listen for auth changes - this properly handles session restoration on page load
     let isMounted = true;
-    let rolesCheckInterval = null;
 
     const {
       data: { subscription },
@@ -28,9 +27,6 @@ export const AuthProvider = ({ children }) => {
         // (avoid showing toasts during automatic session restoration on page load)
 
         if (session?.user) {
-          // Clear any existing roles check interval
-          if (rolesCheckInterval) clearInterval(rolesCheckInterval);
-
           // Fetch roles in background (non-blocking) with timeout
           const branchId = selectedBranch?.id;
           const rolesPromise = rolesService.getUserRoles(session.user.id, branchId);
@@ -41,7 +37,7 @@ export const AuthProvider = ({ children }) => {
           try {
             const roles = await Promise.race([rolesPromise, timeoutPromise]);
             if (isMounted) setUserRoles(roles);
-          } catch (roleError) {
+          } catch {
             // Set default permissions on error (keep existing permissions if available)
             if (isMounted) setUserRoles(prevRoles =>
               prevRoles || {
@@ -52,51 +48,36 @@ export const AuthProvider = ({ children }) => {
             );
           }
 
-          // Periodically re-check roles every 30 seconds to ensure they don't get lost
-          rolesCheckInterval = setInterval(async () => {
-            if (!isMounted) return;
-            try {
-              const roles = await rolesService.getUserRoles(session.user.id, selectedBranch?.id);
-              if (isMounted) setUserRoles(roles);
-            } catch (err) {
-              // Don't clear roles on recheck error
-            }
-          }, 30000);
+          // Roles are fetched on auth state change or branch change - no need for polling
         } else {
-          if (rolesCheckInterval) clearInterval(rolesCheckInterval);
           if (isMounted) setUserRoles(null);
         }
-      } catch (unexpectedError) {
+      } catch {
         setLoading(false);
       }
     });
 
     return () => {
       isMounted = false;
-      if (rolesCheckInterval) clearInterval(rolesCheckInterval);
       subscription?.unsubscribe();
     };
   }, [selectedBranch?.id]); // Re-subscribe/re-run when branch changes to ensure correct roles are fetched
 
   const signInWithProvider = async (provider) => {
+    setLoading(true);
     try {
-      setLoading(true);
       await authService.signInWithProvider(provider);
-    } catch (error) {
-      throw error;
     } finally {
       setLoading(false);
     }
   };
 
   const signOut = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       await authService.signOut();
       setUser(null);
       setUserRoles(null);
-    } catch (error) {
-      throw error;
     } finally {
       setLoading(false);
     }

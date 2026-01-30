@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, memo } from 'react';
 import { Paper, Title, Group, Button, Stack, Text, Center } from '@mantine/core';
 import { IconPlayerPlay, IconLock } from '@tabler/icons-react';
 import QueueItem from './QueueItem';
@@ -6,16 +6,12 @@ import { useAuth } from '../hooks/useAuth';
 import { emptyQueueMessages } from '../data/subtitleMessages';
 import './QueueList.css';
 
-function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, locationVerified, loadingRoles = false }) {
+const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, locationVerified, loadingRoles = false }) {
   const { user, userRoles } = useAuth();
-  const [emptyMessage, setEmptyMessage] = useState('');
 
-  useEffect(() => {
-    if (queue.length === 0) {
-      const randomMsg = emptyQueueMessages[Math.floor(Math.random() * emptyQueueMessages.length)];
-      setEmptyMessage(randomMsg);
-    }
-  }, [queue.length]);
+  // Lazy initialization - the function is only called once on mount, not during render
+  const [emptyMessageIndex] = useState(() => Math.floor(Math.random() * emptyQueueMessages.length));
+  const emptyMessage = queue.length === 0 ? emptyQueueMessages[emptyMessageIndex] : '';
 
   const isAdmin = userRoles?.is_admin;
   const canEdit = userRoles?.can_edit;
@@ -74,8 +70,8 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
               order={index + 1}
               onEdit={onEdit}
               onRemove={onRemove}
-              onMoveUp={(id) => onMoveUp(id)}
-              onMoveDown={(id) => onMoveDown(id)}
+              onMoveUp={onMoveUp}
+              onMoveDown={onMoveDown}
               isFirst={index === 0}
               isLast={index === queue.length - 1}
               isNextUp={index === 0}
@@ -95,6 +91,6 @@ function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, 
       )}
     </Paper>
   );
-}
+});
 
 export default QueueList;

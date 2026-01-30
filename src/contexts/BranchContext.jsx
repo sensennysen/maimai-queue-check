@@ -83,7 +83,7 @@ export const BranchProvider = ({ children }) => {
             setLoading(false);
             return;
           }
-        } catch (findError) {
+        } catch {
           // Failed to find nearest branch
         }
       }
@@ -110,7 +110,7 @@ export const BranchProvider = ({ children }) => {
       const location = await requestUserLocation();
       setUserLocation(location);
       return location;
-    } catch (err) {
+    } catch {
       return null;
     }
   };

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { scheduleService } from '../services/supabase';
 
 // Helper: parse 'HH:MM' into minutes since midnight
@@ -66,17 +66,29 @@ export const useMallSchedule = (branchId) => {
     return map;
   }, [schedule]);
 
+  // State to trigger recalculation of isMallOpen every minute
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  // Update time every minute to recalculate isMallOpen
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Compute mall open state for current Manila time
   const isMallOpen = useMemo(() => {
-    const { weekday, hour, minute } = getManilaParts(new Date());
+    const { weekday, hour, minute } = getManilaParts(new Date(currentTime));
     const config = scheduleMap.get(weekday);
     if (!config || config.openMinutes == null || config.closeMinutes == null) return false;
     const nowMinutes = hour * 60 + minute;
     return nowMinutes >= config.openMinutes && nowMinutes < config.closeMinutes;
-  }, [scheduleMap]);
+  }, [scheduleMap, currentTime]);
 
   // Filter queue entries to those created within operating hours of their creation day
-  const filterQueueByOperatingHours = (queue) => {
+  const filterQueueByOperatingHours = useCallback((queue) => {
     if (!Array.isArray(queue) || queue.length === 0) return [];
     return queue.filter(item => {
       if (!item.created_at) return false; // require created_at to validate operating hours
@@ -86,7 +98,7 @@ export const useMallSchedule = (branchId) => {
       const minutes = parts.hour * 60 + parts.minute;
       return minutes >= config.openMinutes && minutes < config.closeMinutes;
     });
-  };
+  }, [scheduleMap]);
 
   return {
     loading,
