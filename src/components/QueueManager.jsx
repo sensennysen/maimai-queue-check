@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, Alert, Loader, Modal, Skeleton } from '@mantine/core';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, Alert, Loader, Modal, Skeleton, Tabs } from '@mantine/core';
 import { IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconMapPin } from '@tabler/icons-react';
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
@@ -36,7 +36,11 @@ function QueueManager() {
     moveDown,
     clearQueue: clearAllQueue,
     endGame,
-    startNextGame
+    startNextGame,
+    selectedCabinet,
+    setSelectedCabinet,
+    cabinetCount,
+    hasMultipleCabinets
   } = useQueueManager();
 
   // Auth and roles
@@ -218,6 +222,19 @@ function QueueManager() {
         Info here might not reflect the actual queue in the branch
       </Alert>
 
+      {/* Cabinet Tabs - Only show when there are multiple cabinets */}
+      {hasMultipleCabinets && (
+        <Tabs value={String(selectedCabinet)} onChange={(value) => setSelectedCabinet(Number(value))}>
+          <Tabs.List>
+            {Array.from({ length: cabinetCount }, (_, i) => i + 1).map((cabNum) => (
+              <Tabs.Tab key={cabNum} value={String(cabNum)}>
+                Cabinet {cabNum}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+        </Tabs>
+      )}
+
       {/* Add/Edit Queue Form Modal */}
       <Modal
         opened={user && !scheduleLoading && isMallOpen && (showForm || editingId)}
@@ -323,6 +340,8 @@ function QueueManager() {
             isBusy={isMutating}
             locationVerified={locationVerified}
             loadingRoles={!actionsLoaded}
+            cabinetNum={selectedCabinet}
+            hasMultipleCabinets={hasMultipleCabinets}
           />
         )
       )}

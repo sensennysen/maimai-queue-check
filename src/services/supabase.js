@@ -103,7 +103,7 @@ export const rolesService = {
 // Queue service functions
 export const queueService = {
   // Fetch all queue entries (waiting and playing)
-  async getQueueEntries(branchId) {
+  async getQueueEntries(branchId, cabinetNum = null) {
     if (!branchId) return [];
 
     let query = supabase
@@ -113,6 +113,11 @@ export const queueService = {
     
     if (branchId) {
       query = query.eq('branch_id', branchId);
+    }
+    
+    // Filter by cabinet number if provided
+    if (cabinetNum !== null) {
+      query = query.eq('cabinet_num', cabinetNum);
     }
     
     // Order by created_at or order_position to ensure list stability
@@ -126,12 +131,13 @@ export const queueService = {
   },
 
   // Add a new queue entry
-  async addQueueEntry(player1, player2, orderPosition, userId, branchId) {
-    // Check if there is currently a playing session
+  async addQueueEntry(player1, player2, orderPosition, userId, branchId, cabinetNum = 1) {
+    // Check if there is currently a playing session for this specific cabinet
     const { count, error: countError } = await supabase
         .from('queue_entries')
         .select('*', { count: 'exact', head: true })
         .eq('branch_id', branchId)
+        .eq('cabinet_num', cabinetNum)
         .eq('status', 'playing');
     
     if (countError) throw countError;
@@ -150,6 +156,7 @@ export const queueService = {
           status: initialStatus,
           created_by: userId || null,
           branch_id: branchId,
+          cabinet_num: cabinetNum,
           started_at: initialStatus === 'playing' ? new Date().toISOString() : null
         }
       ])
@@ -207,13 +214,13 @@ export const queueService = {
     return results;
   },
 
-  // Clear all queue entries (waiting and playing)
-  async clearQueue(branchId) {
+  // Clear all queue entries (waiting and playing) for a specific cabinet
+  async clearQueue(branchId, cabinetNum = null) {
     if (!branchId) {
       throw new Error('branchId is required to clear the queue');
     }
 
-    const { error } = await supabase
+    let query = supabase
       .from('queue_entries')
       .update({ 
         status: 'completed',
@@ -221,7 +228,13 @@ export const queueService = {
       })
       .eq('branch_id', branchId)
       .in('status', ['waiting', 'playing']);
+    
+    // If cabinet number is provided, only clear that cabinet
+    if (cabinetNum !== null) {
+      query = query.eq('cabinet_num', cabinetNum);
+    }
 
+    const { error } = await query;
     if (error) throw error;
   },
 

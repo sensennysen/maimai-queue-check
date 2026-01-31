@@ -15,6 +15,7 @@ import { ERRORS } from '../constants/queue';
  * @param {string|null} options.locationError - Current location error
  * @param {() => Promise<void>} options.refreshData - Function to refresh queue data
  * @param {() => number} options.getNextOrder - Function to get next order position
+ * @param {number} options.selectedCabinet - Currently selected cabinet number
  * @returns {Object} Queue action functions and isMutating state
  */
 export const useQueueActions = ({
@@ -24,7 +25,8 @@ export const useQueueActions = ({
   locationVerified,
   locationError,
   refreshData,
-  getNextOrder
+  getNextOrder,
+  selectedCabinet = 1
 }) => {
   const { user } = useAuth();
   const { selectedBranch } = useBranch();
@@ -50,7 +52,7 @@ export const useQueueActions = ({
       const orderPosition = getNextOrder();
       const userId = user?.id || null;
       
-      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition, userId, selectedBranch.id);
+      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition, userId, selectedBranch.id, selectedCabinet);
       setQueue(prev => [...prev, newEntry]); 
       
       return newEntry;
@@ -60,7 +62,7 @@ export const useQueueActions = ({
     } finally {
       setIsMutating(false);
     }
-  }, [requireLocationVerification, selectedBranch?.id, setError, getNextOrder, user, setQueue]);
+  }, [requireLocationVerification, selectedBranch?.id, setError, getNextOrder, user, setQueue, selectedCabinet]);
 
   // Update existing queue entry
   const updateQueueEntry = useCallback(async (id, player1, player2) => {
@@ -162,7 +164,7 @@ export const useQueueActions = ({
     try {
       setIsMutating(true);
       if (queue.length > 0) {
-        await queueService.clearQueue(selectedBranch.id);
+        await queueService.clearQueue(selectedBranch.id, selectedCabinet);
         setQueue([]);
       }
     } catch (err) {
@@ -171,7 +173,7 @@ export const useQueueActions = ({
     } finally {
       setIsMutating(false);
     }
-  }, [requireLocationVerification, queue.length, selectedBranch?.id, setQueue, setError]);
+  }, [requireLocationVerification, queue.length, selectedBranch?.id, setQueue, setError, selectedCabinet]);
 
   // End current game and start next
   const endGame = useCallback(async () => {
