@@ -114,7 +114,6 @@ export const BranchProvider = ({ children }) => {
           table: 'allowed_places',
         },
         (payload) => {
-          console.log('Branch change detected:', payload);
           handleBranchChange(payload);
         }
       )

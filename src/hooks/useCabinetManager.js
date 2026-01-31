@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useBranch } from './useBranch';
 
 /**
@@ -8,6 +8,7 @@ import { useBranch } from './useBranch';
 export const useCabinetManager = () => {
   const { selectedBranch } = useBranch();
   const [selectedCabinet, setSelectedCabinet] = useState(1);
+  const prevBranchIdRef = useRef(selectedBranch?.id);
 
   // Get cabinet count from branch, default to 1
   const cabinetCount = selectedBranch?.cab_count || 1;
@@ -16,9 +17,13 @@ export const useCabinetManager = () => {
   const hasMultipleCabinets = useMemo(() => cabinetCount >= 2, [cabinetCount]);
 
   // Reset to cabinet 1 when branch changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    setSelectedCabinet(1);
-  }, [selectedBranch?.id]);
+    if (prevBranchIdRef.current !== selectedBranch?.id) {
+      prevBranchIdRef.current = selectedBranch?.id;
+      setSelectedCabinet(1);
+    }
+  });
 
   return {
     selectedCabinet,
