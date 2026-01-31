@@ -49,9 +49,8 @@ export const useQueueActions = ({
       setIsMutating(true);
       const orderPosition = getNextOrder();
       const userId = user?.id || null;
-      const userName = user?.user_metadata?.display_name || user?.user_metadata?.full_name || 'Player';
       
-      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition, userId, userName, selectedBranch.id);
+      const newEntry = await queueService.addQueueEntry(player1, player2, orderPosition, userId, selectedBranch.id);
       setQueue(prev => [...prev, newEntry]); 
       
       return newEntry;

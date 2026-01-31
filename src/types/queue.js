@@ -7,7 +7,6 @@
  * @property {number} order_position - Position in queue
  * @property {string} branch_id - Branch identifier
  * @property {string} [created_by] - User ID who created the entry
- * @property {string} [created_by_name] - Display name of creator
  * @property {string} [started_at] - ISO timestamp when game started
  * @property {string} created_at - ISO timestamp when entry was created
  */

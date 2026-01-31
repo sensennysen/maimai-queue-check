@@ -126,7 +126,7 @@ export const queueService = {
   },
 
   // Add a new queue entry
-  async addQueueEntry(player1, player2, orderPosition, userId, userName, branchId) {
+  async addQueueEntry(player1, player2, orderPosition, userId, branchId) {
     // Check if there is currently a playing session
     const { count, error: countError } = await supabase
         .from('queue_entries')
@@ -149,7 +149,6 @@ export const queueService = {
           order_position: orderPosition,
           status: initialStatus,
           created_by: userId || null,
-          created_by_name: userName || null,
           branch_id: branchId,
           started_at: initialStatus === 'playing' ? new Date().toISOString() : null
         }
