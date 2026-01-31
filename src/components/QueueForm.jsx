@@ -87,6 +87,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               error={errors.player1}
               maxLength={50}
               disabled={isBusy || (!locationVerified && !isAdmin)}
+              style={{ marginTop: '1rem' }}
             />
 
             <TextInput

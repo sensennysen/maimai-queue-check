@@ -13,7 +13,7 @@
 }
 
 .queue-item.next-up {
-  background: linear-gradient(90deg, rgba(255, 227, 90, 0.2) 0%, var(--theme-surface) 100%);
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.2) 0%, var(--theme-surface) 100%);
   border-left: 4px solid var(--theme-accent);
 }
 
@@ -221,7 +221,8 @@
 }
 
 .remove-btn:hover {
-  background: #FF5757;
+  background: var(--theme-error);
+  filter: brightness(1.1);
   transform: translateY(-1px);
 }
 

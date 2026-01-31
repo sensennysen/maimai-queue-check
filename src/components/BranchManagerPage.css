@@ -1,0 +1,42 @@
+/* Styling for Branch Manager Page */
+
+.branch-manager-page {
+  min-height: 100vh;
+}
+
+/* Schedule grid layout */
+.schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.schedule-day-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.schedule-day-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--mantine-shadow-sm);
+}
+
+/* Schedule collapse styling */
+.schedule-collapse-content {
+  background-color: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme='dark'] .schedule-collapse-content {
+  background-color: var(--mantine-color-dark-6);
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  .branch-manager-table {
+    font-size: 0.875rem;
+  }
+
+  .schedule-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}
