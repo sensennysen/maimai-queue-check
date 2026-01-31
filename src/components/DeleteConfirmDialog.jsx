@@ -16,7 +16,7 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, branchName }) => {
       size="sm"
     >
       <Stack gap="md">
-        <Text>
+        <Text style={{ marginTop: '1rem' }}>
           Are you sure you want to delete <Text component="span" fw={700}>{branchName}</Text>?
         </Text>
         <Text size="sm" c="dimmed">

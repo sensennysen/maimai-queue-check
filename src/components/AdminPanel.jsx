@@ -269,7 +269,7 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
           // Branch Form
           <form onSubmit={handleBranchSubmit}>
             <Stack gap="md">
-              <Text size="sm" c="dimmed">
+              <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
                 {mode === 'edit' ? 'Edit Branch Information' : 'Step 1 of 2: Branch Information'}
               </Text>
 
@@ -347,7 +347,7 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
           // Schedule Form
           <form onSubmit={handleScheduleSubmit}>
             <Stack gap="md">
-              <Text size="sm" c="dimmed">
+              <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
                 Step 2 of 2: Mall Schedule for {arcadeName}
               </Text>
 
