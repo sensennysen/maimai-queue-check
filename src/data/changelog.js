@@ -17,7 +17,7 @@ export const changelogData = [
         type: 'feature',
         title: 'Branch Selection',
         description: 'Added the ability for users to select specific branches/locations for queue viewing.',
-        footnote: 'No multiple cabinets feature as of now, but I\'m working on it!',
+        footnote: 'If you want your branch to be added, please let me know! No multiple cabinets feature as of now, but I\'m working on it!',
       },
       {
         type: 'feature',
