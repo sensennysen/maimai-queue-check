@@ -1,5 +1,5 @@
 import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider } from '@mantine/core';
-import { IconBrandGoogle, IconLogout, IconUser, IconLogin, IconBuildingStore } from '@tabler/icons-react';
+import { IconBrandGoogle, IconLogout, IconUser, IconLogin, IconSettings } from '@tabler/icons-react';
 import { useAuth } from '../hooks/useAuth';
 // notifications removed: toasts suppressed per UX change
 import './LoginForm.css';
@@ -62,10 +62,10 @@ const LoginForm = ({ onOpenAdminPanel }) => {
           {userRoles?.is_admin && (
             <>
               <Menu.Item
-                leftSection={<IconBuildingStore size={16} />}
+                leftSection={<IconSettings size={16} />}
                 onClick={onOpenAdminPanel}
               >
-                Add a branch
+                Branch manager
               </Menu.Item>
               <Divider />
             </>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   Stack,
@@ -20,7 +20,7 @@ import './AdminPanel.css';
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-const AdminPanel = ({ opened, onClose }) => {
+const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) => {
   // Branch form state
   const [arcadeName, setArcadeName] = useState('');
   const [longitude, setLongitude] = useState('');
@@ -42,6 +42,20 @@ const AdminPanel = ({ opened, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1 = branch form, 2 = schedule form
   const [createdBranchId, setCreatedBranchId] = useState(null);
+
+  // Pre-populate form when editing
+  useEffect(() => {
+    if (opened && mode === 'edit' && branchToEdit) {
+      setArcadeName(branchToEdit.arcade_name);
+      setLatitude(branchToEdit.latitude.toString());
+      setLongitude(branchToEdit.longitude.toString());
+      setCabCount(branchToEdit.cab_count);
+      setEnabled(branchToEdit.enabled);
+    } else if (opened && mode === 'create') {
+      // Reset form for create mode
+      resetForm();
+    }
+  }, [opened, mode, branchToEdit]);
 
   const handleUseCurrentLocation = async () => {
     setLoadingLocation(true);
@@ -118,21 +132,34 @@ const AdminPanel = ({ opened, onClose }) => {
         enabled,
       };
 
-      const newBranch = await adminService.createBranch(branchData);
-      setCreatedBranchId(newBranch.id);
+      if (mode === 'edit' && branchToEdit) {
+        // Update existing branch
+        await adminService.updateBranch(branchToEdit.id, branchData);
+        notifications.show({
+          title: 'Branch Updated',
+          message: `${arcadeName} has been updated successfully`,
+          color: 'green',
+        });
+        // Close and refresh parent
+        handleClose(true);
+      } else {
+        // Create new branch
+        const newBranch = await adminService.createBranch(branchData);
+        setCreatedBranchId(newBranch.id);
 
-      notifications.show({
-        title: 'Branch Created',
-        message: `${arcadeName} has been added successfully`,
-        color: 'green',
-      });
+        notifications.show({
+          title: 'Branch Created',
+          message: `${arcadeName} has been added successfully`,
+          color: 'green',
+        });
 
-      // Move to schedule form
-      setStep(2);
+        // Move to schedule form
+        setStep(2);
+      }
     } catch (error) {
       notifications.show({
         title: 'Error',
-        message: error.message || 'Failed to create branch',
+        message: error.message || `Failed to ${mode === 'edit' ? 'update' : 'create'} branch`,
         color: 'red',
       });
     } finally {
@@ -202,8 +229,7 @@ const AdminPanel = ({ opened, onClose }) => {
     }
   };
 
-  const handleClose = () => {
-    // Reset all state
+  const resetForm = () => {
     setArcadeName('');
     setLongitude('');
     setLatitude('');
@@ -218,7 +244,11 @@ const AdminPanel = ({ opened, onClose }) => {
     );
     setStep(1);
     setCreatedBranchId(null);
-    onClose();
+  };
+
+  const handleClose = (shouldRefresh = false) => {
+    resetForm();
+    onClose(shouldRefresh);
   };
 
   return (
@@ -228,7 +258,7 @@ const AdminPanel = ({ opened, onClose }) => {
       title={
         <Group gap="xs">
           <IconBuildingStore size={24} />
-          <Title order={3}>Add a Branch</Title>
+          <Title order={3}>{mode === 'edit' ? 'Edit Branch' : 'Add a Branch'}</Title>
         </Group>
       }
       size="lg"
@@ -240,7 +270,7 @@ const AdminPanel = ({ opened, onClose }) => {
           <form onSubmit={handleBranchSubmit}>
             <Stack gap="md">
               <Text size="sm" c="dimmed">
-                Step 1 of 2: Branch Information
+                {mode === 'edit' ? 'Edit Branch Information' : 'Step 1 of 2: Branch Information'}
               </Text>
 
               <TextInput
@@ -308,7 +338,7 @@ const AdminPanel = ({ opened, onClose }) => {
                   Cancel
                 </Button>
                 <Button type="submit" loading={loading}>
-                  Next: Set Schedule
+                  {mode === 'edit' ? 'Update Branch' : 'Next: Set Schedule'}
                 </Button>
               </Group>
             </Stack>

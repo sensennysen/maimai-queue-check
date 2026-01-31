@@ -14,13 +14,13 @@ import LoginForm from './components/LoginForm';
 import ThemeToggle from './components/ThemeToggle';
 import BranchSelector from './components/BranchSelector';
 import Footer from './components/Footer';
-import AdminPanel from './components/AdminPanel';
+import BranchManager from './components/BranchManager';
 import './App.css';
 
 // Mantine theme configuration that syncs with our CSS variables
 function AppContent() {
   const { isDark } = useTheme();
-  const [adminPanelOpen, setAdminPanelOpen] = useState(false);
+  const [branchManagerOpen, setBranchManagerOpen] = useState(false);
 
   // Random subtitle selection - using weighted chances
   // eslint-disable-next-line
@@ -71,7 +71,7 @@ function AppContent() {
               <BranchSelector />
               <Group gap="sm">
                 <ThemeToggle />
-                <LoginForm onOpenAdminPanel={() => setAdminPanelOpen(true)} />
+                <LoginForm onOpenAdminPanel={() => setBranchManagerOpen(true)} />
               </Group>
             </Group>
 
@@ -83,7 +83,7 @@ function AppContent() {
           </Stack>
         </Container>
       </div>
-      <AdminPanel opened={adminPanelOpen} onClose={() => setAdminPanelOpen(false)} />
+      <BranchManager opened={branchManagerOpen} onClose={() => setBranchManagerOpen(false)} />
       <Analytics />
     </MantineProvider>
   );

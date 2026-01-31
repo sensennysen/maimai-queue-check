@@ -366,6 +366,17 @@ export const scheduleService = {
 
 // Admin service functions
 export const adminService = {
+  // Get all branches for admin (including disabled)
+  async getAllBranchesForAdmin() {
+    const { data, error } = await supabase
+      .from('allowed_places')
+      .select('*')
+      .order('arcade_name', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  },
+
   // Create a new branch in allowed_places
   async createBranch(branchData) {
     const { data, error } = await supabase
@@ -430,5 +441,51 @@ export const adminService = {
       branch,
       schedules: schedules || []
     };
+  },
+
+  // Delete a branch and its schedules
+  async deleteBranch(branchId) {
+    // First delete associated schedules
+    const { error: scheduleError } = await supabase
+      .from('mall_schedule')
+      .delete()
+      .eq('branch_id', branchId);
+
+    if (scheduleError) throw scheduleError;
+
+    // Then delete the branch
+    const { error: branchError } = await supabase
+      .from('allowed_places')
+      .delete()
+      .eq('id', branchId);
+
+    if (branchError) throw branchError;
+  },
+
+  // Update mall schedules for a branch
+  async updateMallSchedules(branchId, schedules) {
+    // Delete existing schedules
+    const { error: deleteError } = await supabase
+      .from('mall_schedule')
+      .delete()
+      .eq('branch_id', branchId);
+
+    if (deleteError) throw deleteError;
+
+    // Insert new schedules
+    const scheduleData = schedules.map(schedule => ({
+      branch_id: branchId,
+      day: schedule.day,
+      time_open: schedule.time_open,
+      time_close: schedule.time_close,
+    }));
+
+    const { data, error } = await supabase
+      .from('mall_schedule')
+      .insert(scheduleData)
+      .select();
+
+    if (error) throw error;
+    return data;
   }
 };
