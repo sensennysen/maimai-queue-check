@@ -44,27 +44,14 @@ function AppContent() {
     <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
       <Notifications position="top-right" />
       <div className="App">
-        {currentPage === 'queue' ? (
-          <Container size="lg" py="xl">
-            <Stack gap="lg">
-              <Paper p="md" radius="md" withBorder className="app-header">
-                <Group justify="space-between" align="center" gap="md" wrap="wrap">
-                  <Group gap="md">
-                    <Title order={1} className="app-title">
-                      maimai Queue Check
-                    </Title>
-                  </Group>
-                  {/* <Text
-                    size="lg"
-                    className="app-subtitle"
-                    style={{
-                      color: getSubtitleColor(randomSubtitle.weight),
-                      fontWeight: randomSubtitle.weight <= 2 ? 700 : 400,
-                      textShadow: randomSubtitle.weight <= 2 ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none'
-                    }}
-                  >
-                    {randomSubtitle.text}
-                  </Text> */}
+        <Container size="lg" py="xl">
+          <Stack gap="lg">
+            <Paper p="md" radius="md" withBorder className="app-header">
+              <Group justify="space-between" align="center" gap="md" wrap="wrap">
+                <Group gap="md">
+                  <Title order={1} className="app-title">
+                    maiPaQueueCheck.ph
+                  </Title>
                 </Group>
               </Paper>
 
