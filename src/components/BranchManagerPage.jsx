@@ -34,6 +34,18 @@ import './BranchManagerPage.css';
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+// Utility function to format time from 24-hour to 12-hour AM/PM format
+const formatTime = (time24) => {
+  if (!time24) return '-';
+
+  const [hours, minutes] = time24.split(':');
+  const hour = parseInt(hours, 10);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+
+  return `${hour12}:${minutes} ${ampm}`;
+};
+
 const BranchManagerPage = ({ onBack }) => {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -334,33 +346,27 @@ const BranchManagerPage = ({ onBack }) => {
                                     <Loader size="sm" />
                                   </Center>
                                 ) : branchSchedules[branch.id] && branchSchedules[branch.id].length > 0 ? (
-                                  <Table size="sm">
-                                    <Table.Thead>
-                                      <Table.Tr>
-                                        <Table.Th>Day</Table.Th>
-                                        <Table.Th>Opening Time</Table.Th>
-                                        <Table.Th>Closing Time</Table.Th>
-                                      </Table.Tr>
-                                    </Table.Thead>
-                                    <Table.Tbody>
-                                      {DAYS_OF_WEEK.map(day => {
-                                        const schedule = branchSchedules[branch.id].find(s => s.day === day);
-                                        return (
-                                          <Table.Tr key={day}>
-                                            <Table.Td>
-                                              <Text size="sm" fw={500}>{day}</Text>
-                                            </Table.Td>
-                                            <Table.Td>
-                                              <Text size="sm">{schedule?.time_open || '-'}</Text>
-                                            </Table.Td>
-                                            <Table.Td>
-                                              <Text size="sm">{schedule?.time_close || '-'}</Text>
-                                            </Table.Td>
-                                          </Table.Tr>
-                                        );
-                                      })}
-                                    </Table.Tbody>
-                                  </Table>
+                                  <div className="schedule-grid">
+                                    {DAYS_OF_WEEK.map(day => {
+                                      const schedule = branchSchedules[branch.id].find(s => s.day === day);
+                                      const timeRange = schedule
+                                        ? `${formatTime(schedule.time_open)} - ${formatTime(schedule.time_close)}`
+                                        : 'Closed';
+
+                                      return (
+                                        <Paper key={day} p="md" withBorder className="schedule-day-card">
+                                          <Stack gap="xs" align="center">
+                                            <Text size="md" fw={600} c={schedule ? 'inherit' : 'dimmed'}>
+                                              {day}
+                                            </Text>
+                                            <Text size="sm" c={schedule ? 'dimmed' : 'red'}>
+                                              {timeRange}
+                                            </Text>
+                                          </Stack>
+                                        </Paper>
+                                      );
+                                    })}
+                                  </div>
                                 ) : (
                                   <Text size="sm" c="dimmed" ta="center">No schedule configured</Text>
                                 )}
