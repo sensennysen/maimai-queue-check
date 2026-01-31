@@ -1,0 +1,17 @@
+/* Styling for Branch Manager component */
+
+.branch-manager-table {
+  min-width: 800px;
+}
+
+/* Empty state styling */
+.empty-state-icon {
+  opacity: 0.3;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  .branch-manager-table {
+    font-size: 0.875rem;
+  }
+}

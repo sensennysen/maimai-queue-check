@@ -14,11 +14,13 @@ import LoginForm from './components/LoginForm';
 import ThemeToggle from './components/ThemeToggle';
 import BranchSelector from './components/BranchSelector';
 import Footer from './components/Footer';
+import BranchManagerPage from './components/BranchManagerPage';
 import './App.css';
 
 // Mantine theme configuration that syncs with our CSS variables
 function AppContent() {
   const { isDark } = useTheme();
+  const [currentPage, setCurrentPage] = useState('queue'); // 'queue' or 'branch-manager'
 
   // Random subtitle selection - using weighted chances
   // eslint-disable-next-line
@@ -51,35 +53,26 @@ function AppContent() {
                     maiPaQueueCheck.ph
                   </Title>
                 </Group>
-                {/* <Text
-                  size="lg"
-                  className="app-subtitle"
-                  style={{
-                    color: getSubtitleColor(randomSubtitle.weight),
-                    fontWeight: randomSubtitle.weight <= 2 ? 700 : 400,
-                    textShadow: randomSubtitle.weight <= 2 ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none'
-                  }}
-                >
-                  {randomSubtitle.text}
-                </Text> */}
+              </Paper>
+
+              <Group justify="space-between" gap="sm">
+                <BranchSelector />
+                <Group gap="sm">
+                  <ThemeToggle />
+                  <LoginForm onOpenAdminPanel={() => setCurrentPage('branch-manager')} />
+                </Group>
               </Group>
-            </Paper>
 
-            <Group justify="space-between" gap="sm">
-              <BranchSelector />
-              <Group gap="sm">
-                <ThemeToggle />
-                <LoginForm />
-              </Group>
-            </Group>
+              <main>
+                <QueueManager />
+              </main>
 
-            <main>
-              <QueueManager />
-            </main>
-
-            <Footer />
-          </Stack>
-        </Container>
+              <Footer />
+            </Stack>
+          </Container>
+        ) : (
+          <BranchManagerPage onBack={() => setCurrentPage('queue')} />
+        )}
       </div>
       <Analytics />
     </MantineProvider>
