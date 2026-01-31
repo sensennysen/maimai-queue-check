@@ -24,59 +24,59 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     // Save preference to localStorage
     localStorage.setItem('theme-mode', isDark ? 'dark' : 'light');
-    
+
     // Update CSS custom properties
     const root = document.documentElement;
-    
+
     if (isDark) {
-      // Dark Theme
-      root.style.setProperty('--theme-background', '#140018');
-      root.style.setProperty('--theme-surface', '#22002A');
-      root.style.setProperty('--theme-primary', '#FF4FB7');
-      root.style.setProperty('--theme-secondary', '#31E0E7');
-      root.style.setProperty('--theme-accent', '#FFE35A');
+      // Dark Theme - Maimai DX Night version
+      root.style.setProperty('--theme-background', '#1A0B2E'); // Deep Violet
+      root.style.setProperty('--theme-surface', '#2D1B4E'); // Lighter Violet surface
+      root.style.setProperty('--theme-primary', '#FF66CC'); // Neon Pink
+      root.style.setProperty('--theme-secondary', '#66FFFF'); // Cyan
+      root.style.setProperty('--theme-accent', '#FFFF66'); // Bright Yellow
       root.style.setProperty('--theme-text-primary', '#FFFFFF');
       root.style.setProperty('--theme-text-muted', '#B98AD6');
-      
-      // Derived colors for better UX and readability
-      root.style.setProperty('--theme-primary-hover', '#FF6BC4');
-      root.style.setProperty('--theme-secondary-hover', '#4AE6EC');
-      root.style.setProperty('--theme-accent-hover', '#FFEB70');
-      root.style.setProperty('--theme-surface-hover', '#330040');
-      root.style.setProperty('--theme-border', '#4D0066');
+
+      // Derived colors
+      root.style.setProperty('--theme-primary-hover', '#FF99DD');
+      root.style.setProperty('--theme-secondary-hover', '#99FFFF');
+      root.style.setProperty('--theme-accent-hover', '#FFFFA3');
+      root.style.setProperty('--theme-surface-hover', '#3D2B5E');
+      root.style.setProperty('--theme-border', '#4D2A66');
       root.style.setProperty('--theme-error', '#FF6B8B');
       root.style.setProperty('--theme-success', '#66D980');
-      root.style.setProperty('--theme-warning', '#FFE35A');
-      
-      // Player-specific colors for dark theme (brighter for visibility)
-      root.style.setProperty('--theme-player1', '#FF6BC4');
-      root.style.setProperty('--theme-player2', '#4AE6EC');
-      
+      root.style.setProperty('--theme-warning', '#FFD700');
+
+      // Player-specific colors
+      root.style.setProperty('--theme-player1', '#FF66CC');
+      root.style.setProperty('--theme-player2', '#66FFFF');
+
       document.body.setAttribute('data-theme', 'dark');
     } else {
-      // Light Theme
-      root.style.setProperty('--theme-background', '#FFF2F8');
+      // Light Theme - Maimai DX Day version
+      root.style.setProperty('--theme-background', '#FFF0F5'); // Soft Pink background
       root.style.setProperty('--theme-surface', '#FFFFFF');
-      root.style.setProperty('--theme-primary', '#FF4FB7');
-      root.style.setProperty('--theme-secondary', '#31E0E7');
-      root.style.setProperty('--theme-accent', '#FFE35A');
+      root.style.setProperty('--theme-primary', '#FF3399'); // Vivid Pink
+      root.style.setProperty('--theme-secondary', '#00BFFF'); // Sky Blue
+      root.style.setProperty('--theme-accent', '#FFD700'); // Gold
       root.style.setProperty('--theme-text-primary', '#2B1C2A');
       root.style.setProperty('--theme-text-muted', '#7B5A78');
-      
-      // Derived colors for better UX and readability
-      root.style.setProperty('--theme-primary-hover', '#E63FA0');
-      root.style.setProperty('--theme-secondary-hover', '#1FC7CE');
-      root.style.setProperty('--theme-accent-hover', '#FFEB70');
-      root.style.setProperty('--theme-surface-hover', '#FFF5FB');
-      root.style.setProperty('--theme-border', '#E8D8E8');
+
+      // Derived colors
+      root.style.setProperty('--theme-primary-hover', '#FF66B2');
+      root.style.setProperty('--theme-secondary-hover', '#33CCFF');
+      root.style.setProperty('--theme-accent-hover', '#FFE44D');
+      root.style.setProperty('--theme-surface-hover', '#F0F8FF');
+      root.style.setProperty('--theme-border', '#FFB3D9');
       root.style.setProperty('--theme-error', '#D63352');
       root.style.setProperty('--theme-success', '#2DA74F');
-      root.style.setProperty('--theme-warning', '#CC9000');
-      
-      // Player-specific colors for light theme (darker for readability)
-      root.style.setProperty('--theme-player1', '#D63FA0');
-      root.style.setProperty('--theme-player2', '#008B93');
-      
+      root.style.setProperty('--theme-warning', '#FFC107');
+
+      // Player-specific colors
+      root.style.setProperty('--theme-player1', '#FF3399');
+      root.style.setProperty('--theme-player2', '#00BFFF');
+
       document.body.setAttribute('data-theme', 'light');
     }
   }, [isDark]);

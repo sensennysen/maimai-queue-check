@@ -9,14 +9,14 @@ export const getSubtitleColor = (weight) => {
 
 export const theme = createTheme({
   colors: {
-    primary: ['#FFE5F3', '#FFB3D9', '#FF80BF', '#FF4FB7', '#FF1FA5', '#E6008C', '#B30066', '#80004D', '#4D0033', '#1A0019'],
-    secondary: ['#E8FDFE', '#A8F5F8', '#6BEFF3', '#31E0E7', '#00D4DB', '#00B8C0', '#009BA3', '#007E86', '#006169', '#00444C'],
-    accent: ['#FFFCE6', '#FFFAB3', '#FFF780', '#FFE35A', '#FFD000', '#E6BB00', '#B39200', '#806900', '#4D4000', '#1A1600'],
+    primary: ['#FFE5F3', '#FFB3D9', '#FF80BF', '#FF4DA6', '#FF1F8E', '#E60073', '#B30059', '#800040', '#4D0026', '#1A000D'], // Maimai Pink range
+    secondary: ['#E0F7FA', '#B3E5FC', '#81D4FA', '#4FC3F7', '#29B6F6', '#03A9F4', '#0288D1', '#0277BD', '#01579B', '#000000'], // Cyan/Blue range
+    accent: ['#FFFDE7', '#FFF9C4', '#FFF59D', '#FFF176', '#FFEE58', '#FFEB3B', '#FDD835', '#FBC02D', '#F9A825', '#F57F17'], // Yellow/Gold range
   },
   primaryColor: 'primary',
-  fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
+  fontFamily: "'Poppins', system-ui, -apple-system, sans-serif",
   headings: {
-    fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
+    fontFamily: "'Poppins', system-ui, -apple-system, sans-serif",
     fontWeight: 600,
   },
 });
