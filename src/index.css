@@ -1,5 +1,5 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -11,7 +11,7 @@
   --theme-accent: #FFE35A;
   --theme-text-primary: #2B1C2A;
   --theme-text-muted: #7B5A78;
-  
+
   /* Derived colors */
   --theme-primary-hover: #FF6BC4;
   --theme-secondary-hover: #4AE6EC;
@@ -40,14 +40,25 @@
 body {
   margin: 0;
   padding: 0;
-  background: var(--theme-background);
+  background-color: var(--theme-background);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(255, 51, 153, 0.05) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(0, 191, 255, 0.05) 0%, transparent 20%),
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 20px 20px, 20px 20px;
   color: var(--theme-text-primary);
   min-height: 100vh;
   overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 600;
   line-height: 1.2;
 }
@@ -80,13 +91,14 @@ input:focus {
 
 /* Touch targets for mobile */
 @media (max-width: 768px) {
+
   button,
   input[type="submit"],
   input[type="button"] {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   #root {
     padding: 0.5rem;
   }
@@ -96,7 +108,7 @@ input:focus {
   #root {
     padding: 0.25rem;
   }
-  
+
   html {
     font-size: 14px;
   }
@@ -104,6 +116,7 @@ input:focus {
 
 /* Prevent zoom on input focus in iOS */
 @media (max-width: 768px) {
+
   input[type="text"],
   input[type="email"],
   input[type="password"],

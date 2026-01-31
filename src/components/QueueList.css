@@ -2,6 +2,7 @@
 .sign-in-message .sign-in-mobile {
   display: none;
 }
+
 .sign-in-message .sign-in-desktop {
   display: inline;
 }
@@ -10,10 +11,12 @@
   .sign-in-message .sign-in-mobile {
     display: inline;
   }
+
   .sign-in-message .sign-in-desktop {
     display: none;
   }
 }
+
 .queue-list {
   background: var(--theme-surface);
   border: 1px solid var(--theme-border);
@@ -54,7 +57,8 @@
 }
 
 .start-game-btn:hover {
-  background: #46D471;
+  background: var(--theme-success);
+  filter: brightness(1.1);
   transform: translateY(-1px);
 }
 
@@ -121,44 +125,44 @@
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
   }
-  
+
   .col-player {
     display: none;
   }
-  
+
   .queue-list-header {
     flex-direction: column;
     gap: 0.75rem;
     align-items: stretch;
     padding: 0.75rem 1rem;
   }
-  
+
   .queue-list h3 {
     text-align: center;
     font-size: 1rem;
   }
-  
+
   .start-game-btn {
     width: 100%;
     font-size: 0.9rem;
   }
-  
+
   .queue-items {
     max-height: 400px;
   }
-  
+
   .empty-queue {
     padding: 2rem 1rem;
   }
-  
+
   .empty-queue h3 {
     font-size: 1rem;
   }
-  
+
   .empty-queue p {
     font-size: 0.9rem;
   }
-  
+
   .empty-icon {
     font-size: 2rem;
   }
@@ -171,36 +175,36 @@
     padding: 0.4rem 0.75rem;
     font-size: 0.75rem;
   }
-  
+
   .queue-list-header {
     padding: 0.5rem 0.75rem;
   }
-  
+
   .queue-list h3 {
     font-size: 0.95rem;
   }
-  
+
   .start-game-btn {
     padding: 0.6rem;
     font-size: 0.85rem;
   }
-  
+
   .queue-items {
     max-height: 350px;
   }
-  
+
   .empty-queue {
     padding: 1.5rem 0.75rem;
   }
-  
+
   .empty-queue h3 {
     font-size: 0.95rem;
   }
-  
+
   .empty-queue p {
     font-size: 0.85rem;
   }
-  
+
   .empty-icon {
     font-size: 1.75rem;
   }

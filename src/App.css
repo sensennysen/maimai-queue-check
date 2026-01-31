@@ -6,51 +6,46 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--theme-border);
   transition: all 0.3s ease;
+  background: linear-gradient(135deg, var(--theme-surface) 0%, var(--theme-background) 100%);
 }
 
-/* Light theme gradient */
+/* Light theme special header style */
 [data-theme="light"] .app-header {
-  background: linear-gradient(135deg, #FF4FB7 0%, #31E0E7 100%);
+  background: linear-gradient(135deg, #FFF0F5 0%, #FFFFFF 50%, #E0F7FA 100%);
+  /* Soft Pink to White to Light Cyan */
+  border-bottom: 3px solid var(--theme-primary);
 }
 
-/* Dark theme gradient */
+/* Dark theme special header style */
 [data-theme="dark"] .app-header {
-  background: linear-gradient(135deg, #31E0E7 0%, #FF4FB7 100%);
+  background: linear-gradient(135deg, #2D1B4E 0%, #1A0B2E 100%);
+  border-bottom: 3px solid var(--theme-primary);
 }
 
 .app-header:hover {
-  box-shadow: 0 8px 16px rgba(255, 79, 183, 0.2);
+  box-shadow: 0 8px 16px rgba(255, 51, 153, 0.15);
+  /* Maimai pink shadow */
 }
 
-[data-theme="light"] .app-title {
-  color: #2B1C2A !important;
-  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
-}
-
-[data-theme="dark"] .app-title {
-  color: #000000 !important;
-  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.3);
-}
-
+/* App Title styling */
 .app-title {
   font-size: 1.5rem !important;
-  font-weight: 600;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, var(--theme-primary), var(--theme-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
-[data-theme="light"] .app-subtitle {
-  color: #2B1C2A !important;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
-}
-
-[data-theme="dark"] .app-subtitle {
-  color: #000000 !important;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
-}
-
+/* Subtitle styling */
 .app-subtitle {
   font-style: italic;
-  font-family: 'Georgia', 'Times New Roman', serif;
-  font-weight: 300;
+  font-family: 'Poppins', system-ui, sans-serif !important;
+  font-weight: 400;
+  color: var(--theme-text-muted) !important;
   opacity: 0.9;
 }
 
