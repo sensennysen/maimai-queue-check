@@ -135,7 +135,7 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
     >
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
-          <Text size="sm" c="dimmed">
+          <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
             {branch?.arcade_name}
           </Text>
 
@@ -143,27 +143,41 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
             <Text ta="center" c="dimmed">Loading schedules...</Text>
           ) : (
             <Paper p="md" withBorder className="schedule-container">
-              <Stack gap="sm">
+              <Stack gap="xs">
+                {/* Column Headers */}
+                <Group grow align="flex-end" style={{ paddingBottom: '0.5rem', borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
+                  <Text size="sm" fw={600} style={{ minWidth: '100px' }}>
+                    Day
+                  </Text>
+                  <Text size="sm" fw={600} ta="center">
+                    Opening Time
+                  </Text>
+                  <Text size="sm" fw={600} ta="center">
+                    Closing Time
+                  </Text>
+                </Group>
+
+                {/* Schedule Rows */}
                 {schedules.map((schedule, index) => (
-                  <Group key={schedule.day} grow align="flex-end">
+                  <Group key={schedule.day} grow align="center">
                     <Text size="sm" fw={500} style={{ minWidth: '100px' }}>
                       {schedule.day}
                     </Text>
                     <TextInput
-                      label="Opening Time"
                       type="time"
                       value={schedule.time_open}
                       onChange={(e) => handleScheduleChange(index, 'time_open', e.target.value)}
                       required
                       leftSection={<IconClock size={16} />}
+                      styles={{ input: { textAlign: 'center' } }}
                     />
                     <TextInput
-                      label="Closing Time"
                       type="time"
                       value={schedule.time_close}
                       onChange={(e) => handleScheduleChange(index, 'time_close', e.target.value)}
                       required
                       leftSection={<IconClock size={16} />}
+                      styles={{ input: { textAlign: 'center' } }}
                     />
                   </Group>
                 ))}
