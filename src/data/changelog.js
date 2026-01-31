@@ -6,7 +6,7 @@ export const changelogData = [
       {
         type: 'maintenance',
         title: 'Code Cleanup & Optimization',
-        description: 'Wala sobrang tinamad ako magcode nung start nitong project so need ko ayusin. Para madali na rin imaintain.',
+        footnote: 'Wala sobrang tinamad ako magcode nung start nitong project so need ko ayusin. Para madali na rin imaintain.',
       },
       {
         type: 'security',
@@ -17,7 +17,7 @@ export const changelogData = [
         type: 'feature',
         title: 'Branch Selection',
         description: 'Added the ability for users to select specific branches/locations for queue viewing.',
-        footnote: 'Currently, we have 2 branches but we will soon add more as I connect to communities and continue to develop it to handle branches that have multiple cabinets.',
+        footnote: 'No multiple cabinets feature as of now, but I\'m working on it!',
       },
       {
         type: 'feature',
