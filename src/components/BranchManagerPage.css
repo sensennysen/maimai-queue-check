@@ -1,0 +1,21 @@
+/* Styling for Branch Manager Page */
+
+.branch-manager-page {
+  min-height: 100vh;
+}
+
+/* Schedule collapse styling */
+.schedule-collapse-content {
+  background-color: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme='dark'] .schedule-collapse-content {
+  background-color: var(--mantine-color-dark-6);
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  .branch-manager-table {
+    font-size: 0.875rem;
+  }
+}

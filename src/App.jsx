@@ -14,13 +14,13 @@ import LoginForm from './components/LoginForm';
 import ThemeToggle from './components/ThemeToggle';
 import BranchSelector from './components/BranchSelector';
 import Footer from './components/Footer';
-import BranchManager from './components/BranchManager';
+import BranchManagerPage from './components/BranchManagerPage';
 import './App.css';
 
 // Mantine theme configuration that syncs with our CSS variables
 function AppContent() {
   const { isDark } = useTheme();
-  const [branchManagerOpen, setBranchManagerOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState('queue'); // 'queue' or 'branch-manager'
 
   // Random subtitle selection - using weighted chances
   // eslint-disable-next-line
@@ -44,46 +44,49 @@ function AppContent() {
     <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
       <Notifications position="top-right" />
       <div className="App">
-        <Container size="lg" py="xl">
-          <Stack gap="lg">
-            <Paper p="md" radius="md" withBorder className="app-header">
-              <Group justify="space-between" align="center" gap="md" wrap="wrap">
-                <Group gap="md">
-                  <Title order={1} className="app-title">
-                    maimai Queue Check
-                  </Title>
+        {currentPage === 'queue' ? (
+          <Container size="lg" py="xl">
+            <Stack gap="lg">
+              <Paper p="md" radius="md" withBorder className="app-header">
+                <Group justify="space-between" align="center" gap="md" wrap="wrap">
+                  <Group gap="md">
+                    <Title order={1} className="app-title">
+                      maimai Queue Check
+                    </Title>
+                  </Group>
+                  {/* <Text
+                    size="lg"
+                    className="app-subtitle"
+                    style={{
+                      color: getSubtitleColor(randomSubtitle.weight),
+                      fontWeight: randomSubtitle.weight <= 2 ? 700 : 400,
+                      textShadow: randomSubtitle.weight <= 2 ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none'
+                    }}
+                  >
+                    {randomSubtitle.text}
+                  </Text> */}
                 </Group>
-                {/* <Text
-                  size="lg"
-                  className="app-subtitle"
-                  style={{
-                    color: getSubtitleColor(randomSubtitle.weight),
-                    fontWeight: randomSubtitle.weight <= 2 ? 700 : 400,
-                    textShadow: randomSubtitle.weight <= 2 ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none'
-                  }}
-                >
-                  {randomSubtitle.text}
-                </Text> */}
+              </Paper>
+
+              <Group justify="space-between" gap="sm">
+                <BranchSelector />
+                <Group gap="sm">
+                  <ThemeToggle />
+                  <LoginForm onOpenAdminPanel={() => setCurrentPage('branch-manager')} />
+                </Group>
               </Group>
-            </Paper>
 
-            <Group justify="space-between" gap="sm">
-              <BranchSelector />
-              <Group gap="sm">
-                <ThemeToggle />
-                <LoginForm onOpenAdminPanel={() => setBranchManagerOpen(true)} />
-              </Group>
-            </Group>
+              <main>
+                <QueueManager />
+              </main>
 
-            <main>
-              <QueueManager />
-            </main>
-
-            <Footer />
-          </Stack>
-        </Container>
+              <Footer />
+            </Stack>
+          </Container>
+        ) : (
+          <BranchManagerPage onBack={() => setCurrentPage('queue')} />
+        )}
       </div>
-      <BranchManager opened={branchManagerOpen} onClose={() => setBranchManagerOpen(false)} />
       <Analytics />
     </MantineProvider>
   );

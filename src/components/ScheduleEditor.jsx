@@ -83,12 +83,15 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
         return;
       }
 
-      // Validate time format (HH:MM)
+      // Validate time format (HH:MM or H:MM) - HTML time inputs can return either
       const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-      if (!timeRegex.test(schedule.time_open) || !timeRegex.test(schedule.time_close)) {
+      const openTime = schedule.time_open.trim();
+      const closeTime = schedule.time_close.trim();
+
+      if (!timeRegex.test(openTime) || !timeRegex.test(closeTime)) {
         notifications.show({
           title: 'Validation Error',
-          message: `Invalid time format for ${schedule.day}. Use HH:MM format`,
+          message: `Invalid time format for ${schedule.day}. Expected HH:MM format, got open: "${openTime}", close: "${closeTime}"`,
           color: 'red',
         });
         return;
@@ -105,7 +108,7 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
         color: 'green',
       });
 
-      onClose();
+      onClose(true); // Pass true to indicate refresh needed
     } catch (error) {
       notifications.show({
         title: 'Error',
