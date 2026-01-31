@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, LoadingOverlay, Alert, Loader, Modal, Skeleton } from '@mantine/core';
-import { IconPlayerStop, IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconMapPin } from '@tabler/icons-react';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, Alert, Loader, Modal, Skeleton } from '@mantine/core';
+import { IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconMapPin } from '@tabler/icons-react';
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
-import PlayTimer from './PlayTimer';
+import LocationPermissionModal from './LocationPermissionModal';
+import NowPlayingCard from './NowPlayingCard';
 import { useQueueManager } from '../hooks/useQueueManager';
 import { useMallSchedule } from '../hooks/useMallSchedule';
 import { useBranch } from '../hooks/useBranch';
@@ -15,13 +16,12 @@ import './QueueManager.css';
 function QueueManager() {
   const { selectedBranch } = useBranch();
 
-  // Phase 1: Load queue/session data
+  // Queue data and actions
   const {
     queue,
     nowPlaying,
     loading: queueLoading,
     error,
-    // isConnected removed
     isMutating,
     locationVerified,
     locationError,
@@ -39,17 +39,17 @@ function QueueManager() {
     startNextGame
   } = useQueueManager();
 
-  // Phase 2: Load actions/roles after queue loads
+  // Auth and roles
   const [actionsLoaded, setActionsLoaded] = useState(false);
   const { user, userRoles, loading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!queueLoading && !authLoading) {
-      // Avoid React warning by deferring setState
       setTimeout(() => setActionsLoaded(true), 0);
     }
   }, [queueLoading, authLoading]);
 
+  // UI state
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
@@ -57,6 +57,7 @@ function QueueManager() {
     closedMessages[Math.floor(Math.random() * closedMessages.length)]
   );
 
+  // Derived permissions
   const canEdit = userRoles?.can_edit;
   const isAdmin = userRoles?.is_admin;
   const canActuallyEdit = isAdmin || (canEdit && locationVerified);
@@ -67,7 +68,6 @@ function QueueManager() {
 
   useEffect(() => {
     if (previousMallStateRef.current && !isMallOpen) {
-      // Avoid React warning by deferring setState
       setTimeout(() => setClosedMessage(closedMessages[Math.floor(Math.random() * closedMessages.length)]), 0);
     }
     previousMallStateRef.current = isMallOpen;
@@ -85,7 +85,7 @@ function QueueManager() {
     });
   }, [user, canEdit, isAdmin, needsLocationPermission, locationCheckInProgress]);
 
-  // Add new queue entry
+  // Action handlers
   const addQueueEntry = async (player1, player2) => {
     try {
       await addEntry(player1, player2);
@@ -95,7 +95,6 @@ function QueueManager() {
     }
   };
 
-  // Update existing queue entry
   const updateQueueEntry = async (id, player1, player2) => {
     try {
       await updateEntry(id, player1, player2);
@@ -106,7 +105,6 @@ function QueueManager() {
     }
   };
 
-  // Clear entire queue
   const clearQueue = async () => {
     if (queue.length > 0 && window.confirm('Are you sure you want to clear the entire queue?')) {
       try {
@@ -118,19 +116,16 @@ function QueueManager() {
     }
   };
 
-  // Start editing
   const startEdit = (id) => {
     setEditingId(id);
     setShowForm(true);
   };
 
-  // Cancel editing
   const cancelEdit = () => {
     setEditingId(null);
     setShowForm(false);
   };
 
-  // Finish current game
   const finishGame = async () => {
     try {
       await endGame();
@@ -139,7 +134,6 @@ function QueueManager() {
     }
   };
 
-  // Start game from queue
   const startGame = async () => {
     try {
       await startNextGame();
@@ -148,20 +142,13 @@ function QueueManager() {
     }
   };
 
-  // Request location permission
   const handleRequestLocation = async () => {
-    // Don't close modal, let it stay open during verification
     if (verifyLocation) {
       await verifyLocation();
-      // Modal will automatically close via useEffect when locationVerified becomes true
     }
   };
 
-
-  // Only block everything if queue or schedule is loading
   const [loadingMessage] = useState(() => loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
-
-  // NOTE: Blocking loader removed in favor of granular skeletons below
 
   return (
     <Stack
@@ -175,39 +162,15 @@ function QueueManager() {
         }
       }}
     >
-      <Modal
+      {/* Location Permission Modal */}
+      <LocationPermissionModal
         opened={showLocationModal}
         onClose={() => setShowLocationModal(false)}
-        title="Location Permission Required"
-        centered
-      >
-        <Stack gap="md">
-          <Group justify="center">
-            <IconMapPin size={48} color="var(--mantine-color-blue-6)" />
-          </Group>
-          <Text size="sm" ta="center">
-            To enable editing the queue, we need to verify your location.
-          </Text>
-          <Text size="xs" c="dimmed" ta="center">
-            You must be within 100 meters of the arcade to edit the queue.
-          </Text>
-          <Group justify="center" mt="md">
-            <Button
-              leftSection={<IconMapPin size={16} />}
-              onClick={handleRequestLocation}
-              loading={locationCheckInProgress}
-            >
-              Enable Location Services
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowLocationModal(false)}
-            >
-              Not Now
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+        onRequestLocation={handleRequestLocation}
+        loading={locationCheckInProgress}
+      />
+
+      {/* Busy overlay */}
       {isMutating && (
         <Box className="busy-overlay-message">
           <Loader size="sm" mr={8} />
@@ -215,6 +178,7 @@ function QueueManager() {
         </Box>
       )}
 
+      {/* Error alert */}
       {error && (
         <Alert
           icon={<IconAlertCircle size={16} />}
@@ -226,6 +190,7 @@ function QueueManager() {
         </Alert>
       )}
 
+      {/* Location verification failed alert */}
       {user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification && (
         <Alert
           icon={<IconMapPin size={16} />}
@@ -233,7 +198,7 @@ function QueueManager() {
           color="orange"
           variant="light"
           withCloseButton
-          onClose={() => {/* User can dismiss but still won't be able to edit */ }}
+          onClose={() => { }}
         >
           <Text size="sm" mb="xs">{locationError}</Text>
           <Button
@@ -248,12 +213,12 @@ function QueueManager() {
         </Alert>
       )}
 
+      {/* Info alert */}
       <Alert icon={<IconAlertTriangle size={16} />} color="blue" variant="light">
         Info here might not reflect the actual queue in the branch
       </Alert>
 
-
-      {/* Add Queue Form Modal */}
+      {/* Add/Edit Queue Form Modal */}
       <Modal
         opened={user && !scheduleLoading && isMallOpen && (showForm || editingId)}
         onClose={cancelEdit}
@@ -272,6 +237,7 @@ function QueueManager() {
         />
       </Modal>
 
+      {/* Header with credits and actions */}
       <div>
         {queueLoading || scheduleLoading ? (
           <Group justify="space-between" align="center">
@@ -312,47 +278,22 @@ function QueueManager() {
         )}
       </div>
 
+      {/* Now Playing Section */}
       {queueLoading || scheduleLoading ? (
         <Skeleton height={120} radius="md" />
       ) : (
-        isMallOpen && nowPlaying && (
-          <div className="now-playing">
-            <div className="now-playing-header">
-              <h3>Now Playing</h3>
-              <PlayTimer startTime={nowPlaying.started_at} />
-            </div>
-            <div className="current-players">
-              <div className="player-display">
-                {nowPlaying.player1 && nowPlaying.player1.trim() && (
-                  <div className={`playing-player player-1 ${(!nowPlaying.player2 || !nowPlaying.player2.trim()) ? 'player-solo' : ''}`}>
-                    <span className="player-side-indicator player-side-1">P1</span>
-                    <span className="player-name">{nowPlaying.player1}</span>
-                  </div>
-                )}
-
-                {nowPlaying.player2 && nowPlaying.player2.trim() && (
-                  <div className={`playing-player player-2 ${(!nowPlaying.player1 || !nowPlaying.player1.trim()) ? 'player-solo' : ''}`}>
-                    <span className="player-side-indicator player-side-2">P2</span>
-                    <span className="player-name">{nowPlaying.player2}</span>
-                  </div>
-                )}
-              </div>
-
-              {user && canActuallyEdit && (
-                <button
-                  className="finish-game-btn"
-                  onClick={finishGame}
-                  disabled={isMutating}
-                >
-                  <IconPlayerStop size={16} />
-                  Finish Game
-                </button>
-              )}
-            </div>
-          </div>
+        isMallOpen && (
+          <NowPlayingCard
+            nowPlaying={nowPlaying}
+            canActuallyEdit={canActuallyEdit}
+            isBusy={isMutating}
+            onFinishGame={finishGame}
+            isLoggedIn={!!user}
+          />
         )
       )}
 
+      {/* Closed message */}
       {!scheduleLoading && !isMallOpen && (
         <Paper p="xl" withBorder>
           <Flex align="center" justify="center" style={{ height: 200 }}>
@@ -361,6 +302,7 @@ function QueueManager() {
         </Paper>
       )}
 
+      {/* Queue List */}
       {queueLoading || scheduleLoading ? (
         <Stack>
           <Skeleton height={60} radius="md" />
