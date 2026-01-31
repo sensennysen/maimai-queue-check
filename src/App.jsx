@@ -44,14 +44,16 @@ function AppContent() {
     <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
       <Notifications position="top-right" />
       <div className="App">
-        <Container size="lg" py="xl">
-          <Stack gap="lg">
-            <Paper p="md" radius="md" withBorder className="app-header">
-              <Group justify="space-between" align="center" gap="md" wrap="wrap">
-                <Group gap="md">
-                  <Title order={1} className="app-title">
-                    maiPaQueueCheck.ph
-                  </Title>
+        {currentPage === 'queue' ? (
+          <Container size="lg" py="xl">
+            <Stack gap="lg">
+              <Paper p="md" radius="md" withBorder className="app-header">
+                <Group justify="space-between" align="center" gap="md" wrap="wrap">
+                  <Group gap="md">
+                    <Title order={1} className="app-title">
+                      maiPaQueueCheck.ph
+                    </Title>
+                  </Group>
                 </Group>
               </Paper>
 
