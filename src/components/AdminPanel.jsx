@@ -11,7 +11,6 @@ import {
   Divider,
   Paper,
   Checkbox,
-  TimeInput,
 } from '@mantine/core';
 import { IconMapPin, IconBuildingStore, IconClock } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
@@ -329,15 +328,17 @@ const AdminPanel = ({ opened, onClose }) => {
                       <Text size="sm" fw={500} style={{ minWidth: '100px' }}>
                         {schedule.day}
                       </Text>
-                      <TimeInput
+                      <TextInput
                         label="Opening Time"
+                        type="time"
                         value={schedule.time_open}
                         onChange={(e) => handleScheduleChange(index, 'time_open', e.target.value)}
                         required
                         leftSection={<IconClock size={16} />}
                       />
-                      <TimeInput
+                      <TextInput
                         label="Closing Time"
+                        type="time"
                         value={schedule.time_close}
                         onChange={(e) => handleScheduleChange(index, 'time_close', e.target.value)}
                         required
