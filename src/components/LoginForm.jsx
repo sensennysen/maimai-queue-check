@@ -1,11 +1,11 @@
 import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider } from '@mantine/core';
-import { IconBrandGoogle, IconLogout, IconUser, IconLogin } from '@tabler/icons-react';
+import { IconBrandGoogle, IconLogout, IconUser, IconLogin, IconBuildingStore } from '@tabler/icons-react';
 import { useAuth } from '../hooks/useAuth';
 // notifications removed: toasts suppressed per UX change
 import './LoginForm.css';
 
-const LoginForm = () => {
-  const { user, loading, signInWithProvider, signOut } = useAuth();
+const LoginForm = ({ onOpenAdminPanel }) => {
+  const { user, loading, signInWithProvider, signOut, userRoles } = useAuth();
 
   const handleSocialLogin = async (provider) => {
     try {
@@ -59,6 +59,17 @@ const LoginForm = () => {
             </Stack>
           </Menu.Label>
           <Divider />
+          {userRoles?.is_admin && (
+            <>
+              <Menu.Item
+                leftSection={<IconBuildingStore size={16} />}
+                onClick={onOpenAdminPanel}
+              >
+                Add a branch
+              </Menu.Item>
+              <Divider />
+            </>
+          )}
           <Menu.Item
             leftSection={<IconLogout size={16} />}
             onClick={handleLogout}

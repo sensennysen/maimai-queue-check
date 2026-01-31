@@ -363,3 +363,72 @@ export const scheduleService = {
     return data || [];
   }
 };
+
+// Admin service functions
+export const adminService = {
+  // Create a new branch in allowed_places
+  async createBranch(branchData) {
+    const { data, error } = await supabase
+      .from('allowed_places')
+      .insert([{
+        arcade_name: branchData.arcade_name,
+        longitude: branchData.longitude,
+        latitude: branchData.latitude,
+        cab_count: branchData.cab_count,
+        enabled: branchData.enabled ?? true
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Create mall schedules for a branch (bulk insert)
+  async createMallSchedules(schedules) {
+    const { data, error } = await supabase
+      .from('mall_schedule')
+      .insert(schedules)
+      .select();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Update an existing branch
+  async updateBranch(branchId, updates) {
+    const { data, error } = await supabase
+      .from('allowed_places')
+      .update(updates)
+      .eq('id', branchId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Get branch with its schedules
+  async getBranchWithSchedules(branchId) {
+    const { data: branch, error: branchError } = await supabase
+      .from('allowed_places')
+      .select('*')
+      .eq('id', branchId)
+      .single();
+
+    if (branchError) throw branchError;
+
+    const { data: schedules, error: scheduleError } = await supabase
+      .from('mall_schedule')
+      .select('*')
+      .eq('branch_id', branchId)
+      .order('id', { ascending: true });
+
+    if (scheduleError) throw scheduleError;
+
+    return {
+      branch,
+      schedules: schedules || []
+    };
+  }
+};
