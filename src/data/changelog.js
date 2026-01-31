@@ -1,29 +1,32 @@
 export const changelogData = [
   {
-    version: 'v0.0.7',
-    date: 'January 30, 2026',
+    version: 'v1.0.0',
+    date: 'February 1, 2026',
     changes: [
       {
-        type: 'maintenance',
-        title: 'Code Cleanup & Optimization',
-        footnote: 'Wala sobrang tinamad ako magcode nung start nitong project so need ko ayusin. Para madali na rin imaintain.',
-      },
-      {
-        type: 'security',
-        title: 'Security Patches',
-        description: 'Implemented security and privacy patches across the system.',
+        type: 'feature',
+        title: 'Queue Management',
+        description: 'Add, update, reorder, remove an entry, and clear the entire queue with real-time live updates across all connected clients.',
       },
       {
         type: 'feature',
-        title: 'Branch Selection',
-        description: 'Added the ability for users to select specific branches/locations for queue viewing.',
-        footnote: 'If you want your branch to be added, please let me know! No multiple cabinets feature as of now, but I\'m working on it!',
+        title: 'Google Authentication',
+        description: 'Added authentication to control access and manage who can modify the queue.',
       },
       {
         type: 'feature',
-        title: 'Flavor Texts',
-        description: 'Added flavor texts to some parts of the app.',
-        footnote: 'If you have any suggestions for flavor texts, feel free to message me on Discord!'
+        title: 'Geolocation Support',
+        description: 'Location-based queue access restriction, allowing users to join the queue only when within approximately 100 meters of the physical location.',
+      },
+      {
+        type: 'feature',
+        title: 'Branch Manager',
+        description: 'Administrative interface for supporting different branches, with the ability to add, edit, and configure locations (including the schedule).',
+      },
+      {
+        type: 'feature',
+        title: 'Multi-Cabinet Support',
+        description: 'Support for arcades with multiple cabinets, allowing separate queue management for each cabinet.',
       },
     ]
   }
