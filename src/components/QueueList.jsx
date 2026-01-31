@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { emptyQueueMessages } from '../data/subtitleMessages';
 import './QueueList.css';
 
-const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, locationVerified, loadingRoles = false }) {
+const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, locationVerified, loadingRoles = false, cabinetNum = null, hasMultipleCabinets = false }) {
   const { user, userRoles } = useAuth();
 
   // Lazy initialization - the function is only called once on mount, not during render
@@ -16,10 +16,14 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
   const isAdmin = userRoles?.is_admin;
   const canEdit = userRoles?.can_edit;
   const canActuallyEdit = isAdmin || (canEdit && locationVerified);
+
+  // Determine header title based on cabinet
+  const queueTitle = hasMultipleCabinets && cabinetNum ? `Current Queue - Cabinet ${cabinetNum}` : 'Current Queue';
+
   return (
     <Paper withBorder>
       <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--theme-border)', alignItems: 'center', minHeight: 48 }}>
-        <Title order={3} style={{ margin: 0 }}>Current Queue</Title>
+        <Title order={3} style={{ margin: 0 }}>{queueTitle}</Title>
         {!user && (
           <span className="sign-in-message">
             <span className="sign-in-desktop">

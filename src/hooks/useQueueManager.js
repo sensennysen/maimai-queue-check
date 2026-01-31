@@ -2,12 +2,21 @@ import { supabase } from '../services/supabase';
 import { useQueueData } from './useQueueData';
 import { useQueueActions } from './useQueueActions';
 import { useLocationVerification } from './useLocationVerification';
+import { useCabinetManager } from './useCabinetManager';
 
 /**
  * Main queue manager hook - composes smaller hooks for queue functionality
  * Maintains backwards compatibility with existing API
  */
 export const useQueueManager = () => {
+  // Cabinet management
+  const {
+    selectedCabinet,
+    setSelectedCabinet,
+    cabinetCount,
+    hasMultipleCabinets
+  } = useCabinetManager();
+
   // Data layer: fetching, subscriptions, state
   const {
     queue,
@@ -20,7 +29,7 @@ export const useQueueManager = () => {
     setError,
     getNextOrder,
     refreshData
-  } = useQueueData();
+  } = useQueueData(selectedCabinet);
 
   // Location verification
   const {
@@ -50,7 +59,8 @@ export const useQueueManager = () => {
     locationVerified,
     locationError,
     refreshData,
-    getNextOrder
+    getNextOrder,
+    selectedCabinet
   });
 
   // Test real-time connection
@@ -93,6 +103,12 @@ export const useQueueManager = () => {
     locationCheckInProgress,
     hasAttemptedVerification,
     needsLocationPermission,
+    
+    // Cabinet state
+    selectedCabinet,
+    setSelectedCabinet,
+    cabinetCount,
+    hasMultipleCabinets,
     
     // Actions
     addQueueEntry,

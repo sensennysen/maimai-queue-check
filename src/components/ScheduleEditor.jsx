@@ -37,10 +37,21 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
 
         if (existingSchedules && existingSchedules.length > 0) {
           // Map existing schedules to our format
+          // Convert HH:MM:SS to HH:MM if needed
+          const convertTime = (time) => {
+            if (!time) return '10:00';
+            // If time is in HH:MM:SS format, strip the seconds
+            return time.length > 5 ? time.substring(0, 5) : time;
+          };
+
           const mappedSchedules = DAYS_OF_WEEK.map(day => {
             const existing = existingSchedules.find(s => s.day === day);
             return existing
-              ? { day, time_open: existing.time_open, time_close: existing.time_close }
+              ? {
+                day,
+                time_open: convertTime(existing.time_open),
+                time_close: convertTime(existing.time_close)
+              }
               : { day, time_open: '10:00', time_close: '22:00' };
           });
           setSchedules(mappedSchedules);

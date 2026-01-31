@@ -5,9 +5,10 @@ import { QUEUE_STATUS } from '../constants/queue';
 
 /**
  * Hook for managing queue data fetching and real-time subscriptions
+ * @param {number} selectedCabinet - Currently selected cabinet number
  * @returns {Object} Queue data state and refresh function
  */
-export const useQueueData = () => {
+export const useQueueData = (selectedCabinet = 1) => {
   const { selectedBranch } = useBranch();
   const [queue, setQueue] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +27,7 @@ export const useQueueData = () => {
 
     try {
       setLoading(true);
-      const queueData = await queueService.getQueueEntries(selectedBranch.id);
+      const queueData = await queueService.getQueueEntries(selectedBranch.id, selectedCabinet);
       setQueue(queueData);
       setError(null);
     } catch (err) {
@@ -34,7 +35,7 @@ export const useQueueData = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedBranch?.id]);
+  }, [selectedBranch?.id, selectedCabinet]);
 
   // Load initial data when branch changes
   useEffect(() => {
@@ -57,8 +58,13 @@ export const useQueueData = () => {
         (newRow && newRow.branch_id === selectedBranch.id) ||
         (oldRow && oldRow.branch_id === selectedBranch.id);
       
-      if (isRelevantBranch) {
-        queueService.getQueueEntries(selectedBranch.id)
+      // Check if this change is relevant to the selected cabinet
+      const isRelevantCabinet =
+        (newRow && newRow.cabinet_num === selectedCabinet) ||
+        (oldRow && oldRow.cabinet_num === selectedCabinet);
+      
+      if (isRelevantBranch && isRelevantCabinet) {
+        queueService.getQueueEntries(selectedBranch.id, selectedCabinet)
           .then(data => setQueue(data))
           .catch(() => {});
       }
@@ -79,7 +85,7 @@ export const useQueueData = () => {
       }
       setIsConnected(false);
     };
-  }, [selectedBranch?.id]);
+  }, [selectedBranch?.id, selectedCabinet]);
 
   // Generate next order number
   const getNextOrder = useCallback(() => {
