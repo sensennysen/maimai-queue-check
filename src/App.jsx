@@ -7,7 +7,6 @@ import { Analytics } from '@vercel/analytics/react';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';
-import { subtitleMessages } from './data/subtitleMessages';
 import { theme as mantineTheme } from './config/theme';
 import QueueManager from './components/QueueManager';
 import LoginForm from './components/LoginForm';
@@ -22,24 +21,6 @@ function AppContent() {
   const { isDark } = useTheme();
   const [currentPage, setCurrentPage] = useState('queue'); // 'queue' or 'branch-manager'
 
-  // Random subtitle selection - using weighted chances
-  // eslint-disable-next-line
-  const [randomSubtitle] = useState(() => {
-    const totalWeight = subtitleMessages.reduce((sum, msg) => sum + msg.weight, 0);
-    let random = Math.random() * totalWeight;
-
-    for (const msg of subtitleMessages) {
-      if (random < msg.weight) {
-        return { text: msg.text };
-      }
-      random -= msg.weight;
-    }
-
-    // Fallback
-    const firstMsg = subtitleMessages[0];
-    return { text: firstMsg.text };
-  });
-
   return (
     <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
       <Notifications position="top-right" />
@@ -51,7 +32,7 @@ function AppContent() {
                 <Group justify="space-between" align="center" gap="md" wrap="wrap">
                   <Group gap="md">
                     <Title order={1} className="app-title">
-                      maiPaQueueCheck.ph
+                      maiPaQueueCheck PH
                     </Title>
                   </Group>
                 </Group>
