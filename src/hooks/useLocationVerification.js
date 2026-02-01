@@ -105,10 +105,8 @@ export const useLocationVerification = () => {
         setGeolocationConsent('granted');
         return;
       } else if (permissionState === 'denied') {
-        // Browser previously denied
-        setGeolocationConsent('denied');
-        setLocationError('Location permission was previously denied. Please enable it in your browser settings.');
-        setHasAttemptedVerification(true);
+        // Browser previously denied - show modal anyway so user knows location is needed
+        setShowConsentModal(true);
         return;
       }
 
@@ -183,6 +181,14 @@ export const useLocationVerification = () => {
     setHasAttemptedVerification(true);
   }, []);
 
+  // Reset consent to allow user to try again
+  const resetGeolocationConsent = useCallback(() => {
+    setGeolocationConsent(null);
+    setLocationError(null);
+    setHasAttemptedVerification(false);
+    setShowConsentModal(true);
+  }, []);
+
   return {
     locationVerified,
     locationError,
@@ -195,6 +201,7 @@ export const useLocationVerification = () => {
     geolocationConsent,
     requestGeolocationConsent,
     handleConsentAccepted,
-    handleConsentDeclined
+    handleConsentDeclined,
+    resetGeolocationConsent
   };
 };

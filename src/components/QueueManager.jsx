@@ -32,6 +32,7 @@ function QueueManager() {
     geolocationConsent,
     handleConsentAccepted,
     handleConsentDeclined,
+    resetGeolocationConsent,
     verifyLocation,
     addQueueEntry: addEntry,
     updateQueueEntry: updateEntry,
@@ -192,7 +193,16 @@ function QueueManager() {
           onClose={() => { }}
         >
           <Text size="sm" mb="xs">{locationError}</Text>
-          {geolocationConsent !== 'denied' && (
+          {geolocationConsent === 'denied' ? (
+            <Button
+              size="xs"
+              variant="light"
+              leftSection={<IconMapPin size={14} />}
+              onClick={resetGeolocationConsent}
+            >
+              Enable Location
+            </Button>
+          ) : (
             <Button
               size="xs"
               variant="light"
