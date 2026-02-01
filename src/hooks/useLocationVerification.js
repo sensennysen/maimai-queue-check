@@ -1,12 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { useBranch } from './useBranch';
-import { verifyUserLocationAndPermissions, requestUserLocation, findNearestBranch } from '../services/geolocation';
+import { verifyUserLocationAndPermissions, checkGeolocationPermission, requestUserLocation, findNearestBranch } from '../services/geolocation';
 import { ERRORS } from '../constants/queue';
 
 /**
  * Hook for managing location verification state and geolocation consent flow
- * Consent is NOT persisted - modal appears on every page load for users with edit permissions
+ * If browser already has location permission granted, skips the modal
  */
 export const useLocationVerification = () => {
   const { user, userRoles } = useAuth();
@@ -18,50 +18,9 @@ export const useLocationVerification = () => {
   const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
   const [needsLocationPermission, setNeedsLocationPermission] = useState(false);
   
-  // Consent flow state - NOT persisted to localStorage
+  // Consent flow state
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [geolocationConsent, setGeolocationConsent] = useState(null);
-
-  // Check if we should show the consent modal
-  // This effect triggers when user logs in or when userRoles become available
-  useEffect(() => {
-    const checkAndShowModal = () => {
-      // Must be logged in
-      if (!user) {
-        return;
-      }
-
-      // Must have userRoles loaded
-      if (userRoles === null || userRoles === undefined) {
-        return;
-      }
-
-      // Admins don't need location consent - they bypass location checks
-      if (userRoles.is_admin) {
-        return;
-      }
-
-      // Must have edit permissions to need geolocation
-      if (!userRoles.can_edit) {
-        return;
-      }
-
-      // Don't show if currently checking location
-      if (locationCheckInProgress) {
-        return;
-      }
-
-      // If user has already made a consent decision this session, don't show modal again
-      if (geolocationConsent === 'granted' || geolocationConsent === 'denied') {
-        return;
-      }
-
-      // Show the consent modal
-      setShowConsentModal(true);
-    };
-
-    checkAndShowModal();
-  }, [user, userRoles, geolocationConsent, locationCheckInProgress]);
 
   // Function to verify user location and permissions
   const verifyLocation = useCallback(async () => {
@@ -105,6 +64,70 @@ export const useLocationVerification = () => {
     }
   }, [user, selectedBranch?.id, userRoles?.is_admin]);
 
+  // Check if we should show the consent modal
+  useEffect(() => {
+    const checkAndShowModal = async () => {
+      // Must be logged in
+      if (!user) {
+        return;
+      }
+
+      // Must have userRoles loaded
+      if (userRoles === null || userRoles === undefined) {
+        return;
+      }
+
+      // Admins don't need location consent - they bypass location checks
+      if (userRoles.is_admin) {
+        return;
+      }
+
+      // Must have edit permissions to need geolocation
+      if (!userRoles.can_edit) {
+        return;
+      }
+
+      // Don't show if currently checking location
+      if (locationCheckInProgress) {
+        return;
+      }
+
+      // If user has already made a consent decision this session, don't show modal again
+      if (geolocationConsent === 'granted' || geolocationConsent === 'denied') {
+        return;
+      }
+
+      // Check browser's existing permission state
+      const permissionState = await checkGeolocationPermission();
+      
+      if (permissionState === 'granted') {
+        // Browser already has permission granted - skip modal and auto-verify
+        setGeolocationConsent('granted');
+        return;
+      } else if (permissionState === 'denied') {
+        // Browser previously denied
+        setGeolocationConsent('denied');
+        setLocationError('Location permission was previously denied. Please enable it in your browser settings.');
+        setHasAttemptedVerification(true);
+        return;
+      }
+
+      // Permission is 'prompt' - show our consent modal
+      setShowConsentModal(true);
+    };
+
+    checkAndShowModal();
+  }, [user, userRoles, geolocationConsent, locationCheckInProgress]);
+
+  // Auto-verify when consent is granted (either from modal or auto-detected)
+  useEffect(() => {
+    if (user && geolocationConsent === 'granted' && !hasAttemptedVerification && !locationCheckInProgress) {
+      if (userRoles?.can_edit) {
+        verifyLocation();
+      }
+    }
+  }, [user, userRoles?.can_edit, geolocationConsent, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
+
   // Request user to provide geolocation consent (shows modal)
   const requestGeolocationConsent = useCallback(() => {
     if (!user || geolocationConsent === 'granted' || geolocationConsent === 'denied') {
@@ -123,7 +146,7 @@ export const useLocationVerification = () => {
       // Request location from browser
       const location = await requestUserLocation();
       
-      // Success - mark as granted (session only)
+      // Success - mark as granted
       setGeolocationConsent('granted');
       
       // Try to find nearest branch and auto-select it
