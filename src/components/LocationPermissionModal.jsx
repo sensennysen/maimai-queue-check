@@ -31,11 +31,11 @@ function LocationPermissionModal({ opened, onClose, onRequestLocation, onDecline
       closeOnEscape={!loading}
     >
       <Stack gap="md">
-        <Group justify="center">
+        <Group justify="center" style={{ marginTop: '1rem' }}>
           <IconMapPin size={48} color="var(--mantine-color-blue-6)" />
         </Group>
 
-        <Text size="sm" ta="center" fw={500}>
+        <Text size="sm" fw={500}>
           Turn on location to enjoy these features:
         </Text>
 
