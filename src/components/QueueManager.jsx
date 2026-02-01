@@ -4,6 +4,7 @@ import { IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconMapPin } f
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
 import LocationPermissionModal from './LocationPermissionModal';
+import LocationHelpModal from './LocationHelpModal';
 import NowPlayingCard from './NowPlayingCard';
 import { useQueueManager } from '../hooks/useQueueManager';
 import { useMallSchedule } from '../hooks/useMallSchedule';
@@ -32,7 +33,6 @@ function QueueManager() {
     geolocationConsent,
     handleConsentAccepted,
     handleConsentDeclined,
-    resetGeolocationConsent,
     verifyLocation,
     addQueueEntry: addEntry,
     updateQueueEntry: updateEntry,
@@ -61,6 +61,7 @@ function QueueManager() {
   // UI state
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [showLocationHelp, setShowLocationHelp] = useState(false);
   const [closedMessage, setClosedMessage] = useState(() =>
     closedMessages[Math.floor(Math.random() * closedMessages.length)]
   );
@@ -162,6 +163,12 @@ function QueueManager() {
         loading={locationCheckInProgress}
       />
 
+      {/* Location Help Modal - shown when user needs to enable in browser settings */}
+      <LocationHelpModal
+        opened={showLocationHelp}
+        onClose={() => setShowLocationHelp(false)}
+      />
+
       {/* Busy overlay */}
       {isMutating && (
         <Box className="busy-overlay-message">
@@ -198,9 +205,9 @@ function QueueManager() {
               size="xs"
               variant="light"
               leftSection={<IconMapPin size={14} />}
-              onClick={resetGeolocationConsent}
+              onClick={() => setShowLocationHelp(true)}
             >
-              Enable Location
+              How to Enable
             </Button>
           ) : (
             <Button
