@@ -500,5 +500,39 @@ export const adminService = {
 
     if (error) throw error;
     return data;
+  },
+
+  // Get all users for admin management
+  async getAllUsersForAdmin() {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('user_id, email, display_name, can_edit, is_admin, is_super_admin')
+      .order('email', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Update a user's role
+  async updateUserRole(userId, updates) {
+    // Only allow updating specific fields
+    const allowedFields = ['display_name', 'can_edit', 'is_admin'];
+    const sanitizedUpdates = {};
+    
+    for (const key of allowedFields) {
+      if (Object.hasOwn(updates, key)) {
+        sanitizedUpdates[key] = updates[key];
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('user_roles')
+      .update(sanitizedUpdates)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 };
