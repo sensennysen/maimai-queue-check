@@ -240,7 +240,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
         centered
       >
         <Stack gap="md">
-          <Text size="sm" c="dimmed">
+          <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
             Editing: {userToEdit?.email}
           </Text>
 
