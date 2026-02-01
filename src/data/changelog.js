@@ -1,4 +1,6 @@
 export const changelogData = [
+
+  
   {
     version: 'v1.0.0',
     date: 'February 1, 2026',
