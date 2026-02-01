@@ -232,10 +232,10 @@ const BranchManagerPage = ({ onBack }) => {
         <Tabs value={activeTab} onChange={setActiveTab}>
           <Tabs.List>
             <Tabs.Tab value="branches" leftSection={<IconBuildingStore size={16} />}>
-              Branch Manager
+              Branch Management
             </Tabs.Tab>
             <Tabs.Tab value="users" leftSection={<IconUsers size={16} />}>
-              User Manager
+              User Management
             </Tabs.Tab>
           </Tabs.List>
 
