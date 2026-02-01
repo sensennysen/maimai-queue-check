@@ -1,0 +1,17 @@
+/* Styling for User Manager component */
+
+.user-manager-table {
+  min-width: 600px;
+}
+
+/* Empty state styling */
+.empty-state-icon {
+  opacity: 0.3;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  .user-manager-table {
+    font-size: 0.875rem;
+  }
+}

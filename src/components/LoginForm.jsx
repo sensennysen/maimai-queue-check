@@ -65,7 +65,7 @@ const LoginForm = ({ onOpenAdminPanel }) => {
                 leftSection={<IconSettings size={16} />}
                 onClick={onOpenAdminPanel}
               >
-                Branch manager
+                Admin Panel
               </Menu.Item>
               <Divider />
             </>
