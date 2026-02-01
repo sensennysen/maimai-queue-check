@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Stack,
   Button,
@@ -18,6 +18,9 @@ import {
   IconEdit,
   IconCheck,
   IconX,
+  IconSearch,
+  IconSortAscending,
+  IconSortDescending,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { adminService } from '../services/supabase';
@@ -26,6 +29,11 @@ import './UserManager.css';
 const UserManager = ({ isSuperAdmin = false }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Search and sort state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState('email');
+  const [sortDirection, setSortDirection] = useState('asc');
 
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -57,6 +65,63 @@ const UserManager = ({ isSuperAdmin = false }) => {
   useEffect(() => {
     loadUsers();
   }, []);
+
+  // Filter and sort users
+  const filteredAndSortedUsers = useMemo(() => {
+    let result = [...users];
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (user) =>
+          user.email?.toLowerCase().includes(query) ||
+          user.display_name?.toLowerCase().includes(query)
+      );
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      let aVal = a[sortField] ?? '';
+      let bVal = b[sortField] ?? '';
+
+      // Handle boolean fields
+      if (typeof aVal === 'boolean') {
+        aVal = aVal ? 1 : 0;
+        bVal = bVal ? 1 : 0;
+      }
+
+      // Handle string comparison
+      if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase();
+        bVal = bVal.toLowerCase();
+      }
+
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }, [users, searchQuery, sortField, sortDirection]);
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortIcon = ({ field }) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? (
+      <IconSortAscending size={14} />
+    ) : (
+      <IconSortDescending size={14} />
+    );
+  };
 
   const handleEditClick = (user) => {
     setUserToEdit(user);
@@ -170,60 +235,112 @@ const UserManager = ({ isSuperAdmin = false }) => {
             </Center>
           </Paper>
         ) : (
-          <Paper withBorder>
-            <Table.ScrollContainer minWidth={600}>
-              <Table striped highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Email</Table.Th>
-                    <Table.Th>Display Name</Table.Th>
-                    <Table.Th>Can Edit</Table.Th>
-                    {isSuperAdmin && <Table.Th>Is Admin</Table.Th>}
-                    <Table.Th>Actions</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {users.map((user) => (
-                    <Table.Tr key={user.user_id}>
-                      <Table.Td>
-                        <Text size="sm">{user.email}</Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Text size="sm" c={user.display_name ? 'inherit' : 'dimmed'}>
-                          {user.display_name || '-'}
-                        </Text>
-                      </Table.Td>
-                      <Table.Td>
-                        <Checkbox
-                          checked={user.can_edit}
-                          onChange={() => handleToggleCanEdit(user)}
-                        />
-                      </Table.Td>
+          <Stack gap="md">
+            <TextInput
+              placeholder="Search by email or display name..."
+              leftSection={<IconSearch size={16} />}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Paper withBorder>
+              <Table.ScrollContainer minWidth={600}>
+                <Table striped highlightOnHover>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleSort('email')}
+                      >
+                        <Group gap="xs">
+                          Email
+                          <SortIcon field="email" />
+                        </Group>
+                      </Table.Th>
+                      <Table.Th
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleSort('display_name')}
+                      >
+                        <Group gap="xs">
+                          Display Name
+                          <SortIcon field="display_name" />
+                        </Group>
+                      </Table.Th>
+                      <Table.Th
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleSort('can_edit')}
+                      >
+                        <Group gap="xs">
+                          Can Edit
+                          <SortIcon field="can_edit" />
+                        </Group>
+                      </Table.Th>
                       {isSuperAdmin && (
-                        <Table.Td>
-                          <Checkbox
-                            checked={user.is_admin}
-                            onChange={() => handleToggleIsAdmin(user)}
-                            disabled={user.is_super_admin}
-                          />
-                        </Table.Td>
-                      )}
-                      <Table.Td>
-                        <ActionIcon
-                          variant="light"
-                          color="blue"
-                          onClick={() => handleEditClick(user)}
-                          title="Edit User"
+                        <Table.Th
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handleSort('is_admin')}
                         >
-                          <IconEdit size={16} />
-                        </ActionIcon>
-                      </Table.Td>
+                          <Group gap="xs">
+                            Is Admin
+                            <SortIcon field="is_admin" />
+                          </Group>
+                        </Table.Th>
+                      )}
+                      <Table.Th>Actions</Table.Th>
                     </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </Table.ScrollContainer>
-          </Paper>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {filteredAndSortedUsers.length === 0 ? (
+                      <Table.Tr>
+                        <Table.Td colSpan={isSuperAdmin ? 5 : 4}>
+                          <Center py="md">
+                            <Text c="dimmed">No users match your search</Text>
+                          </Center>
+                        </Table.Td>
+                      </Table.Tr>
+                    ) : (
+                      filteredAndSortedUsers.map((user) => (
+                        <Table.Tr key={user.user_id}>
+                          <Table.Td>
+                            <Text size="sm">{user.email}</Text>
+                          </Table.Td>
+                          <Table.Td>
+                            <Text size="sm" c={user.display_name ? 'inherit' : 'dimmed'}>
+                              {user.display_name || '-'}
+                            </Text>
+                          </Table.Td>
+                          <Table.Td>
+                            <Checkbox
+                              checked={user.can_edit}
+                              onChange={() => handleToggleCanEdit(user)}
+                            />
+                          </Table.Td>
+                          {isSuperAdmin && (
+                            <Table.Td>
+                              <Checkbox
+                                checked={user.is_admin}
+                                onChange={() => handleToggleIsAdmin(user)}
+                                disabled={user.is_super_admin}
+                              />
+                            </Table.Td>
+                          )}
+                          <Table.Td>
+                            <ActionIcon
+                              variant="light"
+                              color="blue"
+                              onClick={() => handleEditClick(user)}
+                              title="Edit User"
+                            >
+                              <IconEdit size={16} />
+                            </ActionIcon>
+                          </Table.Td>
+                        </Table.Tr>
+                      ))
+                    )}
+                  </Table.Tbody>
+                </Table>
+              </Table.ScrollContainer>
+            </Paper>
+          </Stack>
         )}
       </Stack>
 
