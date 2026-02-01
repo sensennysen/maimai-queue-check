@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { useBranch } from './useBranch';
 
 /**
@@ -8,7 +8,6 @@ import { useBranch } from './useBranch';
 export const useCabinetManager = () => {
   const { selectedBranch } = useBranch();
   const [selectedCabinet, setSelectedCabinet] = useState(1);
-  const prevBranchIdRef = useRef(selectedBranch?.id);
 
   // Get cabinet count from branch, default to 1
   const cabinetCount = selectedBranch?.cab_count || 1;
@@ -16,17 +15,14 @@ export const useCabinetManager = () => {
   // Determine if there are multiple cabinets
   const hasMultipleCabinets = useMemo(() => cabinetCount >= 2, [cabinetCount]);
 
-  // Reset to cabinet 1 when branch changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (prevBranchIdRef.current !== selectedBranch?.id) {
-      prevBranchIdRef.current = selectedBranch?.id;
-      setSelectedCabinet(1);
-    }
-  });
+  // Derive the effective cabinet - if the selected cabinet is invalid for this branch,
+  // fall back to cabinet 1. This handles branch switching without needing setState in effects.
+  const effectiveCabinet = useMemo(() => {
+    return selectedCabinet > cabinetCount ? 1 : selectedCabinet;
+  }, [selectedCabinet, cabinetCount]);
 
   return {
-    selectedCabinet,
+    selectedCabinet: effectiveCabinet,
     setSelectedCabinet,
     cabinetCount,
     hasMultipleCabinets
