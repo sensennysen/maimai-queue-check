@@ -129,9 +129,9 @@ function LocationHelpModal({ opened, onClose }) {
           fullWidth
           size="md"
           leftSection={<IconMapPin size={18} />}
-          onClick={onClose}
+          onClick={() => window.location.reload()}
         >
-          I've Enabled Location
+          I've Enabled Location - Reload Page
         </Button>
       </Stack>
     </Modal>
