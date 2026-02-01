@@ -105,8 +105,10 @@ export const useLocationVerification = () => {
         setGeolocationConsent('granted');
         return;
       } else if (permissionState === 'denied') {
-        // Browser previously denied - show modal anyway so user knows location is needed
-        setShowConsentModal(true);
+        // Browser previously denied - skip modal, just show the alert
+        setGeolocationConsent('denied');
+        setLocationError('Geolocation services are disabled. Editing features are unavailable.');
+        setHasAttemptedVerification(true);
         return;
       }
 
