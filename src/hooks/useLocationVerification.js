@@ -170,7 +170,7 @@ export const useLocationVerification = () => {
     setShowConsentModal(false);
     setGeolocationConsent('denied');
     setLocationVerified(false);
-    setLocationError('Location features are disabled. Some editing features may be limited.');
+    setLocationError('Geolocation services are disabled. Editing features are unavailable.');
     setHasAttemptedVerification(true);
   }, []);
 

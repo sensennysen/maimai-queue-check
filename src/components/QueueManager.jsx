@@ -191,25 +191,29 @@ function QueueManager() {
 
       {/* Location verification failed alert */}
       {user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification && (
-        <Alert
-          icon={<IconMapPin size={16} />}
-          title={geolocationConsent === 'denied' ? 'Location Features Disabled' : 'Location Verification Failed'}
-          color="orange"
-          variant="light"
-          withCloseButton
-          onClose={() => { }}
-        >
-          <Text size="sm" mb="xs">{locationError}</Text>
-          {geolocationConsent === 'denied' ? (
-            <Button
-              size="xs"
-              variant="light"
-              leftSection={<IconMapPin size={14} />}
-              onClick={() => setShowLocationHelp(true)}
-            >
-              How to Enable
-            </Button>
-          ) : (
+        geolocationConsent === 'denied' ? (
+          <Alert color="orange" variant="light">
+            <Group justify="space-between" align="center">
+              <Text size="sm">{locationError}</Text>
+              <Button
+                size="xs"
+                variant="light"
+                onClick={() => setShowLocationHelp(true)}
+              >
+                How to Enable
+              </Button>
+            </Group>
+          </Alert>
+        ) : (
+          <Alert
+            icon={<IconMapPin size={16} />}
+            title="Location Verification Failed"
+            color="orange"
+            variant="light"
+            withCloseButton
+            onClose={() => { }}
+          >
+            <Text size="sm" mb="xs">{locationError}</Text>
             <Button
               size="xs"
               variant="light"
@@ -219,8 +223,8 @@ function QueueManager() {
             >
               Try Again
             </Button>
-          )}
-        </Alert>
+          </Alert>
+        )
       )}
 
       {/* Info alert */}
