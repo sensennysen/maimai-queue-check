@@ -128,7 +128,6 @@ export const useLocationVerification = () => {
     }
   }, [user, userRoles?.can_edit, geolocationConsent, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
 
-
   // Handle when user accepts consent modal - trigger browser permission
   const handleConsentAccepted = useCallback(async () => {
     setShowConsentModal(false);
