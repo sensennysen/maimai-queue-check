@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { useBranch } from './useBranch';
-import { verifyUserLocationAndPermissions, checkGeolocationPermission, requestUserLocation, findNearestBranch } from '../services/geolocation';
+import { verifyUserLocationAndPermissions, requestUserLocation, findNearestBranch } from '../services/geolocation';
 import { ERRORS } from '../constants/queue';
 
 const GEOLOCATION_CONSENT_KEY = 'maimai-geolocation-consent';
@@ -43,42 +43,60 @@ export const useLocationVerification = () => {
   }, [geolocationConsent]);
 
   // Check if we should show the consent modal
+  // This effect triggers when user logs in or when userRoles become available
   useEffect(() => {
-    const checkAndShowModal = async () => {
-      // Only show modal if:
-      // 1. User is logged in
-      // 2. User has edit permissions (not admin - admins bypass)
-      // 3. User hasn't made a consent decision yet
-      // 4. Not currently checking location
-      if (!user || !userRoles?.can_edit || userRoles?.is_admin || locationCheckInProgress) {
+    const checkAndShowModal = () => {
+      console.log('[Geolocation] Checking modal conditions:', {
+        user: !!user,
+        userRoles,
+        geolocationConsent,
+        locationCheckInProgress
+      });
+
+      // Must be logged in
+      if (!user) {
+        console.log('[Geolocation] Modal not shown: user not logged in');
         return;
       }
 
-      // If consent is already granted or denied, don't show modal
+      // Must have userRoles loaded (not null/undefined)
+      if (userRoles === null || userRoles === undefined) {
+        console.log('[Geolocation] Modal not shown: userRoles not loaded yet');
+        return;
+      }
+
+      // Admins don't need location consent - they bypass location checks
+      if (userRoles.is_admin) {
+        console.log('[Geolocation] Modal not shown: user is admin');
+        return;
+      }
+
+      // Must have edit permissions to need geolocation
+      if (!userRoles.can_edit) {
+        console.log('[Geolocation] Modal not shown: user does not have can_edit permission');
+        return;
+      }
+
+      // Don't show if currently checking location
+      if (locationCheckInProgress) {
+        console.log('[Geolocation] Modal not shown: location check in progress');
+        return;
+      }
+
+      // If user has already made a consent decision (stored in localStorage), don't show modal
       if (geolocationConsent === 'granted' || geolocationConsent === 'denied') {
+        console.log('[Geolocation] Modal not shown: consent already decided:', geolocationConsent);
         return;
       }
 
-      // Check browser's existing permission state
-      const permissionState = await checkGeolocationPermission();
-      
-      if (permissionState === 'granted') {
-        // Browser already has permission, silently verify
-        setGeolocationConsent('granted');
-        return;
-      } else if (permissionState === 'denied') {
-        // Browser previously denied, mark as denied
-        setGeolocationConsent('denied');
-        setLocationError('Location permission was previously denied. Please enable it in your browser settings.');
-        return;
-      }
-      
-      // Permission is 'prompt' or 'unavailable' - show our consent modal
+      // User is logged in, has edit permissions, and hasn't made consent decision yet
+      // Show the consent modal
+      console.log('[Geolocation] ✓ Showing consent modal');
       setShowConsentModal(true);
     };
 
     checkAndShowModal();
-  }, [user, userRoles?.can_edit, userRoles?.is_admin, geolocationConsent, locationCheckInProgress]);
+  }, [user, userRoles, geolocationConsent, locationCheckInProgress]);
 
   // Function to verify user location and permissions
   const verifyLocation = useCallback(async () => {
@@ -177,7 +195,7 @@ export const useLocationVerification = () => {
     setHasAttemptedVerification(true);
   }, []);
 
-  // Auto-verify if consent was previously granted
+  // Auto-verify if consent was previously granted (on page load with saved consent)
   useEffect(() => {
     if (user && geolocationConsent === 'granted' && !hasAttemptedVerification && !locationCheckInProgress) {
       if (userRoles?.can_edit) {
