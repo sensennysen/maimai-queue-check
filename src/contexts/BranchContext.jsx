@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { branchService, supabase } from '../services/supabase';
-import { requestUserLocation, findNearestBranch } from '../services/geolocation';
+import { requestUserLocation } from '../services/geolocation';
 
 const BranchContext = createContext(null);
 
@@ -130,37 +130,13 @@ export const BranchProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      // Start both requests in parallel
-      const branchesPromise = branchService.getAllBranches();
-      const locationPromise = requestUserLocation();
-
-      // Wait for both to complete (success or fail)
-      const [branchesResult, locationResult] = await Promise.allSettled([
-        branchesPromise,
-        locationPromise
-      ]);
-
-      // Handle branches
-      let allBranches = [];
-      if (branchesResult.status === 'fulfilled') {
-        allBranches = branchesResult.value;
-        setBranches(allBranches);
-      } else {
-        throw new Error(branchesResult.reason?.message || 'Failed to load branches');
-      }
+      // Load branches only - don't request location automatically
+      const allBranches = await branchService.getAllBranches();
+      setBranches(allBranches);
 
       if (allBranches.length === 0) {
         setError('No branches found');
         return;
-      }
-
-      // Handle location
-      let location = null;
-      if (locationResult.status === 'fulfilled') {
-        location = locationResult.value;
-        setUserLocation(location);
-      } else {
-        // Location request failed or denied
       }
 
       // Logic to select branch
@@ -170,31 +146,12 @@ export const BranchProvider = ({ children }) => {
         const savedBranch = allBranches.find(b => b.id === savedBranchId);
         if (savedBranch) {
           setSelectedBranchState(savedBranch);
-
-          // Even if we used saved branch, if we have location, we can check if another is effectively closer?
-          // For now, respect the saved choice, but we have the location stored in state if needed.
           setLoading(false);
           return;
         }
       }
 
-      // 2. Use location if available
-      if (location) {
-        try {
-          // We already have the location, just find the branch
-          const { nearestBranch } = await findNearestBranch(location);
-          if (nearestBranch) {
-            setSelectedBranchState(nearestBranch);
-            localStorage.setItem(STORAGE_KEY, nearestBranch.id);
-            setLoading(false);
-            return;
-          }
-        } catch {
-          // Failed to find nearest branch
-        }
-      }
-
-      // 3. Fallback to first branch
+      // 2. Fallback to first branch (location-based selection moved to explicit user action)
       setSelectedBranchState(allBranches[0]);
       localStorage.setItem(STORAGE_KEY, allBranches[0].id);
 
