@@ -42,10 +42,8 @@ export const useQueueManager = () => {
     // Consent flow
     showConsentModal,
     geolocationConsent,
-    requestGeolocationConsent,
     handleConsentAccepted,
-    handleConsentDeclined,
-    resetGeolocationConsent
+    handleConsentDeclined
   } = useLocationVerification();
 
   // Actions layer: CRUD operations
@@ -114,10 +112,8 @@ export const useQueueManager = () => {
     // Geolocation consent flow
     showConsentModal,
     geolocationConsent,
-    requestGeolocationConsent,
     handleConsentAccepted,
     handleConsentDeclined,
-    resetGeolocationConsent,
     
     // Cabinet state
     selectedCabinet,

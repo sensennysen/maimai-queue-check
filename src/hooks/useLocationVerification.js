@@ -126,13 +126,6 @@ export const useLocationVerification = () => {
     }
   }, [user, userRoles?.can_edit, geolocationConsent, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
 
-  // Request user to provide geolocation consent (shows modal)
-  const requestGeolocationConsent = useCallback(() => {
-    if (!user || geolocationConsent === 'granted' || geolocationConsent === 'denied') {
-      return;
-    }
-    setShowConsentModal(true);
-  }, [user, geolocationConsent]);
 
   // Handle when user accepts consent modal - trigger browser permission
   const handleConsentAccepted = useCallback(async () => {
@@ -181,14 +174,6 @@ export const useLocationVerification = () => {
     setHasAttemptedVerification(true);
   }, []);
 
-  // Reset consent to allow user to try again
-  const resetGeolocationConsent = useCallback(() => {
-    setGeolocationConsent(null);
-    setLocationError(null);
-    setHasAttemptedVerification(false);
-    setShowConsentModal(true);
-  }, []);
-
   return {
     locationVerified,
     locationError,
@@ -199,9 +184,7 @@ export const useLocationVerification = () => {
     // Consent flow exports
     showConsentModal,
     geolocationConsent,
-    requestGeolocationConsent,
     handleConsentAccepted,
-    handleConsentDeclined,
-    resetGeolocationConsent
+    handleConsentDeclined
   };
 };
