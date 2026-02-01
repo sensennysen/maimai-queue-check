@@ -13,13 +13,13 @@ import LoginForm from './components/LoginForm';
 import ThemeToggle from './components/ThemeToggle';
 import BranchSelector from './components/BranchSelector';
 import Footer from './components/Footer';
-import BranchManagerPage from './components/BranchManagerPage';
+import AdminPanelPage from './components/AdminPanelPage';
 import './App.css';
 
 // Mantine theme configuration that syncs with our CSS variables
 function AppContent() {
   const { isDark } = useTheme();
-  const [currentPage, setCurrentPage] = useState('queue'); // 'queue' or 'branch-manager'
+  const [currentPage, setCurrentPage] = useState('queue'); // 'queue' or 'admin-panel'
 
   return (
     <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
@@ -42,7 +42,7 @@ function AppContent() {
                 <BranchSelector />
                 <Group gap="sm">
                   <ThemeToggle />
-                  <LoginForm onOpenAdminPanel={() => setCurrentPage('branch-manager')} />
+                  <LoginForm onOpenAdminPanel={() => setCurrentPage('admin-panel')} />
                 </Group>
               </Group>
 
@@ -54,7 +54,7 @@ function AppContent() {
             </Stack>
           </Container>
         ) : (
-          <BranchManagerPage onBack={() => setCurrentPage('queue')} />
+          <AdminPanelPage onBack={() => setCurrentPage('queue')} />
         )}
       </div>
       <Analytics />

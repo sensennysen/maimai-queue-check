@@ -34,7 +34,7 @@ import ScheduleEditor from './ScheduleEditor';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import UserManager from './UserManager';
 import { useAuth } from '../hooks/useAuth';
-import './BranchManagerPage.css';
+import './AdminPanelPage.css';
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -50,7 +50,7 @@ const formatTime = (time24) => {
   return `${hour12}:${minutes} ${ampm}`;
 };
 
-const BranchManagerPage = ({ onBack }) => {
+const AdminPanelPage = ({ onBack }) => {
   const { userRoles } = useAuth();
   const isSuperAdmin = userRoles?.is_super_admin || false;
 
@@ -434,4 +434,4 @@ const BranchManagerPage = ({ onBack }) => {
   );
 };
 
-export default BranchManagerPage;
+export default AdminPanelPage;
