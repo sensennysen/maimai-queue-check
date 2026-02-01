@@ -32,7 +32,7 @@ function AppContent() {
                 <Group justify="space-between" align="center" gap="md" wrap="wrap">
                   <Group gap="md">
                     <Title order={1} className="app-title">
-                      maiPaQueueCheck.ph
+                      maiPaQueueCheck PH
                     </Title>
                   </Group>
                 </Group>
