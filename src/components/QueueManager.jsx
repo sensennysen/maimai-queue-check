@@ -8,6 +8,7 @@ import LocationHelpModal from './LocationHelpModal';
 import NowPlayingCard from './NowPlayingCard';
 import { useQueueManager } from '../hooks/useQueueManager';
 import { useMallSchedule } from '../hooks/useMallSchedule';
+import { usePageVisibility } from '../hooks/usePageVisibility';
 import { useBranch } from '../hooks/useBranch';
 import { useAuth } from '../hooks/useAuth';
 import { closedMessages, loadingMessages } from '../data/subtitleMessages';
@@ -34,6 +35,7 @@ function QueueManager() {
     handleConsentAccepted,
     handleConsentDeclined,
     verifyLocation,
+    refreshData,
     addQueueEntry: addEntry,
     updateQueueEntry: updateEntry,
     removeQueueEntry,
@@ -47,6 +49,9 @@ function QueueManager() {
     cabinetCount,
     hasMultipleCabinets
   } = useQueueManager();
+
+  // Refresh data when tab becomes active
+  usePageVisibility(refreshData);
 
   // Auth and roles
   const [actionsLoaded, setActionsLoaded] = useState(false);
