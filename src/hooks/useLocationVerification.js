@@ -82,8 +82,14 @@ export const useLocationVerification = () => {
         return;
       }
 
-      // Must have edit permissions to need geolocation
-      if (!userRoles.can_edit) {
+      // Must have edit permissions (either global or for this branch) to need geolocation
+      const canEditGlobal = userRoles.can_edit ?? false;
+      const canEditOn = Array.isArray(userRoles.can_edit_on) ? userRoles.can_edit_on : [];
+      const canEditBranch = selectedBranch 
+        ? canEditOn.some(id => String(id) === String(selectedBranch.id)) 
+        : false;
+
+      if (!canEditGlobal && !canEditBranch) {
         return;
       }
 
@@ -122,7 +128,14 @@ export const useLocationVerification = () => {
   // Auto-verify when consent is granted (either from modal or auto-detected)
   useEffect(() => {
     if (user && geolocationConsent === 'granted' && !hasAttemptedVerification && !locationCheckInProgress) {
-      if (userRoles?.can_edit) {
+      // Check permission again using the composite logic
+      const canEditGlobal = userRoles?.can_edit ?? false;
+      const canEditOn = Array.isArray(userRoles?.can_edit_on) ? userRoles.can_edit_on : [];
+      const canEditBranch = selectedBranch 
+        ? canEditOn.some(id => String(id) === String(selectedBranch.id)) 
+        : false;
+
+      if (canEditGlobal || canEditBranch) {
         verifyLocation();
       }
     }
