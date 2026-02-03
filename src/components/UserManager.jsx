@@ -237,15 +237,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
     setUserToEdit(null);
   };
 
-  // Helper to get branch names from IDs
-  const getBranchNames = (branchIds) => {
-    if (!branchIds || !Array.isArray(branchIds) || branchIds.length === 0) return '-';
 
-    return branchIds
-      .map(id => branches.find(b => b.id === id)?.arcade_name)
-      .filter(Boolean)
-      .join(', ');
-  };
 
   // Branch options for MultiSelect
   const branchOptions = branches.map(b => ({

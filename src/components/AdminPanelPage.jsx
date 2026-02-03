@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
 import {
   Container,
   Stack,
@@ -54,19 +55,7 @@ const AdminPanelPage = ({ onBack }) => {
   const { userRoles } = useAuth();
   const isSuperAdmin = userRoles?.is_super_admin || false;
 
-  if (!isSuperAdmin) {
-    return (
-      <Container size="sm" py="xl">
-        <Paper p="xl" withBorder>
-          <Stack align="center" gap="md">
-            <Title order={3}>Access Denied</Title>
-            <Text>You do not have permission to view this page.</Text>
-            <Button onClick={onBack}>Go Back</Button>
-          </Stack>
-        </Paper>
-      </Container>
-    );
-  }
+
 
   const [activeTab, setActiveTab] = useState('branches');
   const [branches, setBranches] = useState([]);
@@ -87,7 +76,8 @@ const AdminPanelPage = ({ onBack }) => {
   const [branchForSchedule, setBranchForSchedule] = useState(null);
 
   // Load branches
-  const loadBranches = async () => {
+  const loadBranches = useCallback(async () => {
+    if (!isSuperAdmin) return;
     try {
       setLoading(true);
       const data = await adminService.getAllBranchesForAdmin();
@@ -101,11 +91,25 @@ const AdminPanelPage = ({ onBack }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isSuperAdmin]);
 
   useEffect(() => {
     loadBranches();
-  }, []);
+  }, [isSuperAdmin, loadBranches]);
+
+  if (!isSuperAdmin) {
+    return (
+      <Container size="sm" py="xl">
+        <Paper p="xl" withBorder>
+          <Stack align="center" gap="md">
+            <Title order={3}>Access Denied</Title>
+            <Text>You do not have permission to view this page.</Text>
+            <Button onClick={onBack}>Go Back</Button>
+          </Stack>
+        </Paper>
+      </Container>
+    );
+  }
 
   const toggleBranchExpand = async (branchId) => {
     const newExpanded = new Set(expandedBranches);

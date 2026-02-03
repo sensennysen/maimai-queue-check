@@ -1,11 +1,12 @@
-import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider } from '@mantine/core';
+import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider, Badge, Group } from '@mantine/core';
 import { IconBrandGoogle, IconLogout, IconUser, IconLogin, IconSettings } from '@tabler/icons-react';
 import { useAuth } from '../hooks/useAuth';
-// notifications removed: toasts suppressed per UX change
+import { useBranch } from '../hooks/useBranch';
 import './LoginForm.css';
 
-const LoginForm = ({ onOpenAdminPanel }) => {
+const LoginForm = ({ onOpenAdminPanel, onOpenPreferences }) => {
   const { user, loading, signInWithProvider, signOut, userRoles } = useAuth();
+  const { branches } = useBranch();
 
   const handleSocialLogin = async (provider) => {
     try {
@@ -23,6 +24,25 @@ const LoginForm = ({ onOpenAdminPanel }) => {
     }
   };
 
+  // Helper to render preferred branch badges
+  const renderPreferredBranches = () => {
+    if (!userRoles?.preferred_branches?.length || !branches.length) return null;
+
+    return (
+      <Group gap={4} mt={4} style={{ flexWrap: 'wrap', maxWidth: '100%' }}>
+        {userRoles.preferred_branches.map(branchId => {
+          const branch = branches.find(b => b.id === branchId);
+          if (!branch) return null;
+          return (
+            <Badge key={branchId} size="xs" variant="light" color="blue">
+              {branch.short_name || branch.arcade_name}
+            </Badge>
+          );
+        })}
+      </Group>
+    );
+  };
+
   if (loading) {
     return (
       <ActionIcon variant="subtle" size="xl" className="login-icon">
@@ -33,7 +53,7 @@ const LoginForm = ({ onOpenAdminPanel }) => {
 
   if (user) {
     return (
-      <Menu shadow="md" width={250} position="bottom-end">
+      <Menu shadow="md" width={280} position="bottom-end">
         <Menu.Target>
           <ActionIcon variant="subtle" size="xl" className="login-icon">
             <Avatar
@@ -56,9 +76,16 @@ const LoginForm = ({ onOpenAdminPanel }) => {
               <Text size="xs" c="dimmed">
                 {user.email}
               </Text>
+              {renderPreferredBranches()}
             </Stack>
           </Menu.Label>
           <Divider />
+          <Menu.Item
+            leftSection={<IconSettings size={16} />}
+            onClick={onOpenPreferences}
+          >
+            Preferences
+          </Menu.Item>
           {userRoles?.is_super_admin && (
             <>
               <Menu.Item
@@ -67,9 +94,9 @@ const LoginForm = ({ onOpenAdminPanel }) => {
               >
                 Admin Panel
               </Menu.Item>
-              <Divider />
             </>
           )}
+          <Divider />
           <Menu.Item
             leftSection={<IconLogout size={16} />}
             onClick={handleLogout}

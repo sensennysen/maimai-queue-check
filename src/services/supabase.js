@@ -110,6 +110,22 @@ export const rolesService = {
   }
 };
 
+// User service functions
+export const userService = {
+  // Update user preferences
+  async updatePreferences(userId, branchIds) {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .update({ preferred_branches: branchIds })
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+};
+
 // Queue service functions
 export const queueService = {
   // Fetch all queue entries (waiting and playing)
