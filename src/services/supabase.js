@@ -78,7 +78,8 @@ export const rolesService = {
         return {
           user_id: userId,
           can_edit: false,
-          is_admin: false
+          is_admin: false,
+          is_super_admin: false
         };
       }
 
@@ -87,17 +88,23 @@ export const rolesService = {
         return {
           user_id: userId,
           can_edit: false,
-          is_admin: false
+          is_admin: false,
+          is_super_admin: false
         };
       }
 
       // Ensure is_admin is always present (default false if missing)
-      return { ...data[0], is_admin: !!data[0].is_admin };
+      return { 
+        ...data[0], 
+        is_admin: !!data[0].is_admin,
+        is_super_admin: !!data[0].is_super_admin 
+      };
     } catch {
       return {
         user_id: userId,
         can_edit: false,
-        is_admin: false
+        is_admin: false,
+        is_super_admin: false
       };
     }
   }
