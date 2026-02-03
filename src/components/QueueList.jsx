@@ -50,7 +50,7 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
           </Button>
         )}
       </Group>
-      {user && userRoles !== undefined && !userRoles?.can_edit && !userRoles?.is_admin && (
+      {user && userRoles !== undefined && !userRoles?.can_edit && !userRoles?.is_admin && !userRoles?.is_super_admin && (
         <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-yellow-0)' }}>
           <Text size="sm" c="orange">
             You can view the queue but don't have permission to edit it
