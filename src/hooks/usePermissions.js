@@ -19,7 +19,9 @@ export const usePermissions = () => {
   const canEditOn = Array.isArray(userRoles?.can_edit_on) ? userRoles.can_edit_on : [];
   
   // Check if user has permission for the currently selected branch
-  const canEditBranch = selectedBranch ? canEditOn.includes(selectedBranch.id) : false;
+  const canEditBranch = selectedBranch 
+    ? canEditOn.some(id => String(id) === String(selectedBranch.id)) 
+    : false;
 
   // User can edit if they have global edit permissions OR permissions for this specific branch
   const canEdit = canEditGlobal || canEditBranch;
