@@ -89,7 +89,8 @@ export const rolesService = {
           user_id: userId,
           can_edit: false,
           is_admin: false,
-          is_super_admin: false
+          is_super_admin: false,
+          preferred_branches: []
         };
       }
 
@@ -97,7 +98,8 @@ export const rolesService = {
       return { 
         ...data[0], 
         is_admin: !!data[0].is_admin,
-        is_super_admin: !!data[0].is_super_admin 
+        is_super_admin: !!data[0].is_super_admin,
+        preferred_branches: Array.isArray(data[0].preferred_branches) ? data[0].preferred_branches : []
       };
     } catch {
       return {
@@ -116,8 +118,10 @@ export const userService = {
   async updatePreferences(userId, branchIds) {
     const { data, error } = await supabase
       .from('user_roles')
-      .update({ preferred_branches: branchIds })
-      .eq('user_id', userId)
+      .upsert({ 
+        user_id: userId,
+        preferred_branches: branchIds 
+      }, { onConflict: 'user_id' })
       .select()
       .single();
 

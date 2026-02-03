@@ -29,18 +29,19 @@ function AppContent() {
   // Check for missing preferences
   useEffect(() => {
     if (!authLoading && user && userRoles) {
-      // Logic: If user is logged in, has roles loaded, and preferred_branches is empty/null
-      // We only want to auto-open ONCE per session to avoid annoyance, but the requirement implies strict enforcement.
-      // Let's settle on: Auto-open if empty, and we haven't manually closed it in this session (or just check once).
-      // Actually, "If the user doesn't have any preferred branches... display a modal".
-      // Let's use a flag to only pop it once per page load to be safe.
+      // Only proceed if we have a real roles object (from DB or explicit "no entry" state)
+      // If it hit the catch block in AuthContext, it won't have this property.
+      if (Object.prototype.hasOwnProperty.call(userRoles, 'preferred_branches')) {
+        const hasPreferences = Array.isArray(userRoles.preferred_branches) && userRoles.preferred_branches.length > 0;
 
-      const hasPreferences = userRoles.preferred_branches && userRoles.preferred_branches.length > 0;
-
-      if (!hasPreferences && !hasCheckedPreferences.current) {
-        hasCheckedPreferences.current = true;
-        // Defer state update to avoid cascading render warning
-        setTimeout(() => setShowPreferencesModal(true), 0);
+        if (!hasPreferences && !hasCheckedPreferences.current) {
+          hasCheckedPreferences.current = true;
+          // Defer state update to avoid cascading render warning
+          setTimeout(() => setShowPreferencesModal(true), 0);
+        } else if (hasPreferences) {
+          // If we see they have preferences, mark as checked even if we didn't show modal
+          hasCheckedPreferences.current = true;
+        }
       }
     }
   }, [authLoading, user, userRoles]);
