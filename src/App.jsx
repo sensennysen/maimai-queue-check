@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { MantineProvider, Container, Title, Text, Paper, Stack, Group } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
@@ -21,31 +21,9 @@ import './App.css';
 // Mantine theme configuration that syncs with our CSS variables
 function AppContent() {
   const { isDark } = useTheme();
-  const { user, userRoles, loading: authLoading } = useAuth();
+  const { user, userRoles } = useAuth();
   const [currentPage, setCurrentPage] = useState('queue'); // 'queue' or 'admin-panel'
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
-  const hasCheckedPreferences = useRef(false);
-
-  // Check for missing preferences
-  useEffect(() => {
-    if (!authLoading && user && userRoles) {
-      // Only proceed if we have a real roles object (from DB or explicit "no entry" state)
-      // If it hit the catch block in AuthContext, it won't have this property.
-      if (Object.prototype.hasOwnProperty.call(userRoles, 'preferred_branches')) {
-        const hasPreferences = Array.isArray(userRoles.preferred_branches) && userRoles.preferred_branches.length > 0;
-        const hasDisplayName = !!userRoles.display_name;
-
-        if ((!hasPreferences || !hasDisplayName) && !hasCheckedPreferences.current) {
-          hasCheckedPreferences.current = true;
-          // Defer state update to avoid cascading render warning
-          setTimeout(() => setShowPreferencesModal(true), 0);
-        } else if (hasPreferences && hasDisplayName) {
-          // If we see they have preferences, mark as checked even if we didn't show modal
-          hasCheckedPreferences.current = true;
-        }
-      }
-    }
-  }, [authLoading, user, userRoles]);
 
   const handlePreferencesSaved = () => {
     // To reflect changes immediately in the UI (like the Login dropdown badges), 
