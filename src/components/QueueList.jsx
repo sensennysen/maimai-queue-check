@@ -3,20 +3,18 @@ import { Paper, Title, Group, Button, Stack, Text, Center } from '@mantine/core'
 import { IconPlayerPlay, IconLock } from '@tabler/icons-react';
 import QueueItem from './QueueItem';
 import { useAuth } from '../hooks/useAuth';
+import { usePermissions } from '../hooks/usePermissions';
 import { emptyQueueMessages } from '../data/subtitleMessages';
 import './QueueList.css';
 
-const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, locationVerified, loadingRoles = false, cabinetNum = null, hasMultipleCabinets = false }) {
-  const { user, userRoles } = useAuth();
+const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, loadingRoles = false, cabinetNum = null, hasMultipleCabinets = false }) {
+  const { user } = useAuth();
 
   // Lazy initialization - the function is only called once on mount, not during render
   const [emptyMessageIndex] = useState(() => Math.floor(Math.random() * emptyQueueMessages.length));
   const emptyMessage = queue.length === 0 ? emptyQueueMessages[emptyMessageIndex] : '';
 
-  const isAdmin = userRoles?.is_admin;
-  const isSuperAdmin = userRoles?.is_super_admin;
-  const canEdit = userRoles?.can_edit;
-  const canActuallyEdit = isSuperAdmin || ((isAdmin || canEdit) && locationVerified);
+  const { canActuallyEdit, canEdit, isAdmin } = usePermissions();
 
   // Determine header title based on cabinet
   const queueTitle = hasMultipleCabinets && cabinetNum ? `Current Queue - Cabinet ${cabinetNum}` : 'Current Queue';
@@ -50,7 +48,7 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
           </Button>
         )}
       </Group>
-      {user && userRoles !== undefined && !userRoles?.can_edit && !userRoles?.is_admin && (
+      {user && !canEdit && !isAdmin && (
         <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-yellow-0)' }}>
           <Text size="sm" c="orange">
             You can view the queue but don't have permission to edit it

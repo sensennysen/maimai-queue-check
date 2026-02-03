@@ -100,7 +100,9 @@ export const rolesService = {
         is_admin: !!data[0].is_admin,
         is_super_admin: !!data[0].is_super_admin,
         admin_branch: data[0].admin_branch || null,
-        preferred_branches: Array.isArray(data[0].preferred_branches) ? data[0].preferred_branches : []
+        preferred_branches: Array.isArray(data[0].preferred_branches) ? data[0].preferred_branches : [],
+        can_edit_full: !!data[0].can_edit_full,
+        can_edit_on: Array.isArray(data[0].can_edit_on) ? data[0].can_edit_on : []
       };
     } catch {
       return {
@@ -548,7 +550,7 @@ export const adminService = {
 
     let query = supabase
       .from('user_roles')
-      .select('user_id, email, display_name, can_edit, is_admin, is_super_admin, preferred_branches', { count: 'exact' });
+      .select('user_id, email, display_name, can_edit_full, can_edit_on, is_admin, is_super_admin, preferred_branches', { count: 'exact' });
 
     // Server-side filtering (search)
     if (searchQuery.trim()) {
@@ -581,7 +583,7 @@ export const adminService = {
   // Update a user's role
   async updateUserRole(userId, updates) {
     // Only allow updating specific fields
-    const allowedFields = ['display_name', 'can_edit', 'is_admin', 'preferred_branches'];
+    const allowedFields = ['display_name', 'can_edit_full', 'can_edit_on', 'is_admin', 'preferred_branches'];
     const sanitizedUpdates = {};
     
     for (const key of allowedFields) {

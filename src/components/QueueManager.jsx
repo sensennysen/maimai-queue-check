@@ -13,6 +13,7 @@ import { usePageVisibility } from '../hooks/usePageVisibility';
 import { useBranch } from '../hooks/useBranch';
 import { useAuth } from '../hooks/useAuth';
 import { closedMessages, loadingMessages } from '../data/subtitleMessages';
+import { usePermissions } from '../hooks/usePermissions';
 import './QueueManager.css';
 
 
@@ -65,7 +66,7 @@ function QueueManager() {
 
   // Auth and roles
   const [actionsLoaded, setActionsLoaded] = useState(false);
-  const { user, userRoles, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!queueLoading && !authLoading) {
@@ -82,10 +83,7 @@ function QueueManager() {
   );
 
   // Derived permissions
-  const canEdit = userRoles?.can_edit;
-  const isAdmin = userRoles?.is_admin;
-  const isSuperAdmin = userRoles?.is_super_admin;
-  const canActuallyEdit = isSuperAdmin || ((isAdmin || canEdit) && locationVerified);
+  const { canActuallyEdit, canEdit, isAdmin, isSuperAdmin } = usePermissions();
 
   const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule(selectedBranch?.id);
 
@@ -364,7 +362,6 @@ function QueueManager() {
             onStartGame={startGame}
             isMallOpen={isMallOpen}
             isBusy={isMutating}
-            locationVerified={locationVerified}
             loadingRoles={!actionsLoaded}
             cabinetNum={selectedCabinet}
             hasMultipleCabinets={hasMultipleCabinets}
