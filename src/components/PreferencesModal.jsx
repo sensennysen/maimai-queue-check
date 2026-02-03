@@ -85,6 +85,7 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
           value={displayName}
           onChange={(event) => setDisplayName(event.currentTarget.value)}
           required
+          style={{ marginTop: '1rem' }}
         />
 
         {loading ? (
@@ -101,8 +102,6 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
             searchable
             clearable
             maxDropdownHeight={200}
-            required
-            error={selectedBranches.length === 0 ? 'Please select at least one branch' : null}
           />
         )}
 
