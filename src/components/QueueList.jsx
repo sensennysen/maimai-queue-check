@@ -14,7 +14,7 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
   const [emptyMessageIndex] = useState(() => Math.floor(Math.random() * emptyQueueMessages.length));
   const emptyMessage = queue.length === 0 ? emptyQueueMessages[emptyMessageIndex] : '';
 
-  const { canActuallyEdit, canEdit, isAdmin } = usePermissions();
+  const { canActuallyEdit, canEdit } = usePermissions();
 
   // Determine header title based on cabinet
   const queueTitle = hasMultipleCabinets && cabinetNum ? `Current Queue - Cabinet ${cabinetNum}` : 'Current Queue';
