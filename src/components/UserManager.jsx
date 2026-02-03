@@ -84,7 +84,9 @@ const UserManager = ({ isSuperAdmin = false }) => {
       result = result.filter(
         (user) =>
           user.email?.toLowerCase().includes(query) ||
-          user.display_name?.toLowerCase().includes(query)
+          user.display_name?.toLowerCase().includes(query) ||
+          (user.is_admin ? 'admin' : '').includes(query) ||
+          (user.is_super_admin ? 'super' : '').includes(query)
       );
     }
 

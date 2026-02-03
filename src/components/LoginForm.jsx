@@ -58,7 +58,7 @@ const LoginForm = ({ onOpenAdminPanel, onOpenPreferences }) => {
           <ActionIcon variant="subtle" size="xl" className="login-icon">
             <Avatar
               src={user.user_metadata?.avatar_url}
-              alt={user.user_metadata?.full_name || user.email}
+              alt={userRoles?.display_name || user.user_metadata?.full_name || user.email}
               size={40}
               radius="xl"
             >
@@ -71,7 +71,7 @@ const LoginForm = ({ onOpenAdminPanel, onOpenPreferences }) => {
           <Menu.Label>
             <Stack gap={2}>
               <Text size="sm" fw={500}>
-                {user.user_metadata?.full_name || 'User'}
+                {userRoles?.display_name || user.user_metadata?.full_name || 'User'}
               </Text>
               <Text size="xs" c="dimmed">
                 {user.email}
