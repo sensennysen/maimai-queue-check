@@ -49,7 +49,7 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
   const [userToEdit, setUserToEdit] = useState(null);
   const [editForm, setEditForm] = useState({
     display_name: '',
-    can_edit_full: false,
+    can_edit: false,
     can_edit_on: [],
     is_admin: false,
     preferred_branches: [],
@@ -126,7 +126,7 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
     setUserToEdit(user);
     setEditForm({
       display_name: user.display_name || '',
-      can_edit_full: user.can_edit_full || false,
+      can_edit: user.can_edit || false,
       can_edit_on: Array.isArray(user.can_edit_on) ? user.can_edit_on.map(String) : [],
       is_admin: user.is_admin || false,
       preferred_branches: user.preferred_branches ? user.preferred_branches.map(String) : [],
@@ -160,11 +160,11 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
         updates.display_name = editForm.display_name;
         updates.is_admin = editForm.is_admin;
         updates.preferred_branches = editForm.preferred_branches.map(Number);
-        updates.can_edit_full = editForm.can_edit_full;
+        updates.can_edit = editForm.can_edit;
         updates.can_edit_on = editForm.can_edit_on.map(Number);
       } else {
         // Regular Admin Logic
-        // 1. can_edit_full is hidden (not updated)
+        // 1. can_edit (global) is hidden (not updated)
         // 2. can_edit_on: Update ONLY the admin's branch presence
         // We use the `editForm.can_edit_on` as the source of truth for the admin's intent regarding THEIR branch?
         // Actually, in the modal for regular admin, we will likely show a single checkbox.
@@ -222,11 +222,11 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
     }
   };
 
-  const handleToggleCanEditFull = async (user) => {
+  const handleToggleCanEditGlobal = async (user) => {
     if (!isSuperAdmin) return;
     try {
       await adminService.updateUserRole(user.user_id, {
-        can_edit_full: !user.can_edit_full,
+        can_edit: !user.can_edit,
       });
       notifications.show({
         title: 'Success',
@@ -428,8 +428,8 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
                           <>
                             <Table.Td>
                               <Checkbox
-                                checked={user.can_edit_full}
-                                onChange={() => handleToggleCanEditFull(user)}
+                                checked={user.can_edit}
+                                onChange={() => handleToggleCanEditGlobal(user)}
                               />
                             </Table.Td>
                             <Table.Td>
@@ -546,8 +546,8 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
               <Stack gap="xs">
                 <Checkbox
                   label="Can Edit Anywhere"
-                  checked={editForm.can_edit_full}
-                  onChange={(e) => setEditForm({ ...editForm, can_edit_full: e.currentTarget.checked })}
+                  checked={editForm.can_edit}
+                  onChange={(e) => setEditForm({ ...editForm, can_edit: e.currentTarget.checked })}
                 />
                 <MultiSelect
                   label="Can Edit on Branches"

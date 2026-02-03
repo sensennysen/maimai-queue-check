@@ -14,15 +14,15 @@ export const usePermissions = () => {
   const isAdmin = userRoles?.is_admin ?? false;
   const isSuperAdmin = userRoles?.is_super_admin ?? false;
   
-  const canEditFull = userRoles?.can_edit_full ?? false;
+  // 'can_edit' acts as "Global Edit" permission
+  const canEditGlobal = userRoles?.can_edit ?? false;
   const canEditOn = Array.isArray(userRoles?.can_edit_on) ? userRoles.can_edit_on : [];
   
   // Check if user has permission for the currently selected branch
   const canEditBranch = selectedBranch ? canEditOn.includes(selectedBranch.id) : false;
 
-  // User can edit if they have full edit permissions OR permissions for this specific branch
-  // We legacy check userRoles.can_edit just in case, but prefer the new fields
-  const canEdit = canEditFull || canEditBranch || (userRoles?.can_edit ?? false);
+  // User can edit if they have global edit permissions OR permissions for this specific branch
+  const canEdit = canEditGlobal || canEditBranch;
 
   // Super admins can edit anywhere.
   // Regular admins and users with can_edit must be location verified.
