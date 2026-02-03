@@ -91,7 +91,7 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchQuery, sortField, sortDirection]);
+  }, [currentPage, searchQuery, sortField, sortDirection, isSuperAdmin, currentUserRoles?.admin_branch]);
 
   useEffect(() => {
     loadUsers();
@@ -136,6 +136,19 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
     if (!userToEdit) return;
 
     setSaving(true);
+    const adminBranch = currentUserRoles?.admin_branch;
+    const hasBranchPermission = isSuperAdmin || (adminBranch && userToEdit.preferred_branches?.includes(adminBranch));
+
+    if (!hasBranchPermission) {
+      notifications.show({
+        title: 'Permission Denied',
+        message: 'You can only manage users in your assigned branch.',
+        color: 'red',
+      });
+      setSaving(false);
+      return;
+    }
+
     try {
       const updates = {
         can_edit: editForm.can_edit,
