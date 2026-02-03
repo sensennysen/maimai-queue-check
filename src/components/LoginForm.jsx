@@ -32,7 +32,6 @@ const LoginForm = ({ onOpenAdminPanel }) => {
   }
 
   if (user) {
-    console.log(userRoles);
     return (
       <Menu shadow="md" width={250} position="bottom-end">
         <Menu.Target>

@@ -54,6 +54,20 @@ const AdminPanelPage = ({ onBack }) => {
   const { userRoles } = useAuth();
   const isSuperAdmin = userRoles?.is_super_admin || false;
 
+  if (!isSuperAdmin) {
+    return (
+      <Container size="sm" py="xl">
+        <Paper p="xl" withBorder>
+          <Stack align="center" gap="md">
+            <Title order={3}>Access Denied</Title>
+            <Text>You do not have permission to view this page.</Text>
+            <Button onClick={onBack}>Go Back</Button>
+          </Stack>
+        </Paper>
+      </Container>
+    );
+  }
+
   const [activeTab, setActiveTab] = useState('branches');
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
