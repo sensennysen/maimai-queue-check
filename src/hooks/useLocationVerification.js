@@ -46,7 +46,7 @@ export const useLocationVerification = () => {
       const result = await verifyUserLocationAndPermissions(
         user.id,
         selectedBranch.id,
-        userRoles?.is_admin || false
+        userRoles?.is_super_admin || false
       );
       setLocationVerified(result.allowed);
       setNeedsLocationPermission(result.needsPermission || false);
@@ -62,7 +62,7 @@ export const useLocationVerification = () => {
     } finally {
       setLocationCheckInProgress(false);
     }
-  }, [user, selectedBranch?.id, userRoles?.is_admin]);
+  }, [user, selectedBranch?.id, userRoles?.is_super_admin]);
 
   // Check if we should show the consent modal
   useEffect(() => {
@@ -78,7 +78,7 @@ export const useLocationVerification = () => {
       }
 
       // Admins don't need location consent - they bypass location checks
-      if (userRoles.is_admin) {
+      if (userRoles.is_super_admin) {
         return;
       }
 
@@ -123,7 +123,7 @@ export const useLocationVerification = () => {
     };
 
     checkAndShowModal();
-  }, [user, userRoles, geolocationConsent, locationCheckInProgress]);
+  }, [user, userRoles, geolocationConsent, locationCheckInProgress, selectedBranch]);
 
   // Auto-verify when consent is granted (either from modal or auto-detected)
   useEffect(() => {
@@ -139,7 +139,7 @@ export const useLocationVerification = () => {
         verifyLocation();
       }
     }
-  }, [user, userRoles?.can_edit, geolocationConsent, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
+  }, [user, userRoles?.can_edit, geolocationConsent, hasAttemptedVerification, locationCheckInProgress, verifyLocation, selectedBranch, userRoles?.can_edit_on]);
 
   // Handle when user accepts consent modal - trigger browser permission
   const handleConsentAccepted = useCallback(async () => {

@@ -190,17 +190,20 @@ export const checkEditPermissions = async (userId) => {
   try {
     const { data: roles, error } = await supabase
       .from('user_roles')
-      .select('can_edit')
+      .select('can_edit, can_edit_on')
       .eq('user_id', userId)
       .single();
 
     if (error) {
-      return false;
+      return { can_edit: false, can_edit_on: [] };
     }
 
-    return roles?.can_edit || false;
+    return {
+      can_edit: roles?.can_edit || false,
+      can_edit_on: Array.isArray(roles?.can_edit_on) ? roles.can_edit_on : []
+    };
   } catch {
-    return false;
+    return { can_edit: false, can_edit_on: [] };
   }
 };
 
@@ -212,30 +215,19 @@ export const checkEditPermissions = async (userId) => {
  * @param {boolean} isAdmin - Optional: If true, always allow
  * @returns {Promise<Object>} Promise that resolves to {allowed, reason, location, proximity}
  */
-export const verifyUserLocationAndPermissions = async (userId, branchId = null, isAdmin = false) => {
+export const verifyUserLocationAndPermissions = async (userId, branchId = null, isSuperAdmin = false) => {
   try {
-    // Admins can always edit
-    if (isAdmin) {
+    // 1. Super Admin Override
+    if (isSuperAdmin) {
       return {
         allowed: true,
-        reason: 'Admin override: you can edit any queue regardless of location.',
+        reason: 'Super Admin: you can edit any queue regardless of location.',
         location: null,
         proximity: null,
       };
     }
 
-    // Check if user has edit permissions
-    const hasEditPermissions = await checkEditPermissions(userId);
-    if (!hasEditPermissions) {
-      return {
-        allowed: false,
-        reason: 'You do not have edit permissions',
-        location: null,
-        proximity: null,
-      };
-    }
-
-    // Request user location
+    // 2. Request User Location
     let userLocation;
     try {
       userLocation = await requestUserLocation();
@@ -249,7 +241,7 @@ export const verifyUserLocationAndPermissions = async (userId, branchId = null, 
       };
     }
 
-    // Check proximity to allowed places
+    // 3. Check Proximity
     const proximity = await checkUserProximity(userLocation, 100, branchId);
 
     if (!proximity.isAllowed) {
@@ -262,12 +254,44 @@ export const verifyUserLocationAndPermissions = async (userId, branchId = null, 
       };
     }
 
+    // 4. Check Roles (Only if location is valid)
+    const { can_edit, can_edit_on } = await checkEditPermissions(userId);
+    
+    // Check global permission
+    if (can_edit) {
+      return {
+        allowed: true,
+        reason: `Access granted at ${proximity.nearestPlace.arcade_name}`,
+        location: userLocation,
+        proximity,
+      };
+    }
+
+    // Check branch-specific permission
+    // Use the branch ID from the proximity check (the actual place they are near)
+    // or the specifically requested branchId
+    const targetBranchId = branchId || proximity.nearestPlace.id;
+    
+    // Ensure string comparison
+    const hasBranchPermission = can_edit_on.some(id => String(id) === String(targetBranchId));
+
+    if (hasBranchPermission) {
+       return {
+        allowed: true,
+        reason: `Access granted for this branch`,
+        location: userLocation,
+        proximity,
+      };
+    }
+
+    // 5. Fallback: Role check failed
     return {
-      allowed: true,
-      reason: `Access granted at ${proximity.nearestPlace.arcade_name}`,
+      allowed: false,
+      reason: 'You do not have permission to edit this queue',
       location: userLocation,
       proximity,
     };
+
   } catch (error) {
     return {
       allowed: false,

@@ -26,9 +26,9 @@ export const usePermissions = () => {
   // User can edit if they have global edit permissions OR permissions for this specific branch
   const canEdit = canEditGlobal || canEditBranch;
 
-  // Super admins can edit anywhere.
-  // Regular admins and users with can_edit must be location verified.
-  const canActuallyEdit = isSuperAdmin || ((isAdmin || canEdit) && locationVerified);
+  // Super admins can edit anywhere (bypass).
+  // For everyone else, 'locationVerified' is true ONLY if they pass strict Location + Permission checks.
+  const canActuallyEdit = isSuperAdmin || locationVerified;
 
   return { isAdmin, isSuperAdmin, canEdit, canActuallyEdit };
 };
