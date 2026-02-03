@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, Alert, Loader, Modal, Skeleton, Tabs } from '@mantine/core';
+import { useOs } from '@mantine/hooks';
 import { IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconMapPin } from '@tabler/icons-react';
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
@@ -50,8 +51,17 @@ function QueueManager() {
     hasMultipleCabinets
   } = useQueueManager();
 
-  // Refresh data when tab becomes active
-  usePageVisibility(refreshData);
+  // Refresh data when tab becomes active (mobile only)
+  const os = useOs();
+  const isMobile = os === 'ios' || os === 'android';
+
+  const handleVisibilityChange = useCallback(() => {
+    if (isMobile) {
+      refreshData();
+    }
+  }, [isMobile, refreshData]);
+
+  usePageVisibility(handleVisibilityChange);
 
   // Auth and roles
   const [actionsLoaded, setActionsLoaded] = useState(false);
