@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Modal, Stack, Text, Group, Button, MultiSelect, Loader } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { userService, branchService } from '../services/supabase';
@@ -9,15 +9,7 @@ const PreferredBranchesModal = ({ opened, onClose, userId, initialPreferences = 
   const [branches, setBranches] = useState([]);
   const [selectedBranches, setSelectedBranches] = useState([]);
 
-  useEffect(() => {
-    if (opened) {
-      loadBranches();
-      // Ensure initialPreferences are strings for MultiSelect
-      setSelectedBranches(initialPreferences?.map(String) || []);
-    }
-  }, [opened, initialPreferences]);
-
-  const loadBranches = async () => {
+  const loadBranches = useCallback(async () => {
     try {
       setLoading(true);
       const data = await branchService.getAllBranches();
@@ -31,7 +23,18 @@ const PreferredBranchesModal = ({ opened, onClose, userId, initialPreferences = 
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (opened) {
+      loadBranches();
+      // Only set initial selection once when the modal is opened
+      setSelectedBranches(initialPreferences?.map(String) || []);
+    }
+    // We explicitly only want to run this when the modal is opened or initialPreferences reference changes from parent
+    // but the crash occurs because initialPreferences=[''] (or undefined) is recreated on every render of the modal.
+    // By only using 'opened' as a trigger, we avoid the loop caused by internal re-renders.
+  }, [opened]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = async () => {
     try {
