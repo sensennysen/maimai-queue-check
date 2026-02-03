@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Modal, Stack, Text, Group, Button, MultiSelect, Loader } from '@mantine/core';
+import { Modal, Stack, Text, Group, Button, MultiSelect, Loader, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { userService, branchService } from '../services/supabase';
 
-const PreferredBranchesModal = ({ opened, onClose, userId, initialPreferences = [], onSaveSuccess }) => {
+const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], initialDisplayName = '', onSaveSuccess }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [branches, setBranches] = useState([]);
   const [selectedBranches, setSelectedBranches] = useState([]);
+  const [displayName, setDisplayName] = useState(initialDisplayName);
 
   const loadBranches = useCallback(async () => {
     try {
@@ -28,21 +29,21 @@ const PreferredBranchesModal = ({ opened, onClose, userId, initialPreferences = 
   useEffect(() => {
     if (opened) {
       loadBranches();
-      // Only set initial selection once when the modal is opened
+      // Only set initial state once when the modal is opened
       setSelectedBranches(initialPreferences?.map(String) || []);
+      setDisplayName(initialDisplayName || '');
     }
-    // We explicitly only want to run this when the modal is opened or initialPreferences reference changes from parent
-    // but the crash occurs because initialPreferences=[''] (or undefined) is recreated on every render of the modal.
-    // By only using 'opened' as a trigger, we avoid the loop caused by internal re-renders.
-  }, [opened]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [opened, initialDisplayName]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = async () => {
     try {
       setSaving(true);
-      // Convert selected strings back to numbers
       const branchIds = selectedBranches.map(Number);
 
-      await userService.updatePreferences(userId, branchIds);
+      await userService.updatePreferences(userId, {
+        branchIds,
+        displayName: displayName.trim()
+      });
 
       notifications.show({
         title: 'Success',
@@ -72,15 +73,19 @@ const PreferredBranchesModal = ({ opened, onClose, userId, initialPreferences = 
     <Modal
       opened={opened}
       onClose={onClose}
-      title={<Text fw={600}>Select Preferred Branches</Text>}
+      title={<Text fw={600}>User Preferences</Text>}
       centered
-      closeOnClickOutside={selectedBranches.length > 0} // Prevent closing if forced (empty)
-      withCloseButton={selectedBranches.length > 0}     // Prevent closing if forced (empty) - optional, based on UX
+      closeOnClickOutside={selectedBranches.length > 0}
+      withCloseButton={selectedBranches.length > 0}
     >
       <Stack gap="md">
-        <Text size="sm" c="dimmed">
-          Choose the branches you frequent. This helps us customize your experience.
-        </Text>
+        <TextInput
+          label="Display Name"
+          placeholder="Enter your display name"
+          value={displayName}
+          onChange={(event) => setDisplayName(event.currentTarget.value)}
+          required
+        />
 
         {loading ? (
           <Group justify="center" py="xl">
@@ -105,7 +110,7 @@ const PreferredBranchesModal = ({ opened, onClose, userId, initialPreferences = 
           <Button
             onClick={handleSave}
             loading={saving}
-            disabled={selectedBranches.length === 0}
+            disabled={selectedBranches.length === 0 || !displayName.trim()}
           >
             Save Preferences
           </Button>
@@ -115,4 +120,4 @@ const PreferredBranchesModal = ({ opened, onClose, userId, initialPreferences = 
   );
 };
 
-export default PreferredBranchesModal;
+export default PreferencesModal;

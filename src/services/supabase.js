@@ -115,13 +115,14 @@ export const rolesService = {
 // User service functions
 export const userService = {
   // Update user preferences
-  async updatePreferences(userId, branchIds) {
+  async updatePreferences(userId, { branchIds, displayName }) {
+    const updateData = { user_id: userId };
+    if (branchIds !== undefined) updateData.preferred_branches = branchIds;
+    if (displayName !== undefined) updateData.display_name = displayName;
+
     const { data, error } = await supabase
       .from('user_roles')
-      .upsert({ 
-        user_id: userId,
-        preferred_branches: branchIds 
-      }, { onConflict: 'user_id' })
+      .upsert(updateData, { onConflict: 'user_id' })
       .select()
       .single();
 

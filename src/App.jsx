@@ -15,7 +15,7 @@ import ThemeToggle from './components/ThemeToggle';
 import BranchSelector from './components/BranchSelector';
 import Footer from './components/Footer';
 import AdminPanelPage from './components/AdminPanelPage';
-import PreferredBranchesModal from './components/PreferredBranchesModal';
+import PreferencesModal from './components/PreferencesModal';
 import './App.css';
 
 // Mantine theme configuration that syncs with our CSS variables
@@ -33,12 +33,13 @@ function AppContent() {
       // If it hit the catch block in AuthContext, it won't have this property.
       if (Object.prototype.hasOwnProperty.call(userRoles, 'preferred_branches')) {
         const hasPreferences = Array.isArray(userRoles.preferred_branches) && userRoles.preferred_branches.length > 0;
+        const hasDisplayName = !!userRoles.display_name;
 
-        if (!hasPreferences && !hasCheckedPreferences.current) {
+        if ((!hasPreferences || !hasDisplayName) && !hasCheckedPreferences.current) {
           hasCheckedPreferences.current = true;
           // Defer state update to avoid cascading render warning
           setTimeout(() => setShowPreferencesModal(true), 0);
-        } else if (hasPreferences) {
+        } else if (hasPreferences && hasDisplayName) {
           // If we see they have preferences, mark as checked even if we didn't show modal
           hasCheckedPreferences.current = true;
         }
@@ -94,11 +95,12 @@ function AppContent() {
         )}
 
         {user && (
-          <PreferredBranchesModal
+          <PreferencesModal
             opened={showPreferencesModal}
             onClose={() => setShowPreferencesModal(false)}
             userId={user.id}
             initialPreferences={userRoles?.preferred_branches}
+            initialDisplayName={userRoles?.display_name || user?.user_metadata?.full_name || ''}
             onSaveSuccess={handlePreferencesSaved}
           />
         )}
