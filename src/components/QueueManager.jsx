@@ -4,6 +4,7 @@ import { IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconMapPin } f
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
 import LocationPermissionModal from './LocationPermissionModal';
+import LocationHelpModal from './LocationHelpModal';
 import NowPlayingCard from './NowPlayingCard';
 import { useQueueManager } from '../hooks/useQueueManager';
 import { useMallSchedule } from '../hooks/useMallSchedule';
@@ -27,7 +28,11 @@ function QueueManager() {
     locationError,
     locationCheckInProgress,
     hasAttemptedVerification,
-    needsLocationPermission,
+    // Consent flow
+    showConsentModal,
+    geolocationConsent,
+    handleConsentAccepted,
+    handleConsentDeclined,
     verifyLocation,
     addQueueEntry: addEntry,
     updateQueueEntry: updateEntry,
@@ -56,7 +61,7 @@ function QueueManager() {
   // UI state
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showLocationHelp, setShowLocationHelp] = useState(false);
   const [closedMessage, setClosedMessage] = useState(() =>
     closedMessages[Math.floor(Math.random() * closedMessages.length)]
   );
@@ -76,18 +81,6 @@ function QueueManager() {
     }
     previousMallStateRef.current = isMallOpen;
   }, [isMallOpen]);
-
-  // Show location modal only when permission is explicitly needed
-  useEffect(() => {
-    const shouldShow = user && canEdit && !isAdmin && needsLocationPermission && !locationCheckInProgress;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setShowLocationModal(prev => {
-      if (prev !== shouldShow) {
-        return shouldShow;
-      }
-      return prev;
-    });
-  }, [user, canEdit, isAdmin, needsLocationPermission, locationCheckInProgress]);
 
   // Action handlers
   const addQueueEntry = async (player1, player2) => {
@@ -146,11 +139,6 @@ function QueueManager() {
     }
   };
 
-  const handleRequestLocation = async () => {
-    if (verifyLocation) {
-      await verifyLocation();
-    }
-  };
 
   const [loadingMessage] = useState(() => loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
 
@@ -166,12 +154,19 @@ function QueueManager() {
         }
       }}
     >
-      {/* Location Permission Modal */}
+      {/* Location Permission Modal - shown based on consent flow */}
       <LocationPermissionModal
-        opened={showLocationModal}
-        onClose={() => setShowLocationModal(false)}
-        onRequestLocation={handleRequestLocation}
+        opened={showConsentModal}
+        onClose={handleConsentDeclined}
+        onRequestLocation={handleConsentAccepted}
+        onDecline={handleConsentDeclined}
         loading={locationCheckInProgress}
+      />
+
+      {/* Location Help Modal - shown when user needs to enable in browser settings */}
+      <LocationHelpModal
+        opened={showLocationHelp}
+        onClose={() => setShowLocationHelp(false)}
       />
 
       {/* Busy overlay */}
@@ -196,25 +191,40 @@ function QueueManager() {
 
       {/* Location verification failed alert */}
       {user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification && (
-        <Alert
-          icon={<IconMapPin size={16} />}
-          title="Location Verification Failed"
-          color="orange"
-          variant="light"
-          withCloseButton
-          onClose={() => { }}
-        >
-          <Text size="sm" mb="xs">{locationError}</Text>
-          <Button
-            size="xs"
+        geolocationConsent === 'denied' ? (
+          <Alert color="orange" variant="light">
+            <Group justify="space-between" align="center">
+              <Text size="sm">{locationError}</Text>
+              <Button
+                size="xs"
+                variant="light"
+                onClick={() => setShowLocationHelp(true)}
+              >
+                How to Enable
+              </Button>
+            </Group>
+          </Alert>
+        ) : (
+          <Alert
+            icon={<IconMapPin size={16} />}
+            title="Location Verification Failed"
+            color="orange"
             variant="light"
-            leftSection={<IconMapPin size={14} />}
-            onClick={verifyLocation}
-            loading={locationCheckInProgress}
+            withCloseButton
+            onClose={() => { }}
           >
-            Try Again
-          </Button>
-        </Alert>
+            <Text size="sm" mb="xs">{locationError}</Text>
+            <Button
+              size="xs"
+              variant="light"
+              leftSection={<IconMapPin size={14} />}
+              onClick={verifyLocation}
+              loading={locationCheckInProgress}
+            >
+              Try Again
+            </Button>
+          </Alert>
+        )
       )}
 
       {/* Info alert */}

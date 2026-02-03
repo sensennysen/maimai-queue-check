@@ -31,14 +31,19 @@ export const useQueueManager = () => {
     refreshData
   } = useQueueData(selectedCabinet);
 
-  // Location verification
+  // Location verification and consent
   const {
     locationVerified,
     locationError,
     locationCheckInProgress,
     hasAttemptedVerification,
     needsLocationPermission,
-    verifyLocation
+    verifyLocation,
+    // Consent flow
+    showConsentModal,
+    geolocationConsent,
+    handleConsentAccepted,
+    handleConsentDeclined
   } = useLocationVerification();
 
   // Actions layer: CRUD operations
@@ -103,6 +108,12 @@ export const useQueueManager = () => {
     locationCheckInProgress,
     hasAttemptedVerification,
     needsLocationPermission,
+    
+    // Geolocation consent flow
+    showConsentModal,
+    geolocationConsent,
+    handleConsentAccepted,
+    handleConsentDeclined,
     
     // Cabinet state
     selectedCabinet,

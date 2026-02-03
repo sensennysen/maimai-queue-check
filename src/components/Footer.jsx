@@ -22,7 +22,7 @@ function Footer() {
           >
             <IconHistory size={16} />
             <Text size="sm" className="footer-link-text">
-              Changelog
+              Changelogs
             </Text>
           </Group>
 

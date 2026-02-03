@@ -1,22 +1,26 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { useBranch } from './useBranch';
-import { verifyUserLocationAndPermissions } from '../services/geolocation';
+import { verifyUserLocationAndPermissions, checkGeolocationPermission, requestUserLocation, findNearestBranch } from '../services/geolocation';
 import { ERRORS } from '../constants/queue';
 
 /**
- * Hook for managing location verification state and logic
- * @returns {import('../types/queue').LocationState & { verifyLocation: () => Promise<void> }}
+ * Hook for managing location verification state and geolocation consent flow
+ * If browser already has location permission granted, skips the modal
  */
 export const useLocationVerification = () => {
   const { user, userRoles } = useAuth();
-  const { selectedBranch } = useBranch();
+  const { selectedBranch, setSelectedBranch, branches } = useBranch();
 
   const [locationVerified, setLocationVerified] = useState(false);
   const [locationError, setLocationError] = useState(null);
   const [locationCheckInProgress, setLocationCheckInProgress] = useState(false);
   const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
   const [needsLocationPermission, setNeedsLocationPermission] = useState(false);
+  
+  // Consent flow state
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [geolocationConsent, setGeolocationConsent] = useState(null);
 
   // Function to verify user location and permissions
   const verifyLocation = useCallback(async () => {
@@ -60,18 +64,116 @@ export const useLocationVerification = () => {
     }
   }, [user, selectedBranch?.id, userRoles?.is_admin]);
 
-  // Automatically verify location when user is available and has not attempted verification
+  // Check if we should show the consent modal
   useEffect(() => {
-    const checkAndVerifyLocation = async () => {
-      if (user && !hasAttemptedVerification && !locationCheckInProgress) {
-        if (userRoles?.can_edit) {
-          await verifyLocation();
+    const checkAndShowModal = async () => {
+      // Must be logged in
+      if (!user) {
+        return;
+      }
+
+      // Must have userRoles loaded
+      if (userRoles === null || userRoles === undefined) {
+        return;
+      }
+
+      // Admins don't need location consent - they bypass location checks
+      if (userRoles.is_admin) {
+        return;
+      }
+
+      // Must have edit permissions to need geolocation
+      if (!userRoles.can_edit) {
+        return;
+      }
+
+      // Don't show if currently checking location
+      if (locationCheckInProgress) {
+        return;
+      }
+
+      // If user has already made a consent decision this session, don't show modal again
+      if (geolocationConsent === 'granted' || geolocationConsent === 'denied') {
+        return;
+      }
+
+      // Check browser's existing permission state
+      const permissionState = await checkGeolocationPermission();
+      
+      if (permissionState === 'granted') {
+        // Browser already has permission granted - skip modal and auto-verify
+        setGeolocationConsent('granted');
+        return;
+      } else if (permissionState === 'denied') {
+        // Browser previously denied - skip modal, just show the alert
+        setGeolocationConsent('denied');
+        setLocationError('Geolocation services are disabled. Editing features are unavailable.');
+        setHasAttemptedVerification(true);
+        return;
+      }
+
+      // Permission is 'prompt' - show our consent modal
+      setShowConsentModal(true);
+    };
+
+    checkAndShowModal();
+  }, [user, userRoles, geolocationConsent, locationCheckInProgress]);
+
+  // Auto-verify when consent is granted (either from modal or auto-detected)
+  useEffect(() => {
+    if (user && geolocationConsent === 'granted' && !hasAttemptedVerification && !locationCheckInProgress) {
+      if (userRoles?.can_edit) {
+        verifyLocation();
+      }
+    }
+  }, [user, userRoles?.can_edit, geolocationConsent, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
+
+  // Handle when user accepts consent modal - trigger browser permission
+  const handleConsentAccepted = useCallback(async () => {
+    setShowConsentModal(false);
+    setLocationCheckInProgress(true);
+    setGeolocationConsent('pending');
+
+    try {
+      // Request location from browser
+      const location = await requestUserLocation();
+      
+      // Success - mark as granted
+      setGeolocationConsent('granted');
+      
+      // Try to find nearest branch and auto-select it
+      if (location && branches.length > 0) {
+        try {
+          const { nearestBranch } = await findNearestBranch(location);
+          if (nearestBranch) {
+            setSelectedBranch(nearestBranch);
+          }
+        } catch {
+          // Failed to find nearest branch, continue with current selection
         }
       }
-    };
-    
-    checkAndVerifyLocation();
-  }, [user, userRoles?.can_edit, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
+      
+      // Now verify location for edit permissions
+      await verifyLocation();
+    } catch (error) {
+      // Browser permission denied or error
+      setGeolocationConsent('denied');
+      setLocationError(error.message || 'Location permission denied');
+      setLocationVerified(false);
+    } finally {
+      setLocationCheckInProgress(false);
+      setHasAttemptedVerification(true);
+    }
+  }, [branches, setSelectedBranch, verifyLocation]);
+
+  // Handle when user declines consent modal
+  const handleConsentDeclined = useCallback(() => {
+    setShowConsentModal(false);
+    setGeolocationConsent('denied');
+    setLocationVerified(false);
+    setLocationError('Geolocation services are disabled. Editing features are unavailable.');
+    setHasAttemptedVerification(true);
+  }, []);
 
   return {
     locationVerified,
@@ -79,6 +181,11 @@ export const useLocationVerification = () => {
     locationCheckInProgress,
     hasAttemptedVerification,
     needsLocationPermission,
-    verifyLocation
+    verifyLocation,
+    // Consent flow exports
+    showConsentModal,
+    geolocationConsent,
+    handleConsentAccepted,
+    handleConsentDeclined
   };
 };
