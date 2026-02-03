@@ -516,7 +516,7 @@ export const adminService = {
   async getAllUsersForAdmin() {
     const { data, error } = await supabase
       .from('user_roles')
-      .select('user_id, email, display_name, can_edit, is_admin, is_super_admin')
+      .select('user_id, email, display_name, can_edit, is_admin, is_super_admin', 'preferred_branches')
       .order('email', { ascending: true });
 
     if (error) throw error;
@@ -526,7 +526,7 @@ export const adminService = {
   // Update a user's role
   async updateUserRole(userId, updates) {
     // Only allow updating specific fields
-    const allowedFields = ['display_name', 'can_edit', 'is_admin'];
+    const allowedFields = ['display_name', 'can_edit', 'is_admin', 'preferred_branches'];
     const sanitizedUpdates = {};
     
     for (const key of allowedFields) {
