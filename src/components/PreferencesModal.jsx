@@ -75,8 +75,6 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
       onClose={onClose}
       title={<Text fw={600}>User Preferences</Text>}
       centered
-      closeOnClickOutside={selectedBranches.length > 0}
-      withCloseButton={selectedBranches.length > 0}
     >
       <Stack gap="md">
         <TextInput
@@ -109,7 +107,7 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
           <Button
             onClick={handleSave}
             loading={saving}
-            disabled={selectedBranches.length === 0 || !displayName.trim()}
+            disabled={!displayName.trim()}
           >
             Save Preferences
           </Button>
