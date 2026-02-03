@@ -206,7 +206,7 @@ function QueueManager() {
       )}
 
       {/* Location verification failed alert */}
-      {user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification && (
+      {user && (canEdit || isAdmin) && !isSuperAdmin && !locationVerified && locationError && hasAttemptedVerification && (
         geolocationConsent === 'denied' ? (
           <Alert color="orange" variant="light">
             <Group justify="space-between" align="center">
