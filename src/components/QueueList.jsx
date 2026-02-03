@@ -14,8 +14,9 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
   const emptyMessage = queue.length === 0 ? emptyQueueMessages[emptyMessageIndex] : '';
 
   const isAdmin = userRoles?.is_admin;
+  const isSuperAdmin = userRoles?.is_super_admin;
   const canEdit = userRoles?.can_edit;
-  const canActuallyEdit = isAdmin || (canEdit && locationVerified);
+  const canActuallyEdit = isSuperAdmin || ((isAdmin || canEdit) && locationVerified);
 
   // Determine header title based on cabinet
   const queueTitle = hasMultipleCabinets && cabinetNum ? `Current Queue - Cabinet ${cabinetNum}` : 'Current Queue';

@@ -84,7 +84,8 @@ function QueueManager() {
   // Derived permissions
   const canEdit = userRoles?.can_edit;
   const isAdmin = userRoles?.is_admin;
-  const canActuallyEdit = isAdmin || (canEdit && locationVerified);
+  const isSuperAdmin = userRoles?.is_super_admin;
+  const canActuallyEdit = isSuperAdmin || ((isAdmin || canEdit) && locationVerified);
 
   const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule(selectedBranch?.id);
 
@@ -205,7 +206,7 @@ function QueueManager() {
       )}
 
       {/* Location verification failed alert */}
-      {user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification && (
+      {user && (canEdit || isAdmin) && !isSuperAdmin && !locationVerified && locationError && hasAttemptedVerification && (
         geolocationConsent === 'denied' ? (
           <Alert color="orange" variant="light">
             <Group justify="space-between" align="center">
@@ -275,7 +276,7 @@ function QueueManager() {
           isBusy={isMutating}
           locationVerified={locationVerified}
           locationError={locationError}
-          isAdmin={userRoles?.is_admin}
+          isSuperAdmin={isSuperAdmin}
         />
       </Modal>
 

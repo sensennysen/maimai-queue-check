@@ -43,7 +43,8 @@ export const AuthProvider = ({ children }) => {
               prevRoles || {
                 user_id: session.user.id,
                 can_edit: false,
-                is_admin: false
+                is_admin: false,
+                is_super_admin: false
               }
             );
           }

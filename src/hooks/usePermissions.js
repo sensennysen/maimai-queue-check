@@ -10,8 +10,12 @@ export const usePermissions = () => {
   const { locationVerified } = useLocationVerification();
 
   const isAdmin = userRoles?.is_admin ?? false;
+  const isSuperAdmin = userRoles?.is_super_admin ?? false;
   const canEdit = userRoles?.can_edit ?? false;
-  const canActuallyEdit = isAdmin || (canEdit && locationVerified);
 
-  return { isAdmin, canEdit, canActuallyEdit };
+  // Super admins can edit anywhere.
+  // Regular admins and users with can_edit must be location verified.
+  const canActuallyEdit = isSuperAdmin || ((isAdmin || canEdit) && locationVerified);
+
+  return { isAdmin, isSuperAdmin, canEdit, canActuallyEdit };
 };
