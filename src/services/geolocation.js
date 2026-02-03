@@ -226,12 +226,12 @@ export const checkEditPermissions = async (userId) => {
  * @returns {Promise<Object>} Promise that resolves to {allowed, reason, location, proximity}
  */
 export const verifyUserLocationAndPermissions = async (userId, branchId = null, isSuperAdmin = false) => {
-  console.log('[Geo] Verifying permissions', { userId, branchId, isSuperAdmin });
+  // console.log('[Geo] Verifying permissions', { userId, branchId, isSuperAdmin });
 
   try {
     // 1. Super Admin Override
     if (isSuperAdmin) {
-      console.log('[Geo] Super Admin bypass');
+      // console.log('[Geo] Super Admin bypass');
       return {
         allowed: true,
         reason: 'Super Admin: you can edit any queue regardless of location.',
@@ -244,9 +244,9 @@ export const verifyUserLocationAndPermissions = async (userId, branchId = null, 
     let userLocation;
     try {
       userLocation = await requestUserLocation();
-      console.log('[Geo] User location:', userLocation);
+      // console.log('[Geo] User location:', userLocation);
     } catch (locationError) {
-      console.error('[Geo] Location error:', locationError);
+      // console.error('[Geo] Location error:', locationError);
       return {
         allowed: false,
         reason: 'Please allow geolocation services to edit the queue',
@@ -257,9 +257,9 @@ export const verifyUserLocationAndPermissions = async (userId, branchId = null, 
     }
 
     // 3. Check Proximity
-    console.log('[Geo] Checking proximity for branch:', branchId);
+    // console.log('[Geo] Checking proximity for branch:', branchId);
     const proximity = await checkUserProximity(userLocation, 100, branchId);
-    console.log('[Geo] Proximity result:', proximity);
+    // console.log('[Geo] Proximity result:', proximity);
 
     if (!proximity.isAllowed) {
       const branchMsg = branchId ? 'the selected branch' : 'the arcade';
@@ -273,11 +273,11 @@ export const verifyUserLocationAndPermissions = async (userId, branchId = null, 
 
     // 4. Check Roles (Only if location is valid)
     const { can_edit, can_edit_on } = await checkEditPermissions(userId);
-    console.log('[Geo] Roles:', { can_edit, can_edit_on });
+    // console.log('[Geo] Roles:', { can_edit, can_edit_on });
     
     // Check global permission
     if (can_edit) {
-        console.log('[Geo] Global edit granted');
+        // console.log('[Geo] Global edit granted');
       return {
         allowed: true,
         reason: `Access granted at ${proximity.nearestPlace.arcade_name}`,
@@ -293,7 +293,7 @@ export const verifyUserLocationAndPermissions = async (userId, branchId = null, 
     
     // Ensure string comparison
     const hasBranchPermission = can_edit_on.some(id => String(id) === String(targetBranchId));
-    console.log('[Geo] Branch permission check:', { targetBranchId, hasBranchPermission });
+    // console.log('[Geo] Branch permission check:', { targetBranchId, hasBranchPermission });
 
     if (hasBranchPermission) {
        return {
@@ -305,7 +305,7 @@ export const verifyUserLocationAndPermissions = async (userId, branchId = null, 
     }
 
     // 5. Fallback: Role check failed
-    console.log('[Geo] Access denied (no roles)');
+    // console.log('[Geo] Access denied (no roles)');
     return {
       allowed: false,
       reason: 'You do not have permission to edit this queue',

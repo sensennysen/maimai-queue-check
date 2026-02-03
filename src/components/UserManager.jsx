@@ -63,7 +63,7 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
         const branchesData = await branchService.getAllBranches();
         setBranches(branchesData);
       } catch (error) {
-        console.error('Failed to load branches:', error);
+        // console.error('Failed to load branches:', error);
       }
     };
     loadBranches();
