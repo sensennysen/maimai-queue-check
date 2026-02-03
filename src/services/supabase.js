@@ -516,7 +516,7 @@ export const adminService = {
   async getAllUsersForAdmin() {
     const { data, error } = await supabase
       .from('user_roles')
-      .select('user_id, email, display_name, can_edit, is_admin, is_super_admin', 'preferred_branches')
+      .select('user_id, email, display_name, can_edit, is_admin, is_super_admin, preferred_branches')
       .order('email', { ascending: true });
 
     if (error) throw error;
