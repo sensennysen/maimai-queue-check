@@ -13,6 +13,7 @@ import {
   Modal,
   TextInput,
   MultiSelect,
+  Badge,
 } from '@mantine/core';
 import {
   IconUsers,
@@ -282,7 +283,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
                   <Table.Thead>
                     <Table.Tr>
                       <Table.Th
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', width: '25%' }}
                         onClick={() => handleSort('email')}
                       >
                         <Group gap="xs">
@@ -291,7 +292,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
                         </Group>
                       </Table.Th>
                       <Table.Th
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', width: '20%' }}
                         onClick={() => handleSort('display_name')}
                       >
                         <Group gap="xs">
@@ -299,9 +300,9 @@ const UserManager = ({ isSuperAdmin = false }) => {
                           <SortIcon field="display_name" />
                         </Group>
                       </Table.Th>
-                      <Table.Th>Preferred Branches</Table.Th>
+                      <Table.Th style={{ width: '35%' }}>Preferred Branches</Table.Th>
                       <Table.Th
-                        style={{ cursor: 'pointer', width: '100px' }}
+                        style={{ cursor: 'pointer', width: '10%' }}
                         onClick={() => handleSort('can_edit')}
                       >
                         <Group gap="xs">
@@ -311,7 +312,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
                       </Table.Th>
                       {isSuperAdmin && (
                         <Table.Th
-                          style={{ cursor: 'pointer', width: '100px' }}
+                          style={{ cursor: 'pointer', width: '10%' }}
                           onClick={() => handleSort('is_admin')}
                         >
                           <Group gap="xs">
@@ -336,17 +337,30 @@ const UserManager = ({ isSuperAdmin = false }) => {
                       filteredAndSortedUsers.map((user) => (
                         <Table.Tr key={user.user_id}>
                           <Table.Td>
-                            <Text size="sm">{user.email}</Text>
+                            <Text size="sm" lineClamp={1} title={user.email}>{user.email}</Text>
                           </Table.Td>
                           <Table.Td>
-                            <Text size="sm" c={user.display_name ? 'inherit' : 'dimmed'}>
+                            <Text size="sm" c={user.display_name ? 'inherit' : 'dimmed'} lineClamp={1} title={user.display_name}>
                               {user.display_name || '-'}
                             </Text>
                           </Table.Td>
                           <Table.Td>
-                            <Text size="sm" lineClamp={2} title={getBranchNames(user.preferred_branches)}>
-                              {getBranchNames(user.preferred_branches)}
-                            </Text>
+                            <Group gap={4}>
+                              {user.preferred_branches && user.preferred_branches.length > 0 ? (
+                                user.preferred_branches.map((branchId) => {
+                                  const branch = branches.find(b => b.id === branchId);
+                                  const branchName = branch?.short_name || branch?.arcade_name;
+                                  if (!branchName) return null;
+                                  return (
+                                    <Badge key={branchId} size="sm" variant="light" color="blue">
+                                      {branchName}
+                                    </Badge>
+                                  );
+                                })
+                              ) : (
+                                <Text size="sm" c="dimmed">-</Text>
+                              )}
+                            </Group>
                           </Table.Td>
                           <Table.Td>
                             <Checkbox
