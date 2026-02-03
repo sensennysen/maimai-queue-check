@@ -37,6 +37,9 @@ export const authService = {
   async signInWithProvider(provider) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
+      options: {
+        redirectTo: window.location.origin
+      }
     });
     
     if (error) throw error;
