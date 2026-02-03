@@ -19,15 +19,16 @@ export const useLocationGuard = ({ locationVerified, locationError, setError }) 
    * @throws {Error} If location verification required but not verified
    */
   const requireLocationVerification = useCallback(() => {
-    // Admins bypass location verification
-    if (userRoles?.is_admin) return;
+    // Super Admins bypass location verification
+    if (userRoles?.is_super_admin) return;
     
+    // Regular Admins and Queue Managers must be verified
     if (!locationVerified) {
       const errorMsg = locationError || ERRORS.LOCATION_REQUIRED;
       setError(errorMsg);
       throw new Error(errorMsg);
     }
-  }, [userRoles?.is_admin, locationVerified, locationError, setError]);
+  }, [userRoles?.is_super_admin, locationVerified, locationError, setError]);
 
   return { requireLocationVerification };
 };
