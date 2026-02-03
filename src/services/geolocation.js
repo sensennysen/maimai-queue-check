@@ -174,8 +174,19 @@ export const checkUserProximity = async (userLocation, maxDistance = 100, branch
     }
   });
 
+  const isAllowed = minDistance <= maxDistance;
+
+  // Extra safety check: if we somehow didn't find a nearest place (should be covered by empty check, but safe is good)
+  if (!nearestPlace) {
+     return {
+      isAllowed: false,
+      nearestPlace: null,
+      distance: null,
+    };
+  }
+
   return {
-    isAllowed: minDistance <= maxDistance,
+    isAllowed,
     nearestPlace,
     distance: Math.round(minDistance),
   };
