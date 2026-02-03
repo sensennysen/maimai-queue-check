@@ -7,6 +7,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';
+import { useAuth } from './hooks/useAuth';
 import { theme as mantineTheme } from './config/theme';
 import QueueManager from './components/QueueManager';
 import LoginForm from './components/LoginForm';
@@ -14,12 +15,21 @@ import ThemeToggle from './components/ThemeToggle';
 import BranchSelector from './components/BranchSelector';
 import Footer from './components/Footer';
 import AdminPanelPage from './components/AdminPanelPage';
+import PreferencesModal from './components/PreferencesModal';
 import './App.css';
 
 // Mantine theme configuration that syncs with our CSS variables
 function AppContent() {
   const { isDark } = useTheme();
+  const { user, userRoles } = useAuth();
   const [currentPage, setCurrentPage] = useState('queue'); // 'queue' or 'admin-panel'
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
+
+  const handlePreferencesSaved = () => {
+    // Real-time synchronization in AuthContext will handle updating userRoles state
+    // automatically. We just need to close the modal.
+    setShowPreferencesModal(false);
+  };
 
   return (
     <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
@@ -42,7 +52,10 @@ function AppContent() {
                 <BranchSelector />
                 <Group gap="sm">
                   <ThemeToggle />
-                  <LoginForm onOpenAdminPanel={() => setCurrentPage('admin-panel')} />
+                  <LoginForm
+                    onOpenAdminPanel={() => setCurrentPage('admin-panel')}
+                    onOpenPreferences={() => setShowPreferencesModal(true)}
+                  />
                 </Group>
               </Group>
 
@@ -55,6 +68,17 @@ function AppContent() {
           </Container>
         ) : (
           <AdminPanelPage onBack={() => setCurrentPage('queue')} />
+        )}
+
+        {user && (
+          <PreferencesModal
+            opened={showPreferencesModal}
+            onClose={() => setShowPreferencesModal(false)}
+            userId={user.id}
+            initialPreferences={userRoles?.preferred_branches}
+            initialDisplayName={userRoles?.display_name || user?.user_metadata?.full_name || ''}
+            onSaveSuccess={handlePreferencesSaved}
+          />
         )}
       </div>
       <Analytics />

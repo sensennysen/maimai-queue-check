@@ -89,7 +89,8 @@ export const rolesService = {
           user_id: userId,
           can_edit: false,
           is_admin: false,
-          is_super_admin: false
+          is_super_admin: false,
+          preferred_branches: []
         };
       }
 
@@ -97,7 +98,8 @@ export const rolesService = {
       return { 
         ...data[0], 
         is_admin: !!data[0].is_admin,
-        is_super_admin: !!data[0].is_super_admin 
+        is_super_admin: !!data[0].is_super_admin,
+        preferred_branches: Array.isArray(data[0].preferred_branches) ? data[0].preferred_branches : []
       };
     } catch {
       return {
@@ -107,6 +109,25 @@ export const rolesService = {
         is_super_admin: false
       };
     }
+  }
+};
+
+// User service functions
+export const userService = {
+  // Update user preferences
+  async updatePreferences(userId, { branchIds, displayName }) {
+    const updateData = { user_id: userId };
+    if (branchIds !== undefined) updateData.preferred_branches = branchIds;
+    if (displayName !== undefined) updateData.display_name = displayName;
+
+    const { data, error } = await supabase
+      .from('user_roles')
+      .upsert(updateData, { onConflict: 'user_id' })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 };
 
@@ -516,7 +537,7 @@ export const adminService = {
   async getAllUsersForAdmin() {
     const { data, error } = await supabase
       .from('user_roles')
-      .select('user_id, email, display_name, can_edit, is_admin, is_super_admin')
+      .select('user_id, email, display_name, can_edit, is_admin, is_super_admin, preferred_branches')
       .order('email', { ascending: true });
 
     if (error) throw error;
@@ -526,7 +547,7 @@ export const adminService = {
   // Update a user's role
   async updateUserRole(userId, updates) {
     // Only allow updating specific fields
-    const allowedFields = ['display_name', 'can_edit', 'is_admin'];
+    const allowedFields = ['display_name', 'can_edit', 'is_admin', 'preferred_branches'];
     const sanitizedUpdates = {};
     
     for (const key of allowedFields) {

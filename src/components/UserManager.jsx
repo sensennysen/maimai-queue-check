@@ -12,6 +12,8 @@ import {
   Paper,
   Modal,
   TextInput,
+  MultiSelect,
+  Badge,
 } from '@mantine/core';
 import {
   IconUsers,
@@ -23,12 +25,13 @@ import {
   IconSortDescending,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { adminService } from '../services/supabase';
+import { adminService, branchService } from '../services/supabase';
 import './UserManager.css';
 
 const UserManager = ({ isSuperAdmin = false }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [branches, setBranches] = useState([]);
 
   // Search and sort state
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,19 +45,24 @@ const UserManager = ({ isSuperAdmin = false }) => {
     display_name: '',
     can_edit: false,
     is_admin: false,
+    preferred_branches: [],
   });
   const [saving, setSaving] = useState(false);
 
-  // Load users
-  const loadUsers = async () => {
+  // Load users and branches
+  const loadData = async () => {
     try {
       setLoading(true);
-      const data = await adminService.getAllUsersForAdmin();
-      setUsers(data);
+      const [usersData, branchesData] = await Promise.all([
+        adminService.getAllUsersForAdmin(),
+        branchService.getAllBranches(),
+      ]);
+      setUsers(usersData);
+      setBranches(branchesData);
     } catch (error) {
       notifications.show({
         title: 'Error',
-        message: error.message || 'Failed to load users',
+        message: error.message || 'Failed to load data',
         color: 'red',
       });
     } finally {
@@ -63,7 +71,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
   };
 
   useEffect(() => {
-    loadUsers();
+    loadData();
   }, []);
 
   // Filter and sort users
@@ -76,7 +84,9 @@ const UserManager = ({ isSuperAdmin = false }) => {
       result = result.filter(
         (user) =>
           user.email?.toLowerCase().includes(query) ||
-          user.display_name?.toLowerCase().includes(query)
+          user.display_name?.toLowerCase().includes(query) ||
+          (user.is_admin ? 'admin' : '').includes(query) ||
+          (user.is_super_admin ? 'super' : '').includes(query)
       );
     }
 
@@ -129,6 +139,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
       display_name: user.display_name || '',
       can_edit: user.can_edit || false,
       is_admin: user.is_admin || false,
+      preferred_branches: user.preferred_branches ? user.preferred_branches.map(String) : [],
     });
     setEditModalOpen(true);
   };
@@ -142,6 +153,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
       const updates = {
         display_name: editForm.display_name,
         can_edit: editForm.can_edit,
+        preferred_branches: editForm.preferred_branches.map(Number), // Convert back to numbers
       };
 
       // Only super admins can modify is_admin
@@ -159,7 +171,10 @@ const UserManager = ({ isSuperAdmin = false }) => {
 
       setEditModalOpen(false);
       setUserToEdit(null);
-      loadUsers();
+
+      // Reload users to get fresh data
+      const usersData = await adminService.getAllUsersForAdmin();
+      setUsers(usersData);
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -181,7 +196,10 @@ const UserManager = ({ isSuperAdmin = false }) => {
         message: `${user.email} can ${!user.can_edit ? 'now' : 'no longer'} edit`,
         color: 'green',
       });
-      loadUsers();
+
+      // Reload users to get fresh data
+      const usersData = await adminService.getAllUsersForAdmin();
+      setUsers(usersData);
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -203,7 +221,10 @@ const UserManager = ({ isSuperAdmin = false }) => {
         message: `${user.email} is ${!user.is_admin ? 'now' : 'no longer'} an admin`,
         color: 'green',
       });
-      loadUsers();
+
+      // Reload users to get fresh data
+      const usersData = await adminService.getAllUsersForAdmin();
+      setUsers(usersData);
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -217,6 +238,14 @@ const UserManager = ({ isSuperAdmin = false }) => {
     setEditModalOpen(false);
     setUserToEdit(null);
   };
+
+
+
+  // Branch options for MultiSelect
+  const branchOptions = branches.map(b => ({
+    value: String(b.id),
+    label: b.arcade_name
+  }));
 
   return (
     <>
@@ -243,12 +272,12 @@ const UserManager = ({ isSuperAdmin = false }) => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <Paper withBorder>
-              <Table.ScrollContainer minWidth={600}>
+              <Table.ScrollContainer minWidth={800}>
                 <Table striped highlightOnHover>
                   <Table.Thead>
                     <Table.Tr>
                       <Table.Th
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', width: '25%' }}
                         onClick={() => handleSort('email')}
                       >
                         <Group gap="xs">
@@ -257,7 +286,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
                         </Group>
                       </Table.Th>
                       <Table.Th
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', width: '20%' }}
                         onClick={() => handleSort('display_name')}
                       >
                         <Group gap="xs">
@@ -265,8 +294,9 @@ const UserManager = ({ isSuperAdmin = false }) => {
                           <SortIcon field="display_name" />
                         </Group>
                       </Table.Th>
+                      <Table.Th style={{ width: '35%' }}>Preferred Branches</Table.Th>
                       <Table.Th
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', width: '10%' }}
                         onClick={() => handleSort('can_edit')}
                       >
                         <Group gap="xs">
@@ -276,7 +306,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
                       </Table.Th>
                       {isSuperAdmin && (
                         <Table.Th
-                          style={{ cursor: 'pointer' }}
+                          style={{ cursor: 'pointer', width: '10%' }}
                           onClick={() => handleSort('is_admin')}
                         >
                           <Group gap="xs">
@@ -285,13 +315,13 @@ const UserManager = ({ isSuperAdmin = false }) => {
                           </Group>
                         </Table.Th>
                       )}
-                      <Table.Th>Actions</Table.Th>
+                      <Table.Th style={{ width: '80px' }}>Actions</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
                     {filteredAndSortedUsers.length === 0 ? (
                       <Table.Tr>
-                        <Table.Td colSpan={isSuperAdmin ? 5 : 4}>
+                        <Table.Td colSpan={isSuperAdmin ? 6 : 5}>
                           <Center py="md">
                             <Text c="dimmed">No users match your search</Text>
                           </Center>
@@ -301,12 +331,30 @@ const UserManager = ({ isSuperAdmin = false }) => {
                       filteredAndSortedUsers.map((user) => (
                         <Table.Tr key={user.user_id}>
                           <Table.Td>
-                            <Text size="sm">{user.email}</Text>
+                            <Text size="sm" lineClamp={1} title={user.email}>{user.email}</Text>
                           </Table.Td>
                           <Table.Td>
-                            <Text size="sm" c={user.display_name ? 'inherit' : 'dimmed'}>
+                            <Text size="sm" c={user.display_name ? 'inherit' : 'dimmed'} lineClamp={1} title={user.display_name}>
                               {user.display_name || '-'}
                             </Text>
+                          </Table.Td>
+                          <Table.Td>
+                            <Group gap={4}>
+                              {user.preferred_branches && user.preferred_branches.length > 0 ? (
+                                user.preferred_branches.map((branchId) => {
+                                  const branch = branches.find(b => b.id === branchId);
+                                  const branchName = branch?.short_name || branch?.arcade_name;
+                                  if (!branchName) return null;
+                                  return (
+                                    <Badge key={branchId} size="sm" variant="light" color="blue">
+                                      {branchName}
+                                    </Badge>
+                                  );
+                                })
+                              ) : (
+                                <Text size="sm" c="dimmed">-</Text>
+                              )}
+                            </Group>
                           </Table.Td>
                           <Table.Td>
                             <Checkbox
@@ -355,6 +403,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
           </Group>
         }
         centered
+        size="lg"
       >
         <Stack gap="md">
           <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
@@ -368,20 +417,32 @@ const UserManager = ({ isSuperAdmin = false }) => {
             onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
           />
 
-          <Checkbox
-            label="Can Edit Queue"
-            checked={editForm.can_edit}
-            onChange={(e) => setEditForm({ ...editForm, can_edit: e.currentTarget.checked })}
+          <MultiSelect
+            label="Preferred Branches"
+            placeholder="Select one or more branches"
+            data={branchOptions}
+            value={editForm.preferred_branches}
+            onChange={(selected) => setEditForm({ ...editForm, preferred_branches: selected })}
+            searchable
+            clearable
           />
 
-          {isSuperAdmin && (
+          <Group grow>
             <Checkbox
-              label="Is Admin"
-              checked={editForm.is_admin}
-              onChange={(e) => setEditForm({ ...editForm, is_admin: e.currentTarget.checked })}
-              disabled={userToEdit?.is_super_admin}
+              label="Can Edit Queue"
+              checked={editForm.can_edit}
+              onChange={(e) => setEditForm({ ...editForm, can_edit: e.currentTarget.checked })}
             />
-          )}
+
+            {isSuperAdmin && (
+              <Checkbox
+                label="Is Admin"
+                checked={editForm.is_admin}
+                onChange={(e) => setEditForm({ ...editForm, is_admin: e.currentTarget.checked })}
+                disabled={userToEdit?.is_super_admin}
+              />
+            )}
+          </Group>
 
           <Group justify="flex-end" mt="md">
             <Button variant="subtle" onClick={handleCloseModal} leftSection={<IconX size={16} />}>
