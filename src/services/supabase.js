@@ -533,15 +533,42 @@ export const adminService = {
     return data;
   },
 
-  // Get all users for admin management
-  async getAllUsersForAdmin() {
-    const { data, error } = await supabase
+  // Get all users for admin management with pagination, search, and sort
+  async getAllUsersForAdmin({ 
+    page = 1, 
+    pageSize = 10, 
+    searchQuery = '', 
+    sortField = 'email', 
+    sortDirection = 'asc' 
+  } = {}) {
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    let query = supabase
       .from('user_roles')
-      .select('user_id, email, display_name, can_edit, is_admin, is_super_admin, preferred_branches')
-      .order('email', { ascending: true });
+      .select('user_id, email, display_name, can_edit, is_admin, is_super_admin, preferred_branches', { count: 'exact' });
+
+    // Server-side filtering (search)
+    if (searchQuery.trim()) {
+      const queryStr = `%${searchQuery.trim()}%`;
+      query = query.or(`email.ilike.${queryStr},display_name.ilike.${queryStr}`);
+    }
+
+    // Server-side sorting
+    if (sortField) {
+      query = query.order(sortField, { ascending: sortDirection === 'asc' });
+    }
+
+    // Pagination
+    query = query.range(from, to);
+
+    const { data, error, count } = await query;
 
     if (error) throw error;
-    return data || [];
+    return {
+      users: data || [],
+      totalCount: count || 0
+    };
   },
 
   // Update a user's role
