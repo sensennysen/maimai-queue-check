@@ -63,6 +63,13 @@ export const useLocationVerification = () => {
       setLocationCheckInProgress(false);
     }
   }, [user, selectedBranch?.id, userRoles?.is_super_admin]);
+  
+  // Reset verification state when branch or user changes
+  useEffect(() => {
+    setLocationVerified(false);
+    setHasAttemptedVerification(false);
+    setLocationError(null);
+  }, [selectedBranch?.id, user?.id]);
 
   // Check if we should show the consent modal
   useEffect(() => {
