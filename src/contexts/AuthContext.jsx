@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { authService, rolesService } from '../services/supabase';
+import { authService, rolesService, supabase } from '../services/supabase';
 import { useBranch } from '../hooks/useBranch';
 import { AuthContext } from './AuthContextProvider';
 
@@ -63,6 +63,44 @@ export const AuthProvider = ({ children }) => {
       subscription?.unsubscribe();
     };
   }, [selectedBranch?.id]); // Re-subscribe/re-run when branch changes to ensure correct roles are fetched
+
+  // Add real-time subscription for role changes
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const channel = supabase
+      .channel(`user-roles-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_roles',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'DELETE') {
+            setUserRoles(null);
+          } else {
+            // Normalize data exactly like getUserRoles
+            const newData = payload.new;
+            setUserRoles({
+              ...newData,
+              is_admin: !!newData.is_admin,
+              is_super_admin: !!newData.is_super_admin,
+              preferred_branches: Array.isArray(newData.preferred_branches) ? newData.preferred_branches : []
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const signInWithProvider = async (provider) => {
     setLoading(true);

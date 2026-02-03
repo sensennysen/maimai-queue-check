@@ -26,11 +26,9 @@ function AppContent() {
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
 
   const handlePreferencesSaved = () => {
-    // To reflect changes immediately in the UI (like the Login dropdown badges), 
-    // we would ideally refresh userRoles. Since AuthContext doesn't expose a generic refresh,
-    // a page reload is a safe brute-force way to ensure all contexts sync up with the new DB state.
-    // Or we could rely on supabase realtime if we set it up, but reload is safer for now.
-    window.location.reload();
+    // Real-time synchronization in AuthContext will handle updating userRoles state
+    // automatically. We just need to close the modal.
+    setShowPreferencesModal(false);
   };
 
   return (
