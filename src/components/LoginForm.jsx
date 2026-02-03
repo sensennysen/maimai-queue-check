@@ -59,7 +59,7 @@ const LoginForm = ({ onOpenAdminPanel }) => {
             </Stack>
           </Menu.Label>
           <Divider />
-          {userRoles?.is_admin && (
+          {userRoles?.is_super_admin && (
             <>
               <Menu.Item
                 leftSection={<IconSettings size={16} />}
