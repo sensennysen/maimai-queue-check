@@ -57,7 +57,7 @@ const AdminPanelPage = ({ onBack }) => {
 
 
 
-  const [activeTab, setActiveTab] = useState('branches');
+  const [activeTab, setActiveTab] = useState(isSuperAdmin ? 'branches' : 'users');
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedBranches, setExpandedBranches] = useState(new Set());
@@ -97,7 +97,7 @@ const AdminPanelPage = ({ onBack }) => {
     loadBranches();
   }, [isSuperAdmin, loadBranches]);
 
-  if (!isSuperAdmin) {
+  if (!userRoles?.is_admin && !isSuperAdmin) {
     return (
       <Container size="sm" py="xl">
         <Paper p="xl" withBorder>
@@ -249,9 +249,11 @@ const AdminPanelPage = ({ onBack }) => {
 
         <Tabs value={activeTab} onChange={setActiveTab}>
           <Tabs.List>
-            <Tabs.Tab value="branches" leftSection={<IconBuildingStore size={16} />}>
-              Branch Management
-            </Tabs.Tab>
+            {isSuperAdmin && (
+              <Tabs.Tab value="branches" leftSection={<IconBuildingStore size={16} />}>
+                Branch Management
+              </Tabs.Tab>
+            )}
             <Tabs.Tab value="users" leftSection={<IconUsers size={16} />}>
               User Management
             </Tabs.Tab>
@@ -424,7 +426,7 @@ const AdminPanelPage = ({ onBack }) => {
           </Tabs.Panel>
 
           <Tabs.Panel value="users" pt="md">
-            <UserManager isSuperAdmin={isSuperAdmin} />
+            <UserManager isSuperAdmin={isSuperAdmin} currentUserRoles={userRoles} />
           </Tabs.Panel>
         </Tabs>
       </Stack>

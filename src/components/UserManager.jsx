@@ -29,7 +29,7 @@ import { notifications } from '@mantine/notifications';
 import { adminService, branchService } from '../services/supabase';
 import './UserManager.css';
 
-const UserManager = ({ isSuperAdmin = false }) => {
+const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [branches, setBranches] = useState([]);
@@ -78,6 +78,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
         searchQuery,
         sortField,
         sortDirection,
+        adminBranch: isSuperAdmin ? null : currentUserRoles?.admin_branch
       });
       setUsers(usersData);
       setTotalCount(count);
@@ -137,13 +138,13 @@ const UserManager = ({ isSuperAdmin = false }) => {
     setSaving(true);
     try {
       const updates = {
-        display_name: editForm.display_name,
         can_edit: editForm.can_edit,
-        preferred_branches: editForm.preferred_branches.map(Number),
       };
 
       if (isSuperAdmin) {
+        updates.display_name = editForm.display_name;
         updates.is_admin = editForm.is_admin;
+        updates.preferred_branches = editForm.preferred_branches.map(Number);
       }
 
       await adminService.updateUserRole(userToEdit.user_id, updates);
@@ -169,6 +170,19 @@ const UserManager = ({ isSuperAdmin = false }) => {
   };
 
   const handleToggleCanEdit = async (user) => {
+    // Check if admin has permission to modify this specific user
+    const adminBranch = currentUserRoles?.admin_branch;
+    const hasBranchPermission = isSuperAdmin || (adminBranch && user.preferred_branches?.includes(adminBranch));
+
+    if (!hasBranchPermission) {
+      notifications.show({
+        title: 'Permission Denied',
+        message: 'You can only manage users in your assigned branch.',
+        color: 'red',
+      });
+      return;
+    }
+
     try {
       await adminService.updateUserRole(user.user_id, {
         can_edit: !user.can_edit,
@@ -270,7 +284,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
                           <SortIcon field="display_name" />
                         </Group>
                       </Table.Th>
-                      <Table.Th style={{ width: '35%' }}>Preferred Branches</Table.Th>
+                      {isSuperAdmin && <Table.Th style={{ width: '35%' }}>Preferred Branches</Table.Th>}
                       <Table.Th
                         style={{ cursor: 'pointer', width: '10%' }}
                         onClick={() => handleSort('can_edit')}
@@ -305,24 +319,26 @@ const UserManager = ({ isSuperAdmin = false }) => {
                             {user.display_name || '-'}
                           </Text>
                         </Table.Td>
-                        <Table.Td>
-                          <Group gap={4}>
-                            {user.preferred_branches && user.preferred_branches.length > 0 ? (
-                              user.preferred_branches.map((branchId) => {
-                                const branch = branches.find(b => b.id === branchId);
-                                const branchName = branch?.short_name || branch?.arcade_name;
-                                if (!branchName) return null;
-                                return (
-                                  <Badge key={branchId} size="sm" variant="light" color="blue">
-                                    {branchName}
-                                  </Badge>
-                                );
-                              })
-                            ) : (
-                              <Text size="sm" c="dimmed">-</Text>
-                            )}
-                          </Group>
-                        </Table.Td>
+                        {isSuperAdmin && (
+                          <Table.Td>
+                            <Group gap={4}>
+                              {user.preferred_branches && user.preferred_branches.length > 0 ? (
+                                user.preferred_branches.map((branchId) => {
+                                  const branch = branches.find(b => b.id === branchId);
+                                  const branchName = branch?.short_name || branch?.arcade_name;
+                                  if (!branchName) return null;
+                                  return (
+                                    <Badge key={branchId} size="sm" variant="light" color="blue">
+                                      {branchName}
+                                    </Badge>
+                                  );
+                                })
+                              ) : (
+                                <Text size="sm" c="dimmed">-</Text>
+                              )}
+                            </Group>
+                          </Table.Td>
+                        )}
                         <Table.Td>
                           <Checkbox
                             checked={user.can_edit}
@@ -395,17 +411,21 @@ const UserManager = ({ isSuperAdmin = false }) => {
             placeholder="Enter display name"
             value={editForm.display_name}
             onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
+            disabled={!isSuperAdmin}
           />
 
-          <MultiSelect
-            label="Preferred Branches"
-            placeholder="Select one or more branches"
-            data={branchOptions}
-            value={editForm.preferred_branches}
-            onChange={(selected) => setEditForm({ ...editForm, preferred_branches: selected })}
-            searchable
-            clearable
-          />
+          {isSuperAdmin && (
+            <MultiSelect
+              label="Preferred Branches"
+              placeholder="Select one or more branches"
+              data={branchOptions}
+              value={editForm.preferred_branches}
+              onChange={(selected) => setEditForm({ ...editForm, preferred_branches: selected })}
+              searchable
+              clearable
+              disabled={!isSuperAdmin}
+            />
+          )}
 
           <Group grow>
             <Checkbox

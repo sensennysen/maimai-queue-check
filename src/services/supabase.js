@@ -99,6 +99,7 @@ export const rolesService = {
         ...data[0], 
         is_admin: !!data[0].is_admin,
         is_super_admin: !!data[0].is_super_admin,
+        admin_branch: data[0].admin_branch || null,
         preferred_branches: Array.isArray(data[0].preferred_branches) ? data[0].preferred_branches : []
       };
     } catch {
@@ -539,7 +540,8 @@ export const adminService = {
     pageSize = 10, 
     searchQuery = '', 
     sortField = 'email', 
-    sortDirection = 'asc' 
+    sortDirection = 'asc',
+    adminBranch = null
   } = {}) {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
@@ -552,6 +554,11 @@ export const adminService = {
     if (searchQuery.trim()) {
       const queryStr = `%${searchQuery.trim()}%`;
       query = query.or(`email.ilike.${queryStr},display_name.ilike.${queryStr}`);
+    }
+
+    // Branch filtering for regular admins
+    if (adminBranch) {
+      query = query.contains('preferred_branches', [adminBranch]);
     }
 
     // Server-side sorting
