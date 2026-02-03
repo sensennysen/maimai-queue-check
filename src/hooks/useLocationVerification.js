@@ -46,7 +46,7 @@ export const useLocationVerification = () => {
       const result = await verifyUserLocationAndPermissions(
         user.id,
         selectedBranch.id,
-        userRoles?.is_admin || false
+        userRoles?.is_super_admin || false
       );
       setLocationVerified(result.allowed);
       setNeedsLocationPermission(result.needsPermission || false);
@@ -62,7 +62,14 @@ export const useLocationVerification = () => {
     } finally {
       setLocationCheckInProgress(false);
     }
-  }, [user, selectedBranch?.id, userRoles?.is_admin]);
+  }, [user, selectedBranch?.id, userRoles?.is_super_admin]);
+  
+  // Reset verification state when branch or user changes
+  useEffect(() => {
+    setLocationVerified(false);
+    setHasAttemptedVerification(false);
+    setLocationError(null);
+  }, [selectedBranch?.id, user?.id]);
 
   // Check if we should show the consent modal
   useEffect(() => {
@@ -78,12 +85,18 @@ export const useLocationVerification = () => {
       }
 
       // Admins don't need location consent - they bypass location checks
-      if (userRoles.is_admin) {
+      if (userRoles.is_super_admin) {
         return;
       }
 
-      // Must have edit permissions to need geolocation
-      if (!userRoles.can_edit) {
+      // Must have edit permissions (either global or for this branch) to need geolocation
+      const canEditGlobal = userRoles.can_edit ?? false;
+      const canEditOn = Array.isArray(userRoles.can_edit_on) ? userRoles.can_edit_on : [];
+      const canEditBranch = selectedBranch 
+        ? canEditOn.some(id => String(id) === String(selectedBranch.id)) 
+        : false;
+
+      if (!canEditGlobal && !canEditBranch) {
         return;
       }
 
@@ -117,16 +130,23 @@ export const useLocationVerification = () => {
     };
 
     checkAndShowModal();
-  }, [user, userRoles, geolocationConsent, locationCheckInProgress]);
+  }, [user, userRoles, geolocationConsent, locationCheckInProgress, selectedBranch]);
 
   // Auto-verify when consent is granted (either from modal or auto-detected)
   useEffect(() => {
     if (user && geolocationConsent === 'granted' && !hasAttemptedVerification && !locationCheckInProgress) {
-      if (userRoles?.can_edit) {
+      // Check permission again using the composite logic
+      const canEditGlobal = userRoles?.can_edit ?? false;
+      const canEditOn = Array.isArray(userRoles?.can_edit_on) ? userRoles.can_edit_on : [];
+      const canEditBranch = selectedBranch 
+        ? canEditOn.some(id => String(id) === String(selectedBranch.id)) 
+        : false;
+
+      if (canEditGlobal || canEditBranch) {
         verifyLocation();
       }
     }
-  }, [user, userRoles?.can_edit, geolocationConsent, hasAttemptedVerification, locationCheckInProgress, verifyLocation]);
+  }, [user, userRoles?.can_edit, geolocationConsent, hasAttemptedVerification, locationCheckInProgress, verifyLocation, selectedBranch, userRoles?.can_edit_on]);
 
   // Handle when user accepts consent modal - trigger browser permission
   const handleConsentAccepted = useCallback(async () => {

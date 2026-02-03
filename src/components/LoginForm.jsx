@@ -86,7 +86,7 @@ const LoginForm = ({ onOpenAdminPanel, onOpenPreferences }) => {
           >
             Preferences
           </Menu.Item>
-          {userRoles?.is_super_admin && (
+          {(userRoles?.is_admin || userRoles?.is_super_admin) && (
             <>
               <Menu.Item
                 leftSection={<IconSettings size={16} />}

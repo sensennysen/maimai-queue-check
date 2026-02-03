@@ -99,7 +99,10 @@ export const rolesService = {
         ...data[0], 
         is_admin: !!data[0].is_admin,
         is_super_admin: !!data[0].is_super_admin,
-        preferred_branches: Array.isArray(data[0].preferred_branches) ? data[0].preferred_branches : []
+        admin_branch: data[0].admin_branch || null,
+        preferred_branches: Array.isArray(data[0].preferred_branches) ? data[0].preferred_branches : [],
+        can_edit: !!data[0].can_edit,
+        can_edit_on: Array.isArray(data[0].can_edit_on) ? data[0].can_edit_on : []
       };
     } catch {
       return {
@@ -539,19 +542,25 @@ export const adminService = {
     pageSize = 10, 
     searchQuery = '', 
     sortField = 'email', 
-    sortDirection = 'asc' 
+    sortDirection = 'asc',
+    adminBranch = null
   } = {}) {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
     let query = supabase
       .from('user_roles')
-      .select('user_id, email, display_name, can_edit, is_admin, is_super_admin, preferred_branches', { count: 'exact' });
+      .select('user_id, email, display_name, can_edit, can_edit_on, is_admin, is_super_admin, preferred_branches', { count: 'exact' });
 
     // Server-side filtering (search)
     if (searchQuery.trim()) {
       const queryStr = `%${searchQuery.trim()}%`;
       query = query.or(`email.ilike.${queryStr},display_name.ilike.${queryStr}`);
+    }
+
+    // Branch filtering for regular admins
+    if (adminBranch) {
+      query = query.contains('preferred_branches', [adminBranch]);
     }
 
     // Server-side sorting
@@ -574,7 +583,7 @@ export const adminService = {
   // Update a user's role
   async updateUserRole(userId, updates) {
     // Only allow updating specific fields
-    const allowedFields = ['display_name', 'can_edit', 'is_admin', 'preferred_branches'];
+    const allowedFields = ['display_name', 'can_edit', 'can_edit_on', 'is_admin', 'preferred_branches'];
     const sanitizedUpdates = {};
     
     for (const key of allowedFields) {

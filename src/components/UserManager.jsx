@@ -29,7 +29,7 @@ import { notifications } from '@mantine/notifications';
 import { adminService, branchService } from '../services/supabase';
 import './UserManager.css';
 
-const UserManager = ({ isSuperAdmin = false }) => {
+const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [branches, setBranches] = useState([]);
@@ -50,6 +50,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
   const [editForm, setEditForm] = useState({
     display_name: '',
     can_edit: false,
+    can_edit_on: [],
     is_admin: false,
     preferred_branches: [],
   });
@@ -78,6 +79,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
         searchQuery,
         sortField,
         sortDirection,
+        adminBranch: isSuperAdmin ? null : currentUserRoles?.admin_branch
       });
       setUsers(usersData);
       setTotalCount(count);
@@ -90,7 +92,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchQuery, sortField, sortDirection]);
+  }, [currentPage, searchQuery, sortField, sortDirection, isSuperAdmin, currentUserRoles?.admin_branch]);
 
   useEffect(() => {
     loadUsers();
@@ -125,6 +127,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
     setEditForm({
       display_name: user.display_name || '',
       can_edit: user.can_edit || false,
+      can_edit_on: Array.isArray(user.can_edit_on) ? user.can_edit_on.map(String) : [],
       is_admin: user.is_admin || false,
       preferred_branches: user.preferred_branches ? user.preferred_branches.map(String) : [],
     });
@@ -135,15 +138,66 @@ const UserManager = ({ isSuperAdmin = false }) => {
     if (!userToEdit) return;
 
     setSaving(true);
+    const adminBranch = currentUserRoles?.admin_branch;
+
+    // Check permission: Super Admin OR (Admin AND user in branch)
+    const hasBranchPermission = isSuperAdmin || (adminBranch && userToEdit.preferred_branches?.includes(adminBranch));
+
+    if (!hasBranchPermission) {
+      notifications.show({
+        title: 'Permission Denied',
+        message: 'You can only manage users in your assigned branch.',
+        color: 'red',
+      });
+      setSaving(false);
+      return;
+    }
+
     try {
-      const updates = {
-        display_name: editForm.display_name,
-        can_edit: editForm.can_edit,
-        preferred_branches: editForm.preferred_branches.map(Number),
-      };
+      const updates = {};
 
       if (isSuperAdmin) {
+        updates.display_name = editForm.display_name;
         updates.is_admin = editForm.is_admin;
+        updates.preferred_branches = editForm.preferred_branches.map(Number);
+        updates.can_edit = editForm.can_edit;
+        updates.can_edit_on = editForm.can_edit_on.map(Number);
+      } else {
+        // Regular Admin Logic
+        // 1. can_edit (global) is hidden (not updated)
+        // 2. can_edit_on: Update ONLY the admin's branch presence
+        // We use the `editForm.can_edit_on` as the source of truth for the admin's intent regarding THEIR branch?
+        // Actually, in the modal for regular admin, we will likely show a single checkbox.
+        // Let's assume the modal puts the admin's branch into `can_edit_on` array in `editForm` if checked, and removes it if unchecked.
+        // But we must ensure we don't accidentally wipe other branches if the `editForm` was initialized with them.
+        // `editForm.can_edit_on` initialized in `handleEditClick` contains ALL branches.
+        // So checking/unchecking in UI should modify that array.
+        // Here we just save the array.
+
+        // Wait, for safety, let's re-verify we aren't adding branches we shouldn't?
+        // Actually, if we trust `editForm` is only modified by our UI, passing it is okay.
+        // But to be super safe:
+
+        const originalBranches = userToEdit.can_edit_on || [];
+        const newBranchesEncoded = editForm.can_edit_on.map(Number);
+
+        // Ensure we only touched `adminBranch`
+        const isOriginallyIn = originalBranches.includes(adminBranch);
+        const isNowIn = newBranchesEncoded.includes(adminBranch);
+
+        if (isOriginallyIn !== isNowIn) {
+          // Change detected on admin branch
+          let finalBranches = [...originalBranches];
+          if (isNowIn) {
+            if (!finalBranches.includes(adminBranch)) finalBranches.push(adminBranch);
+          } else {
+            finalBranches = finalBranches.filter(id => id !== adminBranch);
+          }
+          updates.can_edit_on = finalBranches;
+        }
+
+        // Note: Regular admins cannot change display_name, is_admin, preferred_branches (disabled in UI).
+        // `updateUserRole` in supabase.js filters allowed fields.
       }
 
       await adminService.updateUserRole(userToEdit.user_id, updates);
@@ -168,21 +222,66 @@ const UserManager = ({ isSuperAdmin = false }) => {
     }
   };
 
-  const handleToggleCanEdit = async (user) => {
+  const handleToggleCanEditGlobal = async (user) => {
+    if (!isSuperAdmin) return;
     try {
       await adminService.updateUserRole(user.user_id, {
         can_edit: !user.can_edit,
       });
       notifications.show({
         title: 'Success',
-        message: `${user.email} can ${!user.can_edit ? 'now' : 'no longer'} edit`,
+        message: `Updated global edit permission for ${user.email}`,
         color: 'green',
       });
-      loadUsers(); // Reload current page
+      loadUsers();
     } catch (error) {
       notifications.show({
         title: 'Error',
-        message: error.message || 'Failed to update user',
+        message: error.message,
+        color: 'red',
+      });
+    }
+  };
+
+  const handleToggleCanEditBranch = async (user) => {
+    // For Regular Admins: Toggle their branch in can_edit_on
+    // For Super Admins: This function is strictly for the checkbox logic if we repurpose it,
+    // but Super Admins have full controls. 
+    // Let's assume this handles the "Can Edit" checkbox for Regular Admins.
+
+    const adminBranch = currentUserRoles?.admin_branch;
+    if (!adminBranch) return; // Should not happen for regular admin in this context
+
+    const hasBranchPermission = isSuperAdmin || (user.preferred_branches?.includes(adminBranch));
+    if (!hasBranchPermission) {
+      notifications.show({ title: 'Permission Denied', color: 'red' });
+      return;
+    }
+
+    const currentBranches = user.can_edit_on || [];
+    const isAllowed = currentBranches.includes(adminBranch);
+
+    let newBranches;
+    if (isAllowed) {
+      newBranches = currentBranches.filter(id => id !== adminBranch);
+    } else {
+      newBranches = [...currentBranches, adminBranch];
+    }
+
+    try {
+      await adminService.updateUserRole(user.user_id, {
+        can_edit_on: newBranches,
+      });
+      notifications.show({
+        title: 'Success',
+        message: `Updated branch edit permission for ${user.email}`,
+        color: 'green',
+      });
+      loadUsers();
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: error.message,
         color: 'red',
       });
     }
@@ -270,16 +369,16 @@ const UserManager = ({ isSuperAdmin = false }) => {
                           <SortIcon field="display_name" />
                         </Group>
                       </Table.Th>
-                      <Table.Th style={{ width: '35%' }}>Preferred Branches</Table.Th>
-                      <Table.Th
-                        style={{ cursor: 'pointer', width: '10%' }}
-                        onClick={() => handleSort('can_edit')}
-                      >
-                        <Group gap="xs">
-                          Can Edit
-                          <SortIcon field="can_edit" />
-                        </Group>
-                      </Table.Th>
+                      {isSuperAdmin && <Table.Th style={{ width: '30%' }}>Preferred Branches</Table.Th>}
+                      {isSuperAdmin ? (
+                        <>
+                          <Table.Th style={{ width: '10%' }}>Global Edit</Table.Th>
+                          <Table.Th style={{ width: '30%' }}>Edit on Branches</Table.Th>
+                        </>
+                      ) : (
+                        <Table.Th style={{ width: '10%' }}>Can Edit</Table.Th>
+                      )}
+
                       {isSuperAdmin && (
                         <Table.Th
                           style={{ cursor: 'pointer', width: '10%' }}
@@ -305,30 +404,61 @@ const UserManager = ({ isSuperAdmin = false }) => {
                             {user.display_name || '-'}
                           </Text>
                         </Table.Td>
-                        <Table.Td>
-                          <Group gap={4}>
-                            {user.preferred_branches && user.preferred_branches.length > 0 ? (
-                              user.preferred_branches.map((branchId) => {
-                                const branch = branches.find(b => b.id === branchId);
-                                const branchName = branch?.short_name || branch?.arcade_name;
-                                if (!branchName) return null;
-                                return (
-                                  <Badge key={branchId} size="sm" variant="light" color="blue">
-                                    {branchName}
-                                  </Badge>
-                                );
-                              })
-                            ) : (
-                              <Text size="sm" c="dimmed">-</Text>
-                            )}
-                          </Group>
-                        </Table.Td>
-                        <Table.Td>
-                          <Checkbox
-                            checked={user.can_edit}
-                            onChange={() => handleToggleCanEdit(user)}
-                          />
-                        </Table.Td>
+                        {isSuperAdmin && (
+                          <Table.Td>
+                            <Group gap={4}>
+                              {user.preferred_branches && user.preferred_branches.length > 0 ? (
+                                user.preferred_branches.map((branchId) => {
+                                  const branch = branches.find(b => b.id === branchId);
+                                  const branchName = branch?.short_name || branch?.arcade_name;
+                                  if (!branchName) return null;
+                                  return (
+                                    <Badge key={branchId} size="sm" variant="light" color="blue">
+                                      {branchName}
+                                    </Badge>
+                                  );
+                                })
+                              ) : (
+                                <Text size="sm" c="dimmed">-</Text>
+                              )}
+                            </Group>
+                          </Table.Td>
+                        )}
+                        {isSuperAdmin ? (
+                          <>
+                            <Table.Td>
+                              <Checkbox
+                                checked={user.can_edit}
+                                onChange={() => handleToggleCanEditGlobal(user)}
+                              />
+                            </Table.Td>
+                            <Table.Td>
+                              <Group gap={4}>
+                                {user.can_edit_on && user.can_edit_on.length > 0 ? (
+                                  user.can_edit_on.map((branchId) => {
+                                    const branch = branches.find(b => b.id === branchId);
+                                    const branchName = branch?.short_name || branch?.arcade_name;
+                                    if (!branchName) return null;
+                                    return (
+                                      <Badge key={branchId} size="sm" variant="outline" color="green">
+                                        {branchName}
+                                      </Badge>
+                                    );
+                                  })
+                                ) : (
+                                  <Text size="sm" c="dimmed">-</Text>
+                                )}
+                              </Group>
+                            </Table.Td>
+                          </>
+                        ) : (
+                          <Table.Td>
+                            <Checkbox
+                              checked={user.can_edit_on?.includes(currentUserRoles?.admin_branch)}
+                              onChange={() => handleToggleCanEditBranch(user)}
+                            />
+                          </Table.Td>
+                        )}
                         {isSuperAdmin && (
                           <Table.Td>
                             <Checkbox
@@ -395,24 +525,57 @@ const UserManager = ({ isSuperAdmin = false }) => {
             placeholder="Enter display name"
             value={editForm.display_name}
             onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
+            disabled={!isSuperAdmin}
           />
 
-          <MultiSelect
-            label="Preferred Branches"
-            placeholder="Select one or more branches"
-            data={branchOptions}
-            value={editForm.preferred_branches}
-            onChange={(selected) => setEditForm({ ...editForm, preferred_branches: selected })}
-            searchable
-            clearable
-          />
-
-          <Group grow>
-            <Checkbox
-              label="Can Edit Queue"
-              checked={editForm.can_edit}
-              onChange={(e) => setEditForm({ ...editForm, can_edit: e.currentTarget.checked })}
+          {isSuperAdmin && (
+            <MultiSelect
+              label="Preferred Branches"
+              placeholder="Select one or more branches"
+              data={branchOptions}
+              value={editForm.preferred_branches}
+              onChange={(selected) => setEditForm({ ...editForm, preferred_branches: selected })}
+              searchable
+              clearable
+              disabled={!isSuperAdmin}
             />
+          )}
+
+          <Group grow align="flex-start">
+            {isSuperAdmin ? (
+              <Stack gap="xs">
+                <Checkbox
+                  label="Can Edit Anywhere"
+                  checked={editForm.can_edit}
+                  onChange={(e) => setEditForm({ ...editForm, can_edit: e.currentTarget.checked })}
+                />
+                <MultiSelect
+                  label="Can Edit on Branches"
+                  placeholder="Select branches"
+                  data={branchOptions}
+                  value={editForm.can_edit_on.map(String)}
+                  onChange={(selected) => setEditForm({ ...editForm, can_edit_on: selected.map(Number) })}
+                  searchable
+                  clearable
+                />
+              </Stack>
+            ) : (
+              <Checkbox
+                label="Can Edit Queue"
+                checked={editForm.can_edit_on.includes(currentUserRoles?.admin_branch)}
+                onChange={(e) => {
+                  const checked = e.currentTarget.checked;
+                  const adminBranch = currentUserRoles?.admin_branch;
+                  let newBranches = [...editForm.can_edit_on];
+                  if (checked) {
+                    if (!newBranches.includes(adminBranch)) newBranches.push(adminBranch);
+                  } else {
+                    newBranches = newBranches.filter(id => id !== adminBranch);
+                  }
+                  setEditForm({ ...editForm, can_edit_on: newBranches });
+                }}
+              />
+            )}
 
             {isSuperAdmin && (
               <Checkbox
