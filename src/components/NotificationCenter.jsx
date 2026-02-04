@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Popover, ActionIcon, Indicator, Stack, Text, Group, ThemeIcon, ScrollArea, Button, Box } from '@mantine/core';
-import { IconBell, IconUserPlus, IconInfoCircle, IconCheck } from '@tabler/icons-react';
+import { IconBell, IconUserPlus, IconInfoCircle, IconCheck, IconChevronRight } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { requestService, notificationService, supabase } from '../services/supabase';
@@ -231,20 +231,15 @@ const NotificationCenter = ({ onOpenAdminPanel }) => {
                         <IconCheck size={14} />
                       </ActionIcon>
                     )}
+
+                    {item.type === 'request' && (
+                      <IconChevronRight size={14} style={{ opacity: 0.5 }} />
+                    )}
                   </Group>
                 ))}
               </Stack>
             )}
           </ScrollArea.Autosize>
-
-          {pendingRequests.length > 0 && (
-            <Button variant="light" size="xs" fullWidth mt="xs" onClick={() => {
-              setOpened(false);
-              if (onOpenAdminPanel) onOpenAdminPanel('requests');
-            }}>
-              Manage Access Requests
-            </Button>
-          )}
         </Stack>
       </Popover.Dropdown>
     </Popover>
