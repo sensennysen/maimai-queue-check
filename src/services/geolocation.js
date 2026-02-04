@@ -174,8 +174,19 @@ export const checkUserProximity = async (userLocation, maxDistance = 100, branch
     }
   });
 
+  const isAllowed = minDistance <= maxDistance;
+
+  // Extra safety check: if we somehow didn't find a nearest place (should be covered by empty check, but safe is good)
+  if (!nearestPlace) {
+     return {
+      isAllowed: false,
+      nearestPlace: null,
+      distance: null,
+    };
+  }
+
   return {
-    isAllowed: minDistance <= maxDistance,
+    isAllowed,
     nearestPlace,
     distance: Math.round(minDistance),
   };
@@ -190,21 +201,23 @@ export const checkEditPermissions = async (userId) => {
   try {
     const { data: roles, error } = await supabase
       .from('user_roles')
-      .select('can_edit')
+      .select('can_edit, can_edit_on')
       .eq('user_id', userId)
       .single();
 
     if (error) {
-      return false;
+      return { can_edit: false, can_edit_on: [] };
     }
 
-    return roles?.can_edit || false;
+    return {
+      can_edit: roles?.can_edit || false,
+      can_edit_on: Array.isArray(roles?.can_edit_on) ? roles.can_edit_on : []
+    };
   } catch {
-    return false;
+    return { can_edit: false, can_edit_on: [] };
   }
 };
 
-/**
 /**
  * Verify user location and permissions
  * @param {string} userId - User's ID
@@ -212,34 +225,28 @@ export const checkEditPermissions = async (userId) => {
  * @param {boolean} isAdmin - Optional: If true, always allow
  * @returns {Promise<Object>} Promise that resolves to {allowed, reason, location, proximity}
  */
-export const verifyUserLocationAndPermissions = async (userId, branchId = null, isAdmin = false) => {
+export const verifyUserLocationAndPermissions = async (userId, branchId = null, isSuperAdmin = false) => {
+  // console.log('[Geo] Verifying permissions', { userId, branchId, isSuperAdmin });
+
   try {
-    // Admins can always edit
-    if (isAdmin) {
+    // 1. Super Admin Override
+    if (isSuperAdmin) {
+      // console.log('[Geo] Super Admin bypass');
       return {
         allowed: true,
-        reason: 'Admin override: you can edit any queue regardless of location.',
+        reason: 'Super Admin: you can edit any queue regardless of location.',
         location: null,
         proximity: null,
       };
     }
 
-    // Check if user has edit permissions
-    const hasEditPermissions = await checkEditPermissions(userId);
-    if (!hasEditPermissions) {
-      return {
-        allowed: false,
-        reason: 'You do not have edit permissions',
-        location: null,
-        proximity: null,
-      };
-    }
-
-    // Request user location
+    // 2. Request User Location
     let userLocation;
     try {
       userLocation = await requestUserLocation();
+      // console.log('[Geo] User location:', userLocation);
     } catch (locationError) {
+      // console.error('[Geo] Location error:', locationError);
       return {
         allowed: false,
         reason: 'Please allow geolocation services to edit the queue',
@@ -249,8 +256,10 @@ export const verifyUserLocationAndPermissions = async (userId, branchId = null, 
       };
     }
 
-    // Check proximity to allowed places
+    // 3. Check Proximity
+    // console.log('[Geo] Checking proximity for branch:', branchId);
     const proximity = await checkUserProximity(userLocation, 100, branchId);
+    // console.log('[Geo] Proximity result:', proximity);
 
     if (!proximity.isAllowed) {
       const branchMsg = branchId ? 'the selected branch' : 'the arcade';
@@ -262,12 +271,48 @@ export const verifyUserLocationAndPermissions = async (userId, branchId = null, 
       };
     }
 
+    // 4. Check Roles (Only if location is valid)
+    const { can_edit, can_edit_on } = await checkEditPermissions(userId);
+    // console.log('[Geo] Roles:', { can_edit, can_edit_on });
+    
+    // Check global permission
+    if (can_edit) {
+        // console.log('[Geo] Global edit granted');
+      return {
+        allowed: true,
+        reason: `Access granted at ${proximity.nearestPlace.arcade_name}`,
+        location: userLocation,
+        proximity,
+      };
+    }
+
+    // Check branch-specific permission
+    // Use the branch ID from the proximity check (the actual place they are near)
+    // or the specifically requested branchId
+    const targetBranchId = branchId || proximity.nearestPlace.id;
+    
+    // Ensure string comparison
+    const hasBranchPermission = can_edit_on.some(id => String(id) === String(targetBranchId));
+    // console.log('[Geo] Branch permission check:', { targetBranchId, hasBranchPermission });
+
+    if (hasBranchPermission) {
+       return {
+        allowed: true,
+        reason: `Access granted for this branch`,
+        location: userLocation,
+        proximity,
+      };
+    }
+
+    // 5. Fallback: Role check failed
+    // console.log('[Geo] Access denied (no roles)');
     return {
-      allowed: true,
-      reason: `Access granted at ${proximity.nearestPlace.arcade_name}`,
+      allowed: false,
+      reason: 'You do not have permission to edit this queue',
       location: userLocation,
       proximity,
     };
+
   } catch (error) {
     return {
       allowed: false,

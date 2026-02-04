@@ -37,6 +37,9 @@ export const authService = {
   async signInWithProvider(provider) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
+      options: {
+        redirectTo: window.location.origin
+      }
     });
     
     if (error) throw error;
@@ -75,7 +78,8 @@ export const rolesService = {
         return {
           user_id: userId,
           can_edit: false,
-          is_admin: false
+          is_admin: false,
+          is_super_admin: false
         };
       }
 
@@ -84,19 +88,50 @@ export const rolesService = {
         return {
           user_id: userId,
           can_edit: false,
-          is_admin: false
+          is_admin: false,
+          is_super_admin: false,
+          preferred_branches: []
         };
       }
 
       // Ensure is_admin is always present (default false if missing)
-      return { ...data[0], is_admin: !!data[0].is_admin };
+      return { 
+        ...data[0], 
+        is_admin: !!data[0].is_admin,
+        is_super_admin: !!data[0].is_super_admin,
+        admin_branch: data[0].admin_branch || null,
+        preferred_branches: Array.isArray(data[0].preferred_branches) ? data[0].preferred_branches : [],
+        can_edit: !!data[0].can_edit,
+        can_edit_on: Array.isArray(data[0].can_edit_on) ? data[0].can_edit_on : []
+      };
     } catch {
       return {
         user_id: userId,
         can_edit: false,
-        is_admin: false
+        is_admin: false,
+        is_super_admin: false
       };
     }
+  }
+};
+
+// User service functions
+export const userService = {
+  // Update user preferences
+  async updatePreferences(userId, { branchIds, displayName }) {
+    const updateData = {};
+    if (branchIds !== undefined) updateData.preferred_branches = branchIds;
+    if (displayName !== undefined) updateData.display_name = displayName;
+
+    const { data, error } = await supabase
+      .from('user_roles')
+      .update(updateData)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 };
 
@@ -502,21 +537,54 @@ export const adminService = {
     return data;
   },
 
-  // Get all users for admin management
-  async getAllUsersForAdmin() {
-    const { data, error } = await supabase
+  // Get all users for admin management with pagination, search, and sort
+  async getAllUsersForAdmin({ 
+    page = 1, 
+    pageSize = 10, 
+    searchQuery = '', 
+    sortField = 'email', 
+    sortDirection = 'asc',
+    adminBranch = null
+  } = {}) {
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    let query = supabase
       .from('user_roles')
-      .select('user_id, email, display_name, can_edit, is_admin, is_super_admin')
-      .order('email', { ascending: true });
+      .select('user_id, email, display_name, can_edit, can_edit_on, is_admin, is_super_admin, preferred_branches', { count: 'exact' });
+
+    // Server-side filtering (search)
+    if (searchQuery.trim()) {
+      const queryStr = `%${searchQuery.trim()}%`;
+      query = query.or(`email.ilike.${queryStr},display_name.ilike.${queryStr}`);
+    }
+
+    // Branch filtering for regular admins
+    if (adminBranch) {
+      query = query.contains('preferred_branches', [adminBranch]);
+    }
+
+    // Server-side sorting
+    if (sortField) {
+      query = query.order(sortField, { ascending: sortDirection === 'asc' });
+    }
+
+    // Pagination
+    query = query.range(from, to);
+
+    const { data, error, count } = await query;
 
     if (error) throw error;
-    return data || [];
+    return {
+      users: data || [],
+      totalCount: count || 0
+    };
   },
 
   // Update a user's role
   async updateUserRole(userId, updates) {
     // Only allow updating specific fields
-    const allowedFields = ['display_name', 'can_edit', 'is_admin'];
+    const allowedFields = ['display_name', 'can_edit', 'can_edit_on', 'is_admin', 'preferred_branches'];
     const sanitizedUpdates = {};
     
     for (const key of allowedFields) {

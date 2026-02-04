@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Stack,
   Button,
@@ -12,6 +12,9 @@ import {
   Paper,
   Modal,
   TextInput,
+  MultiSelect,
+  Badge,
+  Pagination,
 } from '@mantine/core';
 import {
   IconUsers,
@@ -23,17 +26,23 @@ import {
   IconSortDescending,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { adminService } from '../services/supabase';
+import { adminService, branchService } from '../services/supabase';
 import './UserManager.css';
 
-const UserManager = ({ isSuperAdmin = false }) => {
+const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [branches, setBranches] = useState([]);
 
   // Search and sort state
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState('email');
   const [sortDirection, setSortDirection] = useState('asc');
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 10;
 
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -41,16 +50,39 @@ const UserManager = ({ isSuperAdmin = false }) => {
   const [editForm, setEditForm] = useState({
     display_name: '',
     can_edit: false,
+    can_edit_on: [],
     is_admin: false,
+    preferred_branches: [],
   });
   const [saving, setSaving] = useState(false);
 
-  // Load users
-  const loadUsers = async () => {
+  // Load branches (once)
+  useEffect(() => {
+    const loadBranches = async () => {
+      try {
+        const branchesData = await branchService.getAllBranches();
+        setBranches(branchesData);
+      } catch (error) {
+        console.error('Failed to load branches:', error);
+      }
+    };
+    loadBranches();
+  }, []);
+
+  // Load users (on any param change)
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await adminService.getAllUsersForAdmin();
-      setUsers(data);
+      const { users: usersData, totalCount: count } = await adminService.getAllUsersForAdmin({
+        page: currentPage,
+        pageSize,
+        searchQuery,
+        sortField,
+        sortDirection,
+        adminBranch: isSuperAdmin ? null : currentUserRoles?.admin_branch
+      });
+      setUsers(usersData);
+      setTotalCount(count);
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -60,50 +92,11 @@ const UserManager = ({ isSuperAdmin = false }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchQuery, sortField, sortDirection, isSuperAdmin, currentUserRoles?.admin_branch]);
 
   useEffect(() => {
     loadUsers();
-  }, []);
-
-  // Filter and sort users
-  const filteredAndSortedUsers = useMemo(() => {
-    let result = [...users];
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (user) =>
-          user.email?.toLowerCase().includes(query) ||
-          user.display_name?.toLowerCase().includes(query)
-      );
-    }
-
-    // Sort
-    result.sort((a, b) => {
-      let aVal = a[sortField] ?? '';
-      let bVal = b[sortField] ?? '';
-
-      // Handle boolean fields
-      if (typeof aVal === 'boolean') {
-        aVal = aVal ? 1 : 0;
-        bVal = bVal ? 1 : 0;
-      }
-
-      // Handle string comparison
-      if (typeof aVal === 'string') {
-        aVal = aVal.toLowerCase();
-        bVal = bVal.toLowerCase();
-      }
-
-      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
-
-    return result;
-  }, [users, searchQuery, sortField, sortDirection]);
+  }, [loadUsers]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -112,6 +105,12 @@ const UserManager = ({ isSuperAdmin = false }) => {
       setSortField(field);
       setSortDirection('asc');
     }
+    setCurrentPage(1); // Reset to first page on sort change
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+    setCurrentPage(1); // Reset to first page on search change
   };
 
   const SortIcon = ({ field }) => {
@@ -128,7 +127,9 @@ const UserManager = ({ isSuperAdmin = false }) => {
     setEditForm({
       display_name: user.display_name || '',
       can_edit: user.can_edit || false,
+      can_edit_on: Array.isArray(user.can_edit_on) ? user.can_edit_on.map(String) : [],
       is_admin: user.is_admin || false,
+      preferred_branches: user.preferred_branches ? user.preferred_branches.map(String) : [],
     });
     setEditModalOpen(true);
   };
@@ -137,16 +138,66 @@ const UserManager = ({ isSuperAdmin = false }) => {
     if (!userToEdit) return;
 
     setSaving(true);
-    try {
-      // Build updates object based on permission level
-      const updates = {
-        display_name: editForm.display_name,
-        can_edit: editForm.can_edit,
-      };
+    const adminBranch = currentUserRoles?.admin_branch;
 
-      // Only super admins can modify is_admin
+    // Check permission: Super Admin OR (Admin AND user in branch)
+    const hasBranchPermission = isSuperAdmin || (adminBranch && userToEdit.preferred_branches?.includes(adminBranch));
+
+    if (!hasBranchPermission) {
+      notifications.show({
+        title: 'Permission Denied',
+        message: 'You can only manage users in your assigned branch.',
+        color: 'red',
+      });
+      setSaving(false);
+      return;
+    }
+
+    try {
+      const updates = {};
+
       if (isSuperAdmin) {
+        updates.display_name = editForm.display_name;
         updates.is_admin = editForm.is_admin;
+        updates.preferred_branches = editForm.preferred_branches.map(Number);
+        updates.can_edit = editForm.can_edit;
+        updates.can_edit_on = editForm.can_edit_on.map(Number);
+      } else {
+        // Regular Admin Logic
+        // 1. can_edit (global) is hidden (not updated)
+        // 2. can_edit_on: Update ONLY the admin's branch presence
+        // We use the `editForm.can_edit_on` as the source of truth for the admin's intent regarding THEIR branch?
+        // Actually, in the modal for regular admin, we will likely show a single checkbox.
+        // Let's assume the modal puts the admin's branch into `can_edit_on` array in `editForm` if checked, and removes it if unchecked.
+        // But we must ensure we don't accidentally wipe other branches if the `editForm` was initialized with them.
+        // `editForm.can_edit_on` initialized in `handleEditClick` contains ALL branches.
+        // So checking/unchecking in UI should modify that array.
+        // Here we just save the array.
+
+        // Wait, for safety, let's re-verify we aren't adding branches we shouldn't?
+        // Actually, if we trust `editForm` is only modified by our UI, passing it is okay.
+        // But to be super safe:
+
+        const originalBranches = userToEdit.can_edit_on || [];
+        const newBranchesEncoded = editForm.can_edit_on.map(Number);
+
+        // Ensure we only touched `adminBranch`
+        const isOriginallyIn = originalBranches.includes(adminBranch);
+        const isNowIn = newBranchesEncoded.includes(adminBranch);
+
+        if (isOriginallyIn !== isNowIn) {
+          // Change detected on admin branch
+          let finalBranches = [...originalBranches];
+          if (isNowIn) {
+            if (!finalBranches.includes(adminBranch)) finalBranches.push(adminBranch);
+          } else {
+            finalBranches = finalBranches.filter(id => id !== adminBranch);
+          }
+          updates.can_edit_on = finalBranches;
+        }
+
+        // Note: Regular admins cannot change display_name, is_admin, preferred_branches (disabled in UI).
+        // `updateUserRole` in supabase.js filters allowed fields.
       }
 
       await adminService.updateUserRole(userToEdit.user_id, updates);
@@ -159,7 +210,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
 
       setEditModalOpen(false);
       setUserToEdit(null);
-      loadUsers();
+      loadUsers(); // Reload current page
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -171,21 +222,66 @@ const UserManager = ({ isSuperAdmin = false }) => {
     }
   };
 
-  const handleToggleCanEdit = async (user) => {
+  const handleToggleCanEditGlobal = async (user) => {
+    if (!isSuperAdmin) return;
     try {
       await adminService.updateUserRole(user.user_id, {
         can_edit: !user.can_edit,
       });
       notifications.show({
         title: 'Success',
-        message: `${user.email} can ${!user.can_edit ? 'now' : 'no longer'} edit`,
+        message: `Updated global edit permission for ${user.email}`,
         color: 'green',
       });
       loadUsers();
     } catch (error) {
       notifications.show({
         title: 'Error',
-        message: error.message || 'Failed to update user',
+        message: error.message,
+        color: 'red',
+      });
+    }
+  };
+
+  const handleToggleCanEditBranch = async (user) => {
+    // For Regular Admins: Toggle their branch in can_edit_on
+    // For Super Admins: This function is strictly for the checkbox logic if we repurpose it,
+    // but Super Admins have full controls. 
+    // Let's assume this handles the "Can Edit" checkbox for Regular Admins.
+
+    const adminBranch = currentUserRoles?.admin_branch;
+    if (!adminBranch) return; // Should not happen for regular admin in this context
+
+    const hasBranchPermission = isSuperAdmin || (user.preferred_branches?.includes(adminBranch));
+    if (!hasBranchPermission) {
+      notifications.show({ title: 'Permission Denied', color: 'red' });
+      return;
+    }
+
+    const currentBranches = user.can_edit_on || [];
+    const isAllowed = currentBranches.includes(adminBranch);
+
+    let newBranches;
+    if (isAllowed) {
+      newBranches = currentBranches.filter(id => id !== adminBranch);
+    } else {
+      newBranches = [...currentBranches, adminBranch];
+    }
+
+    try {
+      await adminService.updateUserRole(user.user_id, {
+        can_edit_on: newBranches,
+      });
+      notifications.show({
+        title: 'Success',
+        message: `Updated branch edit permission for ${user.email}`,
+        color: 'green',
+      });
+      loadUsers();
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: error.message,
         color: 'red',
       });
     }
@@ -203,7 +299,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
         message: `${user.email} is ${!user.is_admin ? 'now' : 'no longer'} an admin`,
         color: 'green',
       });
-      loadUsers();
+      loadUsers(); // Reload current page
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -218,9 +314,23 @@ const UserManager = ({ isSuperAdmin = false }) => {
     setUserToEdit(null);
   };
 
+  const branchOptions = branches.map(b => ({
+    value: String(b.id),
+    label: b.arcade_name
+  }));
+
+  const totalPages = Math.ceil(totalCount / pageSize);
+
   return (
     <>
       <Stack gap="md">
+        <TextInput
+          placeholder="Search by email or display name..."
+          leftSection={<IconSearch size={16} />}
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
+
         {loading ? (
           <Center p="xl">
             <Loader size="lg" />
@@ -230,25 +340,19 @@ const UserManager = ({ isSuperAdmin = false }) => {
             <Center>
               <Stack align="center" gap="sm">
                 <IconUsers size={48} opacity={0.3} />
-                <Text c="dimmed">No users found</Text>
+                <Text c="dimmed">{searchQuery ? 'No users match your search' : 'No users found'}</Text>
               </Stack>
             </Center>
           </Paper>
         ) : (
           <Stack gap="md">
-            <TextInput
-              placeholder="Search by email or display name..."
-              leftSection={<IconSearch size={16} />}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
             <Paper withBorder>
-              <Table.ScrollContainer minWidth={600}>
+              <Table.ScrollContainer minWidth={800}>
                 <Table striped highlightOnHover>
                   <Table.Thead>
                     <Table.Tr>
                       <Table.Th
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', width: '25%' }}
                         onClick={() => handleSort('email')}
                       >
                         <Group gap="xs">
@@ -257,7 +361,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
                         </Group>
                       </Table.Th>
                       <Table.Th
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', width: '20%' }}
                         onClick={() => handleSort('display_name')}
                       >
                         <Group gap="xs">
@@ -265,18 +369,19 @@ const UserManager = ({ isSuperAdmin = false }) => {
                           <SortIcon field="display_name" />
                         </Group>
                       </Table.Th>
-                      <Table.Th
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleSort('can_edit')}
-                      >
-                        <Group gap="xs">
-                          Can Edit
-                          <SortIcon field="can_edit" />
-                        </Group>
-                      </Table.Th>
+                      {isSuperAdmin && <Table.Th style={{ width: '30%' }}>Preferred Branches</Table.Th>}
+                      {isSuperAdmin ? (
+                        <>
+                          <Table.Th style={{ width: '10%' }}>Global Edit</Table.Th>
+                          <Table.Th style={{ width: '30%' }}>Edit on Branches</Table.Th>
+                        </>
+                      ) : (
+                        <Table.Th style={{ width: '10%' }}>Can Edit</Table.Th>
+                      )}
+
                       {isSuperAdmin && (
                         <Table.Th
-                          style={{ cursor: 'pointer' }}
+                          style={{ cursor: 'pointer', width: '10%' }}
                           onClick={() => handleSort('is_admin')}
                         >
                           <Group gap="xs">
@@ -285,66 +390,119 @@ const UserManager = ({ isSuperAdmin = false }) => {
                           </Group>
                         </Table.Th>
                       )}
-                      <Table.Th>Actions</Table.Th>
+                      <Table.Th style={{ width: '80px' }}>Actions</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
-                    {filteredAndSortedUsers.length === 0 ? (
-                      <Table.Tr>
-                        <Table.Td colSpan={isSuperAdmin ? 5 : 4}>
-                          <Center py="md">
-                            <Text c="dimmed">No users match your search</Text>
-                          </Center>
+                    {users.map((user) => (
+                      <Table.Tr key={user.user_id}>
+                        <Table.Td>
+                          <Text size="sm" lineClamp={1} title={user.email}>{user.email}</Text>
                         </Table.Td>
-                      </Table.Tr>
-                    ) : (
-                      filteredAndSortedUsers.map((user) => (
-                        <Table.Tr key={user.user_id}>
+                        <Table.Td>
+                          <Text size="sm" c={user.display_name ? 'inherit' : 'dimmed'} lineClamp={1} title={user.display_name}>
+                            {user.display_name || '-'}
+                          </Text>
+                        </Table.Td>
+                        {isSuperAdmin && (
                           <Table.Td>
-                            <Text size="sm">{user.email}</Text>
+                            <Group gap={4}>
+                              {user.preferred_branches && user.preferred_branches.length > 0 ? (
+                                user.preferred_branches.map((branchId) => {
+                                  const branch = branches.find(b => b.id === branchId);
+                                  const branchName = branch?.short_name || branch?.arcade_name;
+                                  if (!branchName) return null;
+                                  return (
+                                    <Badge key={branchId} size="sm" variant="light" color="blue">
+                                      {branchName}
+                                    </Badge>
+                                  );
+                                })
+                              ) : (
+                                <Text size="sm" c="dimmed">-</Text>
+                              )}
+                            </Group>
                           </Table.Td>
-                          <Table.Td>
-                            <Text size="sm" c={user.display_name ? 'inherit' : 'dimmed'}>
-                              {user.display_name || '-'}
-                            </Text>
-                          </Table.Td>
-                          <Table.Td>
-                            <Checkbox
-                              checked={user.can_edit}
-                              onChange={() => handleToggleCanEdit(user)}
-                            />
-                          </Table.Td>
-                          {isSuperAdmin && (
+                        )}
+                        {isSuperAdmin ? (
+                          <>
                             <Table.Td>
                               <Checkbox
-                                checked={user.is_admin}
-                                onChange={() => handleToggleIsAdmin(user)}
-                                disabled={user.is_super_admin}
+                                checked={user.can_edit}
+                                onChange={() => handleToggleCanEditGlobal(user)}
                               />
                             </Table.Td>
-                          )}
+                            <Table.Td>
+                              <Group gap={4}>
+                                {user.can_edit_on && user.can_edit_on.length > 0 ? (
+                                  user.can_edit_on.map((branchId) => {
+                                    const branch = branches.find(b => b.id === branchId);
+                                    const branchName = branch?.short_name || branch?.arcade_name;
+                                    if (!branchName) return null;
+                                    return (
+                                      <Badge key={branchId} size="sm" variant="outline" color="green">
+                                        {branchName}
+                                      </Badge>
+                                    );
+                                  })
+                                ) : (
+                                  <Text size="sm" c="dimmed">-</Text>
+                                )}
+                              </Group>
+                            </Table.Td>
+                          </>
+                        ) : (
                           <Table.Td>
-                            <ActionIcon
-                              variant="light"
-                              color="blue"
-                              onClick={() => handleEditClick(user)}
-                              title="Edit User"
-                            >
-                              <IconEdit size={16} />
-                            </ActionIcon>
+                            <Checkbox
+                              checked={user.can_edit_on?.includes(currentUserRoles?.admin_branch)}
+                              onChange={() => handleToggleCanEditBranch(user)}
+                            />
                           </Table.Td>
-                        </Table.Tr>
-                      ))
-                    )}
+                        )}
+                        {isSuperAdmin && (
+                          <Table.Td>
+                            <Checkbox
+                              checked={user.is_admin}
+                              onChange={() => handleToggleIsAdmin(user)}
+                              disabled={user.is_super_admin}
+                            />
+                          </Table.Td>
+                        )}
+                        <Table.Td>
+                          <ActionIcon
+                            variant="light"
+                            color="blue"
+                            onClick={() => handleEditClick(user)}
+                            title="Edit User"
+                          >
+                            <IconEdit size={16} />
+                          </ActionIcon>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
                   </Table.Tbody>
                 </Table>
               </Table.ScrollContainer>
             </Paper>
+
+            {totalPages > 1 && (
+              <Group justify="center" mt="md">
+                <Pagination
+                  total={totalPages}
+                  value={currentPage}
+                  onChange={setCurrentPage}
+                  withEdges
+                />
+              </Group>
+            )}
+
+            <Text size="xs" c="dimmed" ta="center">
+              Showing {users.length} of {totalCount} users
+            </Text>
           </Stack>
         )}
       </Stack>
 
-      {/* Edit User Modal */}
       <Modal
         opened={editModalOpen}
         onClose={handleCloseModal}
@@ -355,6 +513,7 @@ const UserManager = ({ isSuperAdmin = false }) => {
           </Group>
         }
         centered
+        size="lg"
       >
         <Stack gap="md">
           <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
@@ -366,22 +525,67 @@ const UserManager = ({ isSuperAdmin = false }) => {
             placeholder="Enter display name"
             value={editForm.display_name}
             onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
-          />
-
-          <Checkbox
-            label="Can Edit Queue"
-            checked={editForm.can_edit}
-            onChange={(e) => setEditForm({ ...editForm, can_edit: e.currentTarget.checked })}
+            disabled={!isSuperAdmin}
           />
 
           {isSuperAdmin && (
-            <Checkbox
-              label="Is Admin"
-              checked={editForm.is_admin}
-              onChange={(e) => setEditForm({ ...editForm, is_admin: e.currentTarget.checked })}
-              disabled={userToEdit?.is_super_admin}
+            <MultiSelect
+              label="Preferred Branches"
+              placeholder="Select one or more branches"
+              data={branchOptions}
+              value={editForm.preferred_branches}
+              onChange={(selected) => setEditForm({ ...editForm, preferred_branches: selected })}
+              searchable
+              clearable
+              disabled={!isSuperAdmin}
             />
           )}
+
+          <Group grow align="flex-start">
+            {isSuperAdmin ? (
+              <Stack gap="xs">
+                <Checkbox
+                  label="Can Edit Anywhere"
+                  checked={editForm.can_edit}
+                  onChange={(e) => setEditForm({ ...editForm, can_edit: e.currentTarget.checked })}
+                />
+                <MultiSelect
+                  label="Can Edit on Branches"
+                  placeholder="Select branches"
+                  data={branchOptions}
+                  value={editForm.can_edit_on.map(String)}
+                  onChange={(selected) => setEditForm({ ...editForm, can_edit_on: selected.map(Number) })}
+                  searchable
+                  clearable
+                />
+              </Stack>
+            ) : (
+              <Checkbox
+                label="Can Edit Queue"
+                checked={editForm.can_edit_on.includes(currentUserRoles?.admin_branch)}
+                onChange={(e) => {
+                  const checked = e.currentTarget.checked;
+                  const adminBranch = currentUserRoles?.admin_branch;
+                  let newBranches = [...editForm.can_edit_on];
+                  if (checked) {
+                    if (!newBranches.includes(adminBranch)) newBranches.push(adminBranch);
+                  } else {
+                    newBranches = newBranches.filter(id => id !== adminBranch);
+                  }
+                  setEditForm({ ...editForm, can_edit_on: newBranches });
+                }}
+              />
+            )}
+
+            {isSuperAdmin && (
+              <Checkbox
+                label="Is Admin"
+                checked={editForm.is_admin}
+                onChange={(e) => setEditForm({ ...editForm, is_admin: e.currentTarget.checked })}
+                disabled={userToEdit?.is_super_admin}
+              />
+            )}
+          </Group>
 
           <Group justify="flex-end" mt="md">
             <Button variant="subtle" onClick={handleCloseModal} leftSection={<IconX size={16} />}>

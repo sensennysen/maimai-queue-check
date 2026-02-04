@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, Alert, Loader, Modal, Skeleton, Tabs } from '@mantine/core';
+import { useOs } from '@mantine/hooks';
 import { IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconMapPin } from '@tabler/icons-react';
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
@@ -8,9 +9,11 @@ import LocationHelpModal from './LocationHelpModal';
 import NowPlayingCard from './NowPlayingCard';
 import { useQueueManager } from '../hooks/useQueueManager';
 import { useMallSchedule } from '../hooks/useMallSchedule';
+import { usePageVisibility } from '../hooks/usePageVisibility';
 import { useBranch } from '../hooks/useBranch';
 import { useAuth } from '../hooks/useAuth';
 import { closedMessages, loadingMessages } from '../data/subtitleMessages';
+import { usePermissions } from '../hooks/usePermissions';
 import './QueueManager.css';
 
 
@@ -34,6 +37,7 @@ function QueueManager() {
     handleConsentAccepted,
     handleConsentDeclined,
     verifyLocation,
+    refreshData,
     addQueueEntry: addEntry,
     updateQueueEntry: updateEntry,
     removeQueueEntry,
@@ -48,9 +52,21 @@ function QueueManager() {
     hasMultipleCabinets
   } = useQueueManager();
 
+  // Refresh data when tab becomes active (mobile only)
+  const os = useOs();
+  const isMobile = os === 'ios' || os === 'android';
+
+  const handleVisibilityChange = useCallback(() => {
+    if (isMobile) {
+      refreshData();
+    }
+  }, [isMobile, refreshData]);
+
+  usePageVisibility(handleVisibilityChange);
+
   // Auth and roles
   const [actionsLoaded, setActionsLoaded] = useState(false);
-  const { user, userRoles, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!queueLoading && !authLoading) {
@@ -67,9 +83,7 @@ function QueueManager() {
   );
 
   // Derived permissions
-  const canEdit = userRoles?.can_edit;
-  const isAdmin = userRoles?.is_admin;
-  const canActuallyEdit = isAdmin || (canEdit && locationVerified);
+  const { canActuallyEdit, canEdit, isAdmin, isSuperAdmin } = usePermissions();
 
   const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule(selectedBranch?.id);
 
@@ -190,7 +204,7 @@ function QueueManager() {
       )}
 
       {/* Location verification failed alert */}
-      {user && canEdit && !isAdmin && !locationVerified && locationError && hasAttemptedVerification && (
+      {user && (canEdit || isAdmin) && !isSuperAdmin && !locationVerified && locationError && hasAttemptedVerification && (
         geolocationConsent === 'denied' ? (
           <Alert color="orange" variant="light">
             <Group justify="space-between" align="center">
@@ -260,7 +274,7 @@ function QueueManager() {
           isBusy={isMutating}
           locationVerified={locationVerified}
           locationError={locationError}
-          isAdmin={userRoles?.is_admin}
+          isSuperAdmin={isSuperAdmin}
         />
       </Modal>
 
@@ -348,7 +362,6 @@ function QueueManager() {
             onStartGame={startGame}
             isMallOpen={isMallOpen}
             isBusy={isMutating}
-            locationVerified={locationVerified}
             loadingRoles={!actionsLoaded}
             cabinetNum={selectedCabinet}
             hasMultipleCabinets={hasMultipleCabinets}
