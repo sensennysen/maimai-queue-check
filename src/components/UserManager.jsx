@@ -154,6 +154,11 @@ const AccessRequestsTab = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
 
 const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab = 'users' }) => {
   const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [branches, setBranches] = useState([]);

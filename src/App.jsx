@@ -75,7 +75,7 @@ function AppContent() {
             </Stack>
           </Container>
         ) : (
-          <AdminPanelPage onBack={() => setCurrentPage('queue')} />
+          <AdminPanelPage onBack={() => setCurrentPage('queue')} targetTab={adminTargetTab} />
         )}
 
         {user && (
