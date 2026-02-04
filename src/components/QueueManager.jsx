@@ -337,7 +337,7 @@ function QueueManager() {
                   size="sm"
                   onClick={() => setShowRequestModal(true)}
                 >
-                  Request Edit Access
+                  Request Queue Edit Access
                 </Button>
               )}
               {user && !canEdit && !isAdmin && hasPendingRequest && (

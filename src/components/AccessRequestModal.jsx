@@ -128,7 +128,7 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
   );
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Request Edit Access" centered>
+    <Modal opened={opened} onClose={onClose} title="Request Queue Edit Access" centered>
       <LoadingOverlay visible={loading} />
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
