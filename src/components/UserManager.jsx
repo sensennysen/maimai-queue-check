@@ -15,6 +15,8 @@ import {
   MultiSelect,
   Badge,
   Pagination,
+  Tabs,
+  ThemeIcon
 } from '@mantine/core';
 import {
   IconUsers,
@@ -24,12 +26,134 @@ import {
   IconSearch,
   IconSortAscending,
   IconSortDescending,
+  IconUserPlus
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { adminService, branchService } from '../services/supabase';
+import { adminService, branchService, requestService, rolesService } from '../services/supabase';
 import './UserManager.css';
 
+const AccessRequestsTab = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(null);
+
+  const loadRequests = useCallback(async () => {
+    try {
+      setLoading(true);
+      const adminBranch = currentUserRoles?.admin_branch;
+      const data = await requestService.getPendingRequests(isSuperAdmin ? null : adminBranch);
+      setRequests(data);
+    } catch (error) {
+      console.error("Failed to load requests", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [isSuperAdmin, currentUserRoles]);
+
+  useEffect(() => {
+    loadRequests();
+  }, [loadRequests, keyProp]);
+
+  const handleAction = async (request, action) => {
+    try {
+      setProcessing(request.id);
+      if (action === 'approve') {
+        // Fetch current user roles to append permission
+        const currentRoles = await rolesService.getUserRoles(request.user_id);
+        let currentCanEditOn = currentRoles.can_edit_on || [];
+
+        // Add branch if not present
+        if (!currentCanEditOn.includes(request.branch_id)) {
+          currentCanEditOn.push(request.branch_id);
+          await adminService.updateUserRole(request.user_id, {
+            can_edit_on: currentCanEditOn
+          });
+        }
+
+        await requestService.updateRequestStatus(request.id, 'approved');
+        notifications.show({ title: 'Approved', message: 'Access granted.', color: 'green' });
+      } else {
+        await requestService.updateRequestStatus(request.id, 'rejected');
+        notifications.show({ title: 'Rejected', message: 'Request rejected.', color: 'gray' });
+      }
+      loadRequests();
+    } catch (error) {
+      notifications.show({ title: 'Error', message: error.message, color: 'red' });
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  return (
+    <Stack gap="md" mt="md">
+      {loading ? (
+        <Center p="xl"><Loader /></Center>
+      ) : requests.length === 0 ? (
+        <Paper p="xl" withBorder>
+          <Center>
+            <Text c="dimmed">No pending access requests.</Text>
+          </Center>
+        </Paper>
+      ) : (
+        <Paper withBorder>
+          <Table>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>User</Table.Th>
+                <Table.Th>Branch</Table.Th>
+                <Table.Th>Date</Table.Th>
+                <Table.Th>Actions</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {requests.map(r => (
+                <Table.Tr key={r.id}>
+                  <Table.Td>
+                    <Stack gap={0}>
+                      <Text size="sm">{r.user_roles?.display_name || 'Unknown'}</Text>
+                      <Text size="xs" c="dimmed">{r.user_roles?.email}</Text>
+                    </Stack>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge>{r.allowed_places?.arcade_name}</Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{new Date(r.created_at).toLocaleDateString()}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap="xs">
+                      <ActionIcon
+                        color="green"
+                        variant="light"
+                        loading={processing === r.id}
+                        onClick={() => handleAction(r, 'approve')}
+                        title="Approve"
+                      >
+                        <IconCheck size={16} />
+                      </ActionIcon>
+                      <ActionIcon
+                        color="red"
+                        variant="light"
+                        loading={processing === r.id}
+                        onClick={() => handleAction(r, 'reject')}
+                        title="Reject"
+                      >
+                        <IconX size={16} />
+                      </ActionIcon>
+                    </Group>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Paper>
+      )}
+    </Stack>
+  );
+};
+
 const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
+  const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [branches, setBranches] = useState([]);
@@ -95,8 +219,12 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
   }, [currentPage, searchQuery, sortField, sortDirection, isSuperAdmin, currentUserRoles?.admin_branch]);
 
   useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+    // Only load users if on users tab to save resources, or load initially?
+    // Existing logic loaded on mount.
+    if (activeTab === 'users') {
+      loadUsers();
+    }
+  }, [loadUsers, activeTab]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -164,20 +292,6 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
         updates.can_edit_on = editForm.can_edit_on.map(Number);
       } else {
         // Regular Admin Logic
-        // 1. can_edit (global) is hidden (not updated)
-        // 2. can_edit_on: Update ONLY the admin's branch presence
-        // We use the `editForm.can_edit_on` as the source of truth for the admin's intent regarding THEIR branch?
-        // Actually, in the modal for regular admin, we will likely show a single checkbox.
-        // Let's assume the modal puts the admin's branch into `can_edit_on` array in `editForm` if checked, and removes it if unchecked.
-        // But we must ensure we don't accidentally wipe other branches if the `editForm` was initialized with them.
-        // `editForm.can_edit_on` initialized in `handleEditClick` contains ALL branches.
-        // So checking/unchecking in UI should modify that array.
-        // Here we just save the array.
-
-        // Wait, for safety, let's re-verify we aren't adding branches we shouldn't?
-        // Actually, if we trust `editForm` is only modified by our UI, passing it is okay.
-        // But to be super safe:
-
         const originalBranches = userToEdit.can_edit_on || [];
         const newBranchesEncoded = editForm.can_edit_on.map(Number);
 
@@ -186,7 +300,6 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
         const isNowIn = newBranchesEncoded.includes(adminBranch);
 
         if (isOriginallyIn !== isNowIn) {
-          // Change detected on admin branch
           let finalBranches = [...originalBranches];
           if (isNowIn) {
             if (!finalBranches.includes(adminBranch)) finalBranches.push(adminBranch);
@@ -195,9 +308,6 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
           }
           updates.can_edit_on = finalBranches;
         }
-
-        // Note: Regular admins cannot change display_name, is_admin, preferred_branches (disabled in UI).
-        // `updateUserRole` in supabase.js filters allowed fields.
       }
 
       await adminService.updateUserRole(userToEdit.user_id, updates);
@@ -244,13 +354,8 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
   };
 
   const handleToggleCanEditBranch = async (user) => {
-    // For Regular Admins: Toggle their branch in can_edit_on
-    // For Super Admins: This function is strictly for the checkbox logic if we repurpose it,
-    // but Super Admins have full controls. 
-    // Let's assume this handles the "Can Edit" checkbox for Regular Admins.
-
     const adminBranch = currentUserRoles?.admin_branch;
-    if (!adminBranch) return; // Should not happen for regular admin in this context
+    if (!adminBranch) return;
 
     const hasBranchPermission = isSuperAdmin || (user.preferred_branches?.includes(adminBranch));
     if (!hasBranchPermission) {
@@ -299,7 +404,7 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
         message: `${user.email} is ${!user.is_admin ? 'now' : 'no longer'} an admin`,
         color: 'green',
       });
-      loadUsers(); // Reload current page
+      loadUsers();
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -323,185 +428,206 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
 
   return (
     <>
-      <Stack gap="md">
-        <TextInput
-          placeholder="Search by email or display name..."
-          leftSection={<IconSearch size={16} />}
-          value={searchQuery}
-          onChange={handleSearchChange}
-        />
+      <Tabs value={activeTab} onChange={setActiveTab} mb="md">
+        <Tabs.List>
+          <Tabs.Tab value="users" leftSection={<IconUsers size={16} />}>
+            Manage Users
+          </Tabs.Tab>
+          <Tabs.Tab value="requests" leftSection={<IconUserPlus size={16} />}>
+            Access Requests
+          </Tabs.Tab>
+        </Tabs.List>
 
-        {loading ? (
-          <Center p="xl">
-            <Loader size="lg" />
-          </Center>
-        ) : users.length === 0 ? (
-          <Paper p="xl" withBorder>
-            <Center>
-              <Stack align="center" gap="sm">
-                <IconUsers size={48} opacity={0.3} />
-                <Text c="dimmed">{searchQuery ? 'No users match your search' : 'No users found'}</Text>
-              </Stack>
-            </Center>
-          </Paper>
-        ) : (
-          <Stack gap="md">
-            <Paper withBorder>
-              <Table.ScrollContainer minWidth={800}>
-                <Table striped highlightOnHover>
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th
-                        style={{ cursor: 'pointer', width: '25%' }}
-                        onClick={() => handleSort('email')}
-                      >
-                        <Group gap="xs">
-                          Email
-                          <SortIcon field="email" />
-                        </Group>
-                      </Table.Th>
-                      <Table.Th
-                        style={{ cursor: 'pointer', width: '20%' }}
-                        onClick={() => handleSort('display_name')}
-                      >
-                        <Group gap="xs">
-                          Display Name
-                          <SortIcon field="display_name" />
-                        </Group>
-                      </Table.Th>
-                      {isSuperAdmin && <Table.Th style={{ width: '30%' }}>Preferred Branches</Table.Th>}
-                      {isSuperAdmin ? (
-                        <>
-                          <Table.Th style={{ width: '10%' }}>Global Edit</Table.Th>
-                          <Table.Th style={{ width: '30%' }}>Edit on Branches</Table.Th>
-                        </>
-                      ) : (
-                        <Table.Th style={{ width: '10%' }}>Can Edit</Table.Th>
-                      )}
+        <Tabs.Panel value="users">
+          <Stack gap="md" mt="md">
+            <TextInput
+              placeholder="Search by email or display name..."
+              leftSection={<IconSearch size={16} />}
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
 
-                      {isSuperAdmin && (
-                        <Table.Th
-                          style={{ cursor: 'pointer', width: '10%' }}
-                          onClick={() => handleSort('is_admin')}
-                        >
-                          <Group gap="xs">
-                            Is Admin
-                            <SortIcon field="is_admin" />
-                          </Group>
-                        </Table.Th>
-                      )}
-                      <Table.Th style={{ width: '80px' }}>Actions</Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {users.map((user) => (
-                      <Table.Tr key={user.user_id}>
-                        <Table.Td>
-                          <Text size="sm" lineClamp={1} title={user.email}>{user.email}</Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <Text size="sm" c={user.display_name ? 'inherit' : 'dimmed'} lineClamp={1} title={user.display_name}>
-                            {user.display_name || '-'}
-                          </Text>
-                        </Table.Td>
-                        {isSuperAdmin && (
-                          <Table.Td>
-                            <Group gap={4}>
-                              {user.preferred_branches && user.preferred_branches.length > 0 ? (
-                                user.preferred_branches.map((branchId) => {
-                                  const branch = branches.find(b => b.id === branchId);
-                                  const branchName = branch?.short_name || branch?.arcade_name;
-                                  if (!branchName) return null;
-                                  return (
-                                    <Badge key={branchId} size="sm" variant="light" color="blue">
-                                      {branchName}
-                                    </Badge>
-                                  );
-                                })
-                              ) : (
-                                <Text size="sm" c="dimmed">-</Text>
-                              )}
-                            </Group>
-                          </Table.Td>
-                        )}
-                        {isSuperAdmin ? (
-                          <>
-                            <Table.Td>
-                              <Checkbox
-                                checked={user.can_edit}
-                                onChange={() => handleToggleCanEditGlobal(user)}
-                              />
-                            </Table.Td>
-                            <Table.Td>
-                              <Group gap={4}>
-                                {user.can_edit_on && user.can_edit_on.length > 0 ? (
-                                  user.can_edit_on.map((branchId) => {
-                                    const branch = branches.find(b => b.id === branchId);
-                                    const branchName = branch?.short_name || branch?.arcade_name;
-                                    if (!branchName) return null;
-                                    return (
-                                      <Badge key={branchId} size="sm" variant="outline" color="green">
-                                        {branchName}
-                                      </Badge>
-                                    );
-                                  })
-                                ) : (
-                                  <Text size="sm" c="dimmed">-</Text>
-                                )}
-                              </Group>
-                            </Table.Td>
-                          </>
-                        ) : (
-                          <Table.Td>
-                            <Checkbox
-                              checked={user.can_edit_on?.includes(currentUserRoles?.admin_branch)}
-                              onChange={() => handleToggleCanEditBranch(user)}
-                            />
-                          </Table.Td>
-                        )}
-                        {isSuperAdmin && (
-                          <Table.Td>
-                            <Checkbox
-                              checked={user.is_admin}
-                              onChange={() => handleToggleIsAdmin(user)}
-                              disabled={user.is_super_admin}
-                            />
-                          </Table.Td>
-                        )}
-                        <Table.Td>
-                          <ActionIcon
-                            variant="light"
-                            color="blue"
-                            onClick={() => handleEditClick(user)}
-                            title="Edit User"
+            {loading ? (
+              <Center p="xl">
+                <Loader size="lg" />
+              </Center>
+            ) : users.length === 0 ? (
+              <Paper p="xl" withBorder>
+                <Center>
+                  <Stack align="center" gap="sm">
+                    <IconUsers size={48} opacity={0.3} />
+                    <Text c="dimmed">{searchQuery ? 'No users match your search' : 'No users found'}</Text>
+                  </Stack>
+                </Center>
+              </Paper>
+            ) : (
+              <Stack gap="md">
+                <Paper withBorder>
+                  <Table.ScrollContainer minWidth={800}>
+                    <Table striped highlightOnHover>
+                      <Table.Thead>
+                        <Table.Tr>
+                          <Table.Th
+                            style={{ cursor: 'pointer', width: '25%' }}
+                            onClick={() => handleSort('email')}
                           >
-                            <IconEdit size={16} />
-                          </ActionIcon>
-                        </Table.Td>
-                      </Table.Tr>
-                    ))}
-                  </Table.Tbody>
-                </Table>
-              </Table.ScrollContainer>
-            </Paper>
+                            <Group gap="xs">
+                              Email
+                              <SortIcon field="email" />
+                            </Group>
+                          </Table.Th>
+                          <Table.Th
+                            style={{ cursor: 'pointer', width: '20%' }}
+                            onClick={() => handleSort('display_name')}
+                          >
+                            <Group gap="xs">
+                              Display Name
+                              <SortIcon field="display_name" />
+                            </Group>
+                          </Table.Th>
+                          {isSuperAdmin && <Table.Th style={{ width: '30%' }}>Preferred Branches</Table.Th>}
+                          {isSuperAdmin ? (
+                            <>
+                              <Table.Th style={{ width: '10%' }}>Global Edit</Table.Th>
+                              <Table.Th style={{ width: '30%' }}>Edit on Branches</Table.Th>
+                            </>
+                          ) : (
+                            <Table.Th style={{ width: '10%' }}>Can Edit</Table.Th>
+                          )}
 
-            {totalPages > 1 && (
-              <Group justify="center" mt="md">
-                <Pagination
-                  total={totalPages}
-                  value={currentPage}
-                  onChange={setCurrentPage}
-                  withEdges
-                />
-              </Group>
+                          {isSuperAdmin && (
+                            <Table.Th
+                              style={{ cursor: 'pointer', width: '10%' }}
+                              onClick={() => handleSort('is_admin')}
+                            >
+                              <Group gap="xs">
+                                Is Admin
+                                <SortIcon field="is_admin" />
+                              </Group>
+                            </Table.Th>
+                          )}
+                          <Table.Th style={{ width: '80px' }}>Actions</Table.Th>
+                        </Table.Tr>
+                      </Table.Thead>
+                      <Table.Tbody>
+                        {users.map((user) => (
+                          <Table.Tr key={user.user_id}>
+                            <Table.Td>
+                              <Text size="sm" lineClamp={1} title={user.email}>{user.email}</Text>
+                            </Table.Td>
+                            <Table.Td>
+                              <Text size="sm" c={user.display_name ? 'inherit' : 'dimmed'} lineClamp={1} title={user.display_name}>
+                                {user.display_name || '-'}
+                              </Text>
+                            </Table.Td>
+                            {isSuperAdmin && (
+                              <Table.Td>
+                                <Group gap={4}>
+                                  {user.preferred_branches && user.preferred_branches.length > 0 ? (
+                                    user.preferred_branches.map((branchId) => {
+                                      const branch = branches.find(b => b.id === branchId);
+                                      const branchName = branch?.short_name || branch?.arcade_name;
+                                      if (!branchName) return null;
+                                      return (
+                                        <Badge key={branchId} size="sm" variant="light" color="blue">
+                                          {branchName}
+                                        </Badge>
+                                      );
+                                    })
+                                  ) : (
+                                    <Text size="sm" c="dimmed">-</Text>
+                                  )}
+                                </Group>
+                              </Table.Td>
+                            )}
+                            {isSuperAdmin ? (
+                              <>
+                                <Table.Td>
+                                  <Checkbox
+                                    checked={user.can_edit}
+                                    onChange={() => handleToggleCanEditGlobal(user)}
+                                  />
+                                </Table.Td>
+                                <Table.Td>
+                                  <Group gap={4}>
+                                    {user.can_edit_on && user.can_edit_on.length > 0 ? (
+                                      user.can_edit_on.map((branchId) => {
+                                        const branch = branches.find(b => b.id === branchId);
+                                        const branchName = branch?.short_name || branch?.arcade_name;
+                                        if (!branchName) return null;
+                                        return (
+                                          <Badge key={branchId} size="sm" variant="outline" color="green">
+                                            {branchName}
+                                          </Badge>
+                                        );
+                                      })
+                                    ) : (
+                                      <Text size="sm" c="dimmed">-</Text>
+                                    )}
+                                  </Group>
+                                </Table.Td>
+                              </>
+                            ) : (
+                              <Table.Td>
+                                <Checkbox
+                                  checked={user.can_edit_on?.includes(currentUserRoles?.admin_branch)}
+                                  onChange={() => handleToggleCanEditBranch(user)}
+                                />
+                              </Table.Td>
+                            )}
+                            {isSuperAdmin && (
+                              <Table.Td>
+                                <Checkbox
+                                  checked={user.is_admin}
+                                  onChange={() => handleToggleIsAdmin(user)}
+                                  disabled={user.is_super_admin}
+                                />
+                              </Table.Td>
+                            )}
+                            <Table.Td>
+                              <ActionIcon
+                                variant="light"
+                                color="blue"
+                                onClick={() => handleEditClick(user)}
+                                title="Edit User"
+                              >
+                                <IconEdit size={16} />
+                              </ActionIcon>
+                            </Table.Td>
+                          </Table.Tr>
+                        ))}
+                      </Table.Tbody>
+                    </Table>
+                  </Table.ScrollContainer>
+                </Paper>
+
+                {totalPages > 1 && (
+                  <Group justify="center" mt="md">
+                    <Pagination
+                      total={totalPages}
+                      value={currentPage}
+                      onChange={setCurrentPage}
+                      withEdges
+                    />
+                  </Group>
+                )}
+
+                <Text size="xs" c="dimmed" ta="center">
+                  Showing {users.length} of {totalCount} users
+                </Text>
+              </Stack>
             )}
-
-            <Text size="xs" c="dimmed" ta="center">
-              Showing {users.length} of {totalCount} users
-            </Text>
           </Stack>
-        )}
-      </Stack>
+        </Tabs.Panel>
+
+        <Tabs.Panel value="requests">
+          <AccessRequestsTab
+            isSuperAdmin={isSuperAdmin}
+            currentUserRoles={currentUserRoles}
+            keyProp={activeTab}
+          />
+        </Tabs.Panel>
+      </Tabs>
 
       <Modal
         opened={editModalOpen}

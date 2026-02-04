@@ -51,6 +51,7 @@ function AppContent() {
               <Group justify="space-between" gap="sm">
                 <BranchSelector />
                 <Group gap="sm">
+                  <NotificationCenter onOpenAdminPanel={() => setCurrentPage('admin-panel')} />
                   <ThemeToggle />
                   <LoginForm
                     onOpenAdminPanel={() => setCurrentPage('admin-panel')}
@@ -75,6 +76,7 @@ function AppContent() {
             opened={showPreferencesModal}
             onClose={() => setShowPreferencesModal(false)}
             userId={user.id}
+            userRoles={userRoles}
             initialPreferences={userRoles?.preferred_branches}
             initialDisplayName={userRoles?.display_name || user?.user_metadata?.full_name || ''}
             onSaveSuccess={handlePreferencesSaved}

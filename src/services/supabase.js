@@ -604,3 +604,73 @@ export const adminService = {
     return data;
   }
 };
+
+// Request service functions
+export const requestService = {
+  // Create a new access request
+  async createRequest(userId, branchId) {
+    const { data, error } = await supabase
+      .from('access_requests')
+      .insert([{
+        user_id: userId,
+        branch_id: branchId,
+        status: 'pending'
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Get all pending requests for a specific branch (for admin)
+  async getPendingRequests(adminBranchId = null) {
+      let query = supabase
+        .from('access_requests')
+        .select(`
+            *,
+            user_roles (
+                email,
+                display_name
+            ),
+            allowed_places (
+                arcade_name,
+                short_name
+            )
+        `)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (adminBranchId) {
+          query = query.eq('branch_id', adminBranchId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+  },
+
+  // Get requests made by a specific user
+  async getUserRequests(userId) {
+      const { data, error } = await supabase
+          .from('access_requests')
+          .select('*')
+          .eq('user_id', userId);
+      
+      if (error) throw error;
+      return data || [];
+  },
+
+  // Update request status (approve/reject)
+  async updateRequestStatus(requestId, status) {
+      const { data, error } = await supabase
+          .from('access_requests')
+          .update({ status })
+          .eq('id', requestId)
+          .select()
+          .single();
+
+      if (error) throw error;
+      return data;
+  }
+};
