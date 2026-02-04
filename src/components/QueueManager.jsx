@@ -14,6 +14,7 @@ import { useBranch } from '../hooks/useBranch';
 import { useAuth } from '../hooks/useAuth';
 import { closedMessages, loadingMessages } from '../data/subtitleMessages';
 import { usePermissions } from '../hooks/usePermissions';
+import { requestService } from '../services/supabase';
 import AccessRequestModal from './AccessRequestModal';
 import './QueueManager.css';
 
@@ -80,9 +81,29 @@ function QueueManager() {
   const [showForm, setShowForm] = useState(false);
   const [showLocationHelp, setShowLocationHelp] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [closedMessage, setClosedMessage] = useState(() =>
     closedMessages[Math.floor(Math.random() * closedMessages.length)]
   );
+
+  // Check for pending requests
+  useEffect(() => {
+    const checkPendingRequest = async () => {
+      if (user && selectedBranch) {
+        try {
+          // Optimize: could make a specific check function, but fetching all user requests is fine for now
+          const requests = await requestService.getUserRequests(user.id);
+          const isPending = requests.some(r => r.branch_id === selectedBranch.id && r.status === 'pending');
+          setHasPendingRequest(isPending);
+        } catch (error) {
+          console.error("Failed to check requests", error);
+        }
+      } else {
+        setHasPendingRequest(false);
+      }
+    };
+    checkPendingRequest();
+  }, [user, selectedBranch, showRequestModal]); // Re-check when modal closes (implicit via showRequestModal if needed, or trigger reload)
 
   // Derived permissions
   const { canActuallyEdit, canEdit, isAdmin, isSuperAdmin } = usePermissions();
@@ -310,13 +331,18 @@ function QueueManager() {
                   Add Queue
                 </Button>
               )}
-              {user && !canEdit && !isAdmin && (
+              {user && !canEdit && !isAdmin && !hasPendingRequest && (
                 <Button
                   variant="light"
                   size="sm"
                   onClick={() => setShowRequestModal(true)}
                 >
                   Request Edit Access
+                </Button>
+              )}
+              {user && !canEdit && !isAdmin && hasPendingRequest && (
+                <Button variant="subtle" size="sm" disabled>
+                  Request Pending use
                 </Button>
               )}
               {user && canActuallyEdit && isMallOpen && queue.length > 0 && (

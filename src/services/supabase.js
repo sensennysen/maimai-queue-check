@@ -625,14 +625,11 @@ export const requestService = {
 
   // Get all pending requests for a specific branch (for admin)
   async getPendingRequests(adminBranchId = null) {
+      // 1. Fetch requests with branch details
       let query = supabase
         .from('access_requests')
         .select(`
             *,
-            user_roles (
-                email,
-                display_name
-            ),
             allowed_places (
                 arcade_name,
                 short_name
@@ -645,9 +642,31 @@ export const requestService = {
           query = query.eq('branch_id', adminBranchId);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
+      const { data: requests, error: requestError } = await query;
+      if (requestError) throw requestError;
+      if (!requests || requests.length === 0) return [];
+
+      // 2. Fetch user details manually (to avoid complex FK setups)
+      const userIds = [...new Set(requests.map(r => r.user_id))];
+      const { data: users, error: userError } = await supabase
+          .from('user_roles')
+          .select('user_id, email, display_name')
+          .in('user_id', userIds);
+      
+      if (userError) {
+          console.error("Error fetching user details for requests", userError);
+          // Return requests without user details if user fetch fails, rather than failing all
+          // or we could throw. Let's try to return partial data.
+      }
+
+      // 3. Merge data
+      return requests.map(req => {
+          const user = users?.find(u => u.user_id === req.user_id);
+          return {
+              ...req,
+              user_roles: user || { email: 'Unknown', display_name: 'Unknown' }
+          };
+      });
   },
 
   // Get requests made by a specific user
