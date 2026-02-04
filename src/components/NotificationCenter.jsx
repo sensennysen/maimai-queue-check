@@ -10,7 +10,6 @@ const NotificationCenter = ({ onOpenAdminPanel }) => {
   const [opened, setOpened] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [generalNotifications, setGeneralNotifications] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   // Derived state: Admin branch (if regular admin)
   const adminBranch = userRoles?.admin_branch;
@@ -68,22 +67,21 @@ const NotificationCenter = ({ onOpenAdminPanel }) => {
     }
   }, [isAdmin, adminBranch, isSuperAdmin]);
 
-  // Fetch General Notifications
-  const fetchGeneralNotifications = async () => {
-    if (!userId) return;
-    try {
-      const data = await notificationService.getAllNotifications(userId);
-      setGeneralNotifications(data);
-    } catch (error) {
-      console.error("Failed to fetch notifications:", error);
-    }
-  };
-
   useEffect(() => {
+    const fetchGeneralNotifications = async () => {
+      if (!userId) return;
+      try {
+        const data = await notificationService.getAllNotifications(userId);
+        setGeneralNotifications(data);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+
     if (userId) {
       fetchGeneralNotifications();
     }
-    // We could also subscribe to 'notifications' table changes here
+
     const channel = supabase
       .channel('general_notifications')
       .on(
@@ -91,14 +89,13 @@ const NotificationCenter = ({ onOpenAdminPanel }) => {
         { event: 'INSERT', schema: 'public', table: 'notifications' },
         () => {
           fetchGeneralNotifications();
-          // We could show toast here too
         }
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
-    }
+    };
   }, [userId]);
 
   const handleMarkAsRead = async (e, notification) => {
@@ -114,8 +111,15 @@ const NotificationCenter = ({ onOpenAdminPanel }) => {
       await notificationService.markAsRead(userId, notification.id);
     } catch (error) {
       console.error("Failed to mark as read", error);
-      // Revert if failed?
-      fetchGeneralNotifications();
+      // Revert if failed. We need to re-fetch or use a more robust strategy.
+      // Since fetchGeneralNotifications isn't available here anymore, we'll inline a fetch logic or let it be.
+      // For simplicity/robustness, let's just re-fetch using service directly if error.
+      try {
+        const data = await notificationService.getAllNotifications(userId);
+        setGeneralNotifications(data);
+      } catch (retryError) {
+        console.error("Failed to retry fetch", retryError);
+      }
     }
   };
 
