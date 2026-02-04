@@ -23,6 +23,27 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
   });
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [branchesData, requestsData] = await Promise.all([
+          branchService.getAllBranches(),
+          requestService.getUserRequests(user.id)
+        ]);
+        setBranches(branchesData);
+        setExistingRequests(requestsData);
+      } catch (error) {
+        console.error('Failed to load data:', error);
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to load options',
+          color: 'red',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (opened) {
       loadData();
 
@@ -37,28 +58,8 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
         form.reset();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened]);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [branchesData, requestsData] = await Promise.all([
-        branchService.getAllBranches(),
-        requestService.getUserRequests(user.id)
-      ]);
-      setBranches(branchesData);
-      setExistingRequests(requestsData);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to load options',
-        color: 'red',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (values) => {
     try {
