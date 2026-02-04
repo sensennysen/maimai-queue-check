@@ -1,35 +1,34 @@
 import { useState, useEffect } from 'react';
-import { Popover, ActionIcon, Indicator, Stack, Text, Group, ThemeIcon, ScrollArea, Button } from '@mantine/core';
-import { IconBell, IconUserPlus } from '@tabler/icons-react';
+import { Popover, ActionIcon, Indicator, Stack, Text, Group, ThemeIcon, ScrollArea, Button, Box } from '@mantine/core';
+import { IconBell, IconUserPlus, IconInfoCircle, IconCheck, IconChevronRight } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
-import { requestService, supabase } from '../services/supabase';
+import { requestService, notificationService, supabase } from '../services/supabase';
 
 const NotificationCenter = ({ onOpenAdminPanel }) => {
-  const { userRoles } = useAuth();
+  const { user, userRoles } = useAuth();
   const [opened, setOpened] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [generalNotifications, setGeneralNotifications] = useState([]);
 
   // Derived state: Admin branch (if regular admin)
   const adminBranch = userRoles?.admin_branch;
   const isSuperAdmin = userRoles?.is_super_admin;
   const isAdmin = userRoles?.is_admin || isSuperAdmin;
+  const userId = user?.id;
 
+  // Fetch Admin Requests
   useEffect(() => {
     if (isAdmin) {
       const fetchRequests = async () => {
         try {
-          // Only show loading on initial fetch if empty? Or just silently update?
-          // To avoid flickering, maybe don't set global loading state here if we want to run it in background
-          // But we have local loading state.
-          setLoading(true);
+          // We'll keep loading state purely local or combined? 
+          // Let's just use it when initialized? 
+          // For now, we won't block UI with global loading.
           const data = await requestService.getPendingRequests(isSuperAdmin ? null : adminBranch);
           setPendingRequests(data);
         } catch (error) {
-          console.error('Failed to fetch notifications:', error);
-        } finally {
-          setLoading(false);
+          console.error('Failed to fetch requests:', error);
         }
       };
 
@@ -66,14 +65,91 @@ const NotificationCenter = ({ onOpenAdminPanel }) => {
         supabase.removeChannel(channel);
       };
     }
-  }, [isAdmin, adminBranch, isSuperAdmin]); // Dependencies are now correct
+  }, [isAdmin, adminBranch, isSuperAdmin]);
 
-  if (!isAdmin) return null;
+  useEffect(() => {
+    const fetchGeneralNotifications = async () => {
+      if (!userId) return;
+      try {
+        const data = await notificationService.getAllNotifications(userId);
+        setGeneralNotifications(data);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+
+    if (userId) {
+      fetchGeneralNotifications();
+    }
+
+    const channel = supabase
+      .channel('general_notifications')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        () => {
+          fetchGeneralNotifications();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
+  const handleMarkAsRead = async (e, notification) => {
+    e.stopPropagation();
+    if (notification.read) return;
+
+    try {
+      // Optimistic update
+      setGeneralNotifications(prev => prev.map(n =>
+        n.id === notification.id ? { ...n, read: true } : n
+      ));
+
+      await notificationService.markAsRead(userId, notification.id);
+    } catch (error) {
+      console.error("Failed to mark as read", error);
+      // Revert if failed. We need to re-fetch or use a more robust strategy.
+      // Since fetchGeneralNotifications isn't available here anymore, we'll inline a fetch logic or let it be.
+      // For simplicity/robustness, let's just re-fetch using service directly if error.
+      try {
+        const data = await notificationService.getAllNotifications(userId);
+        setGeneralNotifications(data);
+      } catch (retryError) {
+        console.error("Failed to retry fetch", retryError);
+      }
+    }
+  };
+
+  // Combine items
+  // Structure: { type: 'request' | 'general', data: ..., date: ... }
+  const allItems = [
+    ...pendingRequests.map(r => ({
+      type: 'request',
+      id: `req-${r.id}`,
+      originalId: r.id,
+      data: r,
+      date: new Date(r.created_at),
+      read: false // requests are always "unread" until handled
+    })),
+    ...generalNotifications.map(n => ({
+      type: 'general',
+      id: `notif-${n.id}`,
+      originalId: n.id,
+      data: n,
+      date: new Date(n.created_at),
+      read: n.read
+    }))
+  ].sort((a, b) => b.date - a.date);
+
+  const unreadCount = pendingRequests.length + generalNotifications.filter(n => !n.read).length;
 
   return (
-    <Popover opened={opened} onChange={setOpened} width={300} position="bottom-end" shadow="md">
+    <Popover opened={opened} onChange={setOpened} width={350} position="bottom-end" shadow="md">
       <Popover.Target>
-        <Indicator disabled={pendingRequests.length === 0} color="red" size={16} offset={4} label={pendingRequests.length}>
+        <Indicator disabled={unreadCount === 0} color="red" size={16} offset={4} label={unreadCount}>
           <ActionIcon variant="subtle" size="lg" onClick={() => setOpened((o) => !o)}>
             <IconBell size={20} />
           </ActionIcon>
@@ -82,52 +158,92 @@ const NotificationCenter = ({ onOpenAdminPanel }) => {
 
       <Popover.Dropdown p="sm">
         <Stack gap="xs">
-          <Text size="sm" fw={600} c="dimmed">
-            Notifications
-          </Text>
+          <Group justify="space-between">
+            <Text size="sm" fw={600} c="dimmed">
+              Notifications
+            </Text>
+            {unreadCount > 0 && generalNotifications.some(n => !n.read) && (
+              <Button variant="subtle" size="xs" compact onClick={() => {
+                // Mark all generic as read?
+                // Not implemented in service yet, but we can iterate or add bulk API.
+                // For now, let's skip "Mark all read" button or implement it later.
+              }}>
+
+              </Button>
+            )}
+          </Group>
 
           <ScrollArea.Autosize maxHeight={300}>
-            {loading && pendingRequests.length === 0 ? (
-              <Text size="xs" c="dimmed" ta="center">Loading...</Text>
-            ) : pendingRequests.length === 0 ? (
+            {allItems.length === 0 ? (
               <Text size="sm" c="dimmed" ta="center" py="md">
-                No new notifications
+                No notifications
               </Text>
             ) : (
               <Stack gap="xs">
-                {pendingRequests.map((request) => (
-                  <Group key={request.id} wrap="nowrap" align="start" style={{ cursor: 'pointer' }} onClick={() => {
-                    setOpened(false);
-                    if (onOpenAdminPanel) onOpenAdminPanel('requests');
-                  }}>
-                    <ThemeIcon color="blue" variant="light" size="md" radius="xl" mt={4}>
-                      <IconUserPlus size={16} />
-                    </ThemeIcon>
+                {allItems.map((item) => (
+                  <Group
+                    key={item.id}
+                    wrap="nowrap"
+                    align="start"
+                    p="xs"
+                    style={{
+                      cursor: item.type === 'request' ? 'pointer' : 'default',
+                      backgroundColor: item.read ? 'transparent' : 'var(--mantine-color-default-hover)',
+                      borderRadius: 'var(--mantine-radius-sm)'
+                    }}
+                    onClick={() => {
+                      if (item.type === 'request') {
+                        setOpened(false);
+                        if (onOpenAdminPanel) onOpenAdminPanel('requests');
+                      }
+                    }}
+                  >
+                    {item.type === 'request' ? (
+                      <ThemeIcon color="blue" variant="light" size="md" radius="xl" mt={4}>
+                        <IconUserPlus size={16} />
+                      </ThemeIcon>
+                    ) : (
+                      <ThemeIcon color={item.data.type === 'success' ? 'green' : 'blue'} variant="light" size="md" radius="xl" mt={4}>
+                        <IconInfoCircle size={16} />
+                      </ThemeIcon>
+                    )}
+
                     <div style={{ flex: 1 }}>
                       <Text size="sm" fw={500}>
-                        Access Request
+                        {item.type === 'request' ? 'Access Request' : item.data.title}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        {request.user_roles?.email || 'Unknown User'} requested access to {request.allowed_places?.short_name || request.allowed_places?.arcade_name || 'Branch'}
+                        {item.type === 'request' ? (
+                          `${item.data.user_roles?.email || 'Unknown User'} requested access to ${item.data.allowed_places?.short_name || 'Branch'}`
+                        ) : (
+                          item.data.message
+                        )}
                       </Text>
                       <Text size="xs" c="dimmed" mt={4}>
-                        {new Date(request.created_at).toLocaleDateString()}
+                        {item.date.toLocaleDateString()}
                       </Text>
                     </div>
+
+                    {item.type === 'general' && !item.read && (
+                      <ActionIcon
+                        size="sm"
+                        variant="subtle"
+                        color="blue"
+                        onClick={(e) => handleMarkAsRead(e, item.data)}
+                        title="Mark as read"
+                      >
+                        <IconCheck size={14} />
+                      </ActionIcon>
+                    )}
+
+                    {item.type === 'request' && (
+                      <IconChevronRight size={14} style={{ opacity: 0.5 }} />
+                    )}
                   </Group>
                 ))}
               </Stack>
             )}
           </ScrollArea.Autosize>
-
-          {pendingRequests.length > 0 && (
-            <Button variant="light" size="xs" fullWidth mt="xs" onClick={() => {
-              setOpened(false);
-              if (onOpenAdminPanel) onOpenAdminPanel('requests');
-            }}>
-              Manage Requests
-            </Button>
-          )}
         </Stack>
       </Popover.Dropdown>
     </Popover>

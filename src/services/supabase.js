@@ -713,3 +713,54 @@ export const requestService = {
       return data;
   }
 };
+
+// Notification service functions
+export const notificationService = {
+  // Get all notifications for a user, including read status
+  async getAllNotifications(userId) {
+    // 1. Fetch all notifications
+    const { data: notifications, error: notifError } = await supabase
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (notifError) throw notifError;
+
+    if (!notifications || notifications.length === 0) return [];
+
+    // 2. Fetch read receipts for this user
+    let readIds = new Set();
+    if (userId) {
+        const { data: reads, error: readError } = await supabase
+            .from('user_notification_reads')
+            .select('notification_id')
+            .eq('user_id', userId);
+        
+        if (readError) throw readError;
+        
+        if (reads) {
+            reads.forEach(r => readIds.add(r.notification_id));
+        }
+    }
+
+    // 3. Merge info
+    return notifications.map(n => ({
+        ...n,
+        read: readIds.has(n.id)
+    }));
+  },
+
+  // Mark a notification as read
+  async markAsRead(userId, notificationId) {
+      if (!userId) return;
+      
+      const { error } = await supabase
+        .from('user_notification_reads')
+        .upsert(
+            { user_id: userId, notification_id: notificationId },
+            { onConflict: 'user_id, notification_id', ignoreDuplicates: true }
+        );
+
+      if (error) throw error;
+  }
+};
