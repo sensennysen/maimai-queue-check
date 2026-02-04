@@ -25,11 +25,17 @@ function AppContent() {
   const { user, userRoles } = useAuth();
   const [currentPage, setCurrentPage] = useState('queue'); // 'queue' or 'admin-panel'
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
+  const [adminTargetTab, setAdminTargetTab] = useState(null);
 
   const handlePreferencesSaved = () => {
     // Real-time synchronization in AuthContext will handle updating userRoles state
     // automatically. We just need to close the modal.
     setShowPreferencesModal(false);
+  };
+
+  const handleOpenAdminPanel = (tab) => {
+    setAdminTargetTab(tab);
+    setCurrentPage('admin-panel');
   };
 
   return (
@@ -52,16 +58,10 @@ function AppContent() {
               <Group justify="space-between" gap="sm">
                 <BranchSelector />
                 <Group gap="sm">
-                  <NotificationCenter onOpenAdminPanel={(tab) => {
-                    setCurrentPage('admin-panel');
-                    if (tab) window.sessionStorage.setItem('adminInitialTab', tab);
-                  }} />
+                  <NotificationCenter onOpenAdminPanel={handleOpenAdminPanel} />
                   <ThemeToggle />
                   <LoginForm
-                    onOpenAdminPanel={(tab) => {
-                      setCurrentPage('admin-panel');
-                      if (tab) window.sessionStorage.setItem('adminInitialTab', tab);
-                    }}
+                    onOpenAdminPanel={handleOpenAdminPanel}
                     onOpenPreferences={() => setShowPreferencesModal(true)}
                   />
                 </Group>
