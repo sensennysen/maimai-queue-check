@@ -14,6 +14,7 @@ import { useBranch } from '../hooks/useBranch';
 import { useAuth } from '../hooks/useAuth';
 import { closedMessages, loadingMessages } from '../data/subtitleMessages';
 import { usePermissions } from '../hooks/usePermissions';
+import AccessRequestModal from './AccessRequestModal';
 import './QueueManager.css';
 
 
@@ -78,6 +79,7 @@ function QueueManager() {
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showLocationHelp, setShowLocationHelp] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState(false);
   const [closedMessage, setClosedMessage] = useState(() =>
     closedMessages[Math.floor(Math.random() * closedMessages.length)]
   );
@@ -278,6 +280,11 @@ function QueueManager() {
         />
       </Modal>
 
+      <AccessRequestModal
+        opened={showRequestModal}
+        onClose={() => setShowRequestModal(false)}
+      />
+
       {/* Header with credits and actions */}
       <div>
         {queueLoading || scheduleLoading ? (
@@ -301,6 +308,15 @@ function QueueManager() {
                   disabled={isMutating}
                 >
                   Add Queue
+                </Button>
+              )}
+              {user && !canEdit && !isAdmin && (
+                <Button
+                  variant="light"
+                  size="sm"
+                  onClick={() => setShowRequestModal(true)}
+                >
+                  Request Edit Access
                 </Button>
               )}
               {user && canActuallyEdit && isMallOpen && queue.length > 0 && (
