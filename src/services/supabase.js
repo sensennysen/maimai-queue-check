@@ -623,6 +623,26 @@ export const requestService = {
     return data;
   },
 
+  // Create multiple access requests (bulk)
+  async createRequests(userId, branchIds) {
+    if (!branchIds || branchIds.length === 0) return [];
+    
+    // Create rows for each branch
+    const rows = branchIds.map(branchId => ({
+      user_id: userId,
+      branch_id: branchId,
+      status: 'pending'
+    }));
+
+    const { data, error } = await supabase
+      .from('access_requests')
+      .insert(rows)
+      .select();
+
+    if (error) throw error;
+    return data;
+  },
+
   // Get all pending requests for a specific branch (for admin)
   async getPendingRequests(adminBranchId = null) {
       // 1. Fetch requests with branch details

@@ -3,7 +3,7 @@ import { Modal, Stack, Button, MultiSelect, Text, Group, LoadingOverlay, Alert }
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconSend, IconAlertCircle } from '@tabler/icons-react';
-import { requestService, branchService } from '../services/supabase';
+import { requestService, branchService, userService } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
 
 const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
@@ -25,7 +25,17 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
   useEffect(() => {
     if (opened) {
       loadData();
-      form.reset();
+
+      // Prefill with preferred branches that user doesn't have access to
+      if (userRoles?.preferred_branches) {
+        const prefill = userRoles.preferred_branches
+          .filter(id => !userRoles.can_edit_on?.includes(id))
+          .map(String);
+
+        form.setValues({ branchIds: prefill });
+      } else {
+        form.reset();
+      }
     }
   }, [opened]);
 
@@ -75,6 +85,14 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
       }
 
       await requestService.createRequests(user.id, validBranchIds);
+
+      // Update user preferences to include these branches
+      const currentPreferences = userRoles?.preferred_branches || [];
+      const newPreferences = [...new Set([...currentPreferences, ...validBranchIds])];
+
+      await userService.updatePreferences(user.id, {
+        branchIds: newPreferences
+      });
 
       notifications.show({
         title: 'Request Sent',
