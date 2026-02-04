@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Popover, ActionIcon, Indicator, Stack, Text, Group, ThemeIcon, ScrollArea, Button } from '@mantine/core';
 import { IconBell, IconUserPlus } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { requestService, supabase } from '../services/supabase';
 
 const NotificationCenter = ({ onOpenAdminPanel }) => {

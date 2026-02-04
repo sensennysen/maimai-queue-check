@@ -16,6 +16,7 @@ import BranchSelector from './components/BranchSelector';
 import Footer from './components/Footer';
 import AdminPanelPage from './components/AdminPanelPage';
 import PreferencesModal from './components/PreferencesModal';
+import NotificationCenter from './components/NotificationCenter';
 import './App.css';
 
 // Mantine theme configuration that syncs with our CSS variables
