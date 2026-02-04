@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Stack, Button, Select, Text, Group, LoadingOverlay, Alert } from '@mantine/core';
+import { Modal, Stack, Button, MultiSelect, Text, Group, LoadingOverlay, Alert } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconSend, IconAlertCircle } from '@tabler/icons-react';
@@ -15,10 +15,10 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
 
   const form = useForm({
     initialValues: {
-      branchId: '',
+      branchIds: [],
     },
     validate: {
-      branchId: (value) => !value ? 'Please select a branch' : null,
+      branchIds: (value) => value.length === 0 ? 'Please select at least one branch' : null,
     },
   });
 
@@ -54,34 +54,31 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
     try {
       setSubmitting(true);
 
-      // Check if already requested or has access
-      const branchId = Number(values.branchId);
+      const branchIds = values.branchIds.map(Number);
 
-      if (userRoles?.can_edit_on?.includes(branchId)) {
-        notifications.show({ title: 'Info', message: 'You already have access to this branch.', color: 'blue' });
+      // Filter out invalid requests
+      const validBranchIds = branchIds.filter(id => {
+        // Check if already has access
+        if (userRoles?.can_edit_on?.includes(id)) return false;
+
+        // Check if pending
+        const existing = existingRequests.find(r => r.branch_id === id);
+        if (existing && existing.status === 'pending') return false;
+
+        return true;
+      });
+
+      if (validBranchIds.length === 0) {
+        notifications.show({ title: 'Info', message: 'No valid branches to request (already pending or have access).', color: 'blue' });
         onClose();
         return;
       }
 
-      const existing = existingRequests.find(r => r.branch_id === branchId);
-      if (existing) {
-        if (existing.status === 'pending') {
-          notifications.show({ title: 'Info', message: 'Request already pending.', color: 'yellow' });
-          return;
-        }
-        if (existing.status === 'rejected') {
-          // Allow re-request? Maybe. For now, warn.
-          if (!window.confirm('Your previous request was rejected. Request again?')) {
-            return;
-          }
-        }
-      }
-
-      await requestService.createRequest(user.id, branchId);
+      await requestService.createRequests(user.id, validBranchIds);
 
       notifications.show({
         title: 'Request Sent',
-        message: 'Admin has been notified.',
+        message: 'Admins have been notified.',
         color: 'green',
       });
 
@@ -106,27 +103,34 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
       disabled: existingRequests.some(r => r.branch_id === b.id && r.status === 'pending') // Disable if pending
     }));
 
+  // Check if any selected branch was previously rejected
+  const showRejectionWarning = form.values.branchIds.some(id =>
+    existingRequests.some(r => r.branch_id === Number(id) && r.status === 'rejected')
+  );
+
   return (
     <Modal opened={opened} onClose={onClose} title="Request Edit Access" centered>
       <LoadingOverlay visible={loading} />
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
-          <Text size="sm" c="dimmed">
-            Select the branch you want to manage queue for. The request will be sent to the branch admins for approval.
+          <Text size="sm" c="dimmed" style={{ marginBottom: '1rem' }}>
+            Select the branch(es) you want to manage queue for. The requests will be sent to the respective branch admins.
           </Text>
 
-          <Select
-            label="Select Branch"
-            placeholder="Pick a branch"
+          <MultiSelect
+            label="Select Branches"
+            placeholder="Pick requests"
             data={branchOptions}
             searchable
             nothingFoundMessage="No branches found or you have access to all"
-            {...form.getInputProps('branchId')}
+            {...form.getInputProps('branchIds')}
+            maxDropdownHeight={200}
+            clearable
           />
 
-          {existingRequests.some(r => r.branch_id === Number(form.values.branchId) && r.status === 'rejected') && (
+          {showRejectionWarning && (
             <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light" title="Previous Rejection">
-              Your previous request for this branch was rejected.
+              One or more selected branches have previously rejected requests.
             </Alert>
           )}
 

@@ -115,7 +115,7 @@ const AccessRequestsTab = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
                     </Stack>
                   </Table.Td>
                   <Table.Td>
-                    <Badge>{r.allowed_places?.arcade_name}</Badge>
+                    <Badge>{r.allowed_places?.short_name || r.allowed_places?.arcade_name}</Badge>
                   </Table.Td>
                   <Table.Td>
                     <Text size="sm">{new Date(r.created_at).toLocaleDateString()}</Text>
@@ -152,8 +152,8 @@ const AccessRequestsTab = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
   );
 };
 
-const UserManager = ({ isSuperAdmin = false, currentUserRoles = null }) => {
-  const [activeTab, setActiveTab] = useState('users');
+const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab = 'users' }) => {
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [branches, setBranches] = useState([]);

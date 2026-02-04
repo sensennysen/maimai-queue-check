@@ -57,7 +57,14 @@ const AdminPanelPage = ({ onBack }) => {
 
 
 
-  const [activeTab, setActiveTab] = useState(isSuperAdmin ? 'branches' : 'users');
+  const [activeTab, setActiveTab] = useState(() => {
+    const initial = window.sessionStorage.getItem('adminInitialTab');
+    if (initial) {
+      window.sessionStorage.removeItem('adminInitialTab');
+      return initial;
+    }
+    return isSuperAdmin ? 'branches' : 'users';
+  });
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedBranches, setExpandedBranches] = useState(new Set());
@@ -428,7 +435,11 @@ const AdminPanelPage = ({ onBack }) => {
           )}
 
           <Tabs.Panel value="users" pt="md">
-            <UserManager isSuperAdmin={isSuperAdmin} currentUserRoles={userRoles} />
+            <UserManager
+              isSuperAdmin={isSuperAdmin}
+              currentUserRoles={userRoles}
+              initialTab={activeTab === 'requests' ? 'requests' : 'users'}
+            />
           </Tabs.Panel>
         </Tabs>
       </Stack>

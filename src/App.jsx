@@ -52,10 +52,16 @@ function AppContent() {
               <Group justify="space-between" gap="sm">
                 <BranchSelector />
                 <Group gap="sm">
-                  <NotificationCenter onOpenAdminPanel={() => setCurrentPage('admin-panel')} />
+                  <NotificationCenter onOpenAdminPanel={(tab) => {
+                    setCurrentPage('admin-panel');
+                    if (tab) window.sessionStorage.setItem('adminInitialTab', tab);
+                  }} />
                   <ThemeToggle />
                   <LoginForm
-                    onOpenAdminPanel={() => setCurrentPage('admin-panel')}
+                    onOpenAdminPanel={(tab) => {
+                      setCurrentPage('admin-panel');
+                      if (tab) window.sessionStorage.setItem('adminInitialTab', tab);
+                    }}
                     onOpenPreferences={() => setShowPreferencesModal(true)}
                   />
                 </Group>

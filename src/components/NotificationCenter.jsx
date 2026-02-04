@@ -98,7 +98,7 @@ const NotificationCenter = ({ onOpenAdminPanel }) => {
                 {pendingRequests.map((request) => (
                   <Group key={request.id} wrap="nowrap" align="start" style={{ cursor: 'pointer' }} onClick={() => {
                     setOpened(false);
-                    if (onOpenAdminPanel) onOpenAdminPanel();
+                    if (onOpenAdminPanel) onOpenAdminPanel('requests');
                   }}>
                     <ThemeIcon color="blue" variant="light" size="md" radius="xl" mt={4}>
                       <IconUserPlus size={16} />
@@ -108,7 +108,7 @@ const NotificationCenter = ({ onOpenAdminPanel }) => {
                         Access Request
                       </Text>
                       <Text size="xs" c="dimmed">
-                        {request.user_roles?.email || 'Unknown User'} requested access to {request.allowed_places?.arcade_name || 'Branch'}
+                        {request.user_roles?.email || 'Unknown User'} requested access to {request.allowed_places?.short_name || request.allowed_places?.arcade_name || 'Branch'}
                       </Text>
                       <Text size="xs" c="dimmed" mt={4}>
                         {new Date(request.created_at).toLocaleDateString()}
@@ -123,7 +123,7 @@ const NotificationCenter = ({ onOpenAdminPanel }) => {
           {pendingRequests.length > 0 && (
             <Button variant="light" size="xs" fullWidth mt="xs" onClick={() => {
               setOpened(false);
-              if (onOpenAdminPanel) onOpenAdminPanel();
+              if (onOpenAdminPanel) onOpenAdminPanel('requests');
             }}>
               Manage Requests
             </Button>
