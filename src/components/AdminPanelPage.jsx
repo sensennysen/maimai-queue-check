@@ -51,13 +51,25 @@ const formatTime = (time24) => {
   return `${hour12}:${minutes} ${ampm}`;
 };
 
-const AdminPanelPage = ({ onBack }) => {
+const AdminPanelPage = ({ onBack, targetTab }) => {
   const { userRoles } = useAuth();
   const isSuperAdmin = userRoles?.is_super_admin || false;
 
 
 
-  const [activeTab, setActiveTab] = useState(isSuperAdmin ? 'branches' : 'users');
+  const [activeTab, setActiveTab] = useState(() => {
+    // If target is requests, we need to show users tab
+    if (targetTab === 'requests') return 'users';
+    return isSuperAdmin ? 'branches' : 'users';
+  });
+
+  // React to prop changes
+  useEffect(() => {
+    if (targetTab === 'requests') {
+      setActiveTab('users');
+    }
+  }, [targetTab]);
+
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedBranches, setExpandedBranches] = useState(new Set());
@@ -428,7 +440,11 @@ const AdminPanelPage = ({ onBack }) => {
           )}
 
           <Tabs.Panel value="users" pt="md">
-            <UserManager isSuperAdmin={isSuperAdmin} currentUserRoles={userRoles} />
+            <UserManager
+              isSuperAdmin={isSuperAdmin}
+              currentUserRoles={userRoles}
+              initialTab={(targetTab === 'requests' || activeTab === 'requests') ? 'requests' : 'users'}
+            />
           </Tabs.Panel>
         </Tabs>
       </Stack>

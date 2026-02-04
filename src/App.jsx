@@ -16,6 +16,7 @@ import BranchSelector from './components/BranchSelector';
 import Footer from './components/Footer';
 import AdminPanelPage from './components/AdminPanelPage';
 import PreferencesModal from './components/PreferencesModal';
+import NotificationCenter from './components/NotificationCenter';
 import './App.css';
 
 // Mantine theme configuration that syncs with our CSS variables
@@ -24,11 +25,17 @@ function AppContent() {
   const { user, userRoles } = useAuth();
   const [currentPage, setCurrentPage] = useState('queue'); // 'queue' or 'admin-panel'
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
+  const [adminTargetTab, setAdminTargetTab] = useState(null);
 
   const handlePreferencesSaved = () => {
     // Real-time synchronization in AuthContext will handle updating userRoles state
     // automatically. We just need to close the modal.
     setShowPreferencesModal(false);
+  };
+
+  const handleOpenAdminPanel = (tab) => {
+    setAdminTargetTab(tab);
+    setCurrentPage('admin-panel');
   };
 
   return (
@@ -51,9 +58,10 @@ function AppContent() {
               <Group justify="space-between" gap="sm">
                 <BranchSelector />
                 <Group gap="sm">
+                  <NotificationCenter onOpenAdminPanel={handleOpenAdminPanel} />
                   <ThemeToggle />
                   <LoginForm
-                    onOpenAdminPanel={() => setCurrentPage('admin-panel')}
+                    onOpenAdminPanel={handleOpenAdminPanel}
                     onOpenPreferences={() => setShowPreferencesModal(true)}
                   />
                 </Group>
@@ -67,7 +75,7 @@ function AppContent() {
             </Stack>
           </Container>
         ) : (
-          <AdminPanelPage onBack={() => setCurrentPage('queue')} />
+          <AdminPanelPage onBack={() => setCurrentPage('queue')} targetTab={adminTargetTab} />
         )}
 
         {user && (
@@ -75,6 +83,7 @@ function AppContent() {
             opened={showPreferencesModal}
             onClose={() => setShowPreferencesModal(false)}
             userId={user.id}
+            userRoles={userRoles}
             initialPreferences={userRoles?.preferred_branches}
             initialDisplayName={userRoles?.display_name || user?.user_metadata?.full_name || ''}
             onSaveSuccess={handlePreferencesSaved}

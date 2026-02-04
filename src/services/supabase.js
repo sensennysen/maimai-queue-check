@@ -604,3 +604,112 @@ export const adminService = {
     return data;
   }
 };
+
+// Request service functions
+export const requestService = {
+  // Create a new access request
+  async createRequest(userId, branchId) {
+    const { data, error } = await supabase
+      .from('access_requests')
+      .insert([{
+        user_id: userId,
+        branch_id: branchId,
+        status: 'pending'
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Create multiple access requests (bulk)
+  async createRequests(userId, branchIds) {
+    if (!branchIds || branchIds.length === 0) return [];
+    
+    // Create rows for each branch
+    const rows = branchIds.map(branchId => ({
+      user_id: userId,
+      branch_id: branchId,
+      status: 'pending'
+    }));
+
+    const { data, error } = await supabase
+      .from('access_requests')
+      .insert(rows)
+      .select();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Get all pending requests for a specific branch (for admin)
+  async getPendingRequests(adminBranchId = null) {
+      // 1. Fetch requests with branch details
+      let query = supabase
+        .from('access_requests')
+        .select(`
+            *,
+            allowed_places (
+                arcade_name,
+                short_name
+            )
+        `)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (adminBranchId) {
+          query = query.eq('branch_id', adminBranchId);
+      }
+
+      const { data: requests, error: requestError } = await query;
+      if (requestError) throw requestError;
+      if (!requests || requests.length === 0) return [];
+
+      // 2. Fetch user details manually (to avoid complex FK setups)
+      const userIds = [...new Set(requests.map(r => r.user_id))];
+      const { data: users, error: userError } = await supabase
+          .from('user_roles')
+          .select('user_id, email, display_name')
+          .in('user_id', userIds);
+      
+      if (userError) {
+          console.error("Error fetching user details for requests", userError);
+          // Return requests without user details if user fetch fails, rather than failing all
+          // or we could throw. Let's try to return partial data.
+      }
+
+      // 3. Merge data
+      return requests.map(req => {
+          const user = users?.find(u => u.user_id === req.user_id);
+          return {
+              ...req,
+              user_roles: user || { email: 'Unknown', display_name: 'Unknown' }
+          };
+      });
+  },
+
+  // Get requests made by a specific user
+  async getUserRequests(userId) {
+      const { data, error } = await supabase
+          .from('access_requests')
+          .select('*')
+          .eq('user_id', userId);
+      
+      if (error) throw error;
+      return data || [];
+  },
+
+  // Update request status (approve/reject)
+  async updateRequestStatus(requestId, status) {
+      const { data, error } = await supabase
+          .from('access_requests')
+          .update({ status })
+          .eq('id', requestId)
+          .select()
+          .single();
+
+      if (error) throw error;
+      return data;
+  }
+};
