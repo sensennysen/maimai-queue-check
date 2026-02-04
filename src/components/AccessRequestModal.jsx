@@ -132,7 +132,7 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
       <LoadingOverlay visible={loading} />
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
-          <Text size="sm" c="dimmed" style={{ marginBottom: '1rem' }}>
+          <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
             Select the branch(es) you want to manage queue for. The requests will be sent to the respective branch admins.
           </Text>
 
