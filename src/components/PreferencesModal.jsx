@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Stack, Text, Group, Button, MultiSelect, Loader, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { userService } from '../services/supabase';
@@ -9,8 +9,6 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
   const [saving, setSaving] = useState(false);
   const [selectedBranches, setSelectedBranches] = useState([]);
   const [displayName, setDisplayName] = useState(initialDisplayName);
-
-
 
   useEffect(() => {
     if (opened) {
@@ -66,8 +64,14 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
           label="Display Name"
           placeholder="Enter your display name"
           value={displayName}
-          onChange={(event) => setDisplayName(event.currentTarget.value)}
+          onChange={(event) => {
+            const val = event.currentTarget.value;
+            if (/^[a-zA-Z0-9]*$/.test(val)) {
+              setDisplayName(val);
+            }
+          }}
           required
+          maxLength={8}
           style={{ marginTop: '1rem' }}
         />
 
