@@ -212,7 +212,7 @@ const NotificationCenter = ({ onOpenAdminPanel }) => {
                       <Text size="sm" fw={500}>
                         {item.type === 'request' ? 'Access Request' : item.data.title}
                       </Text>
-                      <Text size="xs" c="dimmed">
+                      <Text size="xs" c="dimmed" style={{ marginTop: '1rem', marginBottom: '1rem' }}>
                         {item.type === 'request' ? (
                           `${item.data.user_roles?.email || 'Unknown User'} requested access to ${item.data.allowed_places?.short_name || 'Branch'}`
                         ) : (
