@@ -1,12 +1,18 @@
 import { useState } from 'react';
-import { TextInput, Group, Button, Stack, Alert, Checkbox, Modal, Text } from '@mantine/core';
+import { TextInput, Group, Button, Stack, Alert, Checkbox, Modal, Text, Autocomplete } from '@mantine/core';
 import { IconPlus, IconEdit } from '@tabler/icons-react';
 import DOMPurify from 'dompurify';
 import './QueueForm.css';
+import { usePlayerSuggestions } from '../hooks/usePlayerSuggestions';
+import { useBranch } from '../hooks/useBranch';
 
 function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationVerified = false, locationError = null, isSuperAdmin = false, queue = [], nowPlaying = null }) {
   const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : '';
   const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : '';
+
+  const { selectedBranch } = useBranch();
+  // Pass the realtime queue to the hook
+  const { suggestions, loading: suggestionsLoading } = usePlayerSuggestions(selectedBranch?.id, queue);
 
   const [player1, setPlayer1] = useState(initialPlayer1);
   const [player2, setPlayer2] = useState(initialPlayer2);
@@ -119,18 +125,26 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
           )}
 
           <Stack gap="md">
-            <TextInput
+            <Autocomplete
               label="Player 1 Side"
               placeholder="Enter Player 1 name"
+              data={player1.trim().length > 0 ? suggestions : []}
               value={player1}
-              onChange={(e) => {
-                const val = e.target.value;
+              onChange={(val) => {
                 setPlayer1(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
               }}
               error={errors.player1}
               maxLength={8}
               disabled={isBusy || (!locationVerified && !isSuperAdmin)}
               style={{ marginTop: '1rem' }}
+              filter={({ options, search }) => {
+                const splittedSearch = search.toLowerCase().trim().split(' ');
+                return (
+                  options.filter((option) =>
+                    splittedSearch.every((searchPart) => option.label.toLowerCase().includes(searchPart))
+                  )
+                );
+              }}
             />
 
             <Checkbox
@@ -146,17 +160,25 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
             />
 
             {!playingSolo && (
-              <TextInput
+              <Autocomplete
                 label="Player 2 Side"
                 placeholder="Enter Player 2 name"
+                data={player2.trim().length > 0 ? suggestions : []}
                 value={player2}
-                onChange={(e) => {
-                  const val = e.target.value;
+                onChange={(val) => {
                   setPlayer2(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
                 }}
                 error={errors.player2}
                 maxLength={8}
                 disabled={isBusy || (!locationVerified && !isSuperAdmin)}
+                filter={({ options, search }) => {
+                  const splittedSearch = search.toLowerCase().trim().split(' ');
+                  return (
+                    options.filter((option) =>
+                      splittedSearch.every((searchPart) => option.label.toLowerCase().includes(searchPart))
+                    )
+                  );
+                }}
               />
             )}
           </Stack>
