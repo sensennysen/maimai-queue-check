@@ -85,9 +85,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               value={player1}
               onChange={(e) => {
                 const val = e.target.value;
-                if (/^[a-zA-Z0-9 ]*$/.test(val)) {
-                  setPlayer1(val);
-                }
+                setPlayer1(val.replace(/[^a-zA-Z0-9 ]/g, ''));
               }}
               error={errors.player1}
               maxLength={50}
@@ -101,9 +99,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               value={player2}
               onChange={(e) => {
                 const val = e.target.value;
-                if (/^[a-zA-Z0-9 ]*$/.test(val)) {
-                  setPlayer2(val);
-                }
+                setPlayer2(val.replace(/[^a-zA-Z0-9 ]/g, ''));
               }}
               error={errors.player2}
               maxLength={50}
