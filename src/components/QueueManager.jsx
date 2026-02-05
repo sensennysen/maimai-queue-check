@@ -298,6 +298,8 @@ function QueueManager() {
           locationVerified={locationVerified}
           locationError={locationError}
           isSuperAdmin={isSuperAdmin}
+          queue={queue}
+          nowPlaying={nowPlaying}
         />
       </Modal>
 

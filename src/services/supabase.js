@@ -132,6 +132,19 @@ export const userService = {
 
     if (error) throw error;
     return data;
+  },
+
+  // Get users who have a specific branch in their preferred_branches
+  async getUsersPrefersBranch(branchId) {
+    if (!branchId) return [];
+
+    const { data, error } = await supabase
+        .from('user_roles')
+        .select('display_name')
+        .contains('preferred_branches', [branchId]);
+    
+    if (error) throw error;
+    return data || [];
   }
 };
 
