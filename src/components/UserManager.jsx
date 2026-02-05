@@ -29,7 +29,8 @@ import {
   IconUserPlus
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { adminService, branchService, requestService, rolesService } from '../services/supabase';
+import { adminService, branchService, requestService, rolesService, subscribeToUserRoleChanges, supabase } from '../services/supabase';
+import { useBranch } from '../contexts/BranchContext';
 import './UserManager.css';
 
 const AccessRequestsTab = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
@@ -161,7 +162,7 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [branches, setBranches] = useState([]);
+  const { branches } = useBranch();
 
   // Search and sort state
   const [searchQuery, setSearchQuery] = useState('');
@@ -185,18 +186,17 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
   });
   const [saving, setSaving] = useState(false);
 
-  // Load branches (once)
+  // Subscribe to user role changes
   useEffect(() => {
-    const loadBranches = async () => {
-      try {
-        const branchesData = await branchService.getAllBranches();
-        setBranches(branchesData);
-      } catch (error) {
-        console.error('Failed to load branches:', error);
-      }
+    const channel = subscribeToUserRoleChanges(() => {
+      // Reload users when any user role changes
+      loadUsers();
+    });
+
+    return () => {
+      supabase.removeChannel(channel);
     };
-    loadBranches();
-  }, []);
+  }, [loadUsers]);
 
   // Load users (on any param change)
   const loadUsers = useCallback(async () => {

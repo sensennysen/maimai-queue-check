@@ -363,6 +363,27 @@ export const subscribeToSessionChanges = (callback) => {
   return channel;
 };
 
+export const subscribeToUserRoleChanges = (callback) => {
+  const channel = supabase
+    .channel('user_roles_realtime')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'user_roles'
+      },
+      (payload) => {
+        if (callback && typeof callback === 'function') {
+          callback(payload);
+        }
+      }
+    )
+    .subscribe();
+
+  return channel;
+};
+
 // Branch service functions
 export const branchService = {
   // Fetch all branches from allowed_places
