@@ -186,18 +186,6 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
   });
   const [saving, setSaving] = useState(false);
 
-  // Subscribe to user role changes
-  useEffect(() => {
-    const channel = subscribeToUserRoleChanges(() => {
-      // Reload users when any user role changes
-      loadUsers();
-    });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [loadUsers]);
-
   // Load users (on any param change)
   const loadUsers = useCallback(async () => {
     try {
@@ -222,6 +210,18 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
       setLoading(false);
     }
   }, [currentPage, searchQuery, sortField, sortDirection, isSuperAdmin, currentUserRoles?.admin_branch]);
+
+  // Subscribe to user role changes
+  useEffect(() => {
+    const channel = subscribeToUserRoleChanges(() => {
+      // Reload users when any user role changes
+      loadUsers();
+    });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadUsers]);
 
   useEffect(() => {
     // Only load users if on users tab to save resources, or load initially?
