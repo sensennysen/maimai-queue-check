@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { TextInput, Group, Button, Stack, Alert } from '@mantine/core';
+import { TextInput, Group, Button, Stack, Alert, Checkbox } from '@mantine/core';
 import { IconPlus, IconEdit } from '@tabler/icons-react';
 import DOMPurify from 'dompurify';
 import './QueueForm.css';
 
-function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationVerified = false, locationError = null, isSuperAdmin = false }) {
+function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationVerified = false, locationError = null, isSuperAdmin = false, queue = [] }) {
   const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : '';
   const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : '';
 
   const [player1, setPlayer1] = useState(initialPlayer1);
   const [player2, setPlayer2] = useState(initialPlayer2);
+  const [playingSolo, setPlayingSolo] = useState(editingId && !initialPlayer2);
   const [errors, setErrors] = useState({});
 
   const validateForm = () => {
@@ -25,6 +26,30 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
     // At least one player is required
     if (!player1.trim() && !player2.trim()) {
       newErrors.general = 'At least one player is required';
+    }
+
+    // Similarity Check
+    if (queue && queue.length > 0) {
+      const p1Name = player1.trim().toLowerCase();
+      const p2Name = player2.trim().toLowerCase();
+
+      const isDuplicate = queue.some(entry => {
+        if (editingId && entry.id === editingId) return false; // Skip current entry if editing
+
+        const existingP1 = entry.player1 ? entry.player1.trim().toLowerCase() : '';
+        const existingP2 = entry.player2 ? entry.player2.trim().toLowerCase() : '';
+
+        // Check P1 against existing
+        if (p1Name && (p1Name === existingP1 || p1Name === existingP2)) return true;
+        // Check P2 against existing
+        if (p2Name && (p2Name === existingP1 || p2Name === existingP2)) return true;
+
+        return false;
+      });
+
+      if (isDuplicate) {
+        newErrors.general = 'One or more players are already in the queue!';
+      }
     }
 
     setErrors(newErrors);
@@ -56,6 +81,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
     if (!editingId) {
       setPlayer1('');
       setPlayer2('');
+      setPlayingSolo(false);
     }
     setErrors({});
   };
@@ -93,18 +119,32 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               style={{ marginTop: '1rem' }}
             />
 
-            <TextInput
-              label="Player 2 Side"
-              placeholder="Enter Player 2 name"
-              value={player2}
+            <Checkbox
+              label="Playing Solo"
+              checked={playingSolo}
               onChange={(e) => {
-                const val = e.target.value;
-                setPlayer2(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
+                setPlayingSolo(e.currentTarget.checked);
+                if (e.currentTarget.checked) {
+                  setPlayer2('');
+                }
               }}
-              error={errors.player2}
-              maxLength={8}
               disabled={isBusy || (!locationVerified && !isSuperAdmin)}
             />
+
+            {!playingSolo && (
+              <TextInput
+                label="Player 2 Side"
+                placeholder="Enter Player 2 name"
+                value={player2}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setPlayer2(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
+                }}
+                error={errors.player2}
+                maxLength={8}
+                disabled={isBusy || (!locationVerified && !isSuperAdmin)}
+              />
+            )}
           </Stack>
 
           <Group justify="flex-end">
