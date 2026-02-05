@@ -18,7 +18,7 @@ import Footer from './components/Footer';
 import AdminPanelPage from './components/AdminPanelPage';
 import PreferencesModal from './components/PreferencesModal';
 import NotificationCenter from './components/NotificationCenter';
-import PublicMonitor from './components/PublicMonitor';
+import ViewPage from './components/ViewPage';
 import './App.css';
 
 // The main application content (Queue check, Login, etc.)
@@ -100,7 +100,7 @@ function AppProviders() {
     <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
       <Notifications position="top-right" />
       <Routes>
-        <Route path="/monitor" element={<PublicMonitor />} />
+        <Route path="/view" element={<ViewPage />} />
         <Route path="/*" element={<MainApp />} />
       </Routes>
       <Analytics />

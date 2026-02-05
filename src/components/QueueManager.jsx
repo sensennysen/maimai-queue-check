@@ -327,9 +327,9 @@ function QueueManager() {
                 <Button
                   variant="default"
                   leftSection={<IconExternalLink size={16} />}
-                  onClick={() => window.open('/monitor', '_blank')}
+                  onClick={() => window.open('/view', '_blank')}
                 >
-                  Public Monitor
+                  View Mode
                 </Button>
               )}
               {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (

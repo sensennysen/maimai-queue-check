@@ -59,27 +59,29 @@ export const useMonitorData = (branchIdOverride = null) => {
 
   // Load initial data when branch changes
   useEffect(() => {
+    setQueueData({}); // Clear data to trigger loading state visually
     loadData();
   }, [loadData, activeBranchId]);
 
-  // Subscribe to real-time changes
+// Subscribe to real-time changes
   useEffect(() => {
     if (!activeBranchId) {
       return;
     }
 
     const handleQueueChange = (payload) => {
+      // Refresh data on ANY change to queue_entries table, filtering is safer to do by loose check 
+      // or just refreshing, but to optimize, let's look at payload.
+      
       const newRow = payload.new;
       const oldRow = payload.old;
       
-      const isRelevantBranch = 
+      // Check if the change is related to our current branch
+      const isRelevant = 
         (newRow && newRow.branch_id === activeBranchId) ||
         (oldRow && oldRow.branch_id === activeBranchId);
       
-      if (isRelevantBranch) {
-          // Identify which cabinet(s) might be affected and maybe only selectively update?
-          // For simplicity in monitor mode, let's re-fetch all. It's safe.
-          // Debouncing could be good here if rapid updates happen, but usually queue events are human-speed.
+      if (isRelevant) {
           loadData();
       }
     };
@@ -97,9 +99,9 @@ export const useMonitorData = (branchIdOverride = null) => {
       if (queueSubscription) {
         queueSubscription.unsubscribe();
       }
-      setIsConnected(false);
+      // Don't set isConnected to false here to avoid flickering UI states
     };
-  }, [activeBranchId, loadData]);
+  }, [activeBranchId, loadData]); // loadData is stable via useCallback
 
   return {
     queueData, // Structure: { [cabinetNum]: { playing: [], waiting: [] } }
