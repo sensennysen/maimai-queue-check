@@ -12,7 +12,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
 
   const { selectedBranch } = useBranch();
   // Pass the realtime queue to the hook
-  const { suggestions, loading: suggestionsLoading } = usePlayerSuggestions(selectedBranch?.id, queue);
+  const { suggestions } = usePlayerSuggestions(selectedBranch?.id, queue);
 
   const [player1, setPlayer1] = useState(initialPlayer1);
   const [player2, setPlayer2] = useState(initialPlayer2);
