@@ -3,29 +3,33 @@ import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/ico
 import { Skeleton } from '@mantine/core';
 import './QueueItem.css';
 
-const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false }) {
+const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false, readOnly = false }) {
   const handleEdit = () => {
+    if (readOnly) return;
     onEdit(item.id);
   };
 
   const handleRemove = () => {
+    if (readOnly) return;
     if (window.confirm(`Remove ${item.player1} vs ${item.player2} from queue?`)) {
       onRemove(item.id);
     }
   };
 
   const handleMoveUp = () => {
+    if (readOnly) return;
     onMoveUp(item.id);
   };
 
   const handleMoveDown = () => {
+    if (readOnly) return;
     onMoveDown(item.id);
   };
 
 
   return (
     <div
-      className={`queue-item ${isNextUp ? 'next-up' : ''}`}
+      className={`queue-item ${isNextUp ? 'next-up' : ''} ${readOnly ? 'read-only' : ''}`}
     >
       <div className="item-order">
         <span className="order-number">#{order}</span>
@@ -50,49 +54,51 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
         )}
       </div>
 
-      {loadingRoles ? (
-        <div className="item-actions">
-          <Skeleton height={32} width={120} radius="md" />
-        </div>
-      ) : (
-        <div className="item-actions">
-          <div className="move-buttons">
-            <button
-              className="move-btn up"
-              onClick={handleMoveUp}
-              disabled={!canActuallyEdit || isFirst || isBusy}
-              title={canActuallyEdit ? "Move up in queue" : "You need permission to move items"}
-            >
-              ▲
-            </button>
-            <button
-              className="move-btn down"
-              onClick={handleMoveDown}
-              disabled={!canActuallyEdit || isLast || isBusy}
-              title={canActuallyEdit ? "Move down in queue" : "You need permission to move items"}
-            >
-              ▼
-            </button>
+      {!readOnly && (
+        loadingRoles ? (
+          <div className="item-actions">
+            <Skeleton height={32} width={120} radius="md" />
           </div>
-          <div className="action-buttons">
-            <button
-              className="edit-btn"
-              onClick={handleEdit}
-              disabled={!canActuallyEdit || isBusy}
-              title={canActuallyEdit ? "Edit this entry" : "You need permission to edit items"}
-            >
-              <IconEdit size={16} />
-            </button>
-            <button
-              className="remove-btn"
-              onClick={handleRemove}
-              disabled={!canActuallyEdit || isBusy}
-              title={canActuallyEdit ? "Remove from queue" : "You need permission to remove items"}
-            >
-              <IconTrash size={16} />
-            </button>
+        ) : (
+          <div className="item-actions">
+            <div className="move-buttons">
+              <button
+                className="move-btn up"
+                onClick={handleMoveUp}
+                disabled={!canActuallyEdit || isFirst || isBusy}
+                title={canActuallyEdit ? "Move up in queue" : "You need permission to move items"}
+              >
+                ▲
+              </button>
+              <button
+                className="move-btn down"
+                onClick={handleMoveDown}
+                disabled={!canActuallyEdit || isLast || isBusy}
+                title={canActuallyEdit ? "Move down in queue" : "You need permission to move items"}
+              >
+                ▼
+              </button>
+            </div>
+            <div className="action-buttons">
+              <button
+                className="edit-btn"
+                onClick={handleEdit}
+                disabled={!canActuallyEdit || isBusy}
+                title={canActuallyEdit ? "Edit this entry" : "You need permission to edit items"}
+              >
+                <IconEdit size={16} />
+              </button>
+              <button
+                className="remove-btn"
+                onClick={handleRemove}
+                disabled={!canActuallyEdit || isBusy}
+                title={canActuallyEdit ? "Remove from queue" : "You need permission to remove items"}
+              >
+                <IconTrash size={16} />
+              </button>
+            </div>
           </div>
-        </div>
+        )
       )}
     </div>
   );
