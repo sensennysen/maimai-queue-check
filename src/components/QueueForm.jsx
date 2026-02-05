@@ -85,10 +85,10 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               value={player1}
               onChange={(e) => {
                 const val = e.target.value;
-                setPlayer1(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 50));
+                setPlayer1(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
               }}
               error={errors.player1}
-              maxLength={50}
+              maxLength={8}
               disabled={isBusy || (!locationVerified && !isSuperAdmin)}
               style={{ marginTop: '1rem' }}
             />
@@ -99,10 +99,10 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               value={player2}
               onChange={(e) => {
                 const val = e.target.value;
-                setPlayer2(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 50));
+                setPlayer2(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
               }}
               error={errors.player2}
-              maxLength={50}
+              maxLength={8}
               disabled={isBusy || (!locationVerified && !isSuperAdmin)}
             />
           </Stack>

@@ -18,7 +18,7 @@ import { adminService } from '../services/supabase';
 import { requestUserLocation } from '../services/geolocation';
 import './AdminPanel.css';
 
-const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+import { DAYS_OF_WEEK } from '../utils/constants';
 
 const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) => {
   // Branch form state
