@@ -37,7 +37,7 @@ import UserManager from './UserManager';
 import { useAuth } from '../hooks/useAuth';
 import './AdminPanelPage.css';
 
-const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+import { DAYS_OF_WEEK } from '../utils/constants';
 
 // Utility function to format time from 24-hour to 12-hour AM/PM format
 const formatTime = (time24) => {
