@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { MantineProvider, Container, Title, Text, Paper, Stack, Group } from '@mantine/core';
+import { MantineProvider, Container, Title, Paper, Stack, Group, Button } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { Analytics } from '@vercel/analytics/react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';
@@ -17,11 +18,11 @@ import Footer from './components/Footer';
 import AdminPanelPage from './components/AdminPanelPage';
 import PreferencesModal from './components/PreferencesModal';
 import NotificationCenter from './components/NotificationCenter';
+import PublicMonitor from './components/PublicMonitor';
 import './App.css';
 
-// Mantine theme configuration that syncs with our CSS variables
-function AppContent() {
-  const { isDark } = useTheme();
+// The main application content (Queue check, Login, etc.)
+function MainApp() {
   const { user, userRoles } = useAuth();
   const [currentPage, setCurrentPage] = useState('queue'); // 'queue' or 'admin-panel'
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
@@ -39,57 +40,69 @@ function AppContent() {
   };
 
   return (
-    <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
-      <Notifications position="top-right" />
-      <div className="App">
-        {currentPage === 'queue' ? (
-          <Container size="lg" py="xl">
-            <Stack gap="lg">
-              <Paper p="md" radius="md" withBorder className="app-header">
-                <Group justify="space-between" align="center" gap="md" wrap="wrap">
-                  <Group gap="md">
-                    <Title order={1} className="app-title">
-                      maiPaQueueCheck PH
-                    </Title>
-                  </Group>
-                </Group>
-              </Paper>
-
-              <Group justify="space-between" gap="sm">
-                <BranchSelector />
-                <Group gap="sm">
-                  <NotificationCenter onOpenAdminPanel={handleOpenAdminPanel} />
-                  <ThemeToggle />
-                  <LoginForm
-                    onOpenAdminPanel={handleOpenAdminPanel}
-                    onOpenPreferences={() => setShowPreferencesModal(true)}
-                  />
+    <div className="App">
+      {currentPage === 'queue' ? (
+        <Container size="lg" py="xl">
+          <Stack gap="lg">
+            <Paper p="md" radius="md" withBorder className="app-header">
+              <Group justify="space-between" align="center" gap="md" wrap="wrap">
+                <Group gap="md">
+                  <Title order={1} className="app-title">
+                    maiPaQueueCheck PH
+                  </Title>
                 </Group>
               </Group>
+            </Paper>
 
-              <main>
-                <QueueManager />
-              </main>
+            <Group justify="space-between" gap="sm">
+              <BranchSelector />
+              <Group gap="sm">
+                <NotificationCenter onOpenAdminPanel={handleOpenAdminPanel} />
+                <ThemeToggle />
+                <LoginForm
+                  onOpenAdminPanel={handleOpenAdminPanel}
+                  onOpenPreferences={() => setShowPreferencesModal(true)}
+                />
+              </Group>
+            </Group>
 
-              <Footer />
-            </Stack>
-          </Container>
-        ) : (
-          <AdminPanelPage onBack={() => setCurrentPage('queue')} targetTab={adminTargetTab} />
-        )}
+            <main>
+              <QueueManager />
+            </main>
 
-        {user && (
-          <PreferencesModal
-            opened={showPreferencesModal}
-            onClose={() => setShowPreferencesModal(false)}
-            userId={user.id}
-            userRoles={userRoles}
-            initialPreferences={userRoles?.preferred_branches}
-            initialDisplayName={userRoles?.display_name || user?.user_metadata?.full_name || ''}
-            onSaveSuccess={handlePreferencesSaved}
-          />
-        )}
-      </div>
+            <Footer />
+          </Stack>
+        </Container>
+      ) : (
+        <AdminPanelPage onBack={() => setCurrentPage('queue')} targetTab={adminTargetTab} />
+      )}
+
+      {user && (
+        <PreferencesModal
+          opened={showPreferencesModal}
+          onClose={() => setShowPreferencesModal(false)}
+          userId={user.id}
+          userRoles={userRoles}
+          initialPreferences={userRoles?.preferred_branches}
+          initialDisplayName={userRoles?.display_name || user?.user_metadata?.full_name || ''}
+          onSaveSuccess={handlePreferencesSaved}
+        />
+      )}
+    </div>
+  );
+}
+
+// Mantine wrapper that provides theme
+function AppProviders() {
+  const { isDark } = useTheme();
+
+  return (
+    <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
+      <Notifications position="top-right" />
+      <Routes>
+        <Route path="/monitor" element={<PublicMonitor />} />
+        <Route path="/*" element={<MainApp />} />
+      </Routes>
       <Analytics />
     </MantineProvider>
   );
@@ -97,13 +110,15 @@ function AppContent() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <BranchProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </BranchProvider>
-    </ThemeProvider>
+    <BrowserRouter>
+      <ThemeProvider>
+        <BranchProvider>
+          <AuthProvider>
+            <AppProviders />
+          </AuthProvider>
+        </BranchProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }
 

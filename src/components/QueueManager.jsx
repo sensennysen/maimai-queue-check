@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, Alert, Loader, Modal, Skeleton, Tabs } from '@mantine/core';
 import { useOs } from '@mantine/hooks';
-import { IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconMapPin } from '@tabler/icons-react';
+import { IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconMapPin, IconExternalLink } from '@tabler/icons-react';
 import QueueForm from './QueueForm';
 import QueueList from './QueueList';
 import LocationPermissionModal from './LocationPermissionModal';
@@ -323,6 +323,15 @@ function QueueManager() {
               </Badge>
             </Group>
             <Group gap="sm">
+              {user && (
+                <Button
+                  variant="default"
+                  leftSection={<IconExternalLink size={16} />}
+                  onClick={() => window.open('/monitor', '_blank')}
+                >
+                  Public Monitor
+                </Button>
+              )}
               {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
                 <Button
                   leftSection={<IconPlus size={16} />}
