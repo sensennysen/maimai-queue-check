@@ -8,6 +8,8 @@ import {
   Title,
   Text,
   Paper,
+  Table,
+  ScrollArea,
 } from '@mantine/core';
 import { IconCalendar, IconClock } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
@@ -154,45 +156,48 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
             <Text ta="center" c="dimmed">Loading schedules...</Text>
           ) : (
             <Paper p="md" withBorder className="schedule-container">
-              <Stack gap="xs">
-                {/* Column Headers */}
-                <Group grow align="flex-end" style={{ paddingBottom: '0.5rem', borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
-                  <Text size="sm" fw={600} style={{ minWidth: '100px' }}>
-                    Day
-                  </Text>
-                  <Text size="sm" fw={600} ta="center">
-                    Opening Time
-                  </Text>
-                  <Text size="sm" fw={600} ta="center">
-                    Closing Time
-                  </Text>
-                </Group>
-
-                {/* Schedule Rows */}
-                {schedules.map((schedule, index) => (
-                  <Group key={schedule.day} grow align="center">
-                    <Text size="sm" fw={500} style={{ minWidth: '100px' }}>
-                      {schedule.day}
-                    </Text>
-                    <TextInput
-                      type="time"
-                      value={schedule.time_open}
-                      onChange={(e) => handleScheduleChange(index, 'time_open', e.target.value)}
-                      required
-                      leftSection={<IconClock size={16} />}
-                      styles={{ input: { textAlign: 'center' } }}
-                    />
-                    <TextInput
-                      type="time"
-                      value={schedule.time_close}
-                      onChange={(e) => handleScheduleChange(index, 'time_close', e.target.value)}
-                      required
-                      leftSection={<IconClock size={16} />}
-                      styles={{ input: { textAlign: 'center' } }}
-                    />
-                  </Group>
-                ))}
-              </Stack>
+              <ScrollArea>
+                <Table minWidth={500}>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Day</Table.Th>
+                      <Table.Th style={{ textAlign: 'center' }}>Opening Time</Table.Th>
+                      <Table.Th style={{ textAlign: 'center' }}>Closing Time</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {schedules.map((schedule, index) => (
+                      <Table.Tr key={schedule.day}>
+                        <Table.Td>
+                          <Text size="sm" fw={500}>
+                            {schedule.day}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <TextInput
+                            type="time"
+                            value={schedule.time_open}
+                            onChange={(e) => handleScheduleChange(index, 'time_open', e.target.value)}
+                            required
+                            leftSection={<IconClock size={16} />}
+                            styles={{ input: { textAlign: 'center' } }}
+                          />
+                        </Table.Td>
+                        <Table.Td>
+                          <TextInput
+                            type="time"
+                            value={schedule.time_close}
+                            onChange={(e) => handleScheduleChange(index, 'time_close', e.target.value)}
+                            required
+                            leftSection={<IconClock size={16} />}
+                            styles={{ input: { textAlign: 'center' } }}
+                          />
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
             </Paper>
           )}
 

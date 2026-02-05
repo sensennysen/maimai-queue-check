@@ -207,3 +207,34 @@ html {
 .mantine-Container-root {
   background-color: transparent !important;
 }
+
+/* Custom Tab Styles */
+.mantine-Tabs-tab {
+  font-weight: 500;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+/* Active Tab Styling */
+.mantine-Tabs-tab[data-active] {
+  border-bottom: 3px solid var(--theme-primary) !important;
+  background-color: color-mix(in srgb, var(--theme-primary) 10%, transparent) !important;
+  color: var(--theme-primary) !important;
+  font-weight: 700;
+}
+
+/* Hover effect for all tabs */
+.mantine-Tabs-tab:hover {
+  background-color: var(--theme-surface-hover) !important;
+}
+
+/* Active tab hover should keep the mixed background but maybe a bit darker */
+.mantine-Tabs-tab[data-active]:hover {
+  background-color: color-mix(in srgb, var(--theme-primary) 15%, transparent) !important;
+}
+
+/* List container padding/border adjustment if needed */
+.mantine-Tabs-list {
+  border-bottom: 2px solid var(--theme-border) !important;
+  margin-bottom: 1rem;
+}

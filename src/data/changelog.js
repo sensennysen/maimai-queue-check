@@ -1,5 +1,32 @@
 export const changelogData = [
    {
+    version: 'v1.3.0',
+    date: 'February 5, 2026',
+    changes: [
+      {
+        type: 'feature',
+        title: 'Request Queue Edit Access',
+        description: 'Users can now request queue edit access to branches they want to edit.',
+        footnote: 'Admins will receive a notification to approve/reject the request.'
+      },
+      {
+        type: 'feature',
+        title: 'Notifications',
+        description: 'Users can now receive notifications for various events.',
+      },
+      {
+        type: 'bugfix',
+        title: 'Schedule View in Mobile',
+        description: 'Fixed an issue where the schedule view is broken in mobile devices.',
+      },
+       {
+        type: 'visual',
+        title: 'UI Improvements',
+        description: 'Made tabs more visible.',
+      },
+    ]
+  },
+   {
     version: 'v1.2.0',
     date: 'February 4, 2026',
     changes: [
