@@ -57,7 +57,7 @@ function MainApp() {
             <Group justify="space-between" gap="sm">
               <BranchSelector />
               <Group gap="sm">
-                <NotificationCenter onOpenAdminPanel={handleOpenAdminPanel} />
+                {user && <NotificationCenter onOpenAdminPanel={handleOpenAdminPanel} />}
                 <ThemeToggle />
                 <LoginForm
                   onOpenAdminPanel={handleOpenAdminPanel}
