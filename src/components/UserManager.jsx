@@ -662,7 +662,7 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
               }
             }}
             disabled={!isSuperAdmin}
-            maxLength={8}
+            maxLength={10}
           />
 
           {isSuperAdmin && (

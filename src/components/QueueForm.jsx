@@ -134,7 +134,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
                 setPlayer1(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
               }}
               error={errors.player1}
-              maxLength={8}
+              maxLength={10}
               disabled={isBusy || (!locationVerified && !isSuperAdmin)}
               style={{ marginTop: '1rem' }}
               filter={({ options, search }) => {
@@ -169,7 +169,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
                   setPlayer2(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
                 }}
                 error={errors.player2}
-                maxLength={8}
+                maxLength={10}
                 disabled={isBusy || (!locationVerified && !isSuperAdmin)}
                 filter={({ options, search }) => {
                   const splittedSearch = search.toLowerCase().trim().split(' ');

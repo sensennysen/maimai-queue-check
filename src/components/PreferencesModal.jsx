@@ -71,7 +71,7 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
             }
           }}
           required
-          maxLength={8}
+          maxLength={10}
           style={{ marginTop: '1rem' }}
         />
 
