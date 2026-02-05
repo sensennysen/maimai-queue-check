@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Stack, Text, Group, Button, MultiSelect, Loader, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { userService } from '../services/supabase';

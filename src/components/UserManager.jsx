@@ -29,7 +29,7 @@ import {
   IconUserPlus
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { adminService, branchService, requestService, rolesService, subscribeToUserRoleChanges, supabase } from '../services/supabase';
+import { adminService, requestService, rolesService, subscribeToUserRoleChanges, supabase } from '../services/supabase';
 import { useBranch } from '../contexts/BranchContext';
 import './UserManager.css';
 
