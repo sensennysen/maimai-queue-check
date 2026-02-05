@@ -141,10 +141,15 @@ export const queueService = {
   async getQueueEntries(branchId, cabinetNum = null) {
     if (!branchId) return [];
 
+    // Filter for entries created today (local time)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     let query = supabase
       .from('queue_entries')
       .select('*')
-      .in('status', ['waiting', 'playing']);
+      .in('status', ['waiting', 'playing'])
+      .gte('created_at', today.toISOString());
     
     if (branchId) {
       query = query.eq('branch_id', branchId);
