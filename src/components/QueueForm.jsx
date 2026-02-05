@@ -83,7 +83,12 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               label="Player 1 Side"
               placeholder="Enter Player 1 name"
               value={player1}
-              onChange={(e) => setPlayer1(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^[a-zA-Z0-9 ]*$/.test(val)) {
+                  setPlayer1(val);
+                }
+              }}
               error={errors.player1}
               maxLength={50}
               disabled={isBusy || (!locationVerified && !isSuperAdmin)}
@@ -94,7 +99,12 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               label="Player 2 Side"
               placeholder="Enter Player 2 name"
               value={player2}
-              onChange={(e) => setPlayer2(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^[a-zA-Z0-9 ]*$/.test(val)) {
+                  setPlayer2(val);
+                }
+              }}
               error={errors.player2}
               maxLength={50}
               disabled={isBusy || (!locationVerified && !isSuperAdmin)}

@@ -10,8 +10,6 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
   const [selectedBranches, setSelectedBranches] = useState([]);
   const [displayName, setDisplayName] = useState(initialDisplayName);
 
-
-
   useEffect(() => {
     if (opened) {
       // Only set initial state once when the modal is opened
@@ -66,8 +64,14 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
           label="Display Name"
           placeholder="Enter your display name"
           value={displayName}
-          onChange={(event) => setDisplayName(event.currentTarget.value)}
+          onChange={(event) => {
+            const val = event.currentTarget.value;
+            if (/^[a-zA-Z0-9]*$/.test(val)) {
+              setDisplayName(val);
+            }
+          }}
           required
+          maxLength={8}
           style={{ marginTop: '1rem' }}
         />
 

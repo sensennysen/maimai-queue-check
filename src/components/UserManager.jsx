@@ -655,8 +655,14 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
             label="Display Name"
             placeholder="Enter display name"
             value={editForm.display_name}
-            onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (/^[a-zA-Z0-9]*$/.test(val)) {
+                setEditForm({ ...editForm, display_name: val });
+              }
+            }}
             disabled={!isSuperAdmin}
+            maxLength={8}
           />
 
           {isSuperAdmin && (
