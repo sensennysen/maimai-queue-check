@@ -1,5 +1,5 @@
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Container, Title, Text, Loader, Center, Alert, Badge, Group, Stack, ActionIcon, Paper, Skeleton } from '@mantine/core';
+import { Container, Title, Text, Loader, Center, Alert, Badge, Group, Stack, ActionIcon, Paper, Skeleton, Table } from '@mantine/core';
 import { IconAlertCircle, IconWifi, IconWifiOff, IconSun, IconMoon, IconClockOff, IconAlertTriangle } from '@tabler/icons-react';
 import { useMonitorData } from '../hooks/useMonitorData';
 import { useBranch } from '../hooks/useBranch';
@@ -20,7 +20,8 @@ export default function ViewPage() {
   const { branches } = useBranch();
   const selectedBranch = branches.find(b => b.id === activeBranchId);
   const { isDark, toggleTheme } = useTheme();
-  const { isMallOpen, loading: scheduleLoading } = useMallSchedule(activeBranchId);
+  // Fetch schedule and open status
+  const { isMallOpen, loading: scheduleLoading, schedule } = useMallSchedule(activeBranchId);
 
   // Calculate credits (players in waiting list)
   const getCreditsCount = (waitingList) => {
@@ -50,28 +51,45 @@ export default function ViewPage() {
     );
   }
 
-  // Handle closed state
-  if (!isMallOpen && !scheduleLoading) {
-    return (
-      <div className="public-monitor-container">
-        <Container size="sm" style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <Stack align="center" gap="xl">
-            <IconClockOff size={80} color="var(--mantine-color-gray-5)" />
-            <Title order={1}>{selectedBranch?.arcade_name}</Title>
-            <Text size="xl" c="dimmed">This branch is currently closed.</Text>
-            <BranchSelector />
-          </Stack>
-        </Container>
-      </div>
-    );
-  }
-
   // Generate cabinet numbers based on branch config
   const cabinetCount = selectedBranch?.cab_count || 1;
   const cabinetNumbers = Array.from({ length: cabinetCount }, (_, i) => i + 1);
 
   // Are we waiting for initial data for this branch?
   const isQueueLoading = loading && Object.keys(queueData).length === 0;
+
+  // Helper to format time to 12h AM/PM
+  const formatTime12Hour = (timeStr) => {
+    if (!timeStr) return '';
+    const [hours, minutes] = timeStr.split(':');
+    const h = parseInt(hours, 10);
+    const m = minutes || '00';
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${m} ${ampm}`;
+  };
+
+  // Render Schedule List helper
+  const renderSchedule = () => {
+    if (!schedule || schedule.length === 0) return <Text c="dimmed">No schedule available</Text>;
+
+    // Sort days if needed, but usually API passes them in order or we can just map
+    // Assuming schedule comes in a reasonable order or we map simply
+    return (
+      <Table style={{ maxWidth: 400, margin: '1rem auto' }} verticalSpacing="xs">
+        <Table.Tbody>
+          {schedule.map((daySchedule, index) => (
+            <Table.Tr key={index}>
+              <Table.Td style={{ fontWeight: 500, borderBottom: 'none', textAlign: 'left' }}>{daySchedule.day}</Table.Td>
+              <Table.Td style={{ textAlign: 'right', borderBottom: 'none' }}>
+                {formatTime12Hour(daySchedule.time_open)} - {formatTime12Hour(daySchedule.time_close)}
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    );
+  };
 
   return (
     <div className="public-monitor-container">
@@ -109,84 +127,95 @@ export default function ViewPage() {
           </ActionIcon>
         </Group>
 
-        {/* Queue Grid */}
-        <div className="monitor-grid">
-          {cabinetNumbers.map(cabNum => {
-            const cabData = queueData[cabNum] || { playing: [], waiting: [] };
-            const { playing, waiting } = cabData;
-            const credits = getCreditsCount(waiting);
+        {/* Content Area: Either Closed Message or Queue Grid */}
+        {!isMallOpen && !scheduleLoading ? (
+          <Paper p="xl" withBorder style={{ textAlign: 'center', minHeight: '50vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <Stack align="center" gap="md">
+              <IconClockOff size={60} color="var(--mantine-color-gray-5)" />
+              <Title order={2}>This arcade is currently closed</Title>
+              <Text c="dimmed">Operating Hours:</Text>
+              {renderSchedule()}
+            </Stack>
+          </Paper>
+        ) : (
+          <div className="monitor-grid">
+            {cabinetNumbers.map(cabNum => {
+              const cabData = queueData[cabNum] || { playing: [], waiting: [] };
+              const { playing, waiting } = cabData;
+              const credits = getCreditsCount(waiting);
 
-            const nowPlayingEntry = playing.length > 0 ? playing[0] : null;
+              const nowPlayingEntry = playing.length > 0 ? playing[0] : null;
 
-            return (
-              <div key={cabNum} className="cabinet-column">
-                <div className="cabinet-header">
-                  <Group justify="space-between" align="center" style={{ width: '100%' }}>
-                    <Title order={2} size="h3">Cabinet {cabNum}</Title>
-                    {isQueueLoading ? (
-                      <Skeleton height={26} width={100} radius="xl" />
-                    ) : (
-                      <Badge variant="filled" color="blue" size="xl">
-                        Credits: {credits}
-                      </Badge>
-                    )}
-                  </Group>
-                </div>
-
-                <div className="monitor-section">
-                  <Text className="section-title">Now Playing</Text>
-                  <div className="monitor-list">
-                    {isQueueLoading ? (
-                      <Skeleton height={80} radius="md" />
-                    ) : (
-                      <NowPlayingCard
-                        nowPlaying={nowPlayingEntry}
-                        canActuallyEdit={false}
-                        isBusy={false}
-                        isLoggedIn={false}
-                        readOnly={true}
-                      />
-                    )}
-                  </div>
-                </div>
-
-                <div className="monitor-section">
-                  <Text className="section-title" style={{ marginTop: '1rem' }}>Waiting</Text>
-                  {/* waiting-list class ensures scrollability for >4 items */}
-                  <div className="monitor-list waiting-list">
-                    {isQueueLoading ? (
-                      <>
-                        <Skeleton height={60} radius="md" mb="sm" />
-                        <Skeleton height={60} radius="md" mb="sm" />
-                        <Skeleton height={60} radius="md" />
-                      </>
-                    ) : (
-                      waiting.length > 0 ? (
-                        waiting.map((entry, index) => (
-                          <QueueItem
-                            key={entry.id}
-                            item={entry}
-                            order={index + 1}
-                            isNextUp={index === 0}
-                            readOnly={true}
-                            canActuallyEdit={false}
-                            // Event handlers not needed but safer to pass defaults or ignore in readOnly
-                            onEdit={() => { }}
-                            onRemove={() => { }}
-                            onMoveUp={() => { }}
-                            onMoveDown={() => { }}
-                          />
-                        ))
+              return (
+                <div key={cabNum} className="cabinet-column">
+                  <div className="cabinet-header">
+                    <Group justify="space-between" align="center" style={{ width: '100%' }}>
+                      <Title order={2} size="h3">Cabinet {cabNum}</Title>
+                      {isQueueLoading ? (
+                        <Skeleton height={26} width={100} radius="xl" />
                       ) : (
-                        <div className="monitor-empty">No one in line</div>
-                      )
-                    )}
+                        <Badge variant="filled" color="blue" size="xl">
+                          Credits: {credits}
+                        </Badge>
+                      )}
+                    </Group>
+                  </div>
+
+                  <div className="monitor-section">
+                    <Text className="section-title">Now Playing</Text>
+                    <div className="monitor-list">
+                      {isQueueLoading ? (
+                        <Skeleton height={80} radius="md" />
+                      ) : (
+                        <NowPlayingCard
+                          nowPlaying={nowPlayingEntry}
+                          canActuallyEdit={false}
+                          isBusy={false}
+                          isLoggedIn={false}
+                          readOnly={true}
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="monitor-section">
+                    <Text className="section-title" style={{ marginTop: '1rem' }}>Waiting</Text>
+                    {/* waiting-list class ensures scrollability for >4 items */}
+                    <div className="monitor-list waiting-list">
+                      {isQueueLoading ? (
+                        <>
+                          <Skeleton height={60} radius="md" mb="sm" />
+                          <Skeleton height={60} radius="md" mb="sm" />
+                          <Skeleton height={60} radius="md" />
+                        </>
+                      ) : (
+                        waiting.length > 0 ? (
+                          waiting.map((entry, index) => (
+                            <QueueItem
+                              key={entry.id}
+                              item={entry}
+                              order={index + 1}
+                              isNextUp={index === 0}
+                              readOnly={true}
+                              canActuallyEdit={false}
+                              // Event handlers not needed but safer to pass defaults or ignore in readOnly
+                              onEdit={() => { }}
+                              onRemove={() => { }}
+                              onMoveUp={() => { }}
+                              onMoveDown={() => { }}
+                            />
+                          ))
+                        ) : (
+                          <div className="monitor-empty">No one in line</div>
+                        )
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </Stack>
     </div >
   );
