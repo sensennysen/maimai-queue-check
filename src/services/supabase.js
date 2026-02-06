@@ -339,16 +339,25 @@ export const queueService = {
 };
 
 // Real-time subscriptions
-export const subscribeToQueueChanges = (callback) => {
+export const subscribeToQueueChanges = (callback, branchId = null) => {
+  const config = {
+    event: '*',
+    schema: 'public',
+    table: 'queue_entries'
+  };
+
+  if (branchId) {
+    config.filter = `branch_id=eq.${branchId}`;
+  }
+
+  // Unique channel name to prevent collision/cleanup issues
+  const channelId = `queue_realtime:${branchId || 'all'}:${Date.now()}:${Math.random().toString(36).substring(7)}`;
+
   const channel = supabase
-    .channel('queue_realtime')
+    .channel(channelId)
     .on(
       'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'queue_entries'
-      },
+      config,
       (payload) => {
         if (callback && typeof callback === 'function') {
           callback(payload);

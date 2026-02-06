@@ -31,6 +31,7 @@ export const useQueueData = (selectedCabinet = 1) => {
       setQueue(queueData);
       setError(null);
     } catch (err) {
+      if (err.name === 'AbortError') return;
       setError(err.message);
     } finally {
       setLoading(false);
@@ -70,7 +71,7 @@ export const useQueueData = (selectedCabinet = 1) => {
       }
     };
 
-    const queueSubscription = subscribeToQueueChanges(handleQueueChange);
+    const queueSubscription = subscribeToQueueChanges(handleQueueChange, selectedBranch.id);
 
     // Test connection
     supabase.from('queue_entries').select('count').limit(1)

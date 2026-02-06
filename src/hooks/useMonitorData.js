@@ -51,6 +51,7 @@ export const useMonitorData = (branchIdOverride = null) => {
       setQueueData(grouped);
       setError(null);
     } catch (err) {
+      if (err.name === 'AbortError') return;
       setError(err.message);
     } finally {
       setLoading(false);
@@ -86,7 +87,7 @@ export const useMonitorData = (branchIdOverride = null) => {
       }
     };
 
-    const queueSubscription = subscribeToQueueChanges(handleQueueChange);
+    const queueSubscription = subscribeToQueueChanges(handleQueueChange, activeBranchId);
 
     // Test connection
     supabase.from('queue_entries').select('count').limit(1)
