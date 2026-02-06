@@ -1,4 +1,5 @@
 import { IconPlayerStop } from '@tabler/icons-react';
+import { Button } from '@mantine/core';
 import PlayTimer from './PlayTimer';
 import './QueueManager.css';
 
@@ -45,14 +46,14 @@ function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isL
         </div>
 
         {isLoggedIn && canActuallyEdit && (
-          <button
-            className="finish-game-btn"
+          <Button
+            color="orange"
             onClick={onFinishGame}
-            disabled={isBusy}
+            loading={isBusy}
+            leftSection={<IconPlayerStop size={16} />}
           >
-            <IconPlayerStop size={16} />
             Finish Game
-          </button>
+          </Button>
         )}
       </div>
     </div>

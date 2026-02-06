@@ -42,7 +42,7 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
             onClick={() => onStartGame()}
             variant="filled"
             color="green"
-            disabled={isBusy}
+            loading={isBusy}
           >
             Start Game
           </Button>

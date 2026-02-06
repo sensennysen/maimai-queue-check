@@ -1,7 +1,7 @@
 import { Modal, Stack, Text, Button, Group } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
 
-const DeleteConfirmDialog = ({ opened, onClose, onConfirm, branchName }) => {
+const DeleteConfirmDialog = ({ opened, onClose, onConfirm, branchName, loading }) => {
   return (
     <Modal
       opened={opened}
@@ -24,10 +24,10 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, branchName }) => {
         </Text>
 
         <Group justify="flex-end" mt="md">
-          <Button variant="subtle" onClick={onClose}>
+          <Button variant="subtle" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
-          <Button color="red" onClick={onConfirm}>
+          <Button color="red" onClick={onConfirm} loading={loading}>
             Delete Branch
           </Button>
         </Group>
