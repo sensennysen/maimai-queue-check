@@ -17,7 +17,7 @@ export const changelogData = [
       {
         type: 'feature',
         title: 'Queue Function Improvements',
-        description: 'Implemented Solo Queue toggle; Input now suggest players that have their preferred branch set to the location and recent players on that day; Adds similarity detection to avoid double entries',
+        description: 'Implemented Solo Queue toggle; Input now suggest players that have their preferred branch set to the location and recent players on that day; Adds similarity detection to avoid double entries. (Thanks to Tear for the suggestions!)',
       },
       {
         type: 'improvement',
