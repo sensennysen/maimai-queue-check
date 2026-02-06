@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { queueService, subscribeToQueueChanges, supabase } from '../services/supabase';
+import { queueService, subscribeToQueueChanges } from '../services/supabase';
 import { useBranch } from './useBranch';
 import { QUEUE_STATUS } from '../constants/queue';
 

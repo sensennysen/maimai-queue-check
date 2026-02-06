@@ -8,6 +8,11 @@ export const changelogData = [
         title: 'Querying Optimization',
         description: 'Optimized the querying of queues to prevent the app from checking all queues from all branches.',
       },
+      {
+        type: 'feature',
+        title: 'Report Form',
+        description: 'The Contact Us footer now redirects to report form.',
+      },
     ]
   },
    {
