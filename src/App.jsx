@@ -19,6 +19,7 @@ import AdminPanelPage from './components/AdminPanelPage';
 import PreferencesModal from './components/PreferencesModal';
 import NotificationCenter from './components/NotificationCenter';
 import ViewPage from './components/ViewPage';
+import ContactPage from './components/ContactPage';
 import './App.css';
 
 // The main application content (Queue check, Login, etc.)
@@ -101,6 +102,7 @@ function AppProviders() {
       <Notifications position="top-right" />
       <Routes>
         <Route path="/view" element={<ViewPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/*" element={<MainApp />} />
       </Routes>
       <Analytics />
