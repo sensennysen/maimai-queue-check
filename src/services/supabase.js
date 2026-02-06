@@ -132,6 +132,19 @@ export const userService = {
 
     if (error) throw error;
     return data;
+  },
+
+  // Get users who have a specific branch in their preferred_branches
+  async getUsersPrefersBranch(branchId) {
+    if (!branchId) return [];
+
+    const { data, error } = await supabase
+        .from('user_roles')
+        .select('display_name')
+        .contains('preferred_branches', [branchId]);
+    
+    if (error) throw error;
+    return data || [];
   }
 };
 
@@ -141,10 +154,15 @@ export const queueService = {
   async getQueueEntries(branchId, cabinetNum = null) {
     if (!branchId) return [];
 
+    // Filter for entries created today (local time)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     let query = supabase
       .from('queue_entries')
       .select('*')
-      .in('status', ['waiting', 'playing']);
+      .in('status', ['waiting', 'playing'])
+      .gte('created_at', today.toISOString());
     
     if (branchId) {
       query = query.eq('branch_id', branchId);
@@ -351,6 +369,27 @@ export const subscribeToSessionChanges = (callback) => {
         event: '*',
         schema: 'public',
         table: 'game_sessions'
+      },
+      (payload) => {
+        if (callback && typeof callback === 'function') {
+          callback(payload);
+        }
+      }
+    )
+    .subscribe();
+
+  return channel;
+};
+
+export const subscribeToUserRoleChanges = (callback) => {
+  const channel = supabase
+    .channel('user_roles_realtime')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'user_roles'
       },
       (payload) => {
         if (callback && typeof callback === 'function') {

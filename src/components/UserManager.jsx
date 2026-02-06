@@ -29,7 +29,8 @@ import {
   IconUserPlus
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { adminService, branchService, requestService, rolesService } from '../services/supabase';
+import { adminService, requestService, rolesService, subscribeToUserRoleChanges, supabase } from '../services/supabase';
+import { useBranch } from '../contexts/BranchContext';
 import './UserManager.css';
 
 const AccessRequestsTab = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
@@ -161,7 +162,7 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [branches, setBranches] = useState([]);
+  const { branches } = useBranch();
 
   // Search and sort state
   const [searchQuery, setSearchQuery] = useState('');
@@ -184,19 +185,6 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
     preferred_branches: [],
   });
   const [saving, setSaving] = useState(false);
-
-  // Load branches (once)
-  useEffect(() => {
-    const loadBranches = async () => {
-      try {
-        const branchesData = await branchService.getAllBranches();
-        setBranches(branchesData);
-      } catch (error) {
-        console.error('Failed to load branches:', error);
-      }
-    };
-    loadBranches();
-  }, []);
 
   // Load users (on any param change)
   const loadUsers = useCallback(async () => {
@@ -222,6 +210,18 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
       setLoading(false);
     }
   }, [currentPage, searchQuery, sortField, sortDirection, isSuperAdmin, currentUserRoles?.admin_branch]);
+
+  // Subscribe to user role changes
+  useEffect(() => {
+    const channel = subscribeToUserRoleChanges(() => {
+      // Reload users when any user role changes
+      loadUsers();
+    });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadUsers]);
 
   useEffect(() => {
     // Only load users if on users tab to save resources, or load initially?
@@ -655,8 +655,14 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
             label="Display Name"
             placeholder="Enter display name"
             value={editForm.display_name}
-            onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (/^[a-zA-Z0-9]*$/.test(val)) {
+                setEditForm({ ...editForm, display_name: val });
+              }
+            }}
             disabled={!isSuperAdmin}
+            maxLength={10}
           />
 
           {isSuperAdmin && (

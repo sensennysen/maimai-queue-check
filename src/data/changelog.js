@@ -1,5 +1,36 @@
 export const changelogData = [
    {
+    version: 'v1.4.0',
+    date: 'February 6, 2026',
+    changes: [
+      {
+        type: 'feature',
+        title: 'Queue Function Improvements',
+        description: 'Implemented Solo Queue toggle; Input now suggest players that have their preferred branch set to the location and recent players on that day; Adds similarity detection to avoid double entries',
+      },
+      {
+        type: 'improvement',
+        title: 'Querying Improvements',
+        description: 'Cached branch queries and fixed an issue where queues from the previous day is being carried over to the next day',
+      },
+      {
+        type: 'feature',
+        title: 'Name Constraints',
+        description: 'Users can now have at most 10 characters in their display name and queue entries.',
+      },
+      {
+        type: 'visual',
+        title: 'UI Improvements',
+        description: 'General UI improvements',
+      },
+      {
+        type: 'feature',
+        title: 'View-Only Mode',
+        description: 'Added a view-only mode for users to easily see the information on the branch',
+      },
+    ]
+  },
+   {
     version: 'v1.3.0',
     date: 'February 5, 2026',
     changes: [

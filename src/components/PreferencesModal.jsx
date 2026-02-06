@@ -1,34 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Stack, Text, Group, Button, MultiSelect, Loader, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { userService, branchService } from '../services/supabase';
+import { userService } from '../services/supabase';
+import { useBranch } from '../contexts/BranchContext';
 
 const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], initialDisplayName = '', onSaveSuccess }) => {
-  const [loading, setLoading] = useState(true);
+  const { branches, loading } = useBranch();
   const [saving, setSaving] = useState(false);
-  const [branches, setBranches] = useState([]);
   const [selectedBranches, setSelectedBranches] = useState([]);
   const [displayName, setDisplayName] = useState(initialDisplayName);
 
-  const loadBranches = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await branchService.getAllBranches();
-      setBranches(data);
-    } catch {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to load branches',
-        color: 'red',
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     if (opened) {
-      loadBranches();
       // Only set initial state once when the modal is opened
       setSelectedBranches(initialPreferences?.map(String) || []);
       setDisplayName(initialDisplayName || '');
@@ -81,8 +64,14 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
           label="Display Name"
           placeholder="Enter your display name"
           value={displayName}
-          onChange={(event) => setDisplayName(event.currentTarget.value)}
+          onChange={(event) => {
+            const val = event.currentTarget.value;
+            if (/^[a-zA-Z0-9]*$/.test(val)) {
+              setDisplayName(val);
+            }
+          }}
           required
+          maxLength={10}
           style={{ marginTop: '1rem' }}
         />
 

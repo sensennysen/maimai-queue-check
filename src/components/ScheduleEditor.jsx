@@ -15,7 +15,7 @@ import { IconCalendar, IconClock } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { adminService } from '../services/supabase';
 
-const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+import { DAYS_OF_WEEK } from '../utils/constants';
 
 const ScheduleEditor = ({ opened, onClose, branch }) => {
   const [schedules, setSchedules] = useState(
