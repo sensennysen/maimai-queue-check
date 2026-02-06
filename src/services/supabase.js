@@ -18,12 +18,6 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     autoRefreshToken: true,
     detectSessionInUrl: true
   },
-  global: {
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-  },
   realtime: {
     params: {
       eventsPerSecond: 10,
@@ -816,7 +810,30 @@ export const notificationService = {
 // Contact service functions
 export const contactService = {
   // Submit a new report
-  async submitReport({ report_type, description, email, user_id }) {
+  async submitReport({ report_type, description, email, user_id, file }) {
+    let attachment_path = null;
+    let attachment_name = null;
+
+    // Upload file if present
+    if (file) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('contact_uploads')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false,
+                contentType: file.type
+            });
+
+        if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
+        
+        attachment_path = filePath;
+        attachment_name = file.name;
+    }
+
     const { data, error } = await supabase
       .from('contact_reports')
       .insert([{
@@ -824,7 +841,9 @@ export const contactService = {
         description,
         email,
         user_id,
-        status: 'open'
+        status: 'open',
+        attachment_path,
+        attachment_name
       }]);
 
     if (error) throw error;
@@ -880,5 +899,39 @@ export const contactService = {
     
     if (error) throw error;
     return data;
+  },
+
+  // Get signed URL for attachment
+  async getAttachmentUrl(path) {
+      if (!path) return null;
+      const { data, error } = await supabase.storage
+          .from('contact_uploads')
+          .createSignedUrl(path, 60 * 60); // 1 hour validity
+      
+      if (error) throw error;
+      return data.signedUrl;
+  },
+
+  // Delete report and its attachment
+  async deleteReport(id, attachmentPath) {
+      // 1. Delete attachment if exists
+      if (attachmentPath) {
+          const { error: storageError } = await supabase.storage
+              .from('contact_uploads')
+              .remove([attachmentPath]);
+          
+          if (storageError) {
+              console.error('Failed to delete attachment:', storageError);
+              // We continue to delete the report even if storage delete fails
+          }
+      }
+
+      // 2. Delete report record
+      const { error } = await supabase
+          .from('contact_reports')
+          .delete()
+          .eq('id', id);
+
+      if (error) throw error;
   }
 };

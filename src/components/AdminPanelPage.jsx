@@ -28,6 +28,7 @@ import {
   IconChevronRight,
   IconUsers,
   IconMessageReport,
+  IconPaperclip,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { adminService, contactService } from '../services/supabase';
@@ -42,6 +43,7 @@ import { DAYS_OF_WEEK } from '../utils/constants';
 const ReportsManager = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleteReport, setDeleteReport] = useState(null);
 
   const loadReports = useCallback(async () => {
     try {
@@ -63,6 +65,26 @@ const ReportsManager = () => {
     loadReports();
   }, [loadReports]);
 
+  const confirmDeleteReport = async () => {
+    if (!deleteReport) return;
+    try {
+      await contactService.deleteReport(deleteReport.id, deleteReport.attachment_path);
+      notifications.show({
+        title: 'Success',
+        message: 'Report deleted',
+        color: 'green'
+      });
+      loadReports();
+      setDeleteReport(null);
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to delete report',
+        color: 'red'
+      });
+    }
+  };
+
   const handleStatusChange = async (report, newStatus) => {
     try {
       await contactService.updateReportStatus(report.id, newStatus);
@@ -81,13 +103,32 @@ const ReportsManager = () => {
     }
   };
 
+  const handleViewAttachment = async (path) => {
+    try {
+      const url = await contactService.getAttachmentUrl(path);
+      if (url) {
+        window.open(url, '_blank');
+      }
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to open attachment',
+        color: 'red',
+      });
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
-      case 'open': return 'blue';
-      case 'resolved': return 'green';
-      case 'closed': return 'gray';
-      case 'investigating': return 'orange';
-      default: return 'gray';
+      case 'open':
+        return 'blue';
+      case 'resolved':
+      case 'closed':
+        return 'green';
+      case 'investigating':
+        return 'orange';
+      default:
+        return 'gray';
     }
   };
 
@@ -122,6 +163,7 @@ const ReportsManager = () => {
               <Table.Th>Type</Table.Th>
               <Table.Th>User/Email</Table.Th>
               <Table.Th>Description</Table.Th>
+              <Table.Th>Attachment</Table.Th>
               <Table.Th>Status</Table.Th>
               <Table.Th>Actions</Table.Th>
             </Table.Tr>
@@ -148,6 +190,19 @@ const ReportsManager = () => {
                   </Text>
                 </Table.Td>
                 <Table.Td>
+                  {report.attachment_path && (
+                    <Button
+                      size="xs"
+                      variant="subtle"
+                      leftSection={<IconPaperclip size={14} />}
+                      onClick={() => handleViewAttachment(report.attachment_path)}
+                      title={report.attachment_name}
+                    >
+                      View
+                    </Button>
+                  )}
+                </Table.Td>
+                <Table.Td>
                   <Badge color={getStatusColor(report.status)}>{report.status}</Badge>
                 </Table.Td>
                 <Table.Td>
@@ -161,12 +216,29 @@ const ReportsManager = () => {
                       Re-open
                     </Button>
                   )}
+                  <ActionIcon
+                    color="red"
+                    variant="subtle"
+                    size="sm"
+                    ml="xs"
+                    onClick={() => setDeleteReport(report)}
+                  >
+                    <IconTrash size={16} />
+                  </ActionIcon>
                 </Table.Td>
               </Table.Tr>
             ))}
           </Table.Tbody>
         </Table>
       </Table.ScrollContainer>
+
+      <DeleteConfirmDialog
+        opened={!!deleteReport}
+        onClose={() => setDeleteReport(null)}
+        onConfirm={confirmDeleteReport}
+        title="Delete Report"
+        message="Are you sure you want to delete this report? This action cannot be undone."
+      />
     </Paper>
   );
 };
@@ -609,7 +681,13 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
         opened={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}
-        branchName={branchToDelete?.arcade_name}
+        title="Delete Branch"
+        message={
+          <>
+            <Text>Are you sure you want to delete <Text component="span" fw={700}>{branchToDelete?.arcade_name}</Text>?</Text>
+            <Text size="sm" c="dimmed" mt="xs">This action cannot be undone. All associated mall schedules will also be deleted.</Text>
+          </>
+        }
       />
     </Container>
   );

@@ -11,11 +11,12 @@ import {
   Text,
   Group,
   ActionIcon,
+  FileInput,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
-import { IconArrowLeft } from '@tabler/icons-react';
+import { IconArrowLeft, IconPaperclip } from '@tabler/icons-react';
 import { contactService } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
 
@@ -29,6 +30,7 @@ const ContactPage = () => {
       reportType: '',
       description: '',
       email: '',
+      attachment: null,
     },
     validate: {
       reportType: (value) => (value ? null : 'Please select a report type'),
@@ -36,6 +38,11 @@ const ContactPage = () => {
       email: (value) => {
         if (user) return null; // Email not required if logged in (we use user_id)
         return /^\S+@\S+$/.test(value) ? null : 'Invalid email';
+      },
+      attachment: (value) => {
+        if (!value) return null;
+        if (value.size > 50 * 1024 * 1024) return 'File size must be less than 50MB';
+        return null;
       },
     },
   });
@@ -48,6 +55,7 @@ const ContactPage = () => {
         description: values.description,
         email: user ? user.email : values.email, // Use user email if logged in, otherwise form value
         user_id: user ? user.id : null,
+        file: values.attachment,
       });
 
       notifications.show({
@@ -112,6 +120,14 @@ const ContactPage = () => {
                 minRows={5}
                 required
                 {...form.getInputProps('description')}
+              />
+
+              <FileInput
+                label="Attachment (Optional)"
+                placeholder="Upload image or video (max 50MB)"
+                leftSection={<IconPaperclip size={16} />}
+                accept="image/*,video/*"
+                {...form.getInputProps('attachment')}
               />
 
               <Group justify="flex-end" mt="md">
