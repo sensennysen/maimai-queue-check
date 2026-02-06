@@ -37,7 +37,7 @@ export const changelogData = [
       {
         type: 'feature',
         title: 'View-Only Mode',
-        description: 'Added a view-only mode for users to easily see the information on the branch',
+        description: 'Added a view-only mode for users to easily see the information on the branch. (Thanks to GTDD for the suggestion!)',
       },
     ]
   },
