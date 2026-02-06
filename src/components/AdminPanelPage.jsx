@@ -44,6 +44,7 @@ const ReportsManager = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteReport, setDeleteReport] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadReports = useCallback(async () => {
     try {
@@ -68,6 +69,7 @@ const ReportsManager = () => {
   const confirmDeleteReport = async () => {
     if (!deleteReport) return;
     try {
+      setDeleting(true);
       await contactService.deleteReport(deleteReport.id, deleteReport.attachment_path);
       notifications.show({
         title: 'Success',
@@ -82,6 +84,8 @@ const ReportsManager = () => {
         message: `Failed to delete report. ${error.message}`,
         color: 'red'
       });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -238,6 +242,7 @@ const ReportsManager = () => {
         onConfirm={confirmDeleteReport}
         title="Delete Report"
         message="Are you sure you want to delete this report? This action cannot be undone."
+        loading={deleting}
       />
     </Paper>
   );
@@ -290,6 +295,7 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
   const [branchToEdit, setBranchToEdit] = useState(null);
   const [branchToDelete, setBranchToDelete] = useState(null);
   const [branchForSchedule, setBranchForSchedule] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Load branches
   const loadBranches = useCallback(async () => {
@@ -382,6 +388,7 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
     if (!branchToDelete) return;
 
     try {
+      setDeleting(true);
       await adminService.deleteBranch(branchToDelete.id);
       notifications.show({
         title: 'Success',
@@ -397,6 +404,8 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
         message: error.message || 'Failed to delete branch',
         color: 'red',
       });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -688,6 +697,7 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
             <Text size="sm" c="dimmed" mt="xs">This action cannot be undone. All associated mall schedules will also be deleted.</Text>
           </>
         }
+        loading={deleting}
       />
     </Container>
   );
