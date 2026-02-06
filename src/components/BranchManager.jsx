@@ -42,6 +42,7 @@ const BranchManager = ({ opened, onClose }) => {
   const [branchToEdit, setBranchToEdit] = useState(null);
   const [branchToDelete, setBranchToDelete] = useState(null);
   const [branchForSchedule, setBranchForSchedule] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Load branches
   const loadBranches = async () => {
@@ -92,6 +93,7 @@ const BranchManager = ({ opened, onClose }) => {
     if (!branchToDelete) return;
 
     try {
+      setDeleting(true);
       await adminService.deleteBranch(branchToDelete.id);
       notifications.show({
         title: 'Success',
@@ -107,6 +109,8 @@ const BranchManager = ({ opened, onClose }) => {
         message: error.message || 'Failed to delete branch',
         color: 'red',
       });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -283,6 +287,7 @@ const BranchManager = ({ opened, onClose }) => {
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}
         branchName={branchToDelete?.arcade_name}
+        loading={deleting}
       />
     </>
   );

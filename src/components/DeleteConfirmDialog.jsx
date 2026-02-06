@@ -31,10 +31,10 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, branc
         {typeof content === 'string' ? <Text style={{ marginTop: '1rem' }}>{content}</Text> : content}
 
         <Group justify="flex-end" mt="md">
-          <Button variant="subtle" onClick={onClose}>
+          <Button variant="subtle" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
-          <Button color="red" onClick={onConfirm}>
+          <Button color="red" onClick={onConfirm} loading={loading}>
             Delete Branch
           </Button>
         </Group>
