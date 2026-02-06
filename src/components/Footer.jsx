@@ -42,15 +42,16 @@ function Footer() {
 
           <Text size="sm" c="dimmed" className="footer-divider">•</Text>
 
-          <Anchor
-            href="mailto:dev.bille.lagarde@gmail.com"
-            className="footer-link-group footer-email"
+          <Group
+            gap="xs"
+            className="footer-link-group"
+            style={{ cursor: 'pointer' }}
+            onClick={() => window.location.href = '/contact'}
           >
-            <Group gap="xs">
-              <IconMail size={16} />
-              <Text size="sm" className="footer-link-text">Contact</Text>
-            </Group>
-          </Anchor>
+            <IconMail size={16} />
+            <Text size="sm" className="footer-link-text">Contact</Text>
+          </Group>
+
         </Group>
 
         <Text size="xs" c="dimmed" className="footer-copyright">
