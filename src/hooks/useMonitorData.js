@@ -50,6 +50,7 @@ export const useMonitorData = (branchIdOverride = null) => {
       
       setQueueData(grouped);
       setError(null);
+      setIsConnected(true);
     } catch (err) {
       if (err.name === 'AbortError') return;
       setError(err.message);
@@ -89,18 +90,13 @@ export const useMonitorData = (branchIdOverride = null) => {
 
     const queueSubscription = subscribeToQueueChanges(handleQueueChange, activeBranchId);
 
-    // Test connection
-    supabase.from('queue_entries').select('count').limit(1)
-      .then(({ error }) => {
-        setIsConnected(!error);
-      })
-      .catch(() => setIsConnected(false));
-
+    // Test connection removed - relied on successful loadData
+    // We can infer connection if data loads successfully
+    
     return () => {
       if (queueSubscription) {
         queueSubscription.unsubscribe();
       }
-      // Don't set isConnected to false here to avoid flickering UI states
     };
   }, [activeBranchId, loadData]); // loadData is stable via useCallback
 

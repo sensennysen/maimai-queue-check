@@ -30,6 +30,7 @@ export const useQueueData = (selectedCabinet = 1) => {
       const queueData = await queueService.getQueueEntries(selectedBranch.id, selectedCabinet);
       setQueue(queueData);
       setError(null);
+      setIsConnected(true);
     } catch (err) {
       if (err.name === 'AbortError') return;
       setError(err.message);
@@ -73,13 +74,8 @@ export const useQueueData = (selectedCabinet = 1) => {
 
     const queueSubscription = subscribeToQueueChanges(handleQueueChange, selectedBranch.id);
 
-    // Test connection
-    supabase.from('queue_entries').select('count').limit(1)
-      .then(({ error }) => {
-        setIsConnected(!error);
-      })
-      .catch(() => setIsConnected(false));
-
+    // Test connection removed
+    
     return () => {
       if (queueSubscription) {
         queueSubscription.unsubscribe();
