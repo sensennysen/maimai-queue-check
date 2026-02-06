@@ -1,5 +1,16 @@
 export const changelogData = [
    {
+    version: 'v1.4.1',
+    date: 'February 6, 2026',
+    changes: [
+      {
+        type: 'bugfix',
+        title: 'Querying Optimization',
+        description: 'Optimized the querying of queues to prevent the app from checking all queues from all branches.',
+      },
+    ]
+  },
+   {
     version: 'v1.4.0',
     date: 'February 6, 2026',
     changes: [
