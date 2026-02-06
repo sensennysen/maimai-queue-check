@@ -27,17 +27,149 @@ import {
   IconChevronDown,
   IconChevronRight,
   IconUsers,
+  IconMessageReport,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { adminService } from '../services/supabase';
+import { adminService, contactService } from '../services/supabase';
 import AdminPanel from './AdminPanel';
 import ScheduleEditor from './ScheduleEditor';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import UserManager from './UserManager';
 import { useAuth } from '../hooks/useAuth';
 import './AdminPanelPage.css';
-
 import { DAYS_OF_WEEK } from '../utils/constants';
+
+const ReportsManager = () => {
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadReports = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await contactService.getReports();
+      setReports(data);
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: error.message || 'Failed to load reports',
+        color: 'red',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
+
+  const handleStatusChange = async (report, newStatus) => {
+    try {
+      await contactService.updateReportStatus(report.id, newStatus);
+      notifications.show({
+        title: 'Success',
+        message: 'Report status updated',
+        color: 'green'
+      });
+      loadReports();
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: `Failed to update status. ${error.message}`,
+        color: 'red',
+      });
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'open': return 'blue';
+      case 'resolved': return 'green';
+      case 'closed': return 'gray';
+      case 'investigating': return 'orange';
+      default: return 'gray';
+    }
+  };
+
+  if (loading) {
+    return (
+      <Center p="xl">
+        <Loader size="lg" />
+      </Center>
+    );
+  }
+
+  if (reports.length === 0) {
+    return (
+      <Paper p="xl" withBorder>
+        <Center>
+          <Stack align="center" gap="sm">
+            <IconMessageReport size={48} opacity={0.3} />
+            <Text c="dimmed">No reports found</Text>
+          </Stack>
+        </Center>
+      </Paper>
+    );
+  }
+
+  return (
+    <Paper withBorder>
+      <Table.ScrollContainer minWidth={800}>
+        <Table striped highlightOnHover>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Date</Table.Th>
+              <Table.Th>Type</Table.Th>
+              <Table.Th>User/Email</Table.Th>
+              <Table.Th>Description</Table.Th>
+              <Table.Th>Status</Table.Th>
+              <Table.Th>Actions</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {reports.map((report) => (
+              <Table.Tr key={report.id}>
+                <Table.Td>
+                  <Text size="sm">{new Date(report.created_at).toLocaleDateString()}</Text>
+                  <Text size="xs" c="dimmed">{new Date(report.created_at).toLocaleTimeString()}</Text>
+                </Table.Td>
+                <Table.Td>
+                  <Badge variant="light" color={report.report_type === 'bug' ? 'red' : 'blue'}>
+                    {report.report_type}
+                  </Badge>
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm" fw={500}>{report.user_display}</Text>
+                  <Text size="xs" c="dimmed">{report.user_email}</Text>
+                </Table.Td>
+                <Table.Td style={{ maxWidth: '300px' }}>
+                  <Text size="sm" lineClamp={3} title={report.description}>
+                    {report.description}
+                  </Text>
+                </Table.Td>
+                <Table.Td>
+                  <Badge color={getStatusColor(report.status)}>{report.status}</Badge>
+                </Table.Td>
+                <Table.Td>
+                  {report.status !== 'resolved' && (
+                    <Button size="xs" color="green" variant="light" onClick={() => handleStatusChange(report, 'resolved')}>
+                      Resolve
+                    </Button>
+                  )}
+                  {report.status === 'resolved' && (
+                    <Button size="xs" color="gray" variant="light" onClick={() => handleStatusChange(report, 'open')}>
+                      Re-open
+                    </Button>
+                  )}
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
+    </Paper>
+  );
+};
 
 // Utility function to format time from 24-hour to 12-hour AM/PM format
 const formatTime = (time24) => {
@@ -269,6 +401,11 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
             <Tabs.Tab value="users" leftSection={<IconUsers size={16} />}>
               User Management
             </Tabs.Tab>
+            {isSuperAdmin && (
+              <Tabs.Tab value="reports" leftSection={<IconMessageReport size={16} />}>
+                Reports
+              </Tabs.Tab>
+            )}
           </Tabs.List>
 
           {isSuperAdmin && (
@@ -446,6 +583,12 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
               initialTab={(targetTab === 'requests' || activeTab === 'requests') ? 'requests' : 'users'}
             />
           </Tabs.Panel>
+
+          {isSuperAdmin && (
+            <Tabs.Panel value="reports" pt="md">
+              <ReportsManager />
+            </Tabs.Panel>
+          )}
         </Tabs>
       </Stack>
 
