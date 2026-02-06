@@ -10,6 +10,24 @@ export const AuthProvider = ({ children }) => {
 
   const { selectedBranch } = useBranch();
 
+  // Helper to manage local storage cache
+  const getCachedRoles = (uid) => {
+    try {
+      const cached = localStorage.getItem(`smf_user_roles_${uid}`);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const cacheRoles = (uid, roles) => {
+    try {
+      localStorage.setItem(`smf_user_roles_${uid}`, JSON.stringify(roles));
+    } catch (e) {
+      console.warn('Failed to cache user roles', e);
+    }
+  };
+
   useEffect(() => {
     // Listen for auth changes - this properly handles session restoration on page load
     let isMounted = true;
@@ -18,38 +36,45 @@ export const AuthProvider = ({ children }) => {
       data: { subscription },
     } = authService.onAuthStateChange(async (event, session) => {
       try {
-        setUser(session?.user ?? null);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
 
-        // Set loading to false immediately - don't wait for roles
+        // Optimistically set roles from cache if available
+        if (currentUser) {
+          const cached = getCachedRoles(currentUser.id);
+          if (cached) {
+            setUserRoles(cached);
+          }
+        }
+
+        // Set loading to false immediately - don't wait for network fetch of roles
         setLoading(false);
 
-        // Success notifications are shown from explicit login actions
-        // (avoid showing toasts during automatic session restoration on page load)
-
-        if (session?.user) {
+        if (currentUser) {
           // Fetch roles in background (non-blocking) with timeout
           const branchId = selectedBranch?.id;
-          const rolesPromise = rolesService.getUserRoles(session.user.id, branchId);
+          const rolesPromise = rolesService.getUserRoles(currentUser.id, branchId);
           const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Role fetch timeout')), 5000)
           );
 
           try {
             const roles = await Promise.race([rolesPromise, timeoutPromise]);
-            if (isMounted) setUserRoles(roles);
+            if (isMounted) {
+              setUserRoles(roles);
+              cacheRoles(currentUser.id, roles);
+            }
           } catch {
             // Set default permissions on error (keep existing permissions if available)
             if (isMounted) setUserRoles(prevRoles =>
               prevRoles || {
-                user_id: session.user.id,
+                user_id: currentUser.id,
                 can_edit: false,
                 is_admin: false,
                 is_super_admin: false
               }
             );
           }
-
-          // Roles are fetched on auth state change or branch change - no need for polling
         } else {
           if (isMounted) setUserRoles(null);
         }
