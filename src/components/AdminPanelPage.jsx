@@ -79,7 +79,7 @@ const ReportsManager = () => {
     } catch (error) {
       notifications.show({
         title: 'Error',
-        message: 'Failed to delete report',
+        message: `Failed to delete report. ${error.message}`,
         color: 'red'
       });
     }
@@ -112,7 +112,7 @@ const ReportsManager = () => {
     } catch (error) {
       notifications.show({
         title: 'Error',
-        message: 'Failed to open attachment',
+        message: `Failed to open attachment. ${error.message}`,
         color: 'red',
       });
     }
