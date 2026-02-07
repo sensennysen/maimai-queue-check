@@ -131,9 +131,8 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               data={player1.trim().length > 0 ? (loading ? ['Loading suggestions...'] : suggestions) : []}
               value={player1}
               onChange={(val) => {
-                // Don't allow selecting the loading placeholder
                 if (val === 'Loading suggestions...') return;
-                setPlayer1(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
+                setPlayer1(val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '').slice(0, 10));
               }}
               error={errors.player1}
               maxLength={10}
@@ -170,9 +169,8 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
                 data={player2.trim().length > 0 ? (loading ? ['Loading suggestions...'] : suggestions) : []}
                 value={player2}
                 onChange={(val) => {
-                  // Don't allow selecting the loading placeholder
                   if (val === 'Loading suggestions...') return;
-                  setPlayer2(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
+                  setPlayer2(val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '').slice(0, 10));
                 }}
                 error={errors.player2}
                 maxLength={10}

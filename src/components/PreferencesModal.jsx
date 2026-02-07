@@ -66,9 +66,8 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
           value={displayName}
           onChange={(event) => {
             const val = event.currentTarget.value;
-            if (/^[a-zA-Z0-9]*$/.test(val)) {
-              setDisplayName(val);
-            }
+            const filtered = val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '');
+            setDisplayName(filtered);
           }}
           required
           maxLength={10}
