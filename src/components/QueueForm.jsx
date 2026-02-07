@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TextInput, Group, Button, Stack, Alert, Checkbox, Modal, Text, Autocomplete } from '@mantine/core';
+import { TextInput, Group, Button, Stack, Alert, Checkbox, Modal, Text, Autocomplete, Loader } from '@mantine/core';
 import { IconPlus, IconEdit } from '@tabler/icons-react';
 import DOMPurify from 'dompurify';
 import './QueueForm.css';
@@ -127,20 +127,18 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
           <Stack gap="md">
             <Autocomplete
               label="Player 1 Side"
-              placeholder={loading ? "Loading suggestions..." : "Enter Player 1 name"}
-              data={player1.trim().length > 0 ? (loading ? ['Loading suggestions...'] : suggestions) : []}
+              placeholder="Enter Player 1 name"
+              data={player1.trim().length > 0 && !loading ? suggestions : []}
               value={player1}
               onChange={(val) => {
-                if (val === 'Loading suggestions...') return;
                 setPlayer1(val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '').slice(0, 10));
               }}
               error={errors.player1}
               maxLength={10}
               disabled={isBusy || (!locationVerified && !isSuperAdmin)}
               style={{ marginTop: '1rem' }}
+              rightSection={loading ? <Loader size="xs" /> : null}
               filter={({ options, search }) => {
-                // Don't filter the loading message
-                if (loading) return options;
                 const splittedSearch = search.toLowerCase().trim().split(' ');
                 return (
                   options.filter((option) =>
@@ -165,19 +163,17 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
             {!playingSolo && (
               <Autocomplete
                 label="Player 2 Side"
-                placeholder={loading ? "Loading suggestions..." : "Enter Player 2 name"}
-                data={player2.trim().length > 0 ? (loading ? ['Loading suggestions...'] : suggestions) : []}
+                placeholder="Enter Player 2 name"
+                data={player2.trim().length > 0 && !loading ? suggestions : []}
                 value={player2}
                 onChange={(val) => {
-                  if (val === 'Loading suggestions...') return;
                   setPlayer2(val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '').slice(0, 10));
                 }}
                 error={errors.player2}
                 maxLength={10}
                 disabled={isBusy || (!locationVerified && !isSuperAdmin)}
+                rightSection={loading ? <Loader size="xs" /> : null}
                 filter={({ options, search }) => {
-                  // Don't filter the loading message
-                  if (loading) return options;
                   const splittedSearch = search.toLowerCase().trim().split(' ');
                   return (
                     options.filter((option) =>
