@@ -657,9 +657,8 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
             value={editForm.display_name}
             onChange={(e) => {
               const val = e.target.value;
-              if (/^[a-zA-Z0-9]*$/.test(val)) {
-                setEditForm({ ...editForm, display_name: val });
-              }
+              const filtered = val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '');
+              setEditForm({ ...editForm, display_name: filtered });
             }}
             disabled={!isSuperAdmin}
             maxLength={10}
