@@ -12,7 +12,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
 
   const { selectedBranch } = useBranch();
   // Pass the realtime queue to the hook
-  const { suggestions } = usePlayerSuggestions(selectedBranch?.id, queue);
+  const { suggestions, loading } = usePlayerSuggestions(selectedBranch?.id, queue);
 
   const [player1, setPlayer1] = useState(initialPlayer1);
   const [player2, setPlayer2] = useState(initialPlayer2);
@@ -127,10 +127,12 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
           <Stack gap="md">
             <Autocomplete
               label="Player 1 Side"
-              placeholder="Enter Player 1 name"
-              data={player1.trim().length > 0 ? suggestions : []}
+              placeholder={loading ? "Loading suggestions..." : "Enter Player 1 name"}
+              data={player1.trim().length > 0 ? (loading ? ['Loading suggestions...'] : suggestions) : []}
               value={player1}
               onChange={(val) => {
+                // Don't allow selecting the loading placeholder
+                if (val === 'Loading suggestions...') return;
                 setPlayer1(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
               }}
               error={errors.player1}
@@ -138,6 +140,8 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               disabled={isBusy || (!locationVerified && !isSuperAdmin)}
               style={{ marginTop: '1rem' }}
               filter={({ options, search }) => {
+                // Don't filter the loading message
+                if (loading) return options;
                 const splittedSearch = search.toLowerCase().trim().split(' ');
                 return (
                   options.filter((option) =>
@@ -162,16 +166,20 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
             {!playingSolo && (
               <Autocomplete
                 label="Player 2 Side"
-                placeholder="Enter Player 2 name"
-                data={player2.trim().length > 0 ? suggestions : []}
+                placeholder={loading ? "Loading suggestions..." : "Enter Player 2 name"}
+                data={player2.trim().length > 0 ? (loading ? ['Loading suggestions...'] : suggestions) : []}
                 value={player2}
                 onChange={(val) => {
+                  // Don't allow selecting the loading placeholder
+                  if (val === 'Loading suggestions...') return;
                   setPlayer2(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
                 }}
                 error={errors.player2}
                 maxLength={10}
                 disabled={isBusy || (!locationVerified && !isSuperAdmin)}
                 filter={({ options, search }) => {
+                  // Don't filter the loading message
+                  if (loading) return options;
                   const splittedSearch = search.toLowerCase().trim().split(' ');
                   return (
                     options.filter((option) =>
