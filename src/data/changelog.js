@@ -1,4 +1,15 @@
 export const changelogData = [
+  {
+    version: 'v1.4.2',
+    date: 'February 8, 2026',
+    changes: [
+      {
+        type: 'bugfix',
+        title: 'Queue Suggestions',
+        description: 'Fixed an issue where the queue suggestions are not suggesting recent players.',
+      },
+    ]
+  },
    {
     version: 'v1.4.1',
     date: 'February 6, 2026',
