@@ -330,6 +330,26 @@ export const queueService = {
     if (error) throw error;
     return data;
   },
+
+  // Fetch completed and cancelled queue entries for today (for autocomplete suggestions)
+  async getCompletedEntriesForToday(branchId) {
+    if (!branchId) return [];
+
+    // Filter for entries completed or cancelled today (local time)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const { data, error } = await supabase
+      .from('queue_entries')
+      .select('*')
+      .in('status', ['completed', 'cancelled'])
+      .eq('branch_id', branchId)
+      .gte('created_at', today.toISOString())
+      .order('ended_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
 };
 
 // Real-time subscriptions
