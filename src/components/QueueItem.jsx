@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
-import { Skeleton } from '@mantine/core';
+import { Skeleton, ActionIcon, Tooltip } from '@mantine/core';
 import './QueueItem.css';
 
 const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false, readOnly = false }) {
@@ -62,40 +62,52 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
         ) : (
           <div className="item-actions">
             <div className="move-buttons">
-              <button
-                className="move-btn up"
-                onClick={handleMoveUp}
-                disabled={!canActuallyEdit || isFirst || isBusy}
-                title={canActuallyEdit ? "Move up in queue" : "You need permission to move items"}
-              >
-                ▲
-              </button>
-              <button
-                className="move-btn down"
-                onClick={handleMoveDown}
-                disabled={!canActuallyEdit || isLast || isBusy}
-                title={canActuallyEdit ? "Move down in queue" : "You need permission to move items"}
-              >
-                ▼
-              </button>
+              <Tooltip label={canActuallyEdit ? "Move up in queue" : "You need permission to move items"}>
+                <ActionIcon
+                  variant="default"
+                  size="sm"
+                  onClick={handleMoveUp}
+                  disabled={!canActuallyEdit || isFirst}
+                  loading={isBusy}
+                >
+                  <IconChevronUp size={16} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label={canActuallyEdit ? "Move down in queue" : "You need permission to move items"}>
+                <ActionIcon
+                  variant="default"
+                  size="sm"
+                  onClick={handleMoveDown}
+                  disabled={!canActuallyEdit || isLast}
+                  loading={isBusy}
+                >
+                  <IconChevronDown size={16} />
+                </ActionIcon>
+              </Tooltip>
             </div>
             <div className="action-buttons">
-              <button
-                className="edit-btn"
-                onClick={handleEdit}
-                disabled={!canActuallyEdit || isBusy}
-                title={canActuallyEdit ? "Edit this entry" : "You need permission to edit items"}
-              >
-                <IconEdit size={16} />
-              </button>
-              <button
-                className="remove-btn"
-                onClick={handleRemove}
-                disabled={!canActuallyEdit || isBusy}
-                title={canActuallyEdit ? "Remove from queue" : "You need permission to remove items"}
-              >
-                <IconTrash size={16} />
-              </button>
+              <Tooltip label={canActuallyEdit ? "Edit this entry" : "You need permission to edit items"}>
+                <ActionIcon
+                  variant="filled"
+                  color="blue"
+                  onClick={handleEdit}
+                  disabled={!canActuallyEdit}
+                  loading={isBusy}
+                >
+                  <IconEdit size={16} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label={canActuallyEdit ? "Remove from queue" : "You need permission to remove items"}>
+                <ActionIcon
+                  variant="filled"
+                  color="red"
+                  onClick={handleRemove}
+                  disabled={!canActuallyEdit}
+                  loading={isBusy}
+                >
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Tooltip>
             </div>
           </div>
         )

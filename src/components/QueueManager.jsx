@@ -362,7 +362,7 @@ function QueueManager() {
                   color="red"
                   leftSection={<IconTrash size={16} />}
                   onClick={clearQueue}
-                  disabled={isMutating}
+                  loading={isMutating}
                 >
                   Clear All
                 </Button>

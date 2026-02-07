@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider, Badge, Group } from '@mantine/core';
 import { IconBrandGoogle, IconLogout, IconUser, IconLogin, IconSettings } from '@tabler/icons-react';
 import { useAuth } from '../hooks/useAuth';
@@ -7,11 +8,14 @@ import './LoginForm.css';
 const LoginForm = ({ onOpenAdminPanel, onOpenPreferences }) => {
   const { user, loading, signInWithProvider, signOut, userRoles } = useAuth();
   const { branches } = useBranch();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSocialLogin = async (provider) => {
     try {
+      setIsLoading(true);
       await signInWithProvider(provider);
     } catch {
+      setIsLoading(false);
       // Error handled silently
     }
   };
@@ -118,6 +122,7 @@ const LoginForm = ({ onOpenAdminPanel, onOpenPreferences }) => {
         variant="light"
         color="red"
         className="google-login-button"
+        loading={isLoading}
       >
         <span className="login-button-text">Login with Google</span>
       </Button>
