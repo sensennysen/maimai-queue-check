@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider, Badge, Group } from '@mantine/core';
 import { IconBrandGoogle, IconLogout, IconUser, IconLogin, IconSettings } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';
 import './LoginForm.css';
 
-const LoginForm = ({ onOpenAdminPanel, onOpenPreferences }) => {
+const LoginForm = ({ onOpenPreferences }) => {
   const { user, loading, signInWithProvider, signOut, userRoles } = useAuth();
   const { branches } = useBranch();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSocialLogin = async (provider) => {
@@ -94,7 +96,7 @@ const LoginForm = ({ onOpenAdminPanel, onOpenPreferences }) => {
             <>
               <Menu.Item
                 leftSection={<IconSettings size={16} />}
-                onClick={onOpenAdminPanel}
+                onClick={() => navigate('/admin')}
               >
                 Admin Panel
               </Menu.Item>
