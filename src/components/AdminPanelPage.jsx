@@ -31,6 +31,7 @@ import {
   IconPaperclip,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { adminService, contactService } from '../services/supabase';
 import AdminPanel from './AdminPanel';
 import ScheduleEditor from './ScheduleEditor';
@@ -260,11 +261,12 @@ const formatTime = (time24) => {
   return `${hour12}:${minutes} ${ampm}`;
 };
 
-const AdminPanelPage = ({ onBack, targetTab }) => {
+const AdminPanelPage = () => {
   const { userRoles } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const targetTab = searchParams.get('tab');
   const isSuperAdmin = userRoles?.is_super_admin || false;
-
-
 
   const [activeTab, setActiveTab] = useState(() => {
     // If target is requests, we need to show users tab
@@ -272,7 +274,7 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
     return isSuperAdmin ? 'branches' : 'users';
   });
 
-  // React to prop changes
+  // React to URL search param changes
   useEffect(() => {
     if (targetTab === 'requests') {
       setActiveTab('users');
@@ -326,7 +328,7 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
           <Stack align="center" gap="md">
             <Title order={3}>Access Denied</Title>
             <Text>You do not have permission to view this page.</Text>
-            <Button onClick={onBack}>Go Back</Button>
+            <Button onClick={() => navigate('/')}>Go Back</Button>
           </Stack>
         </Paper>
       </Container>
@@ -462,7 +464,7 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
               <ActionIcon
                 variant="subtle"
                 size="lg"
-                onClick={onBack}
+                onClick={() => navigate('/')}
                 title="Back to Queue Manager"
               >
                 <IconArrowLeft size={20} />

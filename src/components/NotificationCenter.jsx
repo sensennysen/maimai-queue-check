@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { Popover, ActionIcon, Indicator, Stack, Text, Group, ThemeIcon, ScrollArea, Button, Box } from '@mantine/core';
 import { IconBell, IconUserPlus, IconInfoCircle, IconCheck, IconChevronRight } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { requestService, notificationService, supabase } from '../services/supabase';
 
-const NotificationCenter = ({ onOpenAdminPanel }) => {
+const NotificationCenter = () => {
   const { user, userRoles } = useAuth();
+  const navigate = useNavigate();
   const [opened, setOpened] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [generalNotifications, setGeneralNotifications] = useState([]);
@@ -194,7 +196,7 @@ const NotificationCenter = ({ onOpenAdminPanel }) => {
                     onClick={() => {
                       if (item.type === 'request') {
                         setOpened(false);
-                        if (onOpenAdminPanel) onOpenAdminPanel('requests');
+                        navigate('/admin?tab=requests');
                       }
                     }}
                   >
