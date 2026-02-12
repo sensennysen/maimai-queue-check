@@ -19,7 +19,18 @@
 
 @media (min-width: 1000px) {
   .monitor-grid {
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    max-width: 100%;
+  }
+  
+  /* Limit to max 2 columns when there are 2+ cabinets */
+  .monitor-grid:has(.cabinet-column:nth-child(2)) {
     grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Single cabinet takes full width */
+  .monitor-grid:has(.cabinet-column:only-child) {
+    grid-template-columns: 1fr;
   }
 }
 

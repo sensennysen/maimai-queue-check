@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TextInput, Group, Button, Stack, Alert, Checkbox, Modal, Text, Autocomplete } from '@mantine/core';
+import { TextInput, Group, Button, Stack, Alert, Checkbox, Modal, Text, Autocomplete, Loader } from '@mantine/core';
 import { IconPlus, IconEdit } from '@tabler/icons-react';
 import DOMPurify from 'dompurify';
 import './QueueForm.css';
@@ -12,7 +12,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
 
   const { selectedBranch } = useBranch();
   // Pass the realtime queue to the hook
-  const { suggestions } = usePlayerSuggestions(selectedBranch?.id, queue);
+  const { suggestions, loading } = usePlayerSuggestions(selectedBranch?.id, queue);
 
   const [player1, setPlayer1] = useState(initialPlayer1);
   const [player2, setPlayer2] = useState(initialPlayer2);
@@ -128,15 +128,16 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
             <Autocomplete
               label="Player 1 Side"
               placeholder="Enter Player 1 name"
-              data={player1.trim().length > 0 ? suggestions : []}
+              data={player1.trim().length > 0 && !loading ? suggestions : []}
               value={player1}
               onChange={(val) => {
-                setPlayer1(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
+                setPlayer1(val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '').slice(0, 10));
               }}
               error={errors.player1}
               maxLength={10}
               disabled={isBusy || (!locationVerified && !isSuperAdmin)}
               style={{ marginTop: '1rem' }}
+              rightSection={loading ? <Loader size="xs" /> : null}
               filter={({ options, search }) => {
                 const splittedSearch = search.toLowerCase().trim().split(' ');
                 return (
@@ -163,14 +164,15 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               <Autocomplete
                 label="Player 2 Side"
                 placeholder="Enter Player 2 name"
-                data={player2.trim().length > 0 ? suggestions : []}
+                data={player2.trim().length > 0 && !loading ? suggestions : []}
                 value={player2}
                 onChange={(val) => {
-                  setPlayer2(val.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 8));
+                  setPlayer2(val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '').slice(0, 10));
                 }}
                 error={errors.player2}
                 maxLength={10}
                 disabled={isBusy || (!locationVerified && !isSuperAdmin)}
+                rightSection={loading ? <Loader size="xs" /> : null}
                 filter={({ options, search }) => {
                   const splittedSearch = search.toLowerCase().trim().split(' ');
                   return (

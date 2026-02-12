@@ -4,21 +4,20 @@ import { userService, queueService } from '../services/supabase';
 /**
  * Hook to fetch player name suggestions based on the selected branch.
  * Suggestions come from:
- * 1. Players currently in the queue for the branch (from all cabinets, fetched on mount/branch change)
- * 2. Players in the current cabinet's realtime queue (passed via currentQueue prop)
- * 3. Users who have this branch in their preferred list (fetched on mount/branch change)
+ * 1. Players who have completed their games today (from all cabinets)
+ * 2. Users who have this branch in their preferred list AND have a display name
  * 
  * @param {string|number} branchId - The ID of the current branch
- * @param {Array} currentQueue - The current queue entries (real-time for selected cabinet)
+ * @param {Array} currentQueue - Not used anymore, kept for backward compatibility
  * @returns {Object} { suggestions, loading }
  */
-export const usePlayerSuggestions = (branchId, currentQueue = []) => {
+export const usePlayerSuggestions = (branchId) => {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const mountedRef = useRef(true);
 
-  // Store the full branch queue (fetched once per branchId change)
-  const [fullBranchQueue, setFullBranchQueue] = useState([]);
+  // Store completed entries and preferred users
+  const [completedEntries, setCompletedEntries] = useState([]);
   const [preferredUsers, setPreferredUsers] = useState([]);
 
   useEffect(() => {
@@ -28,25 +27,29 @@ export const usePlayerSuggestions = (branchId, currentQueue = []) => {
     };
   }, []);
 
-  // Fetch baseline data (Preferred Users + All Cabinet Queues)
+  // Fetch baseline data (Completed Entries + Preferred Users with display names)
   useEffect(() => {
     const fetchBaselineData = async () => {
       if (!branchId) {
-        setFullBranchQueue([]);
+        setCompletedEntries([]);
         setPreferredUsers([]);
         return;
       }
 
       try {
         setLoading(true);
-        const [users, allQueue] = await Promise.all([
+        const [users, completed] = await Promise.all([
             userService.getUsersPrefersBranch(branchId),
-            queueService.getQueueEntries(branchId, null) // null cabinetNum = fetch all for branch
+            queueService.getCompletedEntriesForToday(branchId)
         ]);
 
         if (mountedRef.current) {
-            setPreferredUsers(users || []);
-            setFullBranchQueue(allQueue || []);
+            // Filter users to only include those with display names
+            const usersWithDisplayNames = (users || []).filter(user => 
+              user.display_name && user.display_name.trim().length > 0
+            );
+            setPreferredUsers(usersWithDisplayNames);
+            setCompletedEntries(completed || []);
         }
       } catch (err) {
         console.error("Failed to fetch suggestion baseline data", err);
@@ -60,28 +63,19 @@ export const usePlayerSuggestions = (branchId, currentQueue = []) => {
     fetchBaselineData();
   }, [branchId]);
 
-  // Combine baseline data with realtime currentQueue
+  // Combine baseline data
   useEffect(() => {
-    const queueNames = new Set();
+    const completedNames = new Set();
     
-    // 1. Add names from the full branch fetch (covers other cabinets)
-    if (fullBranchQueue && Array.isArray(fullBranchQueue)) {
-        fullBranchQueue.forEach(entry => {
-            if (entry.player1) queueNames.add(entry.player1);
-            if (entry.player2) queueNames.add(entry.player2);
+    // 1. Add names from completed entries
+    if (completedEntries && Array.isArray(completedEntries)) {
+        completedEntries.forEach(entry => {
+            if (entry.player1) completedNames.add(entry.player1);
+            if (entry.player2) completedNames.add(entry.player2);
         });
     }
 
-    // 2. Add names from currentQueue prop (covers realtime updates for current cabinet)
-    // This will override/add to the baseline if there are new local entries
-    if (currentQueue && Array.isArray(currentQueue)) {
-        currentQueue.forEach(entry => {
-            if (entry.player1) queueNames.add(entry.player1);
-            if (entry.player2) queueNames.add(entry.player2);
-        });
-    }
-
-    // 3. Add preferred users
+    // 2. Add preferred users with display names
     const userNames = new Set();
     if (preferredUsers && Array.isArray(preferredUsers)) {
         preferredUsers.forEach(user => {
@@ -90,13 +84,13 @@ export const usePlayerSuggestions = (branchId, currentQueue = []) => {
     }
 
     // Combine and dedup
-    const combined = Array.from(new Set([...queueNames, ...userNames]))
+    const combined = Array.from(new Set([...completedNames, ...userNames]))
         .filter(name => name && name.trim().length > 0)
         .sort();
 
     setSuggestions(combined);
 
-  }, [fullBranchQueue, preferredUsers, currentQueue]);
+  }, [completedEntries, preferredUsers]);
 
   return { suggestions, loading };
 };
