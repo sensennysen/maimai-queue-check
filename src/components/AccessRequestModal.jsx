@@ -118,7 +118,7 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
     .filter(b => !userRoles?.can_edit_on?.includes(b.id)) // Only show branches user doesn't have access to
     .map(b => ({
       value: String(b.id),
-      label: b.arcade_name,
+      label: b.short_name || b.arcade_name,
       disabled: existingRequests.some(r => r.branch_id === b.id && r.status === 'pending') // Disable if pending
     }));
 

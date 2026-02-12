@@ -116,7 +116,7 @@ const AccessRequestsTab = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
                     </Stack>
                   </Table.Td>
                   <Table.Td>
-                    <Badge>{r.allowed_places?.short_name || r.allowed_places?.arcade_name}</Badge>
+                    <Badge>{r.allowed_places?.acronym || r.allowed_places?.short_name}</Badge>
                   </Table.Td>
                   <Table.Td>
                     <Text size="sm">{new Date(r.created_at).toLocaleDateString()}</Text>
@@ -426,7 +426,7 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
 
   const branchOptions = branches.map(b => ({
     value: String(b.id),
-    label: b.arcade_name
+    label: b.short_name || b.arcade_name
   }));
 
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -531,7 +531,7 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
                                   {user.preferred_branches && user.preferred_branches.length > 0 ? (
                                     user.preferred_branches.map((branchId) => {
                                       const branch = branches.find(b => b.id === branchId);
-                                      const branchName = branch?.short_name || branch?.arcade_name;
+                                      const branchName = branch?.acronym || branch?.short_name;
                                       if (!branchName) return null;
                                       return (
                                         <Badge key={branchId} size="sm" variant="light" color="blue">
@@ -558,7 +558,7 @@ const UserManager = ({ isSuperAdmin = false, currentUserRoles = null, initialTab
                                     {user.can_edit_on && user.can_edit_on.length > 0 ? (
                                       user.can_edit_on.map((branchId) => {
                                         const branch = branches.find(b => b.id === branchId);
-                                        const branchName = branch?.short_name || branch?.arcade_name;
+                                        const branchName = branch?.acronym || branch?.short_name;
                                         if (!branchName) return null;
                                         return (
                                           <Badge key={branchId} size="sm" variant="outline" color="green">

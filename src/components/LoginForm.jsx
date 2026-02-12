@@ -39,7 +39,7 @@ const LoginForm = ({ onOpenAdminPanel, onOpenPreferences }) => {
           if (!branch) return null;
           return (
             <Badge key={branchId} size="xs" variant="light" color="blue">
-              {branch.short_name || branch.arcade_name}
+              {branch.acronym || branch.short_name}
             </Badge>
           );
         })}
