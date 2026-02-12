@@ -15,7 +15,7 @@ import './QueueManager.css';
  * @param {() => void} props.onFinishGame - Handler for finishing game
  * @param {boolean} props.isLoggedIn - Whether user is logged in
  */
-function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isLoggedIn }) {
+function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isLoggedIn, justUpdated = false }) {
   if (!nowPlaying) return null;
 
   const hasPlayer1 = nowPlaying.player1 && nowPlaying.player1.trim();
@@ -23,7 +23,7 @@ function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isL
   const isSolo = (hasPlayer1 && !hasPlayer2) || (!hasPlayer1 && hasPlayer2);
 
   return (
-    <div className="now-playing">
+    <div className={`now-playing ${justUpdated ? 'now-playing-updated' : ''}`}>
       <div className="now-playing-header">
         <h3>Now Playing</h3>
         <PlayTimer startTime={nowPlaying.started_at} />

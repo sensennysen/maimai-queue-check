@@ -1,4 +1,5 @@
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
 import { Container, Title, Text, Loader, Center, Alert, Badge, Group, Stack, ActionIcon, Paper, Skeleton, Table } from '@mantine/core';
 import { IconAlertCircle, IconWifi, IconWifiOff, IconSun, IconMoon, IconClockOff, IconAlertTriangle } from '@tabler/icons-react';
 import { useMonitorData } from '../hooks/useMonitorData';
@@ -23,6 +24,88 @@ export default function ViewPage() {
   // Fetch schedule and open status
   const { isMallOpen, loading: scheduleLoading, schedule } = useMallSchedule(activeBranchId);
 
+  // Animation state for view page
+  const [addedIds, setAddedIds] = useState(new Set());
+  const [movedIds, setMovedIds] = useState(new Set());
+  const [nowPlayingUpdatedCabs, setNowPlayingUpdatedCabs] = useState(new Set());
+  const prevQueueDataRef = useRef(null);
+  const firstLoadRef = useRef(true);
+
+  // Detect real-time changes and trigger animations
+  useEffect(() => {
+    if (loading || !queueData || Object.keys(queueData).length === 0) return;
+
+    // Skip animations on first load
+    if (firstLoadRef.current) {
+      firstLoadRef.current = false;
+      prevQueueDataRef.current = queueData;
+      return;
+    }
+
+    const prev = prevQueueDataRef.current;
+    if (!prev) {
+      prevQueueDataRef.current = queueData;
+      return;
+    }
+
+    const newAdded = new Set();
+    const newMoved = new Set();
+    const updatedCabs = new Set();
+
+    // Compare each cabinet
+    for (const cabNum of Object.keys(queueData)) {
+      const currCab = queueData[cabNum] || { playing: [], waiting: [] };
+      const prevCab = prev[cabNum] || { playing: [], waiting: [] };
+
+      // Detect new waiting entries
+      const prevWaitingIds = new Set(prevCab.waiting.map(e => e.id));
+      for (const entry of currCab.waiting) {
+        if (!prevWaitingIds.has(entry.id)) {
+          newAdded.add(entry.id);
+        }
+      }
+
+      // Detect now-playing change
+      const prevPlayingId = prevCab.playing[0]?.id;
+      const currPlayingId = currCab.playing[0]?.id;
+      if (currPlayingId && currPlayingId !== prevPlayingId) {
+        updatedCabs.add(Number(cabNum));
+      }
+
+      // Detect order changes (reorder)
+      const currWaitingIds = currCab.waiting.map(e => e.id);
+      const prevWaitingOrder = prevCab.waiting.map(e => e.id);
+      if (currWaitingIds.length === prevWaitingOrder.length && currWaitingIds.length > 0) {
+        for (let i = 0; i < currWaitingIds.length; i++) {
+          if (currWaitingIds[i] !== prevWaitingOrder[i] && prevWaitingIds.has(currWaitingIds[i])) {
+            newMoved.add(currWaitingIds[i]);
+          }
+        }
+      }
+    }
+
+    if (newAdded.size > 0) {
+      setTimeout(() => {
+        setAddedIds(newAdded);
+        setTimeout(() => setAddedIds(new Set()), 700);
+      }, 0);
+    }
+    if (newMoved.size > 0) {
+      setTimeout(() => {
+        setMovedIds(newMoved);
+        setTimeout(() => setMovedIds(new Set()), 600);
+      }, 0);
+    }
+    if (updatedCabs.size > 0) {
+      setTimeout(() => {
+        setNowPlayingUpdatedCabs(updatedCabs);
+        setTimeout(() => setNowPlayingUpdatedCabs(new Set()), 700);
+      }, 0);
+    }
+
+    prevQueueDataRef.current = queueData;
+  }, [queueData, loading]);
+
   // Calculate credits (players in waiting list)
   const getCreditsCount = (waitingList) => {
     return waitingList.reduce((acc, item) => {
@@ -31,7 +114,6 @@ export default function ViewPage() {
   };
 
   // If we don't have basic branch info yet, we must show full loader
-  // This state is just for initial page load where we don't know the branch name yet.
   if (!selectedBranch) {
     return (
       <Center style={{ height: '100vh', flexDirection: 'column', gap: 'md' }}>
@@ -173,6 +255,7 @@ export default function ViewPage() {
                           isBusy={false}
                           isLoggedIn={false}
                           readOnly={true}
+                          justUpdated={nowPlayingUpdatedCabs.has(cabNum)}
                         />
                       )}
                     </div>
@@ -198,11 +281,12 @@ export default function ViewPage() {
                               isNextUp={index === 0}
                               readOnly={true}
                               canActuallyEdit={false}
-                              // Event handlers not needed but safer to pass defaults or ignore in readOnly
                               onEdit={() => { }}
                               onRemove={() => { }}
                               onMoveUp={() => { }}
                               onMoveDown={() => { }}
+                              isAdded={addedIds.has(entry.id)}
+                              isMoved={movedIds.has(entry.id)}
                             />
                           ))
                         ) : (

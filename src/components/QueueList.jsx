@@ -7,7 +7,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { emptyQueueMessages } from '../data/subtitleMessages';
 import './QueueList.css';
 
-const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, loadingRoles = false, cabinetNum = null, hasMultipleCabinets = false }) {
+const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, loadingRoles = false, cabinetNum = null, hasMultipleCabinets = false, addedIds = null, movedIds = null, removingId = null }) {
   const { user, userRoles } = useAuth();
 
   // Lazy initialization - the function is only called once on mount, not during render
@@ -82,6 +82,9 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
               canActuallyEdit={canActuallyEdit}
               isBusy={isBusy}
               loadingRoles={loadingRoles}
+              isAdded={addedIds?.has(item.id) || false}
+              isMoved={movedIds?.has(item.id) || false}
+              isRemoving={removingId === item.id}
             />
           ))}
         </Stack>

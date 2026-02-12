@@ -378,3 +378,23 @@
     min-width: 28px;
   }
 }
+
+/* ── Now Playing Animation ── */
+
+@keyframes now-playing-pulse {
+  0% {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 0 0 0 rgba(255, 146, 43, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 0 0 8px rgba(255, 146, 43, 0);
+  }
+
+  100% {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 0 0 0 rgba(255, 146, 43, 0);
+  }
+}
+
+.now-playing.now-playing-updated {
+  animation: now-playing-pulse 0.6s ease-out;
+}
