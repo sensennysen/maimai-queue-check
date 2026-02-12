@@ -23,6 +23,8 @@ import { DAYS_OF_WEEK } from '../utils/constants';
 const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) => {
   // Branch form state
   const [arcadeName, setArcadeName] = useState('');
+  const [shortName, setShortName] = useState('');
+  const [acronym, setAcronym] = useState('');
   const [longitude, setLongitude] = useState('');
   const [latitude, setLatitude] = useState('');
   const [cabCount, setCabCount] = useState(1);
@@ -47,6 +49,8 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
   useEffect(() => {
     if (opened && mode === 'edit' && branchToEdit) {
       setArcadeName(branchToEdit.arcade_name);
+      setShortName(branchToEdit.short_name || '');
+      setAcronym(branchToEdit.acronym || '');
       setLatitude(branchToEdit.latitude.toString());
       setLongitude(branchToEdit.longitude.toString());
       setCabCount(branchToEdit.cab_count);
@@ -126,6 +130,8 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
     try {
       const branchData = {
         arcade_name: arcadeName.trim(),
+        short_name: shortName.trim(),
+        acronym: acronym.trim().toUpperCase(),
         longitude: lng,
         latitude: lat,
         cab_count: cabCount,
@@ -231,6 +237,8 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
 
   const resetForm = () => {
     setArcadeName('');
+    setShortName('');
+    setAcronym('');
     setLongitude('');
     setLatitude('');
     setCabCount(1);
@@ -281,6 +289,23 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
                 required
                 leftSection={<IconBuildingStore size={16} />}
               />
+
+              <Group grow>
+                <TextInput
+                  label="Short Name"
+                  placeholder="e.g. SM North"
+                  value={shortName}
+                  onChange={(e) => setShortName(e.target.value)}
+                  leftSection={<IconBuildingStore size={16} />}
+                />
+                <TextInput
+                  label="Acronym"
+                  placeholder="e.g. SMN"
+                  value={acronym}
+                  onChange={(e) => setAcronym(e.target.value.toUpperCase())}
+                  leftSection={<IconBuildingStore size={16} />}
+                />
+              </Group>
 
               <Divider label="Location" labelPosition="center" />
 

@@ -49,7 +49,7 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
 
   const branchOptions = branches.map(b => ({
     value: String(b.id),
-    label: b.arcade_name
+    label: b.short_name || b.arcade_name
   }));
 
   return (
