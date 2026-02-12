@@ -1,18 +1,7 @@
 import { Modal, Stack, Text, Button, Group } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
 
-const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, branchName, loading }) => {
-  // Backwards compatibility or specific logic for branchName if message is not provided
-  const content = message || (
-    <>
-      <Text style={{ marginTop: '2rem' }}>
-        Are you sure you want to delete <Text component="span" fw={700}>{branchName}</Text>?
-      </Text>
-      <Text size="sm" c="dimmed">
-        This action cannot be undone. All associated mall schedules will also be deleted.
-      </Text>
-    </>
-  );
+const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loading, confirmLabel }) => {
 
   return (
     <Modal
@@ -28,14 +17,14 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, branc
       size="sm"
     >
       <Stack gap="md">
-        {typeof content === 'string' ? <Text style={{ marginTop: '1rem' }}>{content}</Text> : content}
+        {typeof message === 'string' ? <Text style={{ marginTop: '1rem' }}>{message}</Text> : message}
 
         <Group justify="flex-end" mt="md">
           <Button variant="subtle" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
           <Button color="red" onClick={onConfirm} loading={loading}>
-            Delete Branch
+            {confirmLabel || 'Delete Branch'}
           </Button>
         </Group>
       </Stack>

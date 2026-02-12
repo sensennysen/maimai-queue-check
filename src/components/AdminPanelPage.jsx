@@ -244,7 +244,13 @@ const ReportsManager = () => {
         onClose={() => setDeleteReport(null)}
         onConfirm={confirmDeleteReport}
         title="Delete Report"
-        message="Are you sure you want to delete this report? This action cannot be undone."
+        message={
+          <>
+            <Text style={{ marginTop: '1rem' }}>Are you sure you want to delete this report?</Text>
+            <Text size="sm" c="dimmed" mt="xs">This action cannot be undone.</Text>
+          </>
+        }
+        confirmLabel="Delete Report"
         loading={deleting}
       />
     </Paper>
@@ -711,11 +717,12 @@ const AdminPanelPage = () => {
         title="Delete Branch"
         message={
           <>
-            <Text>Are you sure you want to delete <Text component="span" fw={700}>{branchToDelete?.arcade_name}</Text>?</Text>
+            <Text style={{ marginTop: '1rem' }}>Are you sure you want to delete <Text component="span" fw={700}>{branchToDelete?.arcade_name}</Text>?</Text>
             <Text size="sm" c="dimmed" mt="xs">This action cannot be undone. All associated mall schedules will also be deleted.</Text>
           </>
         }
         loading={deleting}
+        confirmLabel="Delete Branch"
       />
     </Container>
   );

@@ -286,8 +286,14 @@ const BranchManager = ({ opened, onClose }) => {
         opened={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}
-        branchName={branchToDelete?.arcade_name}
+        message={
+          <>
+            <Text>Are you sure you want to delete <Text component="span" fw={700}>{branchToDelete?.arcade_name}</Text>?</Text>
+            <Text size="sm" c="dimmed" mt="xs">This action cannot be undone. All associated mall schedules will also be deleted.</Text>
+          </>
+        }
         loading={deleting}
+        confirmLabel="Delete Branch"
       />
     </>
   );
