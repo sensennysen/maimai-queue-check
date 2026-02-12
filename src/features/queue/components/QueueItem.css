@@ -6,6 +6,8 @@
   align-items: center;
 
   border-bottom: 1px solid var(--theme-border);
+  border-left: 4px solid transparent;
+  /* Prevent layout shift from next-up border */
   /* align-items: center;
   position: relative; */
   background: var(--theme-surface);
@@ -32,7 +34,7 @@
 
 .queue-item.next-up {
   background: linear-gradient(90deg, rgba(255, 215, 0, 0.2) 0%, var(--theme-surface) 100%);
-  border-left: 4px solid var(--theme-accent);
+  border-left-color: var(--theme-accent);
 }
 
 .item-order {

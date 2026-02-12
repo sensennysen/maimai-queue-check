@@ -175,7 +175,7 @@ const NotificationCenter = () => {
             )}
           </Group>
 
-          <ScrollArea.Autosize maxHeight={300}>
+          <ScrollArea.Autosize mah="60vh" type="scroll">
             {allItems.length === 0 ? (
               <Text size="sm" c="dimmed" ta="center" py="md">
                 No notifications
