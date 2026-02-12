@@ -3,24 +3,13 @@
 }
 
 .app-header {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--theme-border);
-  transition: all 0.3s ease;
-  background: linear-gradient(135deg, var(--theme-surface) 0%, var(--theme-background) 100%);
+  /* Glassmorphism handled by global .mantine-Paper-root style in index.css */
+  /* overriding borders just in case */
+  border: 1px solid rgba(0, 210, 255, 0.3) !important;
 }
 
-/* Light theme special header style */
-[data-theme="light"] .app-header {
-  background: linear-gradient(135deg, #FFF0F5 0%, #FFFFFF 50%, #E0F7FA 100%);
-  /* Soft Pink to White to Light Cyan */
-  border-bottom: 3px solid var(--theme-primary);
-}
-
-/* Dark theme special header style */
-[data-theme="dark"] .app-header {
-  background: linear-gradient(135deg, #2D1B4E 0%, #1A0B2E 100%);
-  border-bottom: 3px solid var(--theme-primary);
-}
+/* Light theme special header style - REMOVED (using global glassmorphism) */
+/* Dark theme special header style - REMOVED (using global glassmorphism) */
 
 .app-header:hover {
   box-shadow: 0 8px 16px rgba(255, 51, 153, 0.15);
