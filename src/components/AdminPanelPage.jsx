@@ -17,6 +17,7 @@ import {
   Modal,
   Collapse,
   Tabs,
+  TextInput,
 } from '@mantine/core';
 import {
   IconBuildingStore,
@@ -29,6 +30,7 @@ import {
   IconUsers,
   IconMessageReport,
   IconPaperclip,
+  IconSearch,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -164,13 +166,13 @@ const ReportsManager = () => {
         <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Date</Table.Th>
-              <Table.Th>Type</Table.Th>
-              <Table.Th>User/Email</Table.Th>
-              <Table.Th>Description</Table.Th>
-              <Table.Th>Attachment</Table.Th>
-              <Table.Th>Status</Table.Th>
-              <Table.Th>Actions</Table.Th>
+              <Table.Th style={{ width: '120px' }}>Date</Table.Th>
+              <Table.Th style={{ width: '80px' }}>Type</Table.Th>
+              <Table.Th style={{ width: '160px' }}>User/Email</Table.Th>
+              <Table.Th style={{ width: '300px' }}>Description</Table.Th>
+              <Table.Th style={{ width: '80px' }}>Attachment</Table.Th>
+              <Table.Th style={{ width: '100px' }}>Status</Table.Th>
+              <Table.Th style={{ width: '120px' }}>Actions</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -283,6 +285,7 @@ const AdminPanelPage = () => {
 
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [branchSearch, setBranchSearch] = useState('');
   const [expandedBranches, setExpandedBranches] = useState(new Set());
   const [branchSchedules, setBranchSchedules] = useState({});
   const [loadingSchedules, setLoadingSchedules] = useState({});
@@ -494,7 +497,14 @@ const AdminPanelPage = () => {
           {isSuperAdmin && (
             <Tabs.Panel value="branches" pt="md">
               <Stack gap="md">
-                <Group justify="flex-end">
+                <Group justify="space-between">
+                  <TextInput
+                    placeholder="Search branches..."
+                    leftSection={<IconSearch size={16} />}
+                    value={branchSearch}
+                    onChange={(e) => setBranchSearch(e.currentTarget.value)}
+                    style={{ flex: 1, maxWidth: 300 }}
+                  />
                   <Button
                     leftSection={<IconPlus size={16} />}
                     onClick={handleAddBranch}
@@ -530,16 +540,22 @@ const AdminPanelPage = () => {
                         <Table.Thead>
                           <Table.Tr>
                             <Table.Th style={{ width: '40px' }}></Table.Th>
-                            <Table.Th>Arcade Name</Table.Th>
-                            <Table.Th>Location</Table.Th>
-                            <Table.Th>Cabinets</Table.Th>
-                            <Table.Th>Status</Table.Th>
-                            <Table.Th>Enabled</Table.Th>
-                            <Table.Th>Actions</Table.Th>
+                            <Table.Th style={{ width: '200px' }}>Arcade Name</Table.Th>
+                            <Table.Th style={{ width: '160px' }}>Location</Table.Th>
+                            <Table.Th style={{ width: '80px' }}>Cabinets</Table.Th>
+                            <Table.Th style={{ width: '90px' }}>Status</Table.Th>
+                            <Table.Th style={{ width: '70px' }}>Enabled</Table.Th>
+                            <Table.Th style={{ width: '100px' }}>Actions</Table.Th>
                           </Table.Tr>
                         </Table.Thead>
                         <Table.Tbody>
-                          {branches.map((branch) => (
+                          {branches.filter(b => {
+                            const q = branchSearch.toLowerCase();
+                            if (!q) return true;
+                            return (b.arcade_name?.toLowerCase().includes(q) ||
+                              b.short_name?.toLowerCase().includes(q) ||
+                              b.acronym?.toLowerCase().includes(q));
+                          }).map((branch) => (
                             <>
                               <Table.Tr key={branch.id}>
                                 <Table.Td>
