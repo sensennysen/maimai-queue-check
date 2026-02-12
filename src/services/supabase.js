@@ -493,6 +493,8 @@ export const adminService = {
       .from('allowed_places')
       .insert([{
         arcade_name: branchData.arcade_name,
+        short_name: branchData.short_name,
+        acronym: branchData.acronym,
         longitude: branchData.longitude,
         latitude: branchData.latitude,
         cab_count: branchData.cab_count,
@@ -714,7 +716,8 @@ export const requestService = {
             *,
             allowed_places (
                 arcade_name,
-                short_name
+                short_name,
+                acronym
             )
         `)
         .eq('status', 'pending')

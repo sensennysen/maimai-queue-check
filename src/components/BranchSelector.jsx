@@ -60,7 +60,7 @@ function BranchSelector() {
           })}
         >
           <Text size="sm" fw={500} truncate="end">
-            {selectedBranch.arcade_name}
+            {selectedBranch.short_name || selectedBranch.arcade_name}
           </Text>
         </Button>
       </Menu.Target>
@@ -88,7 +88,7 @@ function BranchSelector() {
               }}
             >
               <Text size="sm" fw={isSelected ? 600 : 400}>
-                {branch.arcade_name}
+                {branch.short_name || branch.arcade_name}
               </Text>
             </Menu.Item>
           );
