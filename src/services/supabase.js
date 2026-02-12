@@ -782,11 +782,16 @@ export const requestService = {
 // Notification service functions
 export const notificationService = {
   // Get all notifications for a user, including read status
+  // Only fetches notifications from the last 7 days to reduce payload
   async getAllNotifications(userId) {
-    // 1. Fetch all notifications
+    // 1. Fetch notifications from the last 7 days
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
     const { data: notifications, error: notifError } = await supabase
       .from('notifications')
       .select('*')
+      .gte('created_at', oneWeekAgo.toISOString())
       .order('created_at', { ascending: false });
 
     if (notifError) throw notifError;
