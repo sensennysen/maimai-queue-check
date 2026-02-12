@@ -456,7 +456,7 @@ function QueueManager() {
       )}
 
       {/* Closed message */}
-      {!scheduleLoading && !isMallOpen && (
+      {!queueLoading && !scheduleLoading && !isMallOpen && (
         <Paper p="xl" withBorder>
           <Flex align="center" justify="center" style={{ height: 200 }}>
             <Title order={2}>{closedMessage}</Title>
