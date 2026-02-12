@@ -17,6 +17,7 @@ import {
   Modal,
   Collapse,
   Tabs,
+  TextInput,
 } from '@mantine/core';
 import {
   IconBuildingStore,
@@ -29,8 +30,10 @@ import {
   IconUsers,
   IconMessageReport,
   IconPaperclip,
+  IconSearch,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { adminService, contactService } from '../services/supabase';
 import AdminPanel from './AdminPanel';
 import ScheduleEditor from './ScheduleEditor';
@@ -163,13 +166,13 @@ const ReportsManager = () => {
         <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Date</Table.Th>
-              <Table.Th>Type</Table.Th>
-              <Table.Th>User/Email</Table.Th>
-              <Table.Th>Description</Table.Th>
-              <Table.Th>Attachment</Table.Th>
-              <Table.Th>Status</Table.Th>
-              <Table.Th>Actions</Table.Th>
+              <Table.Th style={{ width: '120px' }}>Date</Table.Th>
+              <Table.Th style={{ width: '80px' }}>Type</Table.Th>
+              <Table.Th style={{ width: '160px' }}>User/Email</Table.Th>
+              <Table.Th style={{ width: '300px' }}>Description</Table.Th>
+              <Table.Th style={{ width: '80px' }}>Attachment</Table.Th>
+              <Table.Th style={{ width: '100px' }}>Status</Table.Th>
+              <Table.Th style={{ width: '120px' }}>Actions</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -241,7 +244,13 @@ const ReportsManager = () => {
         onClose={() => setDeleteReport(null)}
         onConfirm={confirmDeleteReport}
         title="Delete Report"
-        message="Are you sure you want to delete this report? This action cannot be undone."
+        message={
+          <>
+            <Text style={{ marginTop: '1rem' }}>Are you sure you want to delete this report?</Text>
+            <Text size="sm" c="dimmed" mt="xs">This action cannot be undone.</Text>
+          </>
+        }
+        confirmLabel="Delete Report"
         loading={deleting}
       />
     </Paper>
@@ -260,11 +269,12 @@ const formatTime = (time24) => {
   return `${hour12}:${minutes} ${ampm}`;
 };
 
-const AdminPanelPage = ({ onBack, targetTab }) => {
+const AdminPanelPage = () => {
   const { userRoles } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const targetTab = searchParams.get('tab');
   const isSuperAdmin = userRoles?.is_super_admin || false;
-
-
 
   const [activeTab, setActiveTab] = useState(() => {
     // If target is requests, we need to show users tab
@@ -272,7 +282,7 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
     return isSuperAdmin ? 'branches' : 'users';
   });
 
-  // React to prop changes
+  // React to URL search param changes
   useEffect(() => {
     if (targetTab === 'requests') {
       setActiveTab('users');
@@ -281,6 +291,7 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
 
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [branchSearch, setBranchSearch] = useState('');
   const [expandedBranches, setExpandedBranches] = useState(new Set());
   const [branchSchedules, setBranchSchedules] = useState({});
   const [loadingSchedules, setLoadingSchedules] = useState({});
@@ -326,7 +337,7 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
           <Stack align="center" gap="md">
             <Title order={3}>Access Denied</Title>
             <Text>You do not have permission to view this page.</Text>
-            <Button onClick={onBack}>Go Back</Button>
+            <Button onClick={() => navigate('/')}>Go Back</Button>
           </Stack>
         </Paper>
       </Container>
@@ -462,7 +473,7 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
               <ActionIcon
                 variant="subtle"
                 size="lg"
-                onClick={onBack}
+                onClick={() => navigate('/')}
                 title="Back to Queue Manager"
               >
                 <IconArrowLeft size={20} />
@@ -492,7 +503,14 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
           {isSuperAdmin && (
             <Tabs.Panel value="branches" pt="md">
               <Stack gap="md">
-                <Group justify="flex-end">
+                <Group justify="space-between">
+                  <TextInput
+                    placeholder="Search branches..."
+                    leftSection={<IconSearch size={16} />}
+                    value={branchSearch}
+                    onChange={(e) => setBranchSearch(e.currentTarget.value)}
+                    style={{ flex: 1, maxWidth: 300 }}
+                  />
                   <Button
                     leftSection={<IconPlus size={16} />}
                     onClick={handleAddBranch}
@@ -528,16 +546,22 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
                         <Table.Thead>
                           <Table.Tr>
                             <Table.Th style={{ width: '40px' }}></Table.Th>
-                            <Table.Th>Arcade Name</Table.Th>
-                            <Table.Th>Location</Table.Th>
-                            <Table.Th>Cabinets</Table.Th>
-                            <Table.Th>Status</Table.Th>
-                            <Table.Th>Enabled</Table.Th>
-                            <Table.Th>Actions</Table.Th>
+                            <Table.Th style={{ width: '200px' }}>Arcade Name</Table.Th>
+                            <Table.Th style={{ width: '160px' }}>Location</Table.Th>
+                            <Table.Th style={{ width: '80px' }}>Cabinets</Table.Th>
+                            <Table.Th style={{ width: '90px' }}>Status</Table.Th>
+                            <Table.Th style={{ width: '70px' }}>Enabled</Table.Th>
+                            <Table.Th style={{ width: '100px' }}>Actions</Table.Th>
                           </Table.Tr>
                         </Table.Thead>
                         <Table.Tbody>
-                          {branches.map((branch) => (
+                          {branches.filter(b => {
+                            const q = branchSearch.toLowerCase();
+                            if (!q) return true;
+                            return (b.arcade_name?.toLowerCase().includes(q) ||
+                              b.short_name?.toLowerCase().includes(q) ||
+                              b.acronym?.toLowerCase().includes(q));
+                          }).map((branch) => (
                             <>
                               <Table.Tr key={branch.id}>
                                 <Table.Td>
@@ -693,11 +717,12 @@ const AdminPanelPage = ({ onBack, targetTab }) => {
         title="Delete Branch"
         message={
           <>
-            <Text>Are you sure you want to delete <Text component="span" fw={700}>{branchToDelete?.arcade_name}</Text>?</Text>
+            <Text style={{ marginTop: '1rem' }}>Are you sure you want to delete <Text component="span" fw={700}>{branchToDelete?.arcade_name}</Text>?</Text>
             <Text size="sm" c="dimmed" mt="xs">This action cannot be undone. All associated mall schedules will also be deleted.</Text>
           </>
         }
         loading={deleting}
+        confirmLabel="Delete Branch"
       />
     </Container>
   );

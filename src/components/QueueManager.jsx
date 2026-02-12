@@ -81,6 +81,12 @@ function QueueManager() {
   const [showForm, setShowForm] = useState(false);
   const [showLocationHelp, setShowLocationHelp] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
+
+  // Animation state
+  const [addedIds, setAddedIds] = useState(new Set());
+  const [movedIds, setMovedIds] = useState(new Set());
+  const [removingId, setRemovingId] = useState(null);
+  const [nowPlayingUpdated, setNowPlayingUpdated] = useState(false);
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [closedMessage, setClosedMessage] = useState(() =>
     closedMessages[Math.floor(Math.random() * closedMessages.length)]
@@ -122,8 +128,13 @@ function QueueManager() {
   // Action handlers
   const addQueueEntry = async (player1, player2) => {
     try {
-      await addEntry(player1, player2);
+      const newEntry = await addEntry(player1, player2);
       setShowForm(false);
+      // Trigger added animation
+      if (newEntry?.id) {
+        setAddedIds(new Set([newEntry.id]));
+        setTimeout(() => setAddedIds(new Set()), 700);
+      }
     } catch {
       // Error handled by hook
     }
@@ -163,6 +174,9 @@ function QueueManager() {
   const finishGame = async () => {
     try {
       await endGame();
+      // Trigger now-playing pulse
+      setNowPlayingUpdated(true);
+      setTimeout(() => setNowPlayingUpdated(false), 700);
     } catch {
       // Error handled by hook
     }
@@ -171,11 +185,64 @@ function QueueManager() {
   const startGame = async () => {
     try {
       await startNextGame();
+      // Trigger now-playing pulse
+      setNowPlayingUpdated(true);
+      setTimeout(() => setNowPlayingUpdated(false), 700);
     } catch {
       // Error handled by hook
     }
   };
 
+
+  // Animation wrappers
+  const handleRemoveWithAnimation = async (id) => {
+    setRemovingId(id);
+    // Wait for exit animation to play
+    await new Promise(resolve => setTimeout(resolve, 400));
+    try {
+      await removeQueueEntry(id);
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
+  const handleMoveUpWithAnimation = async (id) => {
+    try {
+      // Find the item being moved and the one above it
+      const waitingItems = filterQueue(queue);
+      const index = waitingItems.findIndex(item => item.id === id);
+      const swappedId = index > 0 ? waitingItems[index - 1].id : null;
+
+      await moveUp(id);
+
+      // Highlight both swapped items
+      const ids = new Set([id]);
+      if (swappedId) ids.add(swappedId);
+      setMovedIds(ids);
+      setTimeout(() => setMovedIds(new Set()), 600);
+    } catch {
+      // Error handled by hook
+    }
+  };
+
+  const handleMoveDownWithAnimation = async (id) => {
+    try {
+      // Find the item being moved and the one below it
+      const waitingItems = filterQueue(queue);
+      const index = waitingItems.findIndex(item => item.id === id);
+      const swappedId = index < waitingItems.length - 1 ? waitingItems[index + 1].id : null;
+
+      await moveDown(id);
+
+      // Highlight both swapped items
+      const ids = new Set([id]);
+      if (swappedId) ids.add(swappedId);
+      setMovedIds(ids);
+      setTimeout(() => setMovedIds(new Set()), 600);
+    } catch {
+      // Error handled by hook
+    }
+  };
 
   const [loadingMessage] = useState(() => loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
 
@@ -383,6 +450,7 @@ function QueueManager() {
             isBusy={isMutating}
             onFinishGame={finishGame}
             isLoggedIn={!!user}
+            justUpdated={nowPlayingUpdated}
           />
         )
       )}
@@ -409,15 +477,18 @@ function QueueManager() {
             queue={filterQueue(queue)}
             nowPlaying={nowPlaying}
             onEdit={startEdit}
-            onRemove={removeQueueEntry}
-            onMoveUp={moveUp}
-            onMoveDown={moveDown}
+            onRemove={handleRemoveWithAnimation}
+            onMoveUp={handleMoveUpWithAnimation}
+            onMoveDown={handleMoveDownWithAnimation}
             onStartGame={startGame}
             isMallOpen={isMallOpen}
             isBusy={isMutating}
             loadingRoles={!actionsLoaded}
             cabinetNum={selectedCabinet}
             hasMultipleCabinets={hasMultipleCabinets}
+            addedIds={addedIds}
+            movedIds={movedIds}
+            removingId={removingId}
           />
         )
       )}

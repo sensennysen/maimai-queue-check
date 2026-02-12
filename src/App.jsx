@@ -25,9 +25,7 @@ import './App.css';
 // The main application content (Queue check, Login, etc.)
 function MainApp() {
   const { user, userRoles } = useAuth();
-  const [currentPage, setCurrentPage] = useState('queue'); // 'queue' or 'admin-panel'
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
-  const [adminTargetTab, setAdminTargetTab] = useState(null);
 
   const handlePreferencesSaved = () => {
     // Real-time synchronization in AuthContext will handle updating userRoles state
@@ -35,48 +33,38 @@ function MainApp() {
     setShowPreferencesModal(false);
   };
 
-  const handleOpenAdminPanel = (tab) => {
-    setAdminTargetTab(tab);
-    setCurrentPage('admin-panel');
-  };
-
   return (
     <div className="App">
-      {currentPage === 'queue' ? (
-        <Container size="lg" py="xl">
-          <Stack gap="lg">
-            <Paper p="md" radius="md" withBorder className="app-header">
-              <Group justify="space-between" align="center" gap="md" wrap="wrap">
-                <Group gap="md">
-                  <Title order={1} className="app-title">
-                    maiPaQueueCheck PH
-                  </Title>
-                </Group>
-              </Group>
-            </Paper>
-
-            <Group justify="space-between" gap="sm">
-              <BranchSelector />
-              <Group gap="sm">
-                {user && <NotificationCenter onOpenAdminPanel={handleOpenAdminPanel} />}
-                <ThemeToggle />
-                <LoginForm
-                  onOpenAdminPanel={handleOpenAdminPanel}
-                  onOpenPreferences={() => setShowPreferencesModal(true)}
-                />
+      <Container size="lg" py="xl">
+        <Stack gap="lg">
+          <Paper p="md" radius="md" withBorder className="app-header">
+            <Group justify="space-between" align="center" gap="md" wrap="wrap">
+              <Group gap="md">
+                <Title order={1} className="app-title">
+                  maiPaQueueCheck PH
+                </Title>
               </Group>
             </Group>
+          </Paper>
 
-            <main>
-              <QueueManager />
-            </main>
+          <Group justify="space-between" gap="sm">
+            <BranchSelector />
+            <Group gap="sm">
+              {user && <NotificationCenter />}
+              <ThemeToggle />
+              <LoginForm
+                onOpenPreferences={() => setShowPreferencesModal(true)}
+              />
+            </Group>
+          </Group>
 
-            <Footer />
-          </Stack>
-        </Container>
-      ) : (
-        <AdminPanelPage onBack={() => setCurrentPage('queue')} targetTab={adminTargetTab} />
-      )}
+          <main>
+            <QueueManager />
+          </main>
+
+          <Footer />
+        </Stack>
+      </Container>
 
       {user && (
         <PreferencesModal
@@ -103,6 +91,7 @@ function AppProviders() {
       <Routes>
         <Route path="/view" element={<ViewPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/admin" element={<AdminPanelPage />} />
         <Route path="/*" element={<MainApp />} />
       </Routes>
       <Analytics />
