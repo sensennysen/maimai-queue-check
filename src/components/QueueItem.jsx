@@ -3,7 +3,7 @@ import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/ico
 import { Skeleton, ActionIcon, Tooltip } from '@mantine/core';
 import './QueueItem.css';
 
-const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false, readOnly = false }) {
+const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false, readOnly = false, isAdded = false, isMoved = false, isRemoving = false }) {
   const handleEdit = () => {
     if (readOnly) return;
     onEdit(item.id);
@@ -26,10 +26,12 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
     onMoveDown(item.id);
   };
 
+  // Build animation class
+  const animClass = isRemoving ? 'queue-item-removing' : isAdded ? 'queue-item-added' : isMoved ? 'queue-item-moved' : '';
 
   return (
     <div
-      className={`queue-item ${isNextUp ? 'next-up' : ''} ${readOnly ? 'read-only' : ''}`}
+      className={`queue-item ${isNextUp ? 'next-up' : ''} ${readOnly ? 'read-only' : ''} ${animClass}`}
     >
       <div className="item-order">
         <span className="order-number">#{order}</span>
