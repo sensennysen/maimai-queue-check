@@ -11,6 +11,8 @@ import {
   Divider,
   Paper,
   Checkbox,
+  Table,
+  ScrollArea,
 } from '@mantine/core';
 import { IconMapPin, IconBuildingStore, IconClock } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
@@ -43,7 +45,6 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
   // UI state
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1 = branch form, 2 = schedule form
-  const [createdBranchId, setCreatedBranchId] = useState(null);
 
   // Pre-populate form when editing
   useEffect(() => {
@@ -126,20 +127,20 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
       return;
     }
 
-    setLoading(true);
-    try {
-      const branchData = {
-        arcade_name: arcadeName.trim(),
-        short_name: shortName.trim(),
-        acronym: acronym.trim().toUpperCase(),
-        longitude: lng,
-        latitude: lat,
-        cab_count: cabCount,
-        enabled,
-      };
+    const branchData = {
+      arcade_name: arcadeName.trim(),
+      short_name: shortName.trim(),
+      acronym: acronym.trim().toUpperCase(),
+      longitude: lng,
+      latitude: lat,
+      cab_count: cabCount,
+      enabled,
+    };
 
-      if (mode === 'edit' && branchToEdit) {
-        // Update existing branch
+    if (mode === 'edit' && branchToEdit) {
+      // Update existing branch
+      setLoading(true);
+      try {
         await adminService.updateBranch(branchToEdit.id, branchData);
         notifications.show({
           title: 'Branch Updated',
@@ -148,28 +149,18 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
         });
         // Close and refresh parent
         handleClose(true);
-      } else {
-        // Create new branch
-        const newBranch = await adminService.createBranch(branchData);
-        setCreatedBranchId(newBranch.id);
-
+      } catch (error) {
         notifications.show({
-          title: 'Branch Created',
-          message: `${arcadeName} has been added successfully`,
-          color: 'green',
+          title: 'Error',
+          message: error.message || 'Failed to update branch',
+          color: 'red',
         });
-
-        // Move to schedule form
-        setStep(2);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: error.message || `Failed to ${mode === 'edit' ? 'update' : 'create'} branch`,
-        color: 'red',
-      });
-    } finally {
-      setLoading(false);
+    } else {
+      // Create mode: just advance to step 2 (no DB call yet)
+      setStep(2);
     }
   };
 
@@ -207,8 +198,21 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
 
     setLoading(true);
     try {
+      // Create branch first
+      const branchData = {
+        arcade_name: arcadeName.trim(),
+        short_name: shortName.trim(),
+        acronym: acronym.trim().toUpperCase(),
+        longitude: parseFloat(longitude),
+        latitude: parseFloat(latitude),
+        cab_count: cabCount,
+        enabled,
+      };
+      const newBranch = await adminService.createBranch(branchData);
+
+      // Then create schedules with the new branch ID
       const scheduleData = schedules.map(schedule => ({
-        branch_id: createdBranchId,
+        branch_id: newBranch.id,
         day: schedule.day,
         time_open: schedule.time_open,
         time_close: schedule.time_close,
@@ -218,16 +222,16 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
 
       notifications.show({
         title: 'Success',
-        message: 'Mall schedules have been created successfully',
+        message: `${arcadeName} and its schedules have been created successfully`,
         color: 'green',
       });
 
-      // Reset form and close
-      handleClose();
+      // Reset form and close, refresh parent
+      handleClose(true);
     } catch (error) {
       notifications.show({
         title: 'Error',
-        message: error.message || 'Failed to create schedules',
+        message: error.message || 'Failed to create branch',
         color: 'red',
       });
     } finally {
@@ -251,7 +255,6 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
       }))
     );
     setStep(1);
-    setCreatedBranchId(null);
   };
 
   const handleClose = (shouldRefresh = false) => {
@@ -377,31 +380,48 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
               </Text>
 
               <Paper p="md" withBorder className="schedule-container">
-                <Stack gap="sm">
-                  {schedules.map((schedule, index) => (
-                    <Group key={schedule.day} grow align="flex-end">
-                      <Text size="sm" fw={500} style={{ minWidth: '100px' }}>
-                        {schedule.day}
-                      </Text>
-                      <TextInput
-                        label="Opening Time"
-                        type="time"
-                        value={schedule.time_open}
-                        onChange={(e) => handleScheduleChange(index, 'time_open', e.target.value)}
-                        required
-                        leftSection={<IconClock size={16} />}
-                      />
-                      <TextInput
-                        label="Closing Time"
-                        type="time"
-                        value={schedule.time_close}
-                        onChange={(e) => handleScheduleChange(index, 'time_close', e.target.value)}
-                        required
-                        leftSection={<IconClock size={16} />}
-                      />
-                    </Group>
-                  ))}
-                </Stack>
+                <ScrollArea>
+                  <Table minWidth={500}>
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th>Day</Table.Th>
+                        <Table.Th style={{ textAlign: 'center' }}>Opening Time</Table.Th>
+                        <Table.Th style={{ textAlign: 'center' }}>Closing Time</Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {schedules.map((schedule, index) => (
+                        <Table.Tr key={schedule.day}>
+                          <Table.Td>
+                            <Text size="sm" fw={500}>
+                              {schedule.day}
+                            </Text>
+                          </Table.Td>
+                          <Table.Td>
+                            <TextInput
+                              type="time"
+                              value={schedule.time_open}
+                              onChange={(e) => handleScheduleChange(index, 'time_open', e.target.value)}
+                              required
+                              leftSection={<IconClock size={16} />}
+                              styles={{ input: { textAlign: 'center' } }}
+                            />
+                          </Table.Td>
+                          <Table.Td>
+                            <TextInput
+                              type="time"
+                              value={schedule.time_close}
+                              onChange={(e) => handleScheduleChange(index, 'time_close', e.target.value)}
+                              required
+                              leftSection={<IconClock size={16} />}
+                              styles={{ input: { textAlign: 'center' } }}
+                            />
+                          </Table.Td>
+                        </Table.Tr>
+                      ))}
+                    </Table.Tbody>
+                  </Table>
+                </ScrollArea>
               </Paper>
 
               <Group justify="space-between" mt="md">
