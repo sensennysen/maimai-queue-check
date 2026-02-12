@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Text, Group, Anchor, Stack } from '@mantine/core';
 import { IconMail, IconHistory, IconShieldLock } from '@tabler/icons-react';
-import ChangelogModal from './ChangelogModal';
-import PrivacyModal from './PrivacyModal';
+import ChangelogModal from '../modals/ChangelogModal';
+import PrivacyModal from '../modals/PrivacyModal';
 import './Footer.css';
 
 function Footer() {

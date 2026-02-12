@@ -3,8 +3,8 @@ import { Popover, ActionIcon, Indicator, Stack, Text, Group, ThemeIcon, ScrollAr
 import { IconBell, IconUserPlus, IconInfoCircle, IconCheck, IconChevronRight } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { requestService, notificationService, supabase } from '../services/supabase';
+import { useAuth } from '../../hooks/useAuth';
+import { requestService, notificationService, supabase } from '../../services/supabase';
 
 const NotificationCenter = () => {
   const { user, userRoles } = useAuth();
@@ -175,7 +175,7 @@ const NotificationCenter = () => {
             )}
           </Group>
 
-          <ScrollArea.Autosize maxHeight={300}>
+          <ScrollArea.Autosize mah="60vh" type="scroll">
             {allItems.length === 0 ? (
               <Text size="sm" c="dimmed" ta="center" py="md">
                 No notifications

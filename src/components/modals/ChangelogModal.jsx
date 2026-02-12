@@ -1,5 +1,5 @@
 import { Modal, Text, List, Stack, Group } from '@mantine/core';
-import { changelogData } from '../data/changelog';
+import { changelogData } from '../../data/changelog';
 
 function ChangelogModal({ opened, onClose }) {
 

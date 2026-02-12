@@ -16,13 +16,13 @@ import {
 } from '@mantine/core';
 import { IconMapPin, IconBuildingStore, IconClock } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { adminService } from '../services/supabase';
-import { requestUserLocation } from '../services/geolocation';
-import './AdminPanel.css';
+import { adminService } from '../../services/supabase';
+import { requestUserLocation } from '../../services/geolocation';
+import './BranchEditModal.css';
 
-import { DAYS_OF_WEEK } from '../utils/constants';
+import { DAYS_OF_WEEK } from '../../utils/constants';
 
-const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) => {
+const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null }) => {
   // Branch form state
   const [arcadeName, setArcadeName] = useState('');
   const [shortName, setShortName] = useState('');
@@ -445,4 +445,4 @@ const AdminPanel = ({ opened, onClose, mode = 'create', branchToEdit = null }) =
   );
 };
 
-export default AdminPanel;
+export default BranchEditModal;

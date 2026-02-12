@@ -6,6 +6,8 @@
   align-items: center;
 
   border-bottom: 1px solid var(--theme-border);
+  border-left: 4px solid transparent;
+  /* Prevent layout shift from next-up border */
   /* align-items: center;
   position: relative; */
   background: var(--theme-surface);
@@ -32,13 +34,14 @@
 
 .queue-item.next-up {
   background: linear-gradient(90deg, rgba(255, 215, 0, 0.2) 0%, var(--theme-surface) 100%);
-  border-left: 4px solid var(--theme-accent);
+  border-left-color: var(--theme-accent);
 }
 
 .item-order {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .order-number {
@@ -49,13 +52,13 @@
 }
 
 .next-label {
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: bold;
   color: var(--theme-accent);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 0.15rem;
-  margin-left: 2rem;
+  margin-top: 0.25rem;
+  margin-left: 0;
   line-height: 1;
 }
 
@@ -65,7 +68,7 @@
 
 .players-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   align-items: center;
   width: 100%;
@@ -303,8 +306,8 @@
   .player-name {
     padding: 0.4rem 0.75rem;
     font-size: 0.85rem;
-    white-space: normal;
-    word-break: break-word;
+    /* white-space: normal; */
+    /* word-break: break-word; */
     width: 100%;
     flex: 1;
     text-align: center;
@@ -322,6 +325,11 @@
     height: 32px;
     min-height: 44px;
     min-width: 44px;
+  }
+
+  .queue-item.read-only {
+    grid-template-columns: 60px minmax(0, 1fr);
+    padding-right: 1rem;
   }
 }
 
@@ -368,6 +376,11 @@
     min-height: 36px;
     min-width: 36px;
   }
+
+  .queue-item.read-only {
+    grid-template-columns: 40px minmax(0, 1fr);
+    padding-right: 0.5rem;
+  }
 }
 
 /* ── Queue Item Animations ── */
@@ -379,11 +392,13 @@
     transform: translateX(-20px);
     background-color: rgba(64, 192, 87, 0.25);
   }
+
   40% {
     opacity: 1;
     transform: translateX(0);
     background-color: rgba(64, 192, 87, 0.2);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
@@ -400,6 +415,7 @@
   0% {
     background-color: rgba(34, 139, 230, 0.25);
   }
+
   100% {
     background-color: transparent;
   }
@@ -416,11 +432,13 @@
     transform: translateX(0);
     max-height: 120px;
   }
+
   60% {
     opacity: 0;
     transform: translateX(30px);
     max-height: 120px;
   }
+
   100% {
     opacity: 0;
     transform: translateX(30px);
