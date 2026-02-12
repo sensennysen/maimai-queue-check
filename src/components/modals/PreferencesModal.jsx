@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Modal, Stack, Text, Group, Button, MultiSelect, Loader, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { userService } from '../services/supabase';
-import { useBranch } from '../contexts/BranchContext';
+import { userService } from '../../services/supabase';
+import { useBranch } from '../../contexts/BranchContext';
 
 const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], initialDisplayName = '', onSaveSuccess }) => {
   const { branches, loading } = useBranch();

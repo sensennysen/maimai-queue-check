@@ -13,9 +13,9 @@ import {
 } from '@mantine/core';
 import { IconCalendar, IconClock } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { adminService } from '../services/supabase';
+import { adminService } from '../../services/supabase';
 
-import { DAYS_OF_WEEK } from '../utils/constants';
+import { DAYS_OF_WEEK } from '../../utils/constants';
 
 const ScheduleEditor = ({ opened, onClose, branch }) => {
   const [schedules, setSchedules] = useState(

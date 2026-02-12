@@ -10,16 +10,16 @@ import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';
 import { useAuth } from './hooks/useAuth';
 import { theme as mantineTheme } from './config/theme';
-import QueueManager from './components/QueueManager';
-import LoginForm from './components/LoginForm';
-import ThemeToggle from './components/ThemeToggle';
-import BranchSelector from './components/BranchSelector';
-import Footer from './components/Footer';
-import AdminPanelPage from './components/AdminPanelPage';
-import PreferencesModal from './components/PreferencesModal';
-import NotificationCenter from './components/NotificationCenter';
-import ViewPage from './components/ViewPage';
-import ContactPage from './components/ContactPage';
+import QueueManager from './features/queue/components/QueueManager';
+import LoginForm from './components/LoginForm'; // Assuming this stayed, if not update
+import ThemeToggle from './components/layout/ThemeToggle';
+import BranchSelector from './components/layout/BranchSelector';
+import Footer from './components/layout/Footer';
+import AdminPage from './pages/AdminPage';
+import PreferencesModal from './components/modals/PreferencesModal';
+import NotificationCenter from './components/layout/NotificationCenter';
+import ViewPage from './pages/ViewPage';
+import ContactPage from './pages/ContactPage';
 import './App.css';
 
 // The main application content (Queue check, Login, etc.)
@@ -91,7 +91,7 @@ function AppProviders() {
       <Routes>
         <Route path="/view" element={<ViewPage />} />
         <Route path="/contact" element={<ContactPage />} />
-        <Route path="/admin" element={<AdminPanelPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="/*" element={<MainApp />} />
       </Routes>
       <Analytics />

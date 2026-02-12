@@ -3,8 +3,8 @@ import { TextInput, Group, Button, Stack, Alert, Checkbox, Modal, Text, Autocomp
 import { IconPlus, IconEdit } from '@tabler/icons-react';
 import DOMPurify from 'dompurify';
 import './QueueForm.css';
-import { usePlayerSuggestions } from '../hooks/usePlayerSuggestions';
-import { useBranch } from '../hooks/useBranch';
+import { usePlayerSuggestions } from '../../../hooks/usePlayerSuggestions';
+import { useBranch } from '../../../hooks/useBranch';
 
 function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationVerified = false, locationError = null, isSuperAdmin = false, queue = [], nowPlaying = null }) {
   const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : '';

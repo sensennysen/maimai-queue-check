@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Button, Menu, Text, Group, Badge, Loader } from '@mantine/core';
 import { IconMapPin, IconChevronDown, IconCheck } from '@tabler/icons-react';
-import { useBranch } from '../hooks/useBranch';
-import { getDistance } from '../services/geolocation';
+import { useBranch } from '../../hooks/useBranch';
+import { getDistance } from '../../services/geolocation';
 
 function BranchSelector() {
   const { branches, selectedBranch, setSelectedBranch, loading, userLocation, refreshLocation } = useBranch();

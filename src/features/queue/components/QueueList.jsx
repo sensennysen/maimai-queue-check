@@ -2,9 +2,9 @@ import { useState, memo } from 'react';
 import { Paper, Title, Group, Button, Stack, Text, Center } from '@mantine/core';
 import { IconPlayerPlay, IconLock } from '@tabler/icons-react';
 import QueueItem from './QueueItem';
-import { useAuth } from '../hooks/useAuth';
-import { usePermissions } from '../hooks/usePermissions';
-import { emptyQueueMessages } from '../data/subtitleMessages';
+import { useAuth } from '../../../hooks/useAuth';
+import { usePermissions } from '../../../hooks/usePermissions';
+import { emptyQueueMessages } from '../../../data/subtitleMessages';
 import './QueueList.css';
 
 const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, loadingRoles = false, cabinetNum = null, hasMultipleCabinets = false, addedIds = null, movedIds = null, removingId = null }) {

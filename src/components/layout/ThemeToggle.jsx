@@ -1,13 +1,13 @@
 import { ActionIcon, Tooltip } from '@mantine/core';
 import { IconSun, IconMoon } from '@tabler/icons-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 function ThemeToggle() {
   const { isDark, toggleTheme } = useTheme();
 
   return (
-    <Tooltip 
-      label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'} 
+    <Tooltip
+      label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
       position="bottom"
     >
       <ActionIcon
