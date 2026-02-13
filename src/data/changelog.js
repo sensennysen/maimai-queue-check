@@ -1,5 +1,21 @@
 export const changelogData = [
   {
+    version: 'v1.5.0',
+    date: 'February 14, 2026',
+    changes: [
+      {
+        type: 'hotfix',
+        title: 'Distance Badge',
+        description: 'Fixed an issue where the distance badge is not showing up.',
+      },
+      {
+        type: 'visual',
+        title: 'UI Improvements',
+        description: 'Added themes! You can select your preferred theme in the settings.',
+      },
+    ]
+  },
+  {
     version: 'v1.4.3',
     date: 'February 12, 2026',
     changes: [
