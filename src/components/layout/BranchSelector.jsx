@@ -78,7 +78,7 @@ function BranchSelector() {
               leftSection={isSelected ? <IconCheck size={16} /> : <IconMapPin size={16} />}
               rightSection={
                 distance !== null && (
-                  <Badge size="sm" variant="light" color={distance < 100 ? 'green' : 'gray'}>
+                  <Badge size="sm" variant="light" color={distance < 100 ? 'primary' : 'gray'}>
                     {distance < 1000 ? `${distance}m` : `${(distance / 1000).toFixed(1)}km`}
                   </Badge>
                 )
