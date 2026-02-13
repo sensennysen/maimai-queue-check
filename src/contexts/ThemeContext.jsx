@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { themes } from '../config/theme';
 
 const ThemeContext = createContext();
@@ -90,8 +90,45 @@ export const ThemeProvider = ({ children }) => {
   const toggleTheme = () => setIsDark(!isDark);
   const setTheme = (themeName) => setCurrentTheme(themeName);
 
+  // Compute relative luminance from a hex color string
+  const getLuminance = (hex) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return 0;
+    const [r, g, b] = [1, 2, 3].map((i) => {
+      const c = parseInt(result[i], 16) / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+
+  // Expose resolved theme info for component consumption
+  const themeColors = useMemo(() => {
+    const themeConfig = themes[currentTheme] || themes.circle;
+    const mode = isDark ? 'dark' : 'light';
+    const css = themeConfig.css[mode];
+
+    // Rank the three palettes by luminance so components can pick by brightness
+    const palettes = [
+      { name: 'primary', lum: getLuminance(css.primary) },
+      { name: 'secondary', lum: getLuminance(css.secondary) },
+      { name: 'accent', lum: getLuminance(css.accent) },
+    ].sort((a, b) => a.lum - b.lum);
+
+    return {
+      // Mantine color palette names (registered in createTheme)
+      primary: 'primary',
+      secondary: 'secondary',
+      accent: 'accent',
+      // Brightness-ordered palette names
+      lightest: palettes[2].name,
+      darkest: palettes[0].name,
+      // Resolved CSS values for the current mode
+      css,
+    };
+  }, [currentTheme, isDark]);
+
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme, currentTheme, setTheme }}>
+    <ThemeContext.Provider value={{ isDark, toggleTheme, currentTheme, setTheme, themeColors }}>
       {children}
     </ThemeContext.Provider>
   );

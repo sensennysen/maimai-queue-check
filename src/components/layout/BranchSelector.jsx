@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Button, Menu, Text, Group, Badge, Loader } from '@mantine/core';
 import { IconMapPin, IconChevronDown, IconCheck } from '@tabler/icons-react';
 import { useBranch } from '../../hooks/useBranch';
+import { useTheme } from '../../contexts/ThemeContext';
 import { getDistance } from '../../services/geolocation';
 
 function BranchSelector() {
   const { branches, selectedBranch, setSelectedBranch, loading, userLocation, refreshLocation } = useBranch();
+  const { themeColors } = useTheme();
   const [menuOpened, setMenuOpened] = useState(false);
 
   if (loading) {
@@ -78,7 +80,7 @@ function BranchSelector() {
               leftSection={isSelected ? <IconCheck size={16} /> : <IconMapPin size={16} />}
               rightSection={
                 distance !== null && (
-                  <Badge size="sm" variant="light" color={distance < 100 ? 'primary' : 'gray'}>
+                  <Badge size="sm" variant="light" color={distance < 100 ? themeColors.lightest : themeColors.darkest}>
                     {distance < 1000 ? `${distance}m` : `${(distance / 1000).toFixed(1)}km`}
                   </Badge>
                 )
