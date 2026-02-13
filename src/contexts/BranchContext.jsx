@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { branchService, supabase } from '../services/supabase';
-import { requestUserLocation } from '../services/geolocation';
+import { requestUserLocation, getDistance } from '../services/geolocation';
 
 const BranchContext = createContext(null);
 
@@ -139,6 +139,15 @@ export const BranchProvider = ({ children }) => {
         return;
       }
 
+      // Try to get user location for distance display and nearest-branch selection
+      let location = null;
+      try {
+        location = await requestUserLocation();
+        setUserLocation(location);
+      } catch {
+        // Location denied or unavailable — continue without it
+      }
+
       // Logic to select branch
       // 1. Check for saved branch
       const savedBranchId = localStorage.getItem(STORAGE_KEY);
@@ -151,9 +160,19 @@ export const BranchProvider = ({ children }) => {
         }
       }
 
-      // 2. Fallback to first branch (location-based selection moved to explicit user action)
-      setSelectedBranchState(allBranches[0]);
-      localStorage.setItem(STORAGE_KEY, allBranches[0].id);
+      // 2. Select nearest branch if location available, otherwise first
+      if (location && allBranches.length > 0) {
+        const sorted = [...allBranches].sort((a, b) => {
+          const distA = getDistance(location, { latitude: a.latitude, longitude: a.longitude });
+          const distB = getDistance(location, { latitude: b.latitude, longitude: b.longitude });
+          return distA - distB;
+        });
+        setSelectedBranchState(sorted[0]);
+        localStorage.setItem(STORAGE_KEY, sorted[0].id);
+      } else {
+        setSelectedBranchState(allBranches[0]);
+        localStorage.setItem(STORAGE_KEY, allBranches[0].id);
+      }
 
     } catch (err) {
       setError(err.message);
