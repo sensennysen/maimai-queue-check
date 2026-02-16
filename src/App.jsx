@@ -101,13 +101,19 @@ function AppProviders() {
   );
 }
 
+import { FeatureFlagProvider } from './contexts/FeatureFlagContext';
+
+// ... (imports remain the same)
+
 function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
         <BranchProvider>
           <AuthProvider>
-            <AppProviders />
+            <FeatureFlagProvider>
+              <AppProviders />
+            </FeatureFlagProvider>
           </AuthProvider>
         </BranchProvider>
       </ThemeProvider>
