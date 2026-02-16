@@ -64,19 +64,21 @@
 
       // Fetch Profile
       setStatus('Fetching Profile...');
-      // Use relative path to avoid CORS/Domain issues if user is on different regional server
-      // Also handles the case where they might be on http vs https (though maimai is https)
       var r1 = await fetch(basePath + '/playerData/');
       
-      // Check for login redirect
-      if (r1.redirected && r1.url.includes('login')) {
-        throw new Error('Not logged in. Please log in first.');
-      }
-      
       var t1 = await r1.text();
-      // Check if text indicates login page
+      // Debug checks
+      if (r1.redirected && r1.url.includes('login')) {
+         throw new Error('Redirected to login page. Please log in.');
+      }
       if (t1.includes('Enter SEGA ID') || t1.includes('submit_btn')) {
-         throw new Error('Not logged in. Please log in first.');
+         throw new Error('Login page detected. Please log in.');
+      }
+      if (t1.includes('Maintenance') || t1.includes('maintenance')) {
+         throw new Error('Maintenance detected.');
+      }
+      if (t1.includes('Error') && t1.includes('error_block')) {
+         throw new Error('Error page detected (e.g. Aime not registered or expired session).');
       }
 
       var d1 = p.parseFromString(t1, 'text/html');
@@ -85,7 +87,11 @@
       var rt = d1.querySelector('.rating_block');
       
       if (!n || !rt) {
-        throw new Error('Could not parse profile. Are you logged in?');
+        // Detailed error
+        const titleTag = d1.querySelector('title');
+        const titleText = titleTag ? titleTag.innerText : 'No Title';
+        const bodyText = d1.body ? d1.body.innerText.substring(0, 100).replace(/\n/g, ' ') : 'No Body';
+        throw new Error('Parse Error. Title: "' + titleText + '". Body: "' + bodyText + '"');
       }
 
       var tr = d1.querySelector('.trophy_block');
@@ -145,7 +151,6 @@
       // Success
       var json = JSON.stringify(out);
       
-      // Try Clipboard API
       try {
           await navigator.clipboard.writeText(json);
           setStatus('Success! ' + out.scores.length + ' scores copied.');
@@ -153,18 +158,22 @@
           btn.style.background = '#28a745';
           
           setTimeout(() => {
-            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+             if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
           }, 3000);
       } catch (clipErr) {
           console.error("Clipboard failed", clipErr);
-          // Fallback: Show data in textarea
-          status.innerHTML = 'Clipboard write failed (mobile restriction?).<br>Please copy manualy:';
+          status.innerHTML = 'Clipboard write failed.<br>Please copy below:';
           const ta = document.createElement('textarea');
           ta.value = json;
           ta.style.width = '100%';
           ta.style.height = '100px';
           ta.style.marginTop = '10px';
-          container.insertBefore(ta, btn);
+          // Prevent closing overlay accidentally
+          ta.onclick = (e) => e.stopPropagation();
+          
+          if (!container.querySelector('textarea')) {
+              container.insertBefore(ta, btn);
+          }
           btn.innerText = 'Close';
           btn.onclick = () => overlay.remove(); 
       }
