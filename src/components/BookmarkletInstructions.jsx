@@ -45,7 +45,7 @@ export const BookmarkletInstructions = () => {
               </Button>
             </List.Item>
             <List.Item>
-              Log in to <Anchor href="https://maimaidx-eng.com/maimai-mobile/" target="_blank">maimai DX NET</Anchor>.
+              Log in to <Anchor href="https://maimaidx-eng.com/maimai-mobile/" target="_blank">maimai DX NET</Anchor> and navigate to the <strong>Play Data</strong> page.
             </List.Item>
             <List.Item>
               Click the bookmark you just created. <br />
@@ -85,7 +85,7 @@ export const BookmarkletInstructions = () => {
               </List>
             </List.Item>
             <List.Item>
-              Log in to <Anchor href="https://maimaidx-eng.com/maimai-mobile/" target="_blank">maimai DX NET</Anchor>.
+              Log in to <Anchor href="https://maimaidx-eng.com/maimai-mobile/" target="_blank">maimai DX NET</Anchor> and navigate to the <strong>Play Data</strong> page.
             </List.Item>
             <List.Item>
               <strong>To run it:</strong> Type <strong>"maimai Export"</strong> in the address bar and tap the <strong>bookmark suggestion</strong> (star icon).
