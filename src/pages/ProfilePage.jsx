@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, useMantineColorScheme, Box } from '@mantine/core';
+import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, Box } from '@mantine/core';
 import { IconUser, IconUpload, IconAlertCircle, IconCheck, IconCalculator, IconUserCircle, IconArrowLeft, IconSun, IconMoon } from '@tabler/icons-react';
 import { ScoreCard } from '../components/maimai/ScoreCard';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
 import { userService } from '../services/supabase';
 import { fetchSongConstants, calculateBest50 } from '../utils/maimai-calc';
 
 const ProfilePage = () => {
   const { user, userRoles } = useAuth(); // Still need userRoles for display_name if profile fetch fails or for fallback
   const navigate = useNavigate();
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const { isDark, toggleTheme } = useTheme();
 
   // State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -27,23 +28,7 @@ const ProfilePage = () => {
     if (!user) return;
     setIsLoadingData(true);
     try {
-      // We need to implement getMaimaiProfile or just select directly if not exists
-      // services/supabase.js doesn't have getMaimaiProfile but accessing user_profiles is easy
-      // Let's use userService.getMaimaiUserProfile if it exists, or add it?
-      // Checking supabase.js earlier: it has updateMaimaiProfile but not get.
-      // It has getUsersPrefersBranch.
-      // I will use direct supabase call via userService if possible, or add it.
-      // Wait, I can't modify supabase.js easily without reading it all again.
-      // Actually I read it. it DOES NOT have getMaimaiProfile.
-      // I should stick to existing methods or add one.
-      // Use rolesService.getUserRoles(user.id)? That merges data.
-      // But that one might return cached data from local storage if AuthContext calls it?
-      // No, rolesService.getUserRoles performs a FRESH fetch.
-      // The issue was AuthContext *storing* it in localStorage and loading it on boot.
-      // If I call rolesService.getUserRoles(user.id) HERE, it will hit Supabase.
-      // So I can reuse that!
-
-      // Import rolesService? I need to import it.
+      // Import rolesService
       const { rolesService } = await import('../services/supabase');
       const data = await rolesService.getUserRoles(user.id);
 
@@ -91,8 +76,13 @@ const ProfilePage = () => {
       await userService.updateMaimaiBestScores(user.id, result);
 
       // 5b. Save Name if present in JSON (common export format)
-      if (data.name && typeof data.name === 'string') {
-        await userService.updateMaimaiProfile(user.id, { maimaiDxName: data.name });
+      const importName = data.profile?.name || data.name || data.user_data?.name;
+      if (importName && typeof importName === 'string') {
+        try {
+          await userService.updateMaimaiProfile(user.id, { maimaiDxName: importName });
+        } catch (err) {
+          console.error("Failed to save name to database:", err);
+        }
       }
 
       setValidationResult({
@@ -135,6 +125,7 @@ const ProfilePage = () => {
   // Names
   const appDisplayName = userRoles?.display_name || user.user_metadata.full_name || 'Guest User';
   const maimaiName = profileData?.maimai_dx_name;
+  console.log('profileData:', profileData);
 
   return (
     <Container size="lg" py="xl">
@@ -144,10 +135,10 @@ const ProfilePage = () => {
           <ActionIcon variant="subtle" size="lg" onClick={() => navigate('/')}>
             <IconArrowLeft size={24} />
           </ActionIcon>
-          <Title order={2}>Maimai DX Profile</Title>
+          <Title order={2}>mpqCheckPH profile</Title>
         </Group>
-        <ActionIcon variant="outline" size="lg" onClick={() => toggleColorScheme()}>
-          {colorScheme === 'dark' ? <IconSun size={20} /> : <IconMoon size={20} />}
+        <ActionIcon variant="outline" size="lg" onClick={() => toggleTheme()}>
+          {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
         </ActionIcon>
       </Group>
 
@@ -157,19 +148,19 @@ const ProfilePage = () => {
             <Avatar src={user.user_metadata.avatar_url} size={80} radius={80} color="blue">
               <IconUser size={40} />
             </Avatar>
-            <div>
+            <Stack gap={4}>
               <Text size="xl" fw={700}>{appDisplayName}</Text>
               {maimaiName && (
-                <Group gap="xs">
-                  <Badge variant="light" color="pink" size="md">IGN: {maimaiName}</Badge>
-                </Group>
+                <Text size="sm" c="dimmed" fw={500}>
+                  maimai DX Name: {maimaiName}
+                </Text>
               )}
               {bestScores ? (
-                <Text c="dimmed" mt={4}>Rating: {bestScores.totalRating}</Text>
+                <Text c="dimmed">Rating: {bestScores.totalRating}</Text>
               ) : (
-                <Text c="dimmed" mt={4}>No rating data</Text>
+                <Text c="dimmed">No rating data</Text>
               )}
-            </div>
+            </Stack>
 
             <Button
               leftSection={<IconUpload size={18} />}

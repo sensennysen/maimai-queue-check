@@ -3,6 +3,8 @@ import { Card, Image, Text, Group, Badge, Stack, Box, Flex } from '@mantine/core
 import dxImage from '../../assets/music_dx.png';
 import standardImage from '../../assets/music_standard.png';
 
+import { getGrade } from '../../utils/maimai-calc';
+
 const BASE_JACKET_URL = 'https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/';
 
 // Difficulty Colors (RGB)
@@ -19,6 +21,9 @@ export function ScoreCard({ score }) {
   const jacketUrl = score.imageName
     ? `${BASE_JACKET_URL}${score.imageName}`
     : null;
+
+  // Use grade from score or calculate fallback (for existing data)
+  const scoreGrade = score.grade || getGrade(score.achievement);
 
   const difficultyColor = DIFFICULTY_COLORS[score.difficulty] || 'gray';
   // Use full difficulty string, ensuring consistent capitalization if needed
@@ -71,9 +76,14 @@ export function ScoreCard({ score }) {
 
           {/* Stats Row */}
           <Group gap="xs" mt={4} align="flex-end" justify="space-between" style={{ width: '100%' }}>
-            <Text size="lg" fw={800} style={{ lineHeight: 1 }}>
-              {score.achievement}%
-            </Text>
+            <Box>
+              <Text size="lg" fw={800} style={{ lineHeight: 1 }}>
+                {score.achievement}%
+              </Text>
+              <Text size="md" fw={700}>
+                {scoreGrade}
+              </Text>
+            </Box>
             <Badge
               variant="gradient"
               gradient={{ from: 'blue', to: 'cyan' }}

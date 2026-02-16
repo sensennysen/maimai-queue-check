@@ -43,6 +43,22 @@ export const calculateSongRating = (achievement, level) => {
   return Math.floor(level * getRate(achievement) * (Math.min(100.5, achievement) / 100)); 
 };
 
+export const getGrade = (achievement) => {
+  if (achievement >= 100.5) return 'SSS+';
+  if (achievement >= 100.0) return 'SSS';
+  if (achievement >= 99.5) return 'SS+';
+  if (achievement >= 99.0) return 'SS';
+  if (achievement >= 98.0) return 'S+';
+  if (achievement >= 97.0) return 'S';
+  if (achievement >= 94.0) return 'AAA';
+  if (achievement >= 90.0) return 'AA';
+  if (achievement >= 80.0) return 'A';
+  if (achievement >= 70.0) return 'B';
+  if (achievement >= 60.0) return 'C';
+  if (achievement >= 50.0) return 'D';
+  return 'F';
+};
+
 export const calculateBest50 = async (rawScores, songs) => {
   // Map songs for fast lookup: key = "title"
   // Note: otoge-db has flat structure where one entry contains standard/dx levels?
@@ -98,6 +114,7 @@ export const calculateBest50 = async (rawScores, songs) => {
     if (isNaN(achievement)) achievement = 0;
 
     const rating = calculateSongRating(achievement, internalLevel);
+    const grade = getGrade(achievement);
 
     // Determine isNew based on version string
     const newVersions = ['PRiSM PLUS', 'CiRCLE'];
@@ -110,6 +127,7 @@ export const calculateBest50 = async (rawScores, songs) => {
       level: internalLevel,
       achievement: achievement,
       rating: rating,
+      grade: grade,
       isNew: isNew,
       // Store raw song data for score card
       // otoge-db has "imageName"
