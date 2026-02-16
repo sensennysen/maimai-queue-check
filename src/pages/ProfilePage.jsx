@@ -205,11 +205,16 @@ const ProfilePage = () => {
               <Stack gap="xl">
                 {/* Best 15 New */}
                 <div>
-                  <Group mb="md">
+                  <Group mb="md" justify="space-between">
                     <Title order={3}>Best 15 (New)</Title>
-                    <Badge size="lg" variant="dot">
-                      {bestScores.new.totalRating}
-                    </Badge>
+                    <Group gap="md">
+                      <Text size="sm" c="dimmed" fw={500}>
+                        Avg: {bestScores.new.songs.length > 0 ? Math.round(bestScores.new.totalRating / bestScores.new.songs.length) : 0}
+                      </Text>
+                      <Text size="sm" fw={700}>
+                        Total: {bestScores.new.totalRating}
+                      </Text>
+                    </Group>
                   </Group>
                   <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
                     {bestScores.new.songs.map((score, index) => (
@@ -222,11 +227,16 @@ const ProfilePage = () => {
 
                 {/* Best 35 Old */}
                 <div>
-                  <Group mb="md">
+                  <Group mb="md" justify="space-between">
                     <Title order={3}>Best 35 (Old)</Title>
-                    <Badge size="lg" variant="dot" color="gray">
-                      {bestScores.old.totalRating}
-                    </Badge>
+                    <Group gap="md">
+                      <Text size="sm" c="dimmed" fw={500}>
+                        Avg: {bestScores.old.songs.length > 0 ? Math.round(bestScores.old.totalRating / bestScores.old.songs.length) : 0}
+                      </Text>
+                      <Text size="sm" fw={700}>
+                        Total: {bestScores.old.totalRating}
+                      </Text>
+                    </Group>
                   </Group>
                   <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
                     {bestScores.old.songs.map((score, index) => (
