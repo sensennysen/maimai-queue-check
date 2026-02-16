@@ -4,17 +4,7 @@ import dxImage from '../../assets/music_dx.png';
 import standardImage from '../../assets/music_standard.png';
 
 import { getGrade } from '../../utils/maimai-calc';
-
-const BASE_JACKET_URL = 'https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/';
-
-// Difficulty Colors (RGB)
-const DIFFICULTY_COLORS = {
-  'Basic': 'rgb(34, 187, 91)',
-  'Advanced': 'rgb(251, 156, 45)',
-  'Expert': 'rgb(246, 72, 97)',
-  'Master': 'rgb(158, 69, 226)',
-  'Re:Master': 'rgb(186, 103, 248)',
-};
+import { BASE_JACKET_URL, DIFFICULTY_COLORS } from '../../config/maimai-constants';
 
 export function ScoreCard({ score }) {
   // Use imageName from score object (populated from otoge-db)

@@ -1,23 +1,10 @@
-// Import local DB
+// Import local DB and centralized constants
 import otogeDb from '../assets/otoge-db.json';
-
-// Coefficient Table (Standard Maimai DX)
-const COMPUTE_RATING_COEFF = [
-  { min: 100.5000, val: 22.4 },
-  { min: 100.0000, val: 21.6 },
-  { min: 99.5000, val: 21.1 },
-  { min: 99.0000, val: 20.8 },
-  { min: 98.0000, val: 20.3 },
-  { min: 97.0000, val: 20.0 },
-  { min: 94.0000, val: 16.8 },
-  { min: 90.0000, val: 15.2 },
-  { min: 80.0000, val: 13.6 },
-  { min: 0.0000, val: 0.0 }
-];
+import { RATING_RATES, GRADE_THRESHOLDS, NEW_VERSIONS } from '../config/maimai-constants';
 
 const getRate = (achievement) => {
-  for (const range of COMPUTE_RATING_COEFF) {
-    if (achievement >= range.min) return range.val;
+  for (const { min, rate } of RATING_RATES) {
+    if (achievement >= min) return rate;
   }
   return 0;
 };
@@ -44,107 +31,98 @@ export const calculateSongRating = (achievement, level) => {
 };
 
 export const getGrade = (achievement) => {
-  if (achievement >= 100.5) return 'SSS+';
-  if (achievement >= 100.0) return 'SSS';
-  if (achievement >= 99.5) return 'SS+';
-  if (achievement >= 99.0) return 'SS';
-  if (achievement >= 98.0) return 'S+';
-  if (achievement >= 97.0) return 'S';
-  if (achievement >= 94.0) return 'AAA';
-  if (achievement >= 90.0) return 'AA';
-  if (achievement >= 80.0) return 'A';
-  if (achievement >= 70.0) return 'B';
-  if (achievement >= 60.0) return 'C';
-  if (achievement >= 50.0) return 'D';
+  for (const { min, grade } of GRADE_THRESHOLDS) {
+    if (achievement >= min) return grade;
+  }
   return 'F';
 };
 
-export const calculateBest50 = async (rawScores, songs) => {
-  // Map songs for fast lookup: key = "title"
-  // Note: otoge-db has flat structure where one entry contains standard/dx levels?
-  // Let's check structure. Based on snippet:
-  // "lev_mas": "12", "dx_lev_mas": "13"
-  // So one entry can hold BOTH Standard and DX constants.
+/**
+ * Build a Map of songs keyed by normalized title for fast lookup
+ */
+const buildSongMap = (songs) => {
   const songMap = new Map();
-  
   songs.forEach(s => {
-    // Key by title. If dupes exist, we overwrite (trust latest?)
     songMap.set(normalize(s.title), s);
   });
+  return songMap;
+};
 
-  const calculatedScores = rawScores.map(score => {
-    const isDx = score.type === 'DX';
-    const key = normalize(score.title);
-    const song = songMap.get(key);
+/**
+ * Find the matching sheet for a score based on type and difficulty
+ */
+const findMatchingSheet = (song, score) => {
+  const targetType = score.type === 'DX' ? 'dx' : 'std';
+  const targetDiff = score.difficulty.toLowerCase().replace('re:master', 'remaster');
+  
+  return song.sheets.find(s => 
+    s.type === targetType && 
+    s.difficulty === targetDiff
+  );
+};
 
-    if (!song) {
-      console.warn(`Song not found: ${score.title} (${score.type})`);
-      return null;
-    }
+/**
+ * Parse achievement percentage from score string
+ */
+const parseAchievement = (scoreStr) => {
+  const achievementStr = String(scoreStr);
+  const achievement = parseFloat(achievementStr.replace('%', ''));
+  return isNaN(achievement) ? 0 : achievement;
+};
 
-    // Determine internal level key
-    // diffKey = 'bas', 'adv', 'exp', 'mas', 'remas'
-    // internalKey = isDx ? `dx_lev_${diffKey}_i` : `lev_${diffKey}_i`
-    // Updated lookup for new otoge-db.json structure
-    const targetType = score.type === 'DX' ? 'dx' : 'std';
-    const targetDiff = score.difficulty.toLowerCase().replace('re:master', 'remaster');
-    
-    // Find matching sheet
-    const sheet = song.sheets.find(s => 
-      s.type === targetType && 
-      s.difficulty === targetDiff
-    );
+/**
+ * Process a single score and return calculated score object
+ */
+const processScore = (score, songMap) => {
+  const key = normalize(score.title);
+  const song = songMap.get(key);
 
-    if (!sheet) {
-       console.warn(`Sheet not found: ${score.title} [${targetType} ${score.difficulty}]`);
-       return null;
-    }
+  if (!song) {
+    console.warn(`Song not found: ${score.title} (${score.type})`);
+    return null;
+  }
 
-    // Use internalLevelValue
-    const internalLevel = sheet.internalLevelValue;
+  const sheet = findMatchingSheet(song, score);
+  if (!sheet) {
+    console.warn(`Sheet not found: ${score.title} [${score.type} ${score.difficulty}]`);
+    return null;
+  }
 
-    if (!internalLevel) {
-       console.warn(`Level constant not found for ${score.title} [${score.type} ${score.difficulty}]`);
-       return null;
-    }
-    
-    // Parse achievement
-    let achievementStr = String(score.score);
-    let achievement = parseFloat(achievementStr.replace('%', ''));
-    if (isNaN(achievement)) achievement = 0;
+  const internalLevel = sheet.internalLevelValue;
+  if (!internalLevel) {
+    console.warn(`Level constant not found for ${score.title} [${score.type} ${score.difficulty}]`);
+    return null;
+  }
 
-    const rating = calculateSongRating(achievement, internalLevel);
-    const grade = getGrade(achievement);
+  const achievement = parseAchievement(score.score);
+  const rating = calculateSongRating(achievement, internalLevel);
+  const grade = getGrade(achievement);
+  const isNew = NEW_VERSIONS.includes(song.version);
 
-    // Determine isNew based on version string
-    const newVersions = ['PRiSM PLUS', 'CiRCLE'];
-    const isNew = newVersions.includes(song.version);
+  return {
+    title: score.title,
+    type: score.type,
+    difficulty: score.difficulty,
+    level: internalLevel,
+    achievement,
+    rating,
+    grade,
+    isNew,
+    imageName: song.imageName
+  };
+};
 
-    return {
-      title: score.title,
-      type: score.type,
-      difficulty: score.difficulty,
-      level: internalLevel,
-      achievement: achievement,
-      rating: rating,
-      grade: grade,
-      isNew: isNew,
-      // Store raw song data for score card
-      // otoge-db has "imageName"
-      imageName: song.imageName 
-    };
-  }).filter(s => s !== null && s.rating > 0);
+export const calculateBest50 = async (rawScores, songs) => {
+  const songMap = buildSongMap(songs);
+  
+  const calculatedScores = rawScores
+    .map(score => processScore(score, songMap))
+    .filter(s => s !== null && s.rating > 0)
+    .sort((a, b) => b.rating - a.rating);
 
-  // Sort by Rating Desc
-  calculatedScores.sort((a, b) => b.rating - a.rating);
-
-  // Select Top 15 New
   const bestNew = calculatedScores.filter(s => s.isNew).slice(0, 15);
-
-  // Select Top 35 Old
   const bestOld = calculatedScores.filter(s => !s.isNew).slice(0, 35);
 
-  // Calculate Total
   const totalNew = bestNew.reduce((sum, s) => sum + s.rating, 0);
   const totalOld = bestOld.reduce((sum, s) => sum + s.rating, 0);
 
@@ -160,3 +138,4 @@ export const calculateBest50 = async (rawScores, songs) => {
     totalRating: totalNew + totalOld
   };
 };
+

@@ -66,11 +66,21 @@ const ProfilePage = () => {
         throw new Error("Invalid data structure. Missing 'scores' array.");
       }
 
+      // 2b. Validate non-empty scores
+      if (data.scores.length === 0) {
+        throw new Error("No scores found in the imported data. Please ensure you have played some songs.");
+      }
+
       // 3. Fetch Constants (Local)
       const songs = await fetchSongConstants();
 
       // 4. Calculate
       const result = await calculateBest50(data.scores, songs);
+
+      // 4b. Validate calculation result
+      if (!result || (result.new.songs.length === 0 && result.old.songs.length === 0)) {
+        throw new Error("No valid scores could be calculated. Please check your score data.");
+      }
 
       // 5. Save to Supabase (Best Scores)
       await userService.updateMaimaiBestScores(user.id, result);
