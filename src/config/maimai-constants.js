@@ -4,7 +4,7 @@
  */
 
 // CloudFront base URL for song jacket images
-export const BASE_JACKET_URL = 'https://dp4p6x0xfi5o9.cloudfront.net/maimai/img/cover/';
+export const BASE_JACKET_URL = import.meta.env.VITE_SONG_JACKETS_URL;
 
 // Difficulty color mappings (RGB values)
 export const DIFFICULTY_COLORS = {

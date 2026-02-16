@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, Box } from '@mantine/core';
 import { IconUser, IconUpload, IconAlertCircle, IconCheck, IconCalculator, IconUserCircle, IconArrowLeft, IconSun, IconMoon } from '@tabler/icons-react';
 import { ScoreCard } from '../components/maimai/ScoreCard';
+import { BookmarkletInstructions } from '../components/BookmarkletInstructions';
 import { useAuth } from '../hooks/useAuth';
 import { useFeatureFlags } from '../contexts/FeatureFlagContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -251,6 +252,10 @@ const ProfilePage = () => {
             Paste the JSON output from the bookmarklet below.
             This will update your profile and recalculate your rating.
           </Text>
+
+          <BookmarkletInstructions />
+
+          <Divider label="Paste Data" labelPosition="center" />
 
           <Textarea
             placeholder='{"scores": [...]}'
