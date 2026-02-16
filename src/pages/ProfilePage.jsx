@@ -4,6 +4,7 @@ import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, 
 import { IconUser, IconUpload, IconAlertCircle, IconCheck, IconCalculator, IconUserCircle, IconArrowLeft, IconSun, IconMoon } from '@tabler/icons-react';
 import { ScoreCard } from '../components/maimai/ScoreCard';
 import { useAuth } from '../hooks/useAuth';
+import { useFeatureFlags } from '../contexts/FeatureFlagContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { userService } from '../services/supabase';
 import { fetchSongConstants, calculateBest50 } from '../utils/maimai-calc';
@@ -12,6 +13,13 @@ const ProfilePage = () => {
   const { user, userRoles } = useAuth(); // Still need userRoles for display_name if profile fetch fails or for fallback
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
+  const { flags, isLoading: flagsLoading } = useFeatureFlags();
+
+  useEffect(() => {
+    if (!flagsLoading && !flags['profile_tab']) {
+      navigate('/');
+    }
+  }, [flags, flagsLoading, navigate]);
 
   // State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
