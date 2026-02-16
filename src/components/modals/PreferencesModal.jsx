@@ -4,12 +4,16 @@ import { notifications } from '@mantine/notifications';
 import { userService } from '../../services/supabase';
 import { useBranch } from '../../contexts/BranchContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../hooks/useAuth';
+import MaimaiProfileSection from './MaimaiProfileSection';
 
 const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], initialDisplayName = '', onSaveSuccess }) => {
   const { branches, loading } = useBranch();
   const { currentTheme, setTheme } = useTheme();
+  const { userRoles } = useAuth(); // Get latest user data including maimai fields
 
   const [saving, setSaving] = useState(false);
+  const [maimaiSaving, setMaimaiSaving] = useState(false);
   const [selectedBranches, setSelectedBranches] = useState([]);
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [selectedTheme, setSelectedTheme] = useState(currentTheme);
@@ -56,6 +60,29 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
     }
   };
 
+  const handleMaimaiSave = async (newName) => {
+    try {
+      setMaimaiSaving(true);
+      await userService.updateMaimaiProfile(userId, {
+        maimaiDxName: newName
+      });
+
+      notifications.show({
+        title: 'Success',
+        message: 'Maimai profile updated',
+        color: 'green',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: error.message || 'Failed to update Maimai profile',
+        color: 'red',
+      });
+    } finally {
+      setMaimaiSaving(false);
+    }
+  };
+
   const branchOptions = branches.map(b => ({
     value: String(b.id),
     label: b.short_name || b.arcade_name
@@ -67,6 +94,7 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
       onClose={onClose}
       title={<Text fw={600}>User Preferences</Text>}
       centered
+      size="lg"
     >
       <Stack gap="md">
         <TextInput
@@ -123,6 +151,14 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
             Save Preferences
           </Button>
         </Group>
+
+        {/* Maimai Profile Section */}
+        <MaimaiProfileSection
+          maimaiDxName={userRoles?.maimai_dx_name}
+          maimaiRating={userRoles?.maimai_rating}
+          onSave={handleMaimaiSave}
+          loading={maimaiSaving}
+        />
       </Stack>
     </Modal>
   );
