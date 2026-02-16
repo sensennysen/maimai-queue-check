@@ -64,7 +64,8 @@
 
       // Fetch Profile
       setStatus('Fetching Profile...');
-      var r1 = await fetch(basePath + '/playerData/');
+      // credentials: 'include' is crucial for mobile browsers to send cookies on fetch
+      var r1 = await fetch(basePath + '/playerData/', { credentials: 'include' });
       
       var t1 = await r1.text();
       // Debug checks
@@ -77,6 +78,8 @@
       if (t1.includes('Maintenance') || t1.includes('maintenance')) {
          throw new Error('Maintenance detected.');
       }
+      // Relaxed error check to avoid false positives with "connection expired" messages if they aren't critical
+      // But keeping it for now to see what the user gets.
       if (t1.includes('Error') && t1.includes('error_block')) {
          throw new Error('Error page detected (e.g. Aime not registered or expired session).');
       }
@@ -125,7 +128,7 @@
         var d = diffs[j];
         setStatus('Fetching ' + d.n + ' scores...', true);
         
-        var r2 = await fetch(basePath + '/record/musicGenre/search/?genre=99&diff=' + d.i);
+        var r2 = await fetch(basePath + '/record/musicGenre/search/?genre=99&diff=' + d.i, { credentials: 'include' });
         var t2 = await r2.text();
         var d2 = p.parseFromString(t2, 'text/html');
         
