@@ -248,7 +248,7 @@ const ProfilePage = () => {
         size="lg"
       >
         <Stack>
-          <Text size="sm">
+          <Text size="sm" style={{ marginTop: '1rem' }}>
             Paste the JSON output from the bookmarklet below.
             This will update your profile and recalculate your rating.
           </Text>

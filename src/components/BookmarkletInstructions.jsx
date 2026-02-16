@@ -3,7 +3,7 @@ import { Tabs, Text, Button, Code, List, Group, CopyButton, ActionIcon, Tooltip,
 import { IconDeviceDesktop, IconDeviceMobile, IconCheck, IconCopy, IconExternalLink, IconInfoCircle } from '@tabler/icons-react';
 
 export const BookmarkletInstructions = () => {
-  const bookmarkletCode = `javascript:(async function(){var p=new DOMParser();var out={profile:{},scores:[]};try{var r1=await fetch('https://maimaidx-eng.com/maimai-mobile/playerData/');var t1=await r1.text();var d1=p.parseFromString(t1,'text/html');var n=d1.querySelector('.name_block');var rt=d1.querySelector('.rating_block');var tr=d1.querySelector('.trophy_block');var ic=d1.querySelector('.w_112.f_l');var pc="0";var blocks=d1.querySelectorAll('.m_5.f_12.break');for(var i=0;i<blocks.length;i++){if(blocks[i].innerText.match(/Play Count|プレイ回数/)){pc=blocks[i].innerText.split(':')[1].trim()}}out.profile={name:n?n.innerText.trim():"",rating:rt?parseInt(rt.innerText,10):0,trophy:tr?tr.innerText.trim():"",playCount:pc,iconUrl:ic?ic.src:""};var diffs=[{i:0,n:%27Basic%27},{i:1,n:%27Advanced%27},{i:2,n:%27Expert%27},{i:3,n:%27Master%27},{i:4,n:%27Re:Master%27}];for(var j=0;j<diffs.length;j++){var d=diffs[j];var r2=await fetch(%27https://maimaidx-eng.com/maimai-mobile/record/musicGenre/search/?genre=99&diff=%27+d.i);var t2=await r2.text();var d2=p.parseFromString(t2,%27text/html%27);d2.querySelectorAll(%27.w_450%27).forEach(function(r){var te=r.querySelector(%27.music_name_block%27);var se=r.querySelector(%27.music_score_block%27);var ki=r.querySelector(%27.music_kind_icon%27);if(te&&se){out.scores.push({title:te.innerText.trim(),score:parseFloat(se.innerText.replace(%27%%27,%27%27)),difficulty:d.n,difficultyId:d.i,type:ki&&ki.src.indexOf(%27dx.png%27)>-1?%27DX%27:%27Standard%27})}});await new Promise(function(res){setTimeout(res,200)})}var json=JSON.stringify(out);await navigator.clipboard.writeText(json);alert(%27Success! Copied profile and %27+out.scores.length+%27 scores to clipboard.%27)}catch(e){alert(%27Error: %27+e)}})();`;
+  const bookmarkletCode = `javascript:(function(){if(document.getElementById('maimai-export-overlay')){document.getElementById('maimai-export-overlay').remove()}const e=document.createElement('div');e.id='maimai-export-overlay';e.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:99999;display:flex;justify-content:center;align-items:center;font-family:sans-serif;color:white;';const t=document.createElement('div');t.style.cssText='background:#222;padding:2rem;border-radius:12px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.5);max-width:90%;width:300px;';const n=document.createElement('h2');n.innerText='maimai Score Export';n.style.cssText='margin:0 0 1rem 0;font-size:1.2rem;';const r=document.createElement('p');r.id='maimai-export-status';r.innerText='Ready to fetch scores';r.style.cssText='margin-bottom:1.5rem;color:#aaa;font-size:0.9rem;';const o=document.createElement('button');o.innerText='Fetch Scores';o.style.cssText='background:#007bff;color:white;border:none;padding:10px 20px;border-radius:6px;font-size:1rem;cursor:pointer;width:100%;font-weight:bold;transition:background 0.2s;';const i=document.createElement('button');i.innerText='Close';i.style.cssText='background:transparent;color:#888;border:none;margin-top:1rem;cursor:pointer;text-decoration:underline;font-size:0.8rem;';i.onclick=()=>e.remove();t.appendChild(n);t.appendChild(r);t.appendChild(o);t.appendChild(document.createElement('br'));t.appendChild(i);e.appendChild(t);document.body.appendChild(e);const a=(e,t=false)=>{r.innerText=e;if(t){o.disabled=true;o.style.background='#666';o.innerText='Fetching...'}else{o.disabled=false;o.style.background='#007bff'}};o.onclick=async()=>{try{a('Initializing...',true);var e=new DOMParser,t={profile:{},scores:[]};a('Fetching Profile...');var n=await fetch('https://maimaidx-eng.com/maimai-mobile/playerData/');var r=await n.text();var i=e.parseFromString(r,'text/html');var c=i.querySelector('.name_block');var l=i.querySelector('.rating_block');var s=i.querySelector('.trophy_block');var d=i.querySelector('.w_112.f_l');var m='0';var u=i.querySelectorAll('.m_5.f_12.break');for(var p=0;p<u.length;p++){if(u[p].innerText.match(/Play Count|プレイ回数/)){m=u[p].innerText.split(':')[1].trim()}}t.profile={name:c?c.innerText.trim():'',rating:l?parseInt(l.innerText,10):0,trophy:s?s.innerText.trim():'',playCount:m,iconUrl:d?d.src:''};var f=[{i:0,n:'Basic'},{i:1,n:'Advanced'},{i:2,n:'Expert'},{i:3,n:'Master'},{i:4,n:'Re:Master'}];for(var h=0;h<f.length;h++){var g=f[h];a('Fetching '+g.n+' scores...',true);var y=await fetch('https://maimaidx-eng.com/maimai-mobile/record/musicGenre/search/?genre=99&diff='+g.i);var x=await y.text();var b=e.parseFromString(x,'text/html');b.querySelectorAll('.w_450').forEach(function(e){var n=e.querySelector('.music_name_block');var r=e.querySelector('.music_score_block');var o=e.querySelector('.music_kind_icon');if(n&&r){t.scores.push({title:n.innerText.trim(),score:parseFloat(r.innerText.replace('%','')),difficulty:g.n,difficultyId:g.i,type:o&&o.src.indexOf('dx.png')>-1?'DX':'Standard'})}});await new Promise(e=>setTimeout(e,200))}var v=JSON.stringify(t);await navigator.clipboard.writeText(v);a('Success! '+t.scores.length+' scores copied.');o.innerText='Copied to Clipboard!';o.style.background='#28a745';setTimeout(()=>{if(document.getElementById('maimai-export-overlay')){document.getElementById('maimai-export-overlay').remove()}},3000)}catch(e){console.error(e);a('Error: '+e.message);o.disabled=false;o.innerText='Retry';o.style.background='#dc3545'}}})();`;
 
   const bookmarkletRef = React.useRef(null);
 
@@ -48,10 +48,14 @@ export const BookmarkletInstructions = () => {
               Log in to <Anchor href="https://maimaidx-eng.com/maimai-mobile/" target="_blank">maimai DX NET</Anchor>.
             </List.Item>
             <List.Item>
-              Click the bookmark you just created.
+              Click the bookmark you just created. <br />
+              <strong>An overlay will appear on the page.</strong>
             </List.Item>
             <List.Item>
-              When the alert says "Success!", come back here and paste the data.
+              Click <strong>"Fetch Scores"</strong> in the overlay to start copying.
+            </List.Item>
+            <List.Item>
+              When the button says "Copied!", come back here and paste the data.
             </List.Item>
           </List>
         </Tabs.Panel>
@@ -90,7 +94,10 @@ export const BookmarkletInstructions = () => {
               </Text>
             </List.Item>
             <List.Item>
-              Wait for the "Success!" alert, then come back here and paste.
+              Tap <strong>"Fetch Scores"</strong> in the overlay that appears.
+            </List.Item>
+            <List.Item>
+              Wait for the "Copied!" message, then come back here and paste.
             </List.Item>
           </List>
         </Tabs.Panel>
