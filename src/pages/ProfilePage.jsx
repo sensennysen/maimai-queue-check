@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, Box } from '@mantine/core';
-import { IconUser, IconUpload, IconAlertCircle, IconCheck, IconCalculator, IconUserCircle, IconArrowLeft, IconSun, IconMoon } from '@tabler/icons-react';
+import { IconUser, IconUpload, IconAlertCircle, IconCheck, IconCalculator, IconUserCircle, IconArrowLeft, IconSun, IconMoon, IconCamera } from '@tabler/icons-react';
 import { ScoreCard } from '../components/maimai/ScoreCard';
 import { BookmarkletInstructions } from '../components/BookmarkletInstructions';
 import { useAuth } from '../hooks/useAuth';
@@ -181,14 +181,24 @@ const ProfilePage = () => {
               )}
             </Stack>
 
-            <Button
-              leftSection={<IconUpload size={18} />}
-              variant="light"
-              ml="auto"
-              onClick={() => setIsImportModalOpen(true)}
-            >
-              Import Scores
-            </Button>
+            <Group gap="sm" ml="auto">
+              <Button
+                leftSection={<IconCamera size={18} />}
+                variant="light"
+                color="teal"
+                onClick={() => window.open('/profile/export', '_blank')}
+                disabled={!hasScores}
+              >
+                Export Image
+              </Button>
+              <Button
+                leftSection={<IconUpload size={18} />}
+                variant="light"
+                onClick={() => setIsImportModalOpen(true)}
+              >
+                Import Scores
+              </Button>
+            </Group>
           </Group>
 
           <Divider my="sm" />
@@ -212,7 +222,7 @@ const ProfilePage = () => {
                         Avg: {bestScores.new.songs.length > 0 ? Math.round(bestScores.new.totalRating / bestScores.new.songs.length) : 0}
                       </Text>
                       <Text size="sm" fw={700}>
-                        Total: {bestScores.new.totalRating}
+                        Total: {bestScores.new.totalRating ?? 0}
                       </Text>
                     </Group>
                   </Group>
@@ -234,7 +244,7 @@ const ProfilePage = () => {
                         Avg: {bestScores.old.songs.length > 0 ? Math.round(bestScores.old.totalRating / bestScores.old.songs.length) : 0}
                       </Text>
                       <Text size="sm" fw={700}>
-                        Total: {bestScores.old.totalRating}
+                        Total: {bestScores.old.totalRating ?? 0}
                       </Text>
                     </Group>
                   </Group>
