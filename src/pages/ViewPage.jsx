@@ -6,9 +6,9 @@ import { useMonitorData } from '../hooks/useMonitorData';
 import { useBranch } from '../hooks/useBranch';
 import { useMallSchedule } from '../hooks/useMallSchedule';
 import { useTheme } from '../contexts/ThemeContext';
-import BranchSelector from './BranchSelector';
-import QueueItem from './QueueItem';
-import NowPlayingCard from './NowPlayingCard';
+import BranchSelector from '../components/layout/BranchSelector';
+import QueueItem from '../features/queue/components/QueueItem';
+import NowPlayingCard from '../features/queue/components/NowPlayingCard';
 import './ViewPage.css';
 
 export default function ViewPage() {

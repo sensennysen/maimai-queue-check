@@ -3,24 +3,24 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Default theme colors - will be overridden by ThemeContext */
-  --theme-background: #FFF2F8;
+  /* Default theme colors - Kawaii Tech (Light) */
+  --theme-background: #FFF5FA;
   --theme-surface: #FFFFFF;
-  --theme-primary: #FF4FB7;
-  --theme-secondary: #31E0E7;
-  --theme-accent: #FFE35A;
-  --theme-text-primary: #2B1C2A;
+  --theme-primary: #FF28A9;
+  --theme-secondary: #00D2FF;
+  --theme-accent: #FFD200;
+  --theme-text-primary: #2D0A1F;
   --theme-text-muted: #7B5A78;
 
   /* Derived colors */
-  --theme-primary-hover: #FF6BC4;
-  --theme-secondary-hover: #4AE6EC;
-  --theme-accent-hover: #FFEB70;
-  --theme-surface-hover: #F8F8FF;
-  --theme-border: #E8D8E8;
-  --theme-error: #FF6B6B;
-  --theme-success: #51CF66;
-  --theme-warning: #FFB800;
+  --theme-primary-hover: #FF4CC3;
+  --theme-secondary-hover: #1ADDFF;
+  --theme-accent-hover: #FFEB3B;
+  --theme-surface-hover: #F8F0F8;
+  --theme-border: #FFA8E1;
+  --theme-error: #D63352;
+  --theme-success: #2DA74F;
+  --theme-warning: #FFD200;
 
   color-scheme: light;
   color: var(--theme-text-primary);
@@ -42,16 +42,33 @@ body {
   padding: 0;
   background-color: var(--theme-background);
   background-image:
-    radial-gradient(circle at 10% 20%, rgba(255, 51, 153, 0.05) 0%, transparent 20%),
-    radial-gradient(circle at 90% 80%, rgba(0, 191, 255, 0.05) 0%, transparent 20%),
+    radial-gradient(circle at 10% 20%, rgba(255, 40, 169, 0.05) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(0, 210, 255, 0.05) 0%, transparent 20%),
     linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 100% 100%, 100% 100%, 20px 20px, 20px 20px;
+  background-attachment: fixed;
+  /* fix background for scrolling */
   color: var(--theme-text-primary);
   min-height: 100vh;
   overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* Glassmorphism / Hologram Look */
+.hologram-card,
+.mantine-Paper-root,
+.mantine-Modal-content,
+.mantine-Card-root {
+  background: var(--theme-surface) !important;
+  border: 1px solid rgba(0, 210, 255, 0.3) !important;
+  /* maimaiBlue[5] @ 30% */
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border-radius: 16px !important;
+}
+
 
 h1,
 h2,
@@ -217,9 +234,9 @@ html {
 
 /* Active Tab Styling */
 .mantine-Tabs-tab[data-active] {
-  border-bottom: 3px solid var(--theme-primary) !important;
-  background-color: color-mix(in srgb, var(--theme-primary) 10%, transparent) !important;
-  color: var(--theme-primary) !important;
+  border-bottom: 3px solid var(--theme-tab-highlight) !important;
+  background-color: color-mix(in srgb, var(--theme-tab-highlight) 10%, transparent) !important;
+  color: var(--theme-tab-highlight) !important;
   font-weight: 700;
 }
 
@@ -230,7 +247,7 @@ html {
 
 /* Active tab hover should keep the mixed background but maybe a bit darker */
 .mantine-Tabs-tab[data-active]:hover {
-  background-color: color-mix(in srgb, var(--theme-primary) 15%, transparent) !important;
+  background-color: color-mix(in srgb, var(--theme-tab-highlight) 15%, transparent) !important;
 }
 
 /* List container padding/border adjustment if needed */

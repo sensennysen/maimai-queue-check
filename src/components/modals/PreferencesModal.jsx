@@ -1,26 +1,35 @@
 import { useState, useEffect } from 'react';
-import { Modal, Stack, Text, Group, Button, MultiSelect, Loader, TextInput } from '@mantine/core';
+import { Modal, Stack, Text, Group, Button, MultiSelect, Loader, TextInput, SegmentedControl } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { userService } from '../services/supabase';
-import { useBranch } from '../contexts/BranchContext';
+import { userService } from '../../services/supabase';
+import { useBranch } from '../../contexts/BranchContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], initialDisplayName = '', onSaveSuccess }) => {
   const { branches, loading } = useBranch();
+  const { currentTheme, setTheme } = useTheme();
+
   const [saving, setSaving] = useState(false);
   const [selectedBranches, setSelectedBranches] = useState([]);
   const [displayName, setDisplayName] = useState(initialDisplayName);
+  const [selectedTheme, setSelectedTheme] = useState(currentTheme);
 
   useEffect(() => {
     if (opened) {
       // Only set initial state once when the modal is opened
       setSelectedBranches(initialPreferences?.map(String) || []);
       setDisplayName(initialDisplayName || '');
+      setSelectedTheme(currentTheme);
     }
-  }, [opened, initialDisplayName]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [opened, initialDisplayName, currentTheme]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = async () => {
     try {
       setSaving(true);
+
+      // Update local theme state
+      setTheme(selectedTheme);
+
       const branchIds = selectedBranches.map(Number);
 
       await userService.updatePreferences(userId, {
@@ -73,6 +82,20 @@ const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], in
           maxLength={10}
           style={{ marginTop: '1rem' }}
         />
+
+        <Stack gap="xs">
+          <Text size="sm" fw={500}>App Theme</Text>
+          <SegmentedControl
+            value={selectedTheme}
+            onChange={setSelectedTheme}
+            data={[
+              { label: 'Circle', value: 'circle' },
+              { label: 'Prism', value: 'prism' },
+              { label: 'Buddies', value: 'buddies' },
+            ]}
+            fullWidth
+          />
+        </Stack>
 
         {loading ? (
           <Group justify="center" py="xl">

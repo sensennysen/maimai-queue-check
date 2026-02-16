@@ -3,8 +3,8 @@ import { Modal, Stack, Button, MultiSelect, Text, Group, LoadingOverlay, Alert }
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconSend, IconAlertCircle } from '@tabler/icons-react';
-import { requestService, branchService, userService } from '../services/supabase';
-import { useAuth } from '../hooks/useAuth';
+import { requestService, branchService, userService } from '../../services/supabase';
+import { useAuth } from '../../hooks/useAuth';
 
 const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
   const { user, userRoles } = useAuth();
