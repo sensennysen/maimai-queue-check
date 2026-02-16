@@ -89,13 +89,13 @@ export const AuthProvider = ({ children }) => {
     };
   }, [selectedBranch?.id]); // Re-subscribe/re-run when branch changes to ensure correct roles are fetched
 
-  // Add real-time subscription for role changes
+  // Add real-time subscription for role and profile changes
   useEffect(() => {
     if (!user) {
       return;
     }
 
-    const channel = supabase
+    const rolesChannel = supabase
       .channel(`user-roles-${user.id}`)
       .on(
         'postgres_changes',
@@ -107,23 +107,50 @@ export const AuthProvider = ({ children }) => {
         },
         (payload) => {
           if (payload.eventType === 'DELETE') {
-            setUserRoles(null);
+            // If role row deleted, we might still have a profile, but usually this means user gone?
+            // For now, let's just re-fetch to be safe and consistent
+            rolesService.getUserRoles(user.id).then(setUserRoles);
           } else {
-            // Normalize data exactly like getUserRoles
             const newData = payload.new;
-            setUserRoles({
+            setUserRoles(prev => ({
+              ...prev,
               ...newData,
               is_admin: !!newData.is_admin,
               is_super_admin: !!newData.is_super_admin,
-              preferred_branches: Array.isArray(newData.preferred_branches) ? newData.preferred_branches : []
-            });
+              // If profile exists, its preferred_branches/name should take precedence,
+              // but we might not know if profile exists here without checking prev state.
+              // Strategy: If we have prev state, keep profile-specific overrides if they differ from legacy role data?
+              // Simpler: Just re-fetch everything to ensure correct precedence logic from getUserRoles is applied.
+              // It's safer and cleaner than duplicating merge logic here.
+            }));
+            // Trigger re-fetch to ensure consistency
+            rolesService.getUserRoles(user.id).then(setUserRoles);
           }
         }
       )
       .subscribe();
 
+    const profilesChannel = supabase
+      .channel(`user-profiles-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          // Profile changed/added/deleted
+          // Just re-fetch the merged world state
+          rolesService.getUserRoles(user.id).then(setUserRoles);
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(rolesChannel);
+      supabase.removeChannel(profilesChannel);
     };
   }, [user]);
 

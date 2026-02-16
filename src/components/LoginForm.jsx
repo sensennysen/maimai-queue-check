@@ -87,6 +87,12 @@ const LoginForm = ({ onOpenPreferences }) => {
           </Menu.Label>
           <Divider />
           <Menu.Item
+            leftSection={<IconUser size={16} />}
+            onClick={() => navigate('/profile')}
+          >
+            Profile
+          </Menu.Item>
+          <Menu.Item
             leftSection={<IconSettings size={16} />}
             onClick={onOpenPreferences}
           >
