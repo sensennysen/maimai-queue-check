@@ -179,6 +179,23 @@ export const userService = {
     return data;
   },
 
+  // Update maimai best scores (Calculated Top 50)
+  async updateMaimaiBestScores(userId, bestScores) {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .upsert({
+        id: userId,
+        maimai_best_scores: bestScores,
+        maimai_scores_updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
   // Get users who have a specific branch in their preferred_branches
   // Updated to check user_profiles (or fallback to roles)
   async getUsersPrefersBranch(branchId) {

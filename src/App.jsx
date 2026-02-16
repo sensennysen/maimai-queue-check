@@ -18,6 +18,7 @@ import Footer from './components/layout/Footer';
 import AdminPage from './pages/AdminPage';
 import PreferencesModal from './components/modals/PreferencesModal';
 import NotificationCenter from './components/layout/NotificationCenter';
+import ProfilePage from './pages/ProfilePage';
 import ViewPage from './pages/ViewPage';
 import ContactPage from './pages/ContactPage';
 import './App.css';
@@ -89,6 +90,7 @@ function AppProviders() {
     <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
       <Notifications position="top-right" />
       <Routes>
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/view" element={<ViewPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/admin" element={<AdminPage />} />
