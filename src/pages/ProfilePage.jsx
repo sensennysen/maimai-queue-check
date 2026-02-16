@@ -1,133 +1,279 @@
-import { useState } from 'react';
-import { Container, Title, Paper, Group, Stack, Avatar, Text, Tabs, Textarea, Button, Alert, Code } from '@mantine/core';
-import { IconUser, IconUpload, IconAlertCircle, IconCheck } from '@tabler/icons-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, useMantineColorScheme, Box } from '@mantine/core';
+import { IconUser, IconUpload, IconAlertCircle, IconCheck, IconCalculator, IconUserCircle, IconArrowLeft, IconSun, IconMoon } from '@tabler/icons-react';
+import { ScoreCard } from '../components/maimai/ScoreCard';
 import { useAuth } from '../hooks/useAuth';
+import { userService } from '../services/supabase';
+import { fetchSongConstants, calculateBest50 } from '../utils/maimai-calc';
 
 const ProfilePage = () => {
-  const { user, userRoles } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
-  const [jsonInput, setJsonInput] = useState('');
-  const [validationResult, setValidationResult] = useState(null); // { success: boolean, message: string }
+  const { user, userRoles } = useAuth(); // Still need userRoles for display_name if profile fetch fails or for fallback
+  const navigate = useNavigate();
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 
-  const handleValidation = () => {
+  // State
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [jsonInput, setJsonInput] = useState('');
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [validationResult, setValidationResult] = useState(null);
+
+  // Local Data State (Bypassing AuthContext cache for freshness)
+  const [profileData, setProfileData] = useState(null);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
+  // Fetch Maimai Data Helper
+  const fetchMaimaiData = async () => {
+    if (!user) return;
+    setIsLoadingData(true);
     try {
-      const data = JSON.parse(jsonInput);
-      
-      // Basic Validation: Check for 'profile' and 'scores' keys
-      if (!data.profile || !data.scores) {
-        setValidationResult({
-          success: false,
-          message: 'Invalid JSON format. Missing "profile" or "scores" keys.'
-        });
-        return;
+      // We need to implement getMaimaiProfile or just select directly if not exists
+      // services/supabase.js doesn't have getMaimaiProfile but accessing user_profiles is easy
+      // Let's use userService.getMaimaiUserProfile if it exists, or add it?
+      // Checking supabase.js earlier: it has updateMaimaiProfile but not get.
+      // It has getUsersPrefersBranch.
+      // I will use direct supabase call via userService if possible, or add it.
+      // Wait, I can't modify supabase.js easily without reading it all again.
+      // Actually I read it. it DOES NOT have getMaimaiProfile.
+      // I should stick to existing methods or add one.
+      // Use rolesService.getUserRoles(user.id)? That merges data.
+      // But that one might return cached data from local storage if AuthContext calls it?
+      // No, rolesService.getUserRoles performs a FRESH fetch.
+      // The issue was AuthContext *storing* it in localStorage and loading it on boot.
+      // If I call rolesService.getUserRoles(user.id) HERE, it will hit Supabase.
+      // So I can reuse that!
+
+      // Import rolesService? I need to import it.
+      const { rolesService } = await import('../services/supabase');
+      const data = await rolesService.getUserRoles(user.id);
+
+      setProfileData(data);
+    } catch (e) {
+      console.error("Error fetching maimai data:", e);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  // Fetch on mount or when user ID changes
+  useEffect(() => {
+    if (user?.id) {
+      fetchMaimaiData();
+    }
+  }, [user?.id]);
+
+  // Handlers
+  const handleImport = async () => {
+    setIsCalculating(true);
+    setValidationResult(null);
+
+    try {
+      // 1. Validate JSON
+      let data;
+      try {
+        data = JSON.parse(jsonInput);
+      } catch (e) {
+        throw new Error("Invalid JSON format. Please paste the exact output from the bookmarklet.");
       }
 
-      if (!Array.isArray(data.scores)) {
-        setValidationResult({
-          success: false,
-          message: 'Invalid JSON format. "scores" must be an array.'
-        });
-        return;
+      // 2. Validate Structure
+      if (!data.scores || !Array.isArray(data.scores)) {
+        throw new Error("Invalid data structure. Missing 'scores' array.");
+      }
+
+      // 3. Fetch Constants (Local)
+      const songs = await fetchSongConstants();
+
+      // 4. Calculate
+      const result = await calculateBest50(data.scores, songs);
+
+      // 5. Save to Supabase (Best Scores)
+      await userService.updateMaimaiBestScores(user.id, result);
+
+      // 5b. Save Name if present in JSON (common export format)
+      if (data.name && typeof data.name === 'string') {
+        await userService.updateMaimaiProfile(user.id, { maimaiDxName: data.name });
       }
 
       setValidationResult({
         success: true,
-        message: `Valid JSON! Found ${data.scores.length} scores. (Import logic coming in Phase 3)`
+        message: `Import Successful! Calculated Rating: ${result.totalRating} (New: ${result.new.songs.length}, Old: ${result.old.songs.length})`
       });
+
+      // Close modal and refetch data
+      setTimeout(() => {
+        setIsImportModalOpen(false);
+        // Reset input and result
+        setJsonInput('');
+        setValidationResult(null);
+        // Refetch
+        fetchMaimaiData();
+      }, 1500);
 
     } catch (e) {
       setValidationResult({
         success: false,
-        message: 'Invalid JSON syntax. Please check your input.'
+        message: e.message
       });
+    } finally {
+      setIsCalculating(false);
     }
   };
 
   if (!user) {
     return (
-      <Container size="md" py="xl">
-        <Text>Please log in to view your profile.</Text>
+      <Container size="lg" py="xl">
+        <Loader />
       </Container>
     );
   }
 
+  // Use profileData for scores, fallback to null
+  const bestScores = profileData?.maimai_best_scores;
+  const hasScores = bestScores && (bestScores.new?.songs?.length > 0 || bestScores.old?.songs?.length > 0);
+
+  // Names
+  const appDisplayName = userRoles?.display_name || user.user_metadata.full_name || 'Guest User';
+  const maimaiName = profileData?.maimai_dx_name;
+
   return (
-    <Container size="md" py="xl">
-      <Stack gap="lg">
-        {/* Profile Header */}
-        <Paper p="lg" radius="md" withBorder>
+    <Container size="lg" py="xl">
+      {/* Header */}
+      <Group justify="space-between" mb="lg">
+        <Group>
+          <ActionIcon variant="subtle" size="lg" onClick={() => navigate('/')}>
+            <IconArrowLeft size={24} />
+          </ActionIcon>
+          <Title order={2}>Maimai DX Profile</Title>
+        </Group>
+        <ActionIcon variant="outline" size="lg" onClick={() => toggleColorScheme()}>
+          {colorScheme === 'dark' ? <IconSun size={20} /> : <IconMoon size={20} />}
+        </ActionIcon>
+      </Group>
+
+      <Paper shadow="sm" p="lg" radius="md" withBorder>
+        <Stack>
           <Group>
-            <Avatar 
-              src={user.user_metadata?.avatar_url} 
-              size={80} 
-              radius={80} 
-            >
+            <Avatar src={user.user_metadata.avatar_url} size={80} radius={80} color="blue">
               <IconUser size={40} />
             </Avatar>
-            <Stack gap={0}>
-              <Title order={2}>{userRoles?.display_name || user.user_metadata?.full_name || 'User'}</Title>
-              <Text c="dimmed">{user.email}</Text>
-              {userRoles?.maimai_dx_name && (
-                <Text size="sm" mt="xs">
-                  Maimai Name: <Text span fw={700}>{userRoles.maimai_dx_name}</Text>
-                </Text>
-              )}
-            </Stack>
-          </Group>
-        </Paper>
-
-        {/* Tabs */}
-        <Paper p="md" radius="md" withBorder>
-          <Tabs value={activeTab} onChange={setActiveTab}>
-            <Tabs.List>
-              <Tabs.Tab value="overview" leftSection={<IconUser size={16} />}>
-                Overview
-              </Tabs.Tab>
-              <Tabs.Tab value="import" leftSection={<IconUpload size={16} />}>
-                Import Scores
-              </Tabs.Tab>
-            </Tabs.List>
-
-            <Tabs.Panel value="overview" pt="md">
-              <Text>Best 50 Scores will be displayed here in Phase 4.</Text>
-            </Tabs.Panel>
-
-            <Tabs.Panel value="import" pt="md">
-              <Stack>
-                <Alert variant="light" color="blue" title="Import Instructions">
-                  Paste the JSON export from the Maimai DX bookmarklet tool below.
-                </Alert>
-                
-                <Textarea
-                  placeholder='Paste JSON here... {"profile": {...}, "scores": [...]}'
-                  minRows={10}
-                  maxRows={20}
-                  autosize
-                  value={jsonInput}
-                  onChange={(event) => setJsonInput(event.currentTarget.value)}
-                />
-
-                <Group justify="flex-end">
-                  <Button onClick={handleValidation}>
-                    Validate JSON
-                  </Button>
+            <div>
+              <Text size="xl" fw={700}>{appDisplayName}</Text>
+              {maimaiName && (
+                <Group gap="xs">
+                  <Badge variant="light" color="pink" size="md">IGN: {maimaiName}</Badge>
                 </Group>
+              )}
+              {bestScores ? (
+                <Text c="dimmed" mt={4}>Rating: {bestScores.totalRating}</Text>
+              ) : (
+                <Text c="dimmed" mt={4}>No rating data</Text>
+              )}
+            </div>
 
-                {validationResult && (
-                  <Alert 
-                    icon={validationResult.success ? <IconCheck size={16} /> : <IconAlertCircle size={16} />}
-                    title={validationResult.success ? "Validation Success" : "Validation Error"}
-                    color={validationResult.success ? "green" : "red"}
-                    variant="filled"
-                  >
-                    {validationResult.message}
-                  </Alert>
-                )}
+            <Button
+              leftSection={<IconUpload size={18} />}
+              variant="light"
+              ml="auto"
+              onClick={() => setIsImportModalOpen(true)}
+            >
+              Import Scores
+            </Button>
+          </Group>
+
+          <Divider my="sm" />
+
+          {/* Overview / Best 50 */}
+          <Box pos="relative" mih={200}>
+            <LoadingOverlay visible={isLoadingData || isCalculating} overlayProps={{ radius: "sm", blur: 2 }} />
+
+            {!hasScores && !isLoadingData ? (
+              <Alert icon={<IconAlertCircle size={16} />} title="No Data" color="blue">
+                No score data found. Please import your scores using the button above.
+              </Alert>
+            ) : hasScores ? (
+              <Stack gap="xl">
+                {/* Best 15 New */}
+                <div>
+                  <Group mb="md">
+                    <Title order={3}>Best 15 (New)</Title>
+                    <Badge size="lg" variant="dot">
+                      {bestScores.new.totalRating}
+                    </Badge>
+                  </Group>
+                  <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                    {bestScores.new.songs.map((score, index) => (
+                      <ScoreCard key={`${score.title}-${score.type}-${score.difficulty}-${index}`} score={score} />
+                    ))}
+                  </SimpleGrid>
+                </div>
+
+                <Divider />
+
+                {/* Best 35 Old */}
+                <div>
+                  <Group mb="md">
+                    <Title order={3}>Best 35 (Old)</Title>
+                    <Badge size="lg" variant="dot" color="gray">
+                      {bestScores.old.totalRating}
+                    </Badge>
+                  </Group>
+                  <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                    {bestScores.old.songs.map((score, index) => (
+                      <ScoreCard key={`${score.title}-${score.type}-${score.difficulty}-${index}`} score={score} />
+                    ))}
+                  </SimpleGrid>
+                </div>
               </Stack>
-            </Tabs.Panel>
-          </Tabs>
-        </Paper>
-      </Stack>
+            ) : null}
+          </Box>
+        </Stack>
+      </Paper>
+
+      {/* Import Modal */}
+      <Modal
+        opened={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        title="Import Scores"
+        size="lg"
+      >
+        <Stack>
+          <Text size="sm">
+            Paste the JSON output from the bookmarklet below.
+            This will update your profile and recalculate your rating.
+          </Text>
+
+          <Textarea
+            placeholder='{"scores": [...]}'
+            minRows={6}
+            maxRows={10}
+            value={jsonInput}
+            onChange={(e) => setJsonInput(e.currentTarget.value)}
+          />
+
+          {validationResult && (
+            <Alert
+              icon={validationResult.success ? <IconCheck /> : <IconAlertCircle />}
+              color={validationResult.success ? 'green' : 'red'}
+              title={validationResult.success ? 'Success' : 'Error'}
+            >
+              {validationResult.message}
+            </Alert>
+          )}
+
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setIsImportModalOpen(false)}>Cancel</Button>
+            <Button
+              leftSection={<IconCalculator size={18} />}
+              onClick={handleImport}
+              loading={isCalculating}
+              disabled={!jsonInput.trim()}
+            >
+              Calculate & Save
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Container>
   );
 };
