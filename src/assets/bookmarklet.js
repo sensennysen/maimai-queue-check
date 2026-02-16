@@ -20,7 +20,7 @@
   const status = document.createElement('p');
   status.id = 'maimai-export-status';
   status.innerText = 'Ready to fetch scores';
-  status.style.cssText = 'margin-bottom:1.5rem;color:#aaa;font-size:0.9rem;';
+  status.style.cssText = 'margin-bottom:1.5rem;color:#aaa;font-size:0.9rem;word-break: break-all;';
 
   const btn = document.createElement('button');
   btn.innerText = 'Fetch Scores';
@@ -59,14 +59,35 @@
       var p = new DOMParser();
       var out = { profile: {}, scores: [] };
 
+      // Helper for path checks
+      const basePath = window.location.origin + '/maimai-mobile';
+
       // Fetch Profile
       setStatus('Fetching Profile...');
-      var r1 = await fetch('https://maimaidx-eng.com/maimai-mobile/playerData/');
+      // Use relative path to avoid CORS/Domain issues if user is on different regional server
+      // Also handles the case where they might be on http vs https (though maimai is https)
+      var r1 = await fetch(basePath + '/playerData/');
+      
+      // Check for login redirect
+      if (r1.redirected && r1.url.includes('login')) {
+        throw new Error('Not logged in. Please log in first.');
+      }
+      
       var t1 = await r1.text();
+      // Check if text indicates login page
+      if (t1.includes('Enter SEGA ID') || t1.includes('submit_btn')) {
+         throw new Error('Not logged in. Please log in first.');
+      }
+
       var d1 = p.parseFromString(t1, 'text/html');
       
       var n = d1.querySelector('.name_block');
       var rt = d1.querySelector('.rating_block');
+      
+      if (!n || !rt) {
+        throw new Error('Could not parse profile. Are you logged in?');
+      }
+
       var tr = d1.querySelector('.trophy_block');
       var ic = d1.querySelector('.w_112.f_l');
       var pc = "0";
@@ -98,7 +119,7 @@
         var d = diffs[j];
         setStatus('Fetching ' + d.n + ' scores...', true);
         
-        var r2 = await fetch('https://maimaidx-eng.com/maimai-mobile/record/musicGenre/search/?genre=99&diff=' + d.i);
+        var r2 = await fetch(basePath + '/record/musicGenre/search/?genre=99&diff=' + d.i);
         var t2 = await r2.text();
         var d2 = p.parseFromString(t2, 'text/html');
         
@@ -123,15 +144,30 @@
 
       // Success
       var json = JSON.stringify(out);
-      await navigator.clipboard.writeText(json);
       
-      setStatus('Success! ' + out.scores.length + ' scores copied.');
-      btn.innerText = 'Copied to Clipboard!';
-      btn.style.background = '#28a745';
-      
-      setTimeout(() => {
-        overlay.remove();
-      }, 3000);
+      // Try Clipboard API
+      try {
+          await navigator.clipboard.writeText(json);
+          setStatus('Success! ' + out.scores.length + ' scores copied.');
+          btn.innerText = 'Copied to Clipboard!';
+          btn.style.background = '#28a745';
+          
+          setTimeout(() => {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+          }, 3000);
+      } catch (clipErr) {
+          console.error("Clipboard failed", clipErr);
+          // Fallback: Show data in textarea
+          status.innerHTML = 'Clipboard write failed (mobile restriction?).<br>Please copy manualy:';
+          const ta = document.createElement('textarea');
+          ta.value = json;
+          ta.style.width = '100%';
+          ta.style.height = '100px';
+          ta.style.marginTop = '10px';
+          container.insertBefore(ta, btn);
+          btn.innerText = 'Close';
+          btn.onclick = () => overlay.remove(); 
+      }
 
     } catch (e) {
       console.error(e);
