@@ -46,7 +46,6 @@ export const FeatureFlagProvider = ({ children }) => {
         }
 
         if (data) {
-          console.log('Loaded flags from DB:', data);
           setExperimentalEnabled(!!data.experimental_features_enabled);
           // Merge saved flags with defaults to ensure all defined flags exist
           setFlags({
