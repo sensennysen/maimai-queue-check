@@ -107,20 +107,20 @@ const AccessRequests = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
                   <Table.Td>
                     <Group gap="xs">
                       <ActionIcon
-                        color="green"
                         variant="light"
                         loading={processing === r.id}
                         onClick={() => handleAction(r, 'approve')}
                         title="Approve"
+                        style={{ color: 'var(--theme-success)', backgroundColor: 'color-mix(in srgb, var(--theme-success), transparent 90%)' }}
                       >
                         <IconCheck size={16} />
                       </ActionIcon>
                       <ActionIcon
-                        color="red"
                         variant="light"
                         loading={processing === r.id}
                         onClick={() => handleAction(r, 'reject')}
                         title="Reject"
+                        style={{ color: 'var(--theme-error)', backgroundColor: 'color-mix(in srgb, var(--theme-error), transparent 90%)' }}
                       >
                         <IconX size={16} />
                       </ActionIcon>

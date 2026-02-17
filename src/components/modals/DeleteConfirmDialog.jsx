@@ -9,7 +9,7 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loadi
       onClose={onClose}
       title={
         <Group gap="xs">
-          <IconAlertTriangle size={24} color="red" />
+          <IconAlertTriangle size={24} color="var(--theme-error)" />
           <Text fw={600}>{title || 'Confirm Deletion'}</Text>
         </Group>
       }
@@ -23,7 +23,7 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loadi
           <Button variant="subtle" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
-          <Button color="red" onClick={onConfirm} loading={loading}>
+          <Button onClick={onConfirm} loading={loading} style={{ backgroundColor: 'var(--theme-error)', color: 'white' }}>
             {confirmLabel || 'Delete Branch'}
           </Button>
         </Group>

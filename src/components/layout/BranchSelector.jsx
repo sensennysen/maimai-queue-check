@@ -88,7 +88,7 @@ function BranchSelector() {
                 )
               }
               style={{
-                backgroundColor: isSelected ? 'var(--mantine-color-primary-light)' : undefined,
+                backgroundColor: isSelected ? 'color-mix(in srgb, var(--theme-primary), transparent 85%)' : undefined,
               }}
             >
               <Text size="sm" fw={isSelected ? 600 : 400}>

@@ -42,7 +42,7 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
             leftSection={<IconPlayerPlay size={16} />}
             onClick={() => onStartGame()}
             variant="filled"
-            color="green"
+            style={{ backgroundColor: 'var(--theme-success)', color: 'white' }}
             loading={isBusy}
           >
             Start Game
@@ -50,8 +50,11 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
         )}
       </Group>
       {user && userRoles !== undefined && !userRoles?.can_edit && !userRoles?.is_admin && !userRoles?.is_super_admin && (
-        <Group p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', backgroundColor: 'var(--mantine-color-yellow-0)' }}>
-          <Text size="sm" c="orange">
+        <Group p="md" style={{
+          borderBottom: '1px solid var(--theme-border)',
+          backgroundColor: 'color-mix(in srgb, var(--theme-warning), transparent 90%)'
+        }}>
+          <Text size="sm" style={{ color: 'var(--theme-warning)' }}>
             You can view the queue but don't have permission to edit it
           </Text>
         </Group>

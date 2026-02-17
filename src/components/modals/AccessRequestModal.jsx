@@ -149,7 +149,21 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
           />
 
           {showRejectionWarning && (
-            <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light" title="Previous Rejection">
+            <Alert
+              icon={<IconAlertCircle size={16} />}
+              variant="light"
+              title="Previous Rejection"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--theme-error), transparent 90%)',
+                color: 'var(--theme-error)',
+                borderColor: 'var(--theme-error)'
+              }}
+              styles={{
+                title: { color: 'var(--theme-error)' },
+                message: { color: 'var(--theme-error)' },
+                icon: { color: 'var(--theme-error)' }
+              }}
+            >
               One or more selected branches have previously rejected requests.
             </Alert>
           )}

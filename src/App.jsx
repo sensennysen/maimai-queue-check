@@ -1,5 +1,5 @@
-import { useState, lazy, Suspense } from 'react';
-import { MantineProvider, Container, Title, Paper, Stack, Group, Button, LoadingOverlay } from '@mantine/core';
+import { useState, lazy, Suspense, useMemo } from 'react';
+import { MantineProvider, Container, Title, Paper, Stack, Group, Button, LoadingOverlay, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -9,7 +9,7 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';
 import { useAuth } from './hooks/useAuth';
-import { theme as mantineTheme } from './config/theme';
+import { theme as mantineTheme, themes } from './config/theme';
 import QueueManager from './features/queue/components/QueueManager';
 // import LoginForm from './components/LoginForm'; // Assuming this stayed, if not update
 import ThemeToggle from './components/layout/ThemeToggle';
@@ -88,10 +88,25 @@ function MainApp() {
 
 // Mantine wrapper that provides theme
 function AppProviders() {
-  const { isDark } = useTheme();
+  const { isDark, currentTheme } = useTheme();
+
+  const dynamicTheme = useMemo(() => {
+    const selectedPalette = themes[currentTheme] || themes.circle;
+
+    // Create a new theme instance overriding the colors
+    return createTheme({
+      ...mantineTheme,
+      colors: {
+        ...mantineTheme.colors,
+        primary: selectedPalette.colors.primary,
+        secondary: selectedPalette.colors.secondary,
+        accent: selectedPalette.colors.accent,
+      },
+    });
+  }, [currentTheme]);
 
   return (
-    <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
+    <MantineProvider theme={dynamicTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
       <Notifications position="top-right" />
       <Suspense fallback={<LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} loaderProps={{ color: 'pink', type: 'bars' }} />}>
         <Routes>

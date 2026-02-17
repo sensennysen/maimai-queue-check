@@ -83,7 +83,7 @@ export function ScoreCard({ score }) {
             </Box>
             <Badge
               variant="gradient"
-              gradient={{ from: 'blue', to: 'cyan' }}
+              gradient={{ from: 'var(--theme-primary)', to: 'var(--theme-secondary)', deg: 90 }}
               size="xl"
               radius="md"
             >

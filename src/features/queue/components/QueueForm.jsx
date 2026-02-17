@@ -212,7 +212,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
           </Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={() => setShowSimilarityModal(false)}>Cancel</Button>
-            <Button color="orange" onClick={executeSubmit}>Proceed</Button>
+            <Button onClick={executeSubmit} style={{ backgroundColor: 'var(--theme-warning)', color: 'white' }}>Proceed</Button>
           </Group>
         </Stack>
       </Modal>

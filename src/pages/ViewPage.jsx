@@ -193,7 +193,7 @@ export default function ViewPage() {
             >
               maiPaQueueCheck PH
             </Title>
-            <Badge size="lg" variant="gradient" gradient={{ from: 'blue', to: 'cyan' }}>View Mode</Badge>
+            <Badge size="lg" variant="gradient" gradient={{ from: 'var(--theme-primary)', to: 'var(--theme-secondary)', deg: 90 }}>View Mode</Badge>
           </Group>
         </Paper>
 
@@ -219,7 +219,7 @@ export default function ViewPage() {
         {!isMallOpen && !scheduleLoading ? (
           <Paper p="xl" withBorder style={{ textAlign: 'center', minHeight: '50vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Stack align="center" gap="md">
-              <IconClockOff size={60} color="var(--mantine-color-gray-5)" />
+              <IconClockOff size={60} color="var(--theme-text-muted)" />
               <Title order={2}>This arcade is currently closed</Title>
               <Text c="dimmed">Operating Hours:</Text>
               {renderSchedule()}
@@ -242,7 +242,7 @@ export default function ViewPage() {
                       {isQueueLoading ? (
                         <Skeleton height={26} width={100} radius="xl" />
                       ) : (
-                        <Badge variant="filled" color="blue" size="xl">
+                        <Badge variant="filled" color={credits > 0 ? 'var(--theme-primary)' : 'gray'} size="xl">
                           Credits: {credits}
                         </Badge>
                       )}
