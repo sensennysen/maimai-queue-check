@@ -2,11 +2,7 @@
   width: 100%;
 }
 
-.app-header {
-  /* Glassmorphism handled by global .mantine-Paper-root style in index.css */
-  /* overriding borders just in case */
-  border: 1px solid rgba(0, 210, 255, 0.3) !important;
-}
+
 
 /* Light theme special header style - REMOVED (using global glassmorphism) */
 /* Dark theme special header style - REMOVED (using global glassmorphism) */

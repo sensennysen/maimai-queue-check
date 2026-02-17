@@ -42,7 +42,7 @@ function MainApp() {
     <div className="App">
       <Container size="lg" py="xl">
         <Stack gap="lg">
-          <Paper p="md" radius="md" withBorder className="app-header">
+          <Paper p="md" radius="md" withBorder className="app-header animate-fade-in">
             <Group justify="space-between" align="center" gap="md" wrap="wrap">
               <Group gap="md">
                 <Title order={1} className="app-title">
@@ -52,7 +52,7 @@ function MainApp() {
             </Group>
           </Paper>
 
-          <Group justify="space-between" gap="sm">
+          <Group justify="space-between" gap="sm" className="animate-fade-in delay-100">
             <BranchSelector />
             <Group gap="sm">
               {user && <NotificationCenter />}
@@ -63,11 +63,13 @@ function MainApp() {
             </Group>
           </Group>
 
-          <main>
+          <main className="animate-fade-in delay-200">
             <QueueManager />
           </main>
 
-          <Footer />
+          <div className="animate-fade-in delay-300">
+            <Footer />
+          </div>
         </Stack>
       </Container>
 
