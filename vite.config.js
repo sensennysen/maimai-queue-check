@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import viteCompression from 'vite-plugin-compression';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -16,6 +17,12 @@ export default defineConfig(({ mode }) => ({
       algorithm: 'brotliCompress',
       ext: '.br',
       threshold: 1024,
+    }),
+    mode === 'analyze' && visualizer({
+      open: true,
+      filename: 'dist/stats.html',
+      gzipSize: true,
+      brotliSize: true,
     }),
   ],
   build: {
@@ -48,23 +55,33 @@ export default defineConfig(({ mode }) => ({
         },
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-             if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+            // Core React
+            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
               return 'vendor-react';
             }
+            // Router
             if (id.includes('react-router') || id.includes('@remix-run')) {
               return 'vendor-router';
             }
-            if (id.includes('@mantine') || id.includes('@tabler')) {
-              return 'vendor-ui';
+            // UI Libraries (Mantine, Tabler) - Split them out
+            if (id.includes('@mantine')) {
+              return 'vendor-mantine';
             }
+            if (id.includes('@tabler')) {
+              return 'vendor-icons';
+            }
+            // Supabase
             if (id.includes('@supabase')) {
               return 'vendor-supabase';
             }
-            return 'vendor';
+            // Utils
+            if (id.includes('lodash') || id.includes('date-fns') || id.includes('dayjs')) {
+              return 'vendor-utils';
+            }
           }
         },
       },
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 800,
   },
 }));
