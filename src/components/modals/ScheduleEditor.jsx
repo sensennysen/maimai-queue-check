@@ -11,7 +11,8 @@ import {
   Table,
   ScrollArea,
 } from '@mantine/core';
-import { IconCalendar, IconClock } from '@tabler/icons-react';
+import IconCalendar from '@tabler/icons-react/dist/esm/icons/IconCalendar.mjs';
+import IconClock from '@tabler/icons-react/dist/esm/icons/IconClock.mjs';
 import { notifications } from '@mantine/notifications';
 import { adminService } from '../../services/supabase';
 

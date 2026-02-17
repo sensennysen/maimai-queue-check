@@ -14,15 +14,13 @@ import {
   Collapse,
   TextInput,
 } from '@mantine/core';
-import {
-  IconBuildingStore,
-  IconEdit,
-  IconTrash,
-  IconPlus,
-  IconChevronDown,
-  IconChevronRight,
-  IconSearch,
-} from '@tabler/icons-react';
+import IconBuildingStore from '@tabler/icons-react/dist/esm/icons/IconBuildingStore.mjs';
+import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
+import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
+import IconChevronDown from '@tabler/icons-react/dist/esm/icons/IconChevronDown.mjs';
+import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
+import IconSearch from '@tabler/icons-react/dist/esm/icons/IconSearch.mjs';
 import { notifications } from '@mantine/notifications';
 import { adminService } from '../../../services/supabase';
 import BranchEditModal from '../../../components/modals/BranchEditModal';

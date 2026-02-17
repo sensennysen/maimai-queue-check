@@ -8,7 +8,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useFeatureFlags } from '../../contexts/FeatureFlagContext';
 import { EXPERIMENTAL_FEATURES } from '../../constants/featureFlags';
 import { Switch, Alert, Card } from '@mantine/core';
-import { IconFlask } from '@tabler/icons-react';
+import IconFlask from '@tabler/icons-react/dist/esm/icons/IconFlask.mjs';
 
 const ExperimentalFeaturesSection = () => {
   const { experimentalEnabled, flags, toggleExperimentalFeatures, toggleFlag, isLoading } = useFeatureFlags();

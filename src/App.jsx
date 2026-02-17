@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { MantineProvider, Container, Title, Paper, Stack, Group, Button } from '@mantine/core';
+import { useState, lazy, Suspense } from 'react';
+import { MantineProvider, Container, Title, Paper, Stack, Group, Button, LoadingOverlay } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -11,18 +11,21 @@ import { BranchProvider } from './contexts/BranchContext';
 import { useAuth } from './hooks/useAuth';
 import { theme as mantineTheme } from './config/theme';
 import QueueManager from './features/queue/components/QueueManager';
-import LoginForm from './components/LoginForm'; // Assuming this stayed, if not update
+// import LoginForm from './components/LoginForm'; // Assuming this stayed, if not update
 import ThemeToggle from './components/layout/ThemeToggle';
 import BranchSelector from './components/layout/BranchSelector';
 import Footer from './components/layout/Footer';
-import AdminPage from './pages/AdminPage';
 import PreferencesModal from './components/modals/PreferencesModal';
 import NotificationCenter from './components/layout/NotificationCenter';
-import ProfilePage from './pages/ProfilePage';
-import ExportBest50Page from './pages/ExportBest50Page';
-import ViewPage from './pages/ViewPage';
-import ContactPage from './pages/ContactPage';
 import './App.css';
+
+// Lazy load pages
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const ExportBest50Page = lazy(() => import('./pages/ExportBest50Page'));
+const ViewPage = lazy(() => import('./pages/ViewPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+import LoginForm from './components/LoginForm';
 
 // The main application content (Queue check, Login, etc.)
 function MainApp() {
@@ -90,14 +93,16 @@ function AppProviders() {
   return (
     <MantineProvider theme={mantineTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
       <Notifications position="top-right" />
-      <Routes>
-        <Route path="/profile/export" element={<ExportBest50Page />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/view" element={<ViewPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/*" element={<MainApp />} />
-      </Routes>
+      <Suspense fallback={<LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} loaderProps={{ color: 'pink', type: 'bars' }} />}>
+        <Routes>
+          <Route path="/profile/export" element={<ExportBest50Page />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/view" element={<ViewPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/*" element={<MainApp />} />
+        </Routes>
+      </Suspense>
       <Analytics />
     </MantineProvider>
   );

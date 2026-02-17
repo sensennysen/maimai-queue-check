@@ -1,6 +1,7 @@
 import { useState, memo } from 'react';
 import { Paper, Title, Group, Button, Stack, Text, Center } from '@mantine/core';
-import { IconPlayerPlay, IconLock } from '@tabler/icons-react';
+import IconPlayerPlay from '@tabler/icons-react/dist/esm/icons/IconPlayerPlay.mjs';
+import IconLock from '@tabler/icons-react/dist/esm/icons/IconLock.mjs';
 import QueueItem from './QueueItem';
 import { useAuth } from '../../../hooks/useAuth';
 import { usePermissions } from '../../../hooks/usePermissions';

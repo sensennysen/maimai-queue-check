@@ -16,15 +16,13 @@ import {
   Badge,
   Pagination,
 } from '@mantine/core';
-import {
-  IconUsers,
-  IconEdit,
-  IconCheck,
-  IconX,
-  IconSearch,
-  IconSortAscending,
-  IconSortDescending,
-} from '@tabler/icons-react';
+import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
+import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
+import IconSearch from '@tabler/icons-react/dist/esm/icons/IconSearch.mjs';
+import IconSortAscending from '@tabler/icons-react/dist/esm/icons/IconSortAscending.mjs';
+import IconSortDescending from '@tabler/icons-react/dist/esm/icons/IconSortDescending.mjs';
 import { notifications } from '@mantine/notifications';
 import { adminService, subscribeToUserRoleChanges, supabase } from '../../../services/supabase';
 import { useBranch } from '../../../contexts/BranchContext';

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Container, Title, Text, Group, Stack, SimpleGrid, Box, Button, Divider, LoadingOverlay, Alert, Loader, Overlay } from '@mantine/core';
-import { IconCamera, IconAlertCircle, IconCheck } from '@tabler/icons-react';
+import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import { toPng } from 'html-to-image';
 import { ScoreCard } from '../components/maimai/ScoreCard';
 import { useAuth } from '../hooks/useAuth';

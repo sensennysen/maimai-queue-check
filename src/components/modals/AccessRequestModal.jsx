@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Modal, Stack, Button, MultiSelect, Text, Group, LoadingOverlay, Alert } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconSend, IconAlertCircle } from '@tabler/icons-react';
+import IconSend from '@tabler/icons-react/dist/esm/icons/IconSend.mjs';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import { requestService, branchService, userService } from '../../services/supabase';
 import { useAuth } from '../../hooks/useAuth';
 

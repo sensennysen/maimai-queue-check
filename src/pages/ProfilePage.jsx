@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, Box } from '@mantine/core';
-import { IconUser, IconUpload, IconAlertCircle, IconCheck, IconCalculator, IconUserCircle, IconArrowLeft, IconSun, IconMoon, IconCamera } from '@tabler/icons-react';
+import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
+import IconUpload from '@tabler/icons-react/dist/esm/icons/IconUpload.mjs';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconCalculator from '@tabler/icons-react/dist/esm/icons/IconCalculator.mjs';
+import IconUserCircle from '@tabler/icons-react/dist/esm/icons/IconUserCircle.mjs';
+import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs';
+import IconSun from '@tabler/icons-react/dist/esm/icons/IconSun.mjs';
+import IconMoon from '@tabler/icons-react/dist/esm/icons/IconMoon.mjs';
+import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
 import { ScoreCard } from '../components/maimai/ScoreCard';
 import { BookmarkletInstructions } from '../components/BookmarkletInstructions';
 import { useAuth } from '../hooks/useAuth';

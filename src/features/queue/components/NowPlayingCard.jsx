@@ -1,4 +1,4 @@
-import { IconPlayerStop } from '@tabler/icons-react';
+import IconPlayerStop from '@tabler/icons-react/dist/esm/icons/IconPlayerStop.mjs';
 import { Button } from '@mantine/core';
 import PlayTimer from './PlayTimer';
 import './QueueManager.css';

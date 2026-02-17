@@ -130,22 +130,19 @@ export const BranchProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      // Load branches only - don't request location automatically
-      const allBranches = await branchService.getAllBranches();
+      // Load branches and request location concurrently
+      // Use catch on location promise to prevent it from failing the whole Promise.all
+      const [allBranches, location] = await Promise.all([
+        branchService.getAllBranches(),
+        requestUserLocation().catch(() => null)
+      ]);
+
       setBranches(allBranches);
+      if (location) setUserLocation(location);
 
       if (allBranches.length === 0) {
         setError('No branches found');
         return;
-      }
-
-      // Try to get user location for distance display and nearest-branch selection
-      let location = null;
-      try {
-        location = await requestUserLocation();
-        setUserLocation(location);
-      } catch {
-        // Location denied or unavailable — continue without it
       }
 
       // Logic to select branch

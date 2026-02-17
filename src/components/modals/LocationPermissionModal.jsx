@@ -1,5 +1,6 @@
 import { Modal, Stack, Text, Button, List } from '@mantine/core';
-import { IconMapPin, IconX } from '@tabler/icons-react';
+import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 
 /**
  * Modal component for requesting geolocation consent

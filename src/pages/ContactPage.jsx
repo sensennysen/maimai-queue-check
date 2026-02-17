@@ -16,7 +16,8 @@ import {
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
-import { IconArrowLeft, IconPaperclip } from '@tabler/icons-react';
+import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs';
+import IconPaperclip from '@tabler/icons-react/dist/esm/icons/IconPaperclip.mjs';
 import { contactService } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
 

@@ -1,7 +1,13 @@
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { Container, Title, Text, Loader, Center, Alert, Badge, Group, Stack, ActionIcon, Paper, Skeleton, Table } from '@mantine/core';
-import { IconAlertCircle, IconWifi, IconWifiOff, IconSun, IconMoon, IconClockOff, IconAlertTriangle } from '@tabler/icons-react';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconWifi from '@tabler/icons-react/dist/esm/icons/IconWifi.mjs';
+import IconWifiOff from '@tabler/icons-react/dist/esm/icons/IconWifiOff.mjs';
+import IconSun from '@tabler/icons-react/dist/esm/icons/IconSun.mjs';
+import IconMoon from '@tabler/icons-react/dist/esm/icons/IconMoon.mjs';
+import IconClockOff from '@tabler/icons-react/dist/esm/icons/IconClockOff.mjs';
+import IconAlertTriangle from '@tabler/icons-react/dist/esm/icons/IconAlertTriangle.mjs';
 import { useMonitorData } from '../hooks/useMonitorData';
 import { useBranch } from '../hooks/useBranch';
 import { useMallSchedule } from '../hooks/useMallSchedule';

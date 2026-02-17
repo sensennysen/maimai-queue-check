@@ -10,10 +10,8 @@ import {
   Center,
   Paper,
 } from '@mantine/core';
-import {
-  IconCheck,
-  IconX,
-} from '@tabler/icons-react';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 import { notifications } from '@mantine/notifications';
 import { adminService, requestService, rolesService } from '../../../services/supabase';
 import './UserManager.css';

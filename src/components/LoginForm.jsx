@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider, Badge, Group } from '@mantine/core';
-import { IconBrandGoogle, IconLogout, IconUser, IconLogin, IconSettings } from '@tabler/icons-react';
+import IconBrandGoogle from '@tabler/icons-react/dist/esm/icons/IconBrandGoogle.mjs';
+import IconLogout from '@tabler/icons-react/dist/esm/icons/IconLogout.mjs';
+import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
+import IconLogin from '@tabler/icons-react/dist/esm/icons/IconLogin.mjs';
+import IconSettings from '@tabler/icons-react/dist/esm/icons/IconSettings.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';

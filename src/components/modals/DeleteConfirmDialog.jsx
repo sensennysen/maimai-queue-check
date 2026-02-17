@@ -1,5 +1,5 @@
 import { Modal, Stack, Text, Button, Group } from '@mantine/core';
-import { IconAlertTriangle } from '@tabler/icons-react';
+import IconAlertTriangle from '@tabler/icons-react/dist/esm/icons/IconAlertTriangle.mjs';
 
 const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loading, confirmLabel }) => {
 

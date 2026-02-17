@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Button, Menu, Text, Group, Badge, Loader } from '@mantine/core';
-import { IconMapPin, IconChevronDown, IconCheck } from '@tabler/icons-react';
+import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
+import IconChevronDown from '@tabler/icons-react/dist/esm/icons/IconChevronDown.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import { useBranch } from '../../hooks/useBranch';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getDistance } from '../../services/geolocation';
