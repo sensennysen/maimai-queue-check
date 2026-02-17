@@ -53,16 +53,23 @@ export function ScoreCard({ score }) {
             />
           </Group>
 
-          {/* Difficulty Label */}
-          <Badge
-            color={difficultyColor}
-            variant="filled"
-            size="sm"
-            radius="sm"
-            styles={{ root: { backgroundColor: difficultyColor, color: 'white' } }}
-          >
-            {difficultyLabel}
-          </Badge>
+          {/* Difficulty + Constant */}
+          <Group gap={6}>
+            <Badge
+              color={difficultyColor}
+              variant="filled"
+              size="sm"
+              radius="sm"
+              styles={{ root: { backgroundColor: difficultyColor, color: 'white' } }}
+            >
+              {difficultyLabel}
+            </Badge>
+            {score.level && (
+              <Text size="xs" c="dimmed" fw={600}>
+                {score.level.toFixed(1)}
+              </Text>
+            )}
+          </Group>
 
           {/* Stats Row */}
           <Group gap="xs" mt={4} align="flex-end" justify="space-between" style={{ width: '100%' }}>
