@@ -10,11 +10,9 @@ import {
   Center,
   Paper,
 } from '@mantine/core';
-import {
-  IconTrash,
-  IconMessageReport,
-  IconPaperclip,
-} from '@tabler/icons-react';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
+import IconMessageReport from '@tabler/icons-react/dist/esm/icons/IconMessageReport.mjs';
+import IconPaperclip from '@tabler/icons-react/dist/esm/icons/IconPaperclip.mjs';
 import { notifications } from '@mantine/notifications';
 import { contactService } from '../../../services/supabase';
 import DeleteConfirmDialog from '../../../components/modals/DeleteConfirmDialog';

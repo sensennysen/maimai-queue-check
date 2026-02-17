@@ -1,5 +1,6 @@
 import { ActionIcon, Tooltip } from '@mantine/core';
-import { IconSun, IconMoon } from '@tabler/icons-react';
+import IconSun from '@tabler/icons-react/dist/esm/icons/IconSun.mjs';
+import IconMoon from '@tabler/icons-react/dist/esm/icons/IconMoon.mjs';
 import { useTheme } from '../../contexts/ThemeContext';
 
 function ThemeToggle() {

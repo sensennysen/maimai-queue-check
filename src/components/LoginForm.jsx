@@ -1,14 +1,20 @@
 import { useState } from 'react';
 import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider, Badge, Group } from '@mantine/core';
-import { IconBrandGoogle, IconLogout, IconUser, IconLogin, IconSettings } from '@tabler/icons-react';
+import IconBrandGoogle from '@tabler/icons-react/dist/esm/icons/IconBrandGoogle.mjs';
+import IconLogout from '@tabler/icons-react/dist/esm/icons/IconLogout.mjs';
+import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
+import IconLogin from '@tabler/icons-react/dist/esm/icons/IconLogin.mjs';
+import IconSettings from '@tabler/icons-react/dist/esm/icons/IconSettings.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';
+import { useFeatureFlags } from '../contexts/FeatureFlagContext';
 import './LoginForm.css';
 
 const LoginForm = ({ onOpenPreferences }) => {
   const { user, loading, signInWithProvider, signOut, userRoles } = useAuth();
   const { branches } = useBranch();
+  const { flags } = useFeatureFlags();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -86,6 +92,14 @@ const LoginForm = ({ onOpenPreferences }) => {
             </Stack>
           </Menu.Label>
           <Divider />
+          {flags['profile_tab'] && (
+            <Menu.Item
+              leftSection={<IconUser size={16} />}
+              onClick={() => navigate('/profile')}
+            >
+              Profile
+            </Menu.Item>
+          )}
           <Menu.Item
             leftSection={<IconSettings size={16} />}
             onClick={onOpenPreferences}

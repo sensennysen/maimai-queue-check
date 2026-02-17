@@ -1,5 +1,11 @@
 import { Modal, Stack, Text, Button, Accordion, List, Group, Badge } from '@mantine/core';
-import { IconMapPin, IconBrandChrome, IconBrandFirefox, IconBrandSafari, IconBrandEdge, IconDeviceMobile, IconDeviceDesktop } from '@tabler/icons-react';
+import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
+import IconBrandChrome from '@tabler/icons-react/dist/esm/icons/IconBrandChrome.mjs';
+import IconBrandFirefox from '@tabler/icons-react/dist/esm/icons/IconBrandFirefox.mjs';
+import IconBrandSafari from '@tabler/icons-react/dist/esm/icons/IconBrandSafari.mjs';
+import IconBrandEdge from '@tabler/icons-react/dist/esm/icons/IconBrandEdge.mjs';
+import IconDeviceMobile from '@tabler/icons-react/dist/esm/icons/IconDeviceMobile.mjs';
+import IconDeviceDesktop from '@tabler/icons-react/dist/esm/icons/IconDeviceDesktop.mjs';
 
 /**
  * Modal showing instructions for enabling location in browser settings

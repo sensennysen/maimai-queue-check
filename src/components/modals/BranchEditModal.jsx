@@ -14,7 +14,9 @@ import {
   Table,
   ScrollArea,
 } from '@mantine/core';
-import { IconMapPin, IconBuildingStore, IconClock } from '@tabler/icons-react';
+import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
+import IconBuildingStore from '@tabler/icons-react/dist/esm/icons/IconBuildingStore.mjs';
+import IconClock from '@tabler/icons-react/dist/esm/icons/IconClock.mjs';
 import { notifications } from '@mantine/notifications';
 import { adminService } from '../../services/supabase';
 import { requestUserLocation } from '../../services/geolocation';

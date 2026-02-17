@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Text, Group, Anchor, Stack } from '@mantine/core';
-import { IconMail, IconHistory, IconShieldLock } from '@tabler/icons-react';
+import IconMail from '@tabler/icons-react/dist/esm/icons/IconMail.mjs';
+import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
+import IconShieldLock from '@tabler/icons-react/dist/esm/icons/IconShieldLock.mjs';
 import ChangelogModal from '../modals/ChangelogModal';
 import PrivacyModal from '../modals/PrivacyModal';
 import './Footer.css';

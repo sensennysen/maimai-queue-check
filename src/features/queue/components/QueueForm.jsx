@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { TextInput, Group, Button, Stack, Alert, Checkbox, Modal, Text, Autocomplete, Loader } from '@mantine/core';
-import { IconPlus, IconEdit } from '@tabler/icons-react';
+import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
+import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
 import DOMPurify from 'dompurify';
 import './QueueForm.css';
 import { usePlayerSuggestions } from '../../../hooks/usePlayerSuggestions';
@@ -211,7 +212,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
           </Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={() => setShowSimilarityModal(false)}>Cancel</Button>
-            <Button color="orange" onClick={executeSubmit}>Proceed</Button>
+            <Button onClick={executeSubmit} style={{ backgroundColor: 'var(--theme-warning)', color: 'white' }}>Proceed</Button>
           </Group>
         </Stack>
       </Modal>

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Modal, Stack, Button, MultiSelect, Text, Group, LoadingOverlay, Alert } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconSend, IconAlertCircle } from '@tabler/icons-react';
+import IconSend from '@tabler/icons-react/dist/esm/icons/IconSend.mjs';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import { requestService, branchService, userService } from '../../services/supabase';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -148,7 +149,21 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
           />
 
           {showRejectionWarning && (
-            <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light" title="Previous Rejection">
+            <Alert
+              icon={<IconAlertCircle size={16} />}
+              variant="light"
+              title="Previous Rejection"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--theme-error), transparent 90%)',
+                color: 'var(--theme-error)',
+                borderColor: 'var(--theme-error)'
+              }}
+              styles={{
+                title: { color: 'var(--theme-error)' },
+                message: { color: 'var(--theme-error)' },
+                icon: { color: 'var(--theme-error)' }
+              }}
+            >
               One or more selected branches have previously rejected requests.
             </Alert>
           )}

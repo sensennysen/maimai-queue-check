@@ -369,6 +369,11 @@
     height: 18px;
   }
 
+  .queue-.item.next-up {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--theme-accent), transparent 80%) 0%, var(--theme-surface) 100%);
+    border-left-color: var(--theme-accent);
+  }
+
   .edit-btn,
   .remove-btn {
     width: 28px;
@@ -390,13 +395,13 @@
   0% {
     opacity: 0;
     transform: translateX(-20px);
-    background-color: rgba(64, 192, 87, 0.25);
+    background-color: color-mix(in srgb, var(--theme-success), transparent 75%);
   }
 
   40% {
     opacity: 1;
     transform: translateX(0);
-    background-color: rgba(64, 192, 87, 0.2);
+    background-color: color-mix(in srgb, var(--theme-success), transparent 80%);
   }
 
   100% {
@@ -413,7 +418,7 @@
 /* Reordered item: blue pulse highlight */
 @keyframes queue-item-pulse {
   0% {
-    background-color: rgba(34, 139, 230, 0.25);
+    background-color: color-mix(in srgb, var(--theme-secondary), transparent 75%);
   }
 
   100% {

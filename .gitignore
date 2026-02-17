@@ -28,12 +28,3 @@ dist-ssr
 *.sln
 *.sw?
 
-# Ignore the GSD Tool installation (The Engine)
-.claude/
-.gemini/
-.config/opencode/
-.gsd/
-
-# Ignore the detailed logs (optional, keeps repo clean)
-.planning/
-.agent/

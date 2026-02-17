@@ -1,8 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, Alert, Loader, Modal, Skeleton, Tabs } from '@mantine/core';
 import { useOs } from '@mantine/hooks';
-import { IconTrash, IconPlus, IconAlertCircle, IconAlertTriangle, IconMapPin, IconExternalLink } from '@tabler/icons-react';
-import QueueForm from './QueueForm';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
+import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconAlertTriangle from '@tabler/icons-react/dist/esm/icons/IconAlertTriangle.mjs';
+import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
+import IconExternalLink from '@tabler/icons-react/dist/esm/icons/IconExternalLink.mjs';
+const QueueForm = lazy(() => import('./QueueForm'));
 import QueueList from './QueueList';
 import LocationPermissionModal from '../../../components/modals/LocationPermissionModal';
 import LocationHelpModal from '../../../components/modals/LocationHelpModal';
@@ -356,18 +361,20 @@ function QueueManager() {
         title={editingId ? 'Edit Queue' : 'Add Queue'}
         centered
       >
-        <QueueForm
-          key={editingId || 'new'}
-          onSubmit={editingId ? updateQueueEntry : addQueueEntry}
-          editingId={editingId}
-          editingData={editingId ? queue.find(item => item.id === editingId) : null}
-          isBusy={isMutating}
-          locationVerified={locationVerified}
-          locationError={locationError}
-          isSuperAdmin={isSuperAdmin}
-          queue={queue}
-          nowPlaying={nowPlaying}
-        />
+        <Suspense fallback={<Skeleton height={400} />}>
+          <QueueForm
+            key={editingId || 'new'}
+            onSubmit={editingId ? updateQueueEntry : addQueueEntry}
+            editingId={editingId}
+            editingData={editingId ? queue.find(item => item.id === editingId) : null}
+            isBusy={isMutating}
+            locationVerified={locationVerified}
+            locationError={locationError}
+            isSuperAdmin={isSuperAdmin}
+            queue={queue}
+            nowPlaying={nowPlaying}
+          />
+        </Suspense>
       </Modal>
 
       <AccessRequestModal

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { validateData, userProfileSchema, queueEntrySchema, contactReportSchema } from '../utils/validation';
 
 // Supabase configuration
 // You'll need to replace these with your actual Supabase project URL and anon key
@@ -59,46 +60,68 @@ export const authService = {
 
 // User roles service functions
 export const rolesService = {
-  // Fetch user roles/permissions
+  // Fetch user roles/permissions and profile data
   async getUserRoles(userId) {
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', userId)
-        .limit(1);
+      // Fetch role and profile data in parallel
+      const [roleResult, profileResult] = await Promise.all([
+        supabase
+          .from('user_roles')
+          .select('user_id, can_edit, can_edit_on, is_admin, is_super_admin, admin_branch, display_name, preferred_branches')
+          .eq('user_id', userId)
+          .limit(1)
+          .maybeSingle(),
+        
+        supabase
+          .from('user_profiles')
+          .select('id, display_name, preferred_branches, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at')
+          .eq('id', userId)
+          .maybeSingle()
+      ]);
 
-      if (error) {
-        return {
-          user_id: userId,
-          can_edit: false,
-          is_admin: false,
-          is_super_admin: false
-        };
-      }
+      const { data: roleData } = roleResult;
+      const { data: profileData } = profileResult;
 
-      // If no rows returned, return default permissions
-      if (!data || data.length === 0) {
+      // If both missing, return safe defaults
+      if (!roleData && !profileData) {
         return {
           user_id: userId,
           can_edit: false,
           is_admin: false,
           is_super_admin: false,
-          preferred_branches: []
+          preferred_branches: [],
+          display_name: null
         };
       }
 
-      // Ensure is_admin is always present (default false if missing)
-      return { 
-        ...data[0], 
-        is_admin: !!data[0].is_admin,
-        is_super_admin: !!data[0].is_super_admin,
-        admin_branch: data[0].admin_branch || null,
-        preferred_branches: Array.isArray(data[0].preferred_branches) ? data[0].preferred_branches : [],
-        can_edit: !!data[0].can_edit,
-        can_edit_on: Array.isArray(data[0].can_edit_on) ? data[0].can_edit_on : []
+      // Merge data, preferring profileData for profile fields
+      // Default to roleData if profileData missing (backward compat)
+      const mergedData = {
+        user_id: userId,
+        // Permissions from roleData
+        can_edit: !!roleData?.can_edit,
+        can_edit_on: Array.isArray(roleData?.can_edit_on) ? roleData.can_edit_on : [],
+        is_admin: !!roleData?.is_admin,
+        is_super_admin: !!roleData?.is_super_admin,
+        admin_branch: roleData?.admin_branch || null,
+        
+        // Profile fields - prefer profileData, fallback to roleData
+        display_name: profileData?.display_name || roleData?.display_name,
+        preferred_branches: Array.isArray(profileData?.preferred_branches) 
+          ? profileData.preferred_branches 
+          : (Array.isArray(roleData?.preferred_branches) ? roleData.preferred_branches : []),
+          
+        // Maimai fields (only in profileData)
+        maimai_dx_name: profileData?.maimai_dx_name || null,
+        maimai_rating: profileData?.maimai_rating || null,
+        maimai_best_scores: profileData?.maimai_best_scores || null,
+        maimai_scores_updated_at: profileData?.maimai_scores_updated_at || null
       };
-    } catch {
+      
+      return mergedData;
+
+    } catch (err) {
+      console.error('Error fetching user roles/profile:', err);
       return {
         user_id: userId,
         can_edit: false,
@@ -116,11 +139,67 @@ export const userService = {
     const updateData = {};
     if (branchIds !== undefined) updateData.preferred_branches = branchIds;
     if (displayName !== undefined) updateData.display_name = displayName;
+    
+    // VALIDATION
+    if (displayName) {
+        const validation = validateData(userProfileSchema.pick({ displayName: true }), { displayName });
+        if (!validation.success) throw new Error(validation.error);
+    }
+    
+    // Update user_profiles (Primary)
+    const { data: profileData, error: profileError } = await supabase
+      .from('user_profiles')
+      .upsert({ 
+        id: userId,
+        ...updateData, 
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
 
+    if (profileError) throw profileError;
+
+    // Sync to user_roles (Legacy/Compatibility)
+    // We do this to ensure existing code relying on user_roles for display names still works
+    // until fully migrated. Non-blocking/fire-and-forget style or sequential.
+    try {
+      await supabase
+        .from('user_roles')
+        .update(updateData)
+        .eq('user_id', userId);
+    } catch (e) {
+      console.warn('Failed to sync preferences to user_roles legacy table', e);
+    }
+
+    return profileData;
+  },
+  
+  // Update maimai profile specifically
+  async updateMaimaiProfile(userId, { maimaiDxName }) {
     const { data, error } = await supabase
-      .from('user_roles')
-      .update(updateData)
-      .eq('user_id', userId)
+      .from('user_profiles')
+      .upsert({
+        id: userId,
+        maimai_dx_name: maimaiDxName,
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return data;
+  },
+
+  // Update maimai best scores (Calculated Top 50)
+  async updateMaimaiBestScores(userId, bestScores) {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .upsert({
+        id: userId,
+        maimai_best_scores: bestScores,
+        maimai_scores_updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
       .select()
       .single();
 
@@ -129,16 +208,26 @@ export const userService = {
   },
 
   // Get users who have a specific branch in their preferred_branches
+  // Updated to check user_profiles (or fallback to roles)
   async getUsersPrefersBranch(branchId) {
     if (!branchId) return [];
 
-    const { data, error } = await supabase
-        .from('user_roles')
+    // Try profiles first
+    const { data: profiles, error } = await supabase
+        .from('user_profiles')
         .select('display_name')
         .contains('preferred_branches', [branchId]);
     
-    if (error) throw error;
-    return data || [];
+    if (!error && profiles && profiles.length > 0) return profiles;
+    
+    // Fallback to roles if empty/error
+    const { data: roles, error: roleError } = await supabase
+        .from('user_roles')
+        .select('display_name')
+        .contains('preferred_branches', [branchId]);
+
+    if (roleError) throw roleError;
+    return roles || [];
   }
 };
 
@@ -154,7 +243,7 @@ export const queueService = {
 
     let query = supabase
       .from('queue_entries')
-      .select('*')
+      .select('id, player1, player2, order_position, status, created_by, branch_id, cabinet_num, started_at, ended_at, created_at')
       .in('status', ['waiting', 'playing'])
       .gte('created_at', today.toISOString());
     
@@ -179,10 +268,22 @@ export const queueService = {
 
   // Add a new queue entry
   async addQueueEntry(player1, player2, orderPosition, userId, branchId, cabinetNum = 1) {
+    // VALIDATION
+    const validation = validateData(queueEntrySchema, { 
+      player1, 
+      player2, 
+      orderPosition, 
+      branchId, 
+      cabinetNum 
+    });
+    
+    if (!validation.success) throw new Error(validation.error);
+
+    // Check if there is currently a playing session for this specific cabinet
     // Check if there is currently a playing session for this specific cabinet
     const { count, error: countError } = await supabase
         .from('queue_entries')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('branch_id', branchId)
         .eq('cabinet_num', cabinetNum)
         .eq('status', 'playing');
@@ -216,6 +317,14 @@ export const queueService = {
 
   // Update an existing queue entry
   async updateQueueEntry(id, player1, player2) {
+    // VALIDATION - partial schema check for names only
+    const validation = validateData(queueEntrySchema.pick({ player1: true, player2: true }), { 
+      player1, 
+      player2 
+    });
+    
+    if (!validation.success) throw new Error(validation.error);
+
     const { data, error } = await supabase
       .from('queue_entries')
       .update({
@@ -431,7 +540,7 @@ export const branchService = {
   async getAllBranches() {
     const { data, error } = await supabase
       .from('allowed_places')
-      .select('*')
+      .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled')
       .eq('enabled', true)
       .order('arcade_name', { ascending: true });
 
@@ -443,7 +552,7 @@ export const branchService = {
   async getBranchById(branchId) {
     const { data, error } = await supabase
       .from('allowed_places')
-      .select('*')
+      .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled')
       .eq('id', branchId)
       .eq('enabled', true)
       .single();
@@ -459,7 +568,7 @@ export const scheduleService = {
   async getSchedule(branchId) {
     let query = supabase
       .from('mall_schedule')
-      .select('*');
+      .select('id, branch_id, day, time_open, time_close');
     
     if (branchId) {
       query = query.eq('branch_id', branchId);
@@ -480,7 +589,7 @@ export const adminService = {
   async getAllBranchesForAdmin() {
     const { data, error } = await supabase
       .from('allowed_places')
-      .select('*')
+      .select('id, arcade_name, short_name, acronym, cab_count, enabled, latitude, longitude')
       .order('arcade_name', { ascending: true });
 
     if (error) throw error;
@@ -535,7 +644,7 @@ export const adminService = {
   async getBranchWithSchedules(branchId) {
     const { data: branch, error: branchError } = await supabase
       .from('allowed_places')
-      .select('*')
+      .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled')
       .eq('id', branchId)
       .single();
 
@@ -543,7 +652,7 @@ export const adminService = {
 
     const { data: schedules, error: scheduleError } = await supabase
       .from('mall_schedule')
-      .select('*')
+      .select('id, branch_id, day, time_open, time_close')
       .eq('branch_id', branchId)
       .order('id', { ascending: true });
 
@@ -713,7 +822,7 @@ export const requestService = {
       let query = supabase
         .from('access_requests')
         .select(`
-            *,
+            id, user_id, branch_id, status, created_at,
             allowed_places (
                 arcade_name,
                 short_name,
@@ -758,7 +867,7 @@ export const requestService = {
   async getUserRequests(userId) {
       const { data, error } = await supabase
           .from('access_requests')
-          .select('*')
+          .select('id, user_id, branch_id, status, created_at')
           .eq('user_id', userId);
       
       if (error) throw error;
@@ -790,7 +899,7 @@ export const notificationService = {
 
     const { data: notifications, error: notifError } = await supabase
       .from('notifications')
-      .select('*')
+      .select('id, user_id, type, title, message, data, created_at, read_at')
       .gte('created_at', oneWeekAgo.toISOString())
       .order('created_at', { ascending: false });
 
@@ -839,6 +948,24 @@ export const notificationService = {
 export const contactService = {
   // Submit a new report
   async submitReport({ report_type, description, email, user_id, file }) {
+    // VALIDATION
+    // We construct a temporary object to validate against our schema
+    // The file object from browser context has size/type properties
+    const validationPayload = { report_type, description, email };
+    
+    // For file validation we need to be careful as 'file' might be a File object
+    // Zod schema expects specific checks.
+    
+    // First validate text fields
+    const textValidation = validateData(contactReportSchema.omit({ file: true }), validationPayload);
+    if (!textValidation.success) throw new Error(textValidation.error);
+
+    // Now validate file if present
+    if (file) {
+        const fileValidation = validateData(contactReportSchema.pick({ file: true }), { file });
+        if (!fileValidation.success) throw new Error(fileValidation.error);
+    }
+
     let attachment_path = null;
     let attachment_name = null;
 
@@ -883,7 +1010,7 @@ export const contactService = {
     // 1. Fetch reports
     const { data: reports, error } = await supabase
       .from('contact_reports')
-      .select('*')
+      .select('id, report_type, description, email, user_id, status, attachment_path, attachment_name, created_at')
       .order('created_at', { ascending: false });
 
     if (error) throw error;

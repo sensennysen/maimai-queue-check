@@ -10,12 +10,10 @@ import {
   Paper,
   Tabs,
 } from '@mantine/core';
-import {
-  IconBuildingStore,
-  IconArrowLeft,
-  IconUsers,
-  IconMessageReport,
-} from '@tabler/icons-react';
+import IconBuildingStore from '@tabler/icons-react/dist/esm/icons/IconBuildingStore.mjs';
+import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs';
+import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
+import IconMessageReport from '@tabler/icons-react/dist/esm/icons/IconMessageReport.mjs';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import BranchList from '../features/admin/components/BranchList';

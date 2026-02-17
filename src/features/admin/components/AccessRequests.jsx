@@ -10,10 +10,8 @@ import {
   Center,
   Paper,
 } from '@mantine/core';
-import {
-  IconCheck,
-  IconX,
-} from '@tabler/icons-react';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 import { notifications } from '@mantine/notifications';
 import { adminService, requestService, rolesService } from '../../../services/supabase';
 import './UserManager.css';
@@ -109,20 +107,20 @@ const AccessRequests = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
                   <Table.Td>
                     <Group gap="xs">
                       <ActionIcon
-                        color="green"
                         variant="light"
                         loading={processing === r.id}
                         onClick={() => handleAction(r, 'approve')}
                         title="Approve"
+                        style={{ color: 'var(--theme-success)', backgroundColor: 'color-mix(in srgb, var(--theme-success), transparent 90%)' }}
                       >
                         <IconCheck size={16} />
                       </ActionIcon>
                       <ActionIcon
-                        color="red"
                         variant="light"
                         loading={processing === r.id}
                         onClick={() => handleAction(r, 'reject')}
                         title="Reject"
+                        style={{ color: 'var(--theme-error)', backgroundColor: 'color-mix(in srgb, var(--theme-error), transparent 90%)' }}
                       >
                         <IconX size={16} />
                       </ActionIcon>

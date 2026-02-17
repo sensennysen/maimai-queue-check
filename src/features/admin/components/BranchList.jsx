@@ -14,15 +14,13 @@ import {
   Collapse,
   TextInput,
 } from '@mantine/core';
-import {
-  IconBuildingStore,
-  IconEdit,
-  IconTrash,
-  IconPlus,
-  IconChevronDown,
-  IconChevronRight,
-  IconSearch,
-} from '@tabler/icons-react';
+import IconBuildingStore from '@tabler/icons-react/dist/esm/icons/IconBuildingStore.mjs';
+import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
+import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
+import IconChevronDown from '@tabler/icons-react/dist/esm/icons/IconChevronDown.mjs';
+import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
+import IconSearch from '@tabler/icons-react/dist/esm/icons/IconSearch.mjs';
 import { notifications } from '@mantine/notifications';
 import { adminService } from '../../../services/supabase';
 import BranchEditModal from '../../../components/modals/BranchEditModal';
@@ -282,7 +280,7 @@ const BranchList = ({ isSuperAdmin }) => {
                       </Table.Td>
                       <Table.Td>
                         <Text size="sm" c="dimmed">
-                          {branch.latitude.toFixed(4)}, {branch.longitude.toFixed(4)}
+                          {branch.latitude?.toFixed(4)}, {branch.longitude?.toFixed(4)}
                         </Text>
                       </Table.Td>
                       <Table.Td>
@@ -323,7 +321,10 @@ const BranchList = ({ isSuperAdmin }) => {
                     <Table.Tr key={`${branch.id}-schedule`}>
                       <Table.Td colSpan={7} style={{ padding: 0 }}>
                         <Collapse in={expandedBranches.has(branch.id)}>
-                          <Paper p="md" bg="var(--mantine-color-gray-0)" style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}>
+                          <Paper p="md" style={{
+                            backgroundColor: 'color-mix(in srgb, var(--theme-surface), var(--theme-background) 50%)',
+                            borderTop: '1px solid var(--theme-border)'
+                          }}>
                             <Stack gap="sm">
                               <Group justify="space-between">
                                 <Text fw={600} size="sm">Weekly Schedule</Text>

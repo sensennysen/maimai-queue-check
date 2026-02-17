@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tabs } from '@mantine/core';
-import { IconUsers, IconKey } from '@tabler/icons-react';
+import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
+import IconKey from '@tabler/icons-react/dist/esm/icons/IconKey.mjs';
 import UserTable from './UserTable';
 import AccessRequests from './AccessRequests';
 import './UserManager.css';

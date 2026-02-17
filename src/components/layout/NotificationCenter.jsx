@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Popover, ActionIcon, Indicator, Stack, Text, Group, ThemeIcon, ScrollArea, Button, Box } from '@mantine/core';
-import { IconBell, IconUserPlus, IconInfoCircle, IconCheck, IconChevronRight } from '@tabler/icons-react';
+import IconBell from '@tabler/icons-react/dist/esm/icons/IconBell.mjs';
+import IconUserPlus from '@tabler/icons-react/dist/esm/icons/IconUserPlus.mjs';
+import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';

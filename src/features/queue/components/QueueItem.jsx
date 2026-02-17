@@ -1,5 +1,8 @@
 import { memo } from 'react';
-import { IconEdit, IconTrash, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
+import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
+import IconChevronUp from '@tabler/icons-react/dist/esm/icons/IconChevronUp.mjs';
+import IconChevronDown from '@tabler/icons-react/dist/esm/icons/IconChevronDown.mjs';
 import { Skeleton, ActionIcon, Tooltip } from '@mantine/core';
 import './QueueItem.css';
 
