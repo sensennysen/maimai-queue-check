@@ -62,20 +62,24 @@ export const rolesService = {
   // Fetch user roles/permissions and profile data
   async getUserRoles(userId) {
     try {
-      // Fetch role data (permissions)
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', userId)
-        .limit(1)
-        .maybeSingle(); // Use maybeSingle to avoid 406 error if row missing
+      // Fetch role and profile data in parallel
+      const [roleResult, profileResult] = await Promise.all([
+        supabase
+          .from('user_roles')
+          .select('user_id, can_edit, can_edit_on, is_admin, is_super_admin, admin_branch, display_name, preferred_branches')
+          .eq('user_id', userId)
+          .limit(1)
+          .maybeSingle(),
+        
+        supabase
+          .from('user_profiles')
+          .select('id, display_name, preferred_branches, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at')
+          .eq('id', userId)
+          .maybeSingle()
+      ]);
 
-      // Fetch profile data (preferences, name, maimai)
-      const { data: profileData, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+      const { data: roleData } = roleResult;
+      const { data: profileData } = profileResult;
 
       // If both missing, return safe defaults
       if (!roleData && !profileData) {
@@ -232,7 +236,7 @@ export const queueService = {
 
     let query = supabase
       .from('queue_entries')
-      .select('*')
+      .select('id, player1, player2, order_position, status, created_by, branch_id, cabinet_num, started_at, ended_at, created_at')
       .in('status', ['waiting', 'playing'])
       .gte('created_at', today.toISOString());
     
@@ -260,7 +264,7 @@ export const queueService = {
     // Check if there is currently a playing session for this specific cabinet
     const { count, error: countError } = await supabase
         .from('queue_entries')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('branch_id', branchId)
         .eq('cabinet_num', cabinetNum)
         .eq('status', 'playing');
@@ -509,7 +513,7 @@ export const branchService = {
   async getAllBranches() {
     const { data, error } = await supabase
       .from('allowed_places')
-      .select('*')
+      .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled')
       .eq('enabled', true)
       .order('arcade_name', { ascending: true });
 
@@ -521,7 +525,7 @@ export const branchService = {
   async getBranchById(branchId) {
     const { data, error } = await supabase
       .from('allowed_places')
-      .select('*')
+      .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled')
       .eq('id', branchId)
       .eq('enabled', true)
       .single();
@@ -537,7 +541,7 @@ export const scheduleService = {
   async getSchedule(branchId) {
     let query = supabase
       .from('mall_schedule')
-      .select('*');
+      .select('id, branch_id, day, time_open, time_close');
     
     if (branchId) {
       query = query.eq('branch_id', branchId);
@@ -558,7 +562,7 @@ export const adminService = {
   async getAllBranchesForAdmin() {
     const { data, error } = await supabase
       .from('allowed_places')
-      .select('*')
+      .select('id, arcade_name, short_name, acronym, cab_count, enabled')
       .order('arcade_name', { ascending: true });
 
     if (error) throw error;
@@ -613,7 +617,7 @@ export const adminService = {
   async getBranchWithSchedules(branchId) {
     const { data: branch, error: branchError } = await supabase
       .from('allowed_places')
-      .select('*')
+      .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled')
       .eq('id', branchId)
       .single();
 
@@ -621,7 +625,7 @@ export const adminService = {
 
     const { data: schedules, error: scheduleError } = await supabase
       .from('mall_schedule')
-      .select('*')
+      .select('id, branch_id, day, time_open, time_close')
       .eq('branch_id', branchId)
       .order('id', { ascending: true });
 
@@ -791,7 +795,7 @@ export const requestService = {
       let query = supabase
         .from('access_requests')
         .select(`
-            *,
+            id, user_id, branch_id, status, created_at,
             allowed_places (
                 arcade_name,
                 short_name,
@@ -836,7 +840,7 @@ export const requestService = {
   async getUserRequests(userId) {
       const { data, error } = await supabase
           .from('access_requests')
-          .select('*')
+          .select('id, user_id, branch_id, status, created_at')
           .eq('user_id', userId);
       
       if (error) throw error;
@@ -868,7 +872,7 @@ export const notificationService = {
 
     const { data: notifications, error: notifError } = await supabase
       .from('notifications')
-      .select('*')
+      .select('id, user_id, type, title, message, data, created_at, read_at')
       .gte('created_at', oneWeekAgo.toISOString())
       .order('created_at', { ascending: false });
 
@@ -961,7 +965,7 @@ export const contactService = {
     // 1. Fetch reports
     const { data: reports, error } = await supabase
       .from('contact_reports')
-      .select('*')
+      .select('id, report_type, description, email, user_id, status, attachment_path, attachment_name, created_at')
       .order('created_at', { ascending: false });
 
     if (error) throw error;

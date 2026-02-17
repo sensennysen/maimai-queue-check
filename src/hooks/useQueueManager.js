@@ -71,7 +71,7 @@ export const useQueueManager = () => {
   // Test real-time connection
   const testRealTimeConnection = async () => {
     try {
-      const { error } = await supabase.from('queue_entries').select('*').limit(1);
+      const { error } = await supabase.from('queue_entries').select('id').limit(1);
       
       if (error) {
         return false;
