@@ -35,6 +35,44 @@ export const GRADE_THRESHOLDS = [
 // Versions considered "New" for Best 50 calculation
 export const NEW_VERSIONS = ['PRiSM PLUS', 'CiRCLE'];
 
+// Chronological version order (Oldest to Newest)
+export const VERSION_ORDER = [
+  'maimai',
+  'maimai PLUS',
+  'GreeN',
+  'GreeN PLUS',
+  'ORANGE',
+  'ORANGE PLUS',
+  'PiNK',
+  'PiNK PLUS',
+  'Murasaki',
+  'MURASAKi PLUS',
+  'MiLK',
+  'MiLK PLUS',
+  'FiNALE',
+  'でらっくす',
+  'でらっくす PLUS',
+  'Splash',
+  'Splash PLUS',
+  'UNiVERSE',
+  'UNiVERSE PLUS',
+  'FESTiVAL',
+  'FESTiVAL PLUS',
+  'BUDDiES',
+  'BUDDiES PLUS',
+  'PRiSM',
+  'PRiSM PLUS',
+  'CiRCLE'
+];
+
+// Mapping for version aliases/variations
+export const VERSION_MAPPING = {
+  'maimai でらっくす': 'でらっくす',
+  'maimai でらっくす PLUS': 'でらっくす PLUS',
+  'maimai DX': 'でらっくす',
+  'maimai DX PLUS': 'でらっくす PLUS'
+};
+
 // Rating calculation rate thresholds
 export const RATING_RATES = [
   { min: 100.5, rate: 22.4 },

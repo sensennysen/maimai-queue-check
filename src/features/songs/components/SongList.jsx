@@ -1,0 +1,86 @@
+import { SimpleGrid, Text, Center, Loader, Pagination, Stack, Box } from '@mantine/core';
+import SongCard from './SongCard';
+import { useState, useMemo, useEffect } from 'react';
+
+const ITEMS_PER_PAGE = 24;
+
+function SongList({ songs, loading }) {
+  const [activePage, setPage] = useState(1);
+
+  // Reset page when songs filter changes (length changes)
+  useEffect(() => {
+    setPage(1);
+  }, [songs.length]);
+
+  const paginatedSongs = useMemo(() => {
+    const start = (activePage - 1) * ITEMS_PER_PAGE;
+    return songs.slice(start, start + ITEMS_PER_PAGE);
+  }, [songs, activePage]);
+
+  const totalPages = Math.ceil(songs.length / ITEMS_PER_PAGE);
+
+  if (loading) {
+    return (
+      <Center p="xl" h={400}>
+        <Stack align="center" gap="md">
+          <Loader size="xl" variant="bars" color="pink" />
+          <Text c="dimmed" size="sm" className="animate-pulse">Loading Database...</Text>
+        </Stack>
+      </Center>
+    );
+  }
+
+  if (songs.length === 0) {
+    return (
+      <Center p="xl" h={300} className="hologram-card" style={{ borderRadius: '16px' }}>
+        <Stack align="center">
+          <Text size="xl">🎵</Text>
+          <Text c="dimmed">No songs found matching your criteria.</Text>
+          <Text size="xs" c="dimmed">Try adjusting your filters or search query.</Text>
+        </Stack>
+      </Center>
+    );
+  }
+
+  return (
+    <Stack align="center" gap="xl" w="100%">
+      <SimpleGrid
+        cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 3, xl: 4 }}
+        spacing="lg"
+        verticalSpacing="xl"
+        w="100%"
+      >
+        {paginatedSongs.map((song, index) => (
+          <Box
+            key={song.cardId || song.songId}
+            className="animate-fade-in"
+            style={{
+              animationDelay: `${index * 50}ms`, // Stagger effect
+              height: '100%'
+            }}
+          >
+            <SongCard song={song} />
+          </Box>
+        ))}
+      </SimpleGrid>
+
+      {totalPages > 1 && (
+        <Pagination
+          total={totalPages}
+          value={activePage}
+          onChange={(page) => {
+            setPage(page);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          size="md"
+          radius="xl"
+          withEdges
+          color="pink"
+          siblings={1}
+        />
+      )}
+    </Stack>
+  );
+}
+
+export default SongList;

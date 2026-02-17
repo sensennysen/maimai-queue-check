@@ -24,6 +24,7 @@ const AdminPage = lazy(() => import('./pages/AdminPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const ExportBest50Page = lazy(() => import('./pages/ExportBest50Page'));
 const ViewPage = lazy(() => import('./pages/ViewPage'));
+const SongsPage = lazy(() => import('./pages/SongsPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 import LoginForm from './components/LoginForm';
 
@@ -115,6 +116,7 @@ function AppProviders() {
           <Route path="/profile/export" element={<ExportBest50Page />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/view" element={<ViewPage />} />
+          <Route path="/songs" element={<SongsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/*" element={<MainApp />} />
