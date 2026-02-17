@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { validateData, userProfileSchema, queueEntrySchema, contactReportSchema } from '../utils/validation';
 
 // Supabase configuration
 // You'll need to replace these with your actual Supabase project URL and anon key
@@ -139,6 +140,12 @@ export const userService = {
     if (branchIds !== undefined) updateData.preferred_branches = branchIds;
     if (displayName !== undefined) updateData.display_name = displayName;
     
+    // VALIDATION
+    if (displayName) {
+        const validation = validateData(userProfileSchema.pick({ displayName: true }), { displayName });
+        if (!validation.success) throw new Error(validation.error);
+    }
+    
     // Update user_profiles (Primary)
     const { data: profileData, error: profileError } = await supabase
       .from('user_profiles')
@@ -261,6 +268,18 @@ export const queueService = {
 
   // Add a new queue entry
   async addQueueEntry(player1, player2, orderPosition, userId, branchId, cabinetNum = 1) {
+    // VALIDATION
+    const validation = validateData(queueEntrySchema, { 
+      player1, 
+      player2, 
+      orderPosition, 
+      branchId, 
+      cabinetNum 
+    });
+    
+    if (!validation.success) throw new Error(validation.error);
+
+    // Check if there is currently a playing session for this specific cabinet
     // Check if there is currently a playing session for this specific cabinet
     const { count, error: countError } = await supabase
         .from('queue_entries')
@@ -298,6 +317,14 @@ export const queueService = {
 
   // Update an existing queue entry
   async updateQueueEntry(id, player1, player2) {
+    // VALIDATION - partial schema check for names only
+    const validation = validateData(queueEntrySchema.pick({ player1: true, player2: true }), { 
+      player1, 
+      player2 
+    });
+    
+    if (!validation.success) throw new Error(validation.error);
+
     const { data, error } = await supabase
       .from('queue_entries')
       .update({
@@ -921,6 +948,24 @@ export const notificationService = {
 export const contactService = {
   // Submit a new report
   async submitReport({ report_type, description, email, user_id, file }) {
+    // VALIDATION
+    // We construct a temporary object to validate against our schema
+    // The file object from browser context has size/type properties
+    const validationPayload = { report_type, description, email };
+    
+    // For file validation we need to be careful as 'file' might be a File object
+    // Zod schema expects specific checks.
+    
+    // First validate text fields
+    const textValidation = validateData(contactReportSchema.omit({ file: true }), validationPayload);
+    if (!textValidation.success) throw new Error(textValidation.error);
+
+    // Now validate file if present
+    if (file) {
+        const fileValidation = validateData(contactReportSchema.pick({ file: true }), { file });
+        if (!fileValidation.success) throw new Error(fileValidation.error);
+    }
+
     let attachment_path = null;
     let attachment_name = null;
 

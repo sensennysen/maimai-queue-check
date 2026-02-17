@@ -9,7 +9,7 @@ export const EXPERIMENTAL_FEATURES = [
   {
     id: 'profile_tab',
     label: 'Profile Tab',
-    description: 'Enables the new dedicated Profile tab in the footer for managing maimai DX scores and settings.',
+    description: 'Enables the new dedicated Profile tab in the Profile Dropdown Menu which contains your maimai Best 50 songs.',
     defaultValue: false
   }
 ];
