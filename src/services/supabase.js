@@ -562,7 +562,7 @@ export const adminService = {
   async getAllBranchesForAdmin() {
     const { data, error } = await supabase
       .from('allowed_places')
-      .select('id, arcade_name, short_name, acronym, cab_count, enabled')
+      .select('id, arcade_name, short_name, acronym, cab_count, enabled, latitude, longitude')
       .order('arcade_name', { ascending: true });
 
     if (error) throw error;

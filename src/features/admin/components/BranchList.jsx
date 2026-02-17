@@ -280,7 +280,7 @@ const BranchList = ({ isSuperAdmin }) => {
                       </Table.Td>
                       <Table.Td>
                         <Text size="sm" c="dimmed">
-                          {branch.latitude.toFixed(4)}, {branch.longitude.toFixed(4)}
+                          {branch.latitude?.toFixed(4)}, {branch.longitude?.toFixed(4)}
                         </Text>
                       </Table.Td>
                       <Table.Td>
