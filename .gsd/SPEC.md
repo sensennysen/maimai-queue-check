@@ -1,52 +1,10 @@
-# GSD Spec: [Feature Name]
+# fix(achievement): decimal place should always have 4 places
 
-> **Status:** DRAFT
-> **Owner:** Agent
-> **Started:** [Date]
+## Goal
+The achievement rate in the maimai score display is currently truncated or not formatted consistently. The requirements state that it should always have 4 decimal places (e.g., 100.0000%).
 
----
+## Scope
+- `src/components/maimai/ScoreCard.jsx`: Update the display of `score.achievement`.
+- Any other locations where achievement rate is displayed to the user.
 
-## 1. Goals & Non-Goals
-
-### Goals
-- [ ] ...
-
-### Non-Goals
-- [ ] ...
-
----
-
-## 2. Requirements
-
-### Functional
-- ...
-
-### Non-Functional
-- ...
-
----
-
-## 3. API / Interface Changes
-*(Describe any new endpoints, props, or component interfaces)*
-
----
-
-## 4. Data / Schema Changes
-*(Describe any DB migrations, new tables, or column changes)*
-
----
-
-## 5. Risks & Constraints
-- ...
-
----
-
-## 6. Verification Strategy
-*(How will we prove this is done?)*
-- [ ] Screenshot / recording
-- [ ] Command output
-- [ ] Test result
-
----
-
-> **Change Status to `FINALIZED` before implementation begins.**
+## Status: FINALIZED

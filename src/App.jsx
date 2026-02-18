@@ -30,14 +30,8 @@ import LoginForm from './components/LoginForm';
 
 // The main application content (Queue check, Login, etc.)
 function MainApp() {
-  const { user, userRoles } = useAuth();
+  const { user } = useAuth();
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
-
-  const handlePreferencesSaved = () => {
-    // Real-time synchronization in AuthContext will handle updating userRoles state
-    // automatically. We just need to close the modal.
-    setShowPreferencesModal(false);
-  };
 
   return (
     <div className="App">
@@ -78,11 +72,6 @@ function MainApp() {
         <PreferencesModal
           opened={showPreferencesModal}
           onClose={() => setShowPreferencesModal(false)}
-          userId={user.id}
-          userRoles={userRoles}
-          initialPreferences={userRoles?.preferred_branches}
-          initialDisplayName={userRoles?.display_name || user?.user_metadata?.full_name || ''}
-          onSaveSuccess={handlePreferencesSaved}
         />
       )}
     </div>

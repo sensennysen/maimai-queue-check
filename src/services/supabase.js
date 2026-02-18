@@ -74,8 +74,7 @@ export const rolesService = {
         
         supabase
           .from('user_profiles')
-
-          .select('id, display_name, preferred_branches, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url')
+          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url')
           .eq('id', userId)
           .maybeSingle()
       ]);
@@ -108,9 +107,19 @@ export const rolesService = {
         
         // Profile fields - prefer profileData, fallback to roleData
         display_name: profileData?.display_name || roleData?.display_name,
-        preferred_branches: Array.isArray(profileData?.preferred_branches) 
-          ? profileData.preferred_branches 
-          : (Array.isArray(roleData?.preferred_branches) ? roleData.preferred_branches : []),
+        
+        // UNION of preferred_branches from both tables to ensure no data is lost
+        preferred_branches: (() => {
+          const profileBranches = Array.isArray(profileData?.preferred_branches) 
+            ? profileData.preferred_branches.map(id => typeof id === 'string' ? parseInt(id, 10) : id)
+            : [];
+          const roleBranches = Array.isArray(roleData?.preferred_branches) 
+            ? roleData.preferred_branches.map(id => typeof id === 'string' ? parseInt(id, 10) : id)
+            : [];
+          
+          // Return unique union of both arrays
+          return [...new Set([...profileBranches, ...roleBranches])].filter(id => !isNaN(id));
+        })(),
           
         // Maimai fields (only in profileData)
         maimai_dx_name: profileData?.maimai_dx_name || null,
@@ -120,7 +129,10 @@ export const rolesService = {
         maimai_scores_updated_at: profileData?.maimai_scores_updated_at || null,
         
         // Display Photo
-        display_photo_url: profileData?.display_photo_url || null
+        display_photo_url: profileData?.display_photo_url || null,
+
+        // Main Branch
+        main_branch: profileData?.main_branch ?? null
       };
       
       return mergedData;
@@ -140,11 +152,11 @@ export const rolesService = {
 // User service functions
 export const userService = {
   // Update user preferences
-  async updatePreferences(userId, { branchIds, displayName }) {
+  async updatePreferences(userId, { branchIds, displayName, mainBranch }) {
     const updateData = {};
     if (branchIds !== undefined) updateData.preferred_branches = branchIds;
-
     if (displayName !== undefined) updateData.display_name = displayName;
+    if (mainBranch !== undefined) updateData.main_branch = mainBranch;
     // displayPhotoUrl is not usually updated here but could be if we wanted to
 
     
@@ -572,6 +584,16 @@ export const branchService = {
 
     if (error) throw error;
     return data;
+  },
+
+  // Fetch ALL branches for name resolution (ignores enabled filter)
+  async getBranchesForResolution() {
+    const { data, error } = await supabase
+      .from('allowed_places')
+      .select('id, arcade_name, short_name, acronym');
+
+    if (error) throw error;
+    return data || [];
   }
 };
 

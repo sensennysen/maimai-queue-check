@@ -104,7 +104,7 @@ const LoginForm = ({ onOpenPreferences }) => {
             leftSection={<IconSettings size={16} />}
             onClick={onOpenPreferences}
           >
-            Preferences
+            Experimental Features
           </Menu.Item>
           {(userRoles?.is_admin || userRoles?.is_super_admin) && (
             <>
