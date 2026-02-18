@@ -70,6 +70,12 @@
 
   .profile-page-title {
     font-size: 1.25rem !important;
+    background: linear-gradient(90deg, var(--theme-primary), var(--theme-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
   }
 }
 

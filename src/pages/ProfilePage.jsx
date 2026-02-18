@@ -23,6 +23,8 @@ import { useBranch as useBranchContext } from '../contexts/BranchContext';
 import { fetchSongConstants, calculateBest50 } from '../utils/maimai-calc';
 import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection';
 
+import Footer from '../components/layout/Footer';
+
 const ProfilePage = () => {
   const { user, userRoles } = useAuth(); // Still need userRoles for display_name if profile fetch fails or for fallback
   const navigate = useNavigate();
@@ -250,173 +252,181 @@ const ProfilePage = () => {
 
   return (
     <Container size="lg" py="xl">
-      {/* Header */}
-      <Group justify="space-between" mb="lg">
-        <Group>
-          <ActionIcon variant="subtle" size="lg" onClick={() => navigate('/')}>
-            <IconArrowLeft size={24} />
-          </ActionIcon>
-          <Title order={2} className="profile-page-title">mpqCheckPH profile</Title>
+      <Stack gap="lg">
+        {/* Header */}
+        <Group justify="space-between" mb="0" className="animate-fade-in">
+          <Group>
+            <ActionIcon variant="subtle" size="lg" onClick={() => navigate('/')}>
+              <IconArrowLeft size={24} />
+            </ActionIcon>
+            <Title order={2} className="profile-page-title">mpqCheckPH profile</Title>
+          </Group>
+          <Group gap="xs">
+            <ActionIcon variant="outline" size="lg" onClick={() => setIsSettingsModalOpen(true)} title="Settings">
+              <IconSettings size={20} />
+            </ActionIcon>
+            <ActionIcon variant="outline" size="lg" onClick={() => toggleTheme()} title="Toggle Mode">
+              {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
+            </ActionIcon>
+          </Group>
         </Group>
-        <Group gap="xs">
-          <ActionIcon variant="outline" size="lg" onClick={() => setIsSettingsModalOpen(true)} title="Settings">
-            <IconSettings size={20} />
-          </ActionIcon>
-          <ActionIcon variant="outline" size="lg" onClick={() => toggleTheme()} title="Toggle Mode">
-            {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
-          </ActionIcon>
-        </Group>
-      </Group>
 
-      <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl">
-        <Group className="profile-card-row" wrap="nowrap" justify="space-between">
-          {/* Mobile: center avatar vertically; Desktop: align top */}
-          <Group
-            className="profile-card-row"
-            wrap="nowrap"
-            style={{ flex: 1 }}
-          >
-            <Avatar src={profileData?.display_photo_url} size={90} radius={90} color="primary" className="profile-avatar-large">
-              <IconUser size={45} />
-            </Avatar>
-            <Stack gap={4}>
-              <Text size="xl" fw={800} style={{ fontSize: '1.75rem', lineHeight: 1.2 }}>{appDisplayName}</Text>
-              {mainBranchName && (
-                <Group gap={4} align="center">
-                  <IconMapPin size={14} style={{ color: 'var(--theme-primary)' }} />
-                  <Text size="sm" fw={500}>Main Branch: {mainBranchName}</Text>
-                </Group>
-              )}
-              {preferredBranchNames.length > 0 && (
-                <Group gap={6} align="center" wrap="wrap">
-                  <IconStar size={14} style={{ color: 'var(--theme-accent)' }} />
-                  <Text size="sm">Preferred:</Text>
-                  {preferredBranchNames.map(name => (
-                    <Badge key={name} size="sm" variant="light" color="secondary">{name}</Badge>
-                  ))}
-                </Group>
-              )}
-              {/* Mobile: DX Name + Rating inline with branch details */}
-              <Stack gap={2} hiddenFrom="sm">
-                {maimaiName && (
+        <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-100">
+          <Group className="profile-card-row" wrap="nowrap" justify="space-between">
+            {/* Mobile: center avatar vertically; Desktop: align top */}
+            <Group
+              className="profile-card-row"
+              wrap="nowrap"
+              style={{ flex: 1 }}
+            >
+              <Avatar src={profileData?.display_photo_url} size={90} radius={90} color="primary" className="profile-avatar-large">
+                <IconUser size={45} />
+              </Avatar>
+              <Stack gap={4}>
+                <Text size="xl" fw={800} style={{ fontSize: '1.75rem', lineHeight: 1.2 }}>{appDisplayName}</Text>
+                {mainBranchName && (
                   <Group gap={4} align="center">
-                    <Text size="sm" fw={600}>DX Name:</Text>
-                    <Text size="sm">{maimaiName}</Text>
+                    <IconMapPin size={14} style={{ color: 'var(--theme-primary)' }} />
+                    <Text size="sm" fw={500}>Main Branch: {mainBranchName}</Text>
                   </Group>
                 )}
-                {bestScores && (
-                  <Group gap={4} align="center">
-                    <Text size="sm" fw={600}>Rating:</Text>
-                    <Text size="sm" fw={700} c="primary">{bestScores.totalRating}</Text>
+                {preferredBranchNames.length > 0 && (
+                  <Group gap={6} align="center" wrap="wrap">
+                    <IconStar size={14} style={{ color: 'var(--theme-accent)' }} />
+                    <Text size="sm">Preferred:</Text>
+                    {preferredBranchNames.map(name => (
+                      <Badge key={name} size="sm" variant="light" color="secondary">{name}</Badge>
+                    ))}
                   </Group>
                 )}
+                {/* Mobile: DX Name + Rating inline with branch details */}
+                <Stack gap={2} hiddenFrom="sm">
+                  {maimaiName && (
+                    <Group gap={4} align="center">
+                      <Text size="sm" fw={600}>DX Name:</Text>
+                      <Text size="sm">{maimaiName}</Text>
+                    </Group>
+                  )}
+                  {bestScores && (
+                    <Group gap={4} align="center">
+                      <Text size="sm" fw={600}>Rating:</Text>
+                      <Text size="sm" fw={700} c="primary">{bestScores.totalRating}</Text>
+                    </Group>
+                  )}
+                </Stack>
               </Stack>
+            </Group>
+
+            <Stack gap={0} align="flex-end" visibleFrom="sm">
+              {maimaiName && (
+                <Group gap={4}>
+                  <Text size="sm" c="dimmed">maimai DX Name:</Text>
+                  <Text size="sm" fw={600}>{maimaiName}</Text>
+                </Group>
+              )}
+              {bestScores ? (
+                <Stack gap={0} align="flex-end" mt={4}>
+                  <Text size="xs" fw={700} c="dimmed" tt="uppercase" lts={1}>Rating</Text>
+                  <Text size="xl" fw={900} c="primary" style={{ fontSize: '2.5rem', lineHeight: 1 }}>
+                    {bestScores.totalRating}
+                  </Text>
+                </Stack>
+              ) : (
+                <Text size="sm" c="dimmed">No rating data</Text>
+              )}
             </Stack>
           </Group>
+        </Paper>
 
-          <Stack gap={0} align="flex-end" visibleFrom="sm">
-            {maimaiName && (
-              <Group gap={4}>
-                <Text size="sm" c="dimmed">maimai DX Name:</Text>
-                <Text size="sm" fw={600}>{maimaiName}</Text>
-              </Group>
-            )}
-            {bestScores ? (
-              <Stack gap={0} align="flex-end" mt={4}>
-                <Text size="xs" fw={700} c="dimmed" tt="uppercase" lts={1}>Rating</Text>
-                <Text size="xl" fw={900} c="primary" style={{ fontSize: '2.5rem', lineHeight: 1 }}>
-                  {bestScores.totalRating}
-                </Text>
-              </Stack>
-            ) : (
-              <Text size="sm" c="dimmed">No rating data</Text>
-            )}
-          </Stack>
-        </Group>
-      </Paper>
+        {/* Favorite Songs Section */}
+        <div className="animate-fade-in delay-200">
+          <FavoriteSongsSection userId={user.id} isOwnProfile={true} />
+        </div>
 
-      {/* Favorite Songs Section */}
-      <FavoriteSongsSection userId={user.id} isOwnProfile={true} />
+        {/* Overview / Best 50 */}
+        <Paper shadow="sm" p="lg" radius="md" withBorder pos="relative" style={{ minHeight: 200 }} className="animate-fade-in delay-300">
+          <LoadingOverlay visible={isLoadingData || isCalculating} overlayProps={{ radius: "sm", blur: 2 }} />
 
-      {/* Overview / Best 50 */}
-      <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl" pos="relative" style={{ minHeight: 200 }}>
-        <LoadingOverlay visible={isLoadingData || isCalculating} overlayProps={{ radius: "sm", blur: 2 }} />
-
-        <Group justify="space-between" mb="xl" align="center" wrap="nowrap">
-          <Group gap="xs" style={{ minWidth: 0, overflow: 'hidden' }}>
-            <IconTrophy size={24} style={{ color: 'var(--mantine-color-blue-6)' }} />
-            <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>My Best 50</Title>
+          <Group justify="space-between" mb="xl" align="center" wrap="nowrap">
+            <Group gap="xs" style={{ minWidth: 0, overflow: 'hidden' }}>
+              <IconTrophy size={24} style={{ color: 'var(--mantine-color-blue-6)' }} />
+              <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>My Best 50</Title>
+            </Group>
+            <Group gap="sm" wrap="nowrap" className="best50-actions">
+              <Button
+                leftSection={<IconCamera size={18} />}
+                variant="light"
+                color="secondary"
+                onClick={() => window.open('/profile/export', '_blank')}
+                disabled={!hasScores}
+              >
+                Export Image
+              </Button>
+              <Button
+                leftSection={<IconUpload size={18} />}
+                variant="light"
+                onClick={() => setIsImportModalOpen(true)}
+              >
+                Import Scores
+              </Button>
+            </Group>
           </Group>
-          <Group gap="sm" wrap="nowrap" className="best50-actions">
-            <Button
-              leftSection={<IconCamera size={18} />}
-              variant="light"
-              color="secondary"
-              onClick={() => window.open('/profile/export', '_blank')}
-              disabled={!hasScores}
-            >
-              Export Image
-            </Button>
-            <Button
-              leftSection={<IconUpload size={18} />}
-              variant="light"
-              onClick={() => setIsImportModalOpen(true)}
-            >
-              Import Scores
-            </Button>
-          </Group>
-        </Group>
 
-        {!hasScores && !isLoadingData ? (
-          <Alert icon={<IconAlertCircle size={16} />} title="No Data" color="primary">
-            No score data found. Please import your scores using the button above.
-          </Alert>
-        ) : hasScores ? (
-          <Stack gap="xl">
-            {/* Best 15 New */}
-            <div>
-              <Group mb="md" justify="space-between">
-                <Title order={3}>Best 15 (New)</Title>
-                <Group gap="md">
-                  <Text size="sm" c="dimmed" fw={500}>
-                    Avg: {bestScores.new.songs.length > 0 ? Math.round(bestScores.new.totalRating / bestScores.new.songs.length) : 0}
-                  </Text>
-                  <Text size="sm" fw={700}>
-                    Total: {bestScores.new.totalRating ?? 0}
-                  </Text>
+          {!hasScores && !isLoadingData ? (
+            <Alert icon={<IconAlertCircle size={16} />} title="No Data" color="primary">
+              No score data found. Please import your scores using the button above.
+            </Alert>
+          ) : hasScores ? (
+            <Stack gap="xl">
+              {/* Best 15 New */}
+              <div>
+                <Group mb="md" justify="space-between">
+                  <Title order={3}>Best 15 (New)</Title>
+                  <Group gap="md">
+                    <Text size="sm" c="dimmed" fw={500}>
+                      Avg: {bestScores.new.songs.length > 0 ? Math.round(bestScores.new.totalRating / bestScores.new.songs.length) : 0}
+                    </Text>
+                    <Text size="sm" fw={700}>
+                      Total: {bestScores.new.totalRating ?? 0}
+                    </Text>
+                  </Group>
                 </Group>
-              </Group>
-              <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                {bestScores.new.songs.map((score, index) => (
-                  <ScoreCard key={`${score.title}-${score.type}-${score.difficulty}-${index}`} score={score} />
-                ))}
-              </SimpleGrid>
-            </div>
+                <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                  {bestScores.new.songs.map((score, index) => (
+                    <ScoreCard key={`${score.title}-${score.type}-${score.difficulty}-${index}`} score={score} />
+                  ))}
+                </SimpleGrid>
+              </div>
 
-            <Divider />
+              <Divider />
 
-            {/* Best 35 Old */}
-            <div>
-              <Group mb="md" justify="space-between">
-                <Title order={3}>Best 35 (Old)</Title>
-                <Group gap="md">
-                  <Text size="sm" c="dimmed" fw={500}>
-                    Avg: {bestScores.old.songs.length > 0 ? Math.round(bestScores.old.totalRating / bestScores.old.songs.length) : 0}
-                  </Text>
-                  <Text size="sm" fw={700}>
-                    Total: {bestScores.old.totalRating ?? 0}
-                  </Text>
+              {/* Best 35 Old */}
+              <div>
+                <Group mb="md" justify="space-between">
+                  <Title order={3}>Best 35 (Old)</Title>
+                  <Group gap="md">
+                    <Text size="sm" c="dimmed" fw={500}>
+                      Avg: {bestScores.old.songs.length > 0 ? Math.round(bestScores.old.totalRating / bestScores.old.songs.length) : 0}
+                    </Text>
+                    <Text size="sm" fw={700}>
+                      Total: {bestScores.old.totalRating ?? 0}
+                    </Text>
+                  </Group>
                 </Group>
-              </Group>
-              <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                {bestScores.old.songs.map((score, index) => (
-                  <ScoreCard key={`${score.title}-${score.type}-${score.difficulty}-${index}`} score={score} />
-                ))}
-              </SimpleGrid>
-            </div>
-          </Stack>
-        ) : null}
-      </Paper>
+                <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                  {bestScores.old.songs.map((score, index) => (
+                    <ScoreCard key={`${score.title}-${score.type}-${score.difficulty}-${index}`} score={score} />
+                  ))}
+                </SimpleGrid>
+              </div>
+            </Stack>
+          ) : null}
+        </Paper>
+
+        <div className="animate-fade-in delay-400">
+          <Footer />
+        </div>
+      </Stack>
 
       {/* Import Modal */}
       <Modal
