@@ -298,6 +298,105 @@ export const favoritesService = {
   }
 };
 
+// Playlist service functions
+export const playlistService = {
+  // Fetch all playlists for a user
+  async getPlaylists(userId) {
+    const { data, error } = await supabase
+      .from('user_playlists')
+      .select(`
+        *,
+        songs:playlist_songs(
+          song_id,
+          order_index
+        )
+      `)
+      .eq('user_id', userId)
+      .order('order_index', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching playlists:', error);
+      throw error;
+    }
+
+    // Sort songs within each playlist by their own order_index
+    return data.map(playlist => ({
+      ...playlist,
+      songs: playlist.songs ? playlist.songs.sort((a, b) => a.order_index - b.order_index) : []
+    }));
+  },
+
+  // Update or create a playlist
+  async upsertPlaylist(userId, playlistId, { title, comment, songIds }) {
+    let finalPlaylistId = playlistId;
+
+    if (!finalPlaylistId) {
+      // Create new playlist
+      const { data, error } = await supabase
+        .from('user_playlists')
+        .insert({
+          user_id: userId,
+          title: title || 'New Playlist',
+          comment,
+          order_index: 0 // Default to start
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      finalPlaylistId = data.id;
+    } else {
+      // Update existing playlist
+      const { error } = await supabase
+        .from('user_playlists')
+        .update({ title, comment })
+        .eq('id', finalPlaylistId);
+
+      if (error) throw error;
+    }
+
+    // Update songs (Sync pattern: delete old, insert new)
+    const { error: deleteError } = await supabase
+      .from('playlist_songs')
+      .delete()
+      .eq('playlist_id', finalPlaylistId);
+
+    if (deleteError) throw deleteError;
+
+    if (songIds && songIds.length > 0) {
+      const songEntries = songIds.map((songId, index) => ({
+        playlist_id: finalPlaylistId,
+        song_id: songId,
+        order_index: index
+      }));
+
+      const { error: insertError } = await supabase
+        .from('playlist_songs')
+        .insert(songEntries);
+
+      if (insertError) throw insertError;
+    }
+
+    // Return the full updated playlist
+    const playlists = await this.getPlaylists(userId);
+    return playlists.find(p => p.id === finalPlaylistId);
+  },
+
+  // Delete a playlist
+  async deletePlaylist(playlistId) {
+    const { error } = await supabase
+      .from('user_playlists')
+      .delete()
+      .eq('id', playlistId);
+
+    if (error) {
+      console.error('Error deleting playlist:', error);
+      throw error;
+    }
+    return true;
+  }
+};
+
 // Queue service functions
 export const queueService = {
   // Fetch all queue entries (waiting and playing)
@@ -1167,3 +1266,4 @@ export const contactService = {
       if (error) throw error;
   }
 };
+

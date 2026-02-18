@@ -11,7 +11,6 @@ import './Footer.css';
 function Footer() {
   const [changelogOpened, setChangelogOpened] = useState(false);
   const [privacyOpened, setPrivacyOpened] = useState(false);
-  const currentYear = new Date().getFullYear();
 
   return (
     <footer className="footer">

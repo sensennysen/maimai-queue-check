@@ -22,6 +22,7 @@ import { userService, branchService } from '../services/supabase';
 import { useBranch as useBranchContext } from '../contexts/BranchContext';
 import { fetchSongConstants, calculateBest50 } from '../utils/maimai-calc';
 import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection';
+import { PlaylistSection } from '../components/profile/PlaylistSection';
 
 import Footer from '../components/layout/Footer';
 
@@ -341,6 +342,11 @@ const ProfilePage = () => {
         {/* Favorite Songs Section */}
         <div className="animate-fade-in delay-200">
           <FavoriteSongsSection userId={user.id} isOwnProfile={true} />
+        </div>
+
+        {/* Playlist Section */}
+        <div className="animate-fade-in delay-150">
+          <PlaylistSection userId={user.id} isOwnProfile={true} />
         </div>
 
         {/* Overview / Best 50 */}
