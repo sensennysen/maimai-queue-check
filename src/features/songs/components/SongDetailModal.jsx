@@ -75,22 +75,23 @@ function SongDetailModal({ song, opened, onClose }) {
           borderBottom: '1px solid var(--mantine-color-default-border)'
         },
         body: {
-          padding: 'var(--mantine-spacing-md)',
+          padding: 'var(--mantine-spacing-xl)',
         }
       }}
     >
       <Stack gap="md">
         {/* Header Section with Image and Basic Info */}
-        <Group align="center" gap="xl" wrap="nowrap">
+        <Group align="center" justify="center" gap="xl" wrap="nowrap" style={{ paddingBottom: '1rem' }}>
           <Image
             src={song.imageUrl}
             alt={song.title}
             radius="md"
-            w={{ base: 140, xs: 180, sm: 220 }}
-            h={{ base: 140, xs: 180, sm: 220 }}
-            fallbackSrc="https://placehold.co/220x220?text=No+Image"
+            w={{ base: 160, xs: 200, sm: 240 }}
+            h={{ base: 160, xs: 200, sm: 240 }}
+            fallbackSrc="https://placehold.co/240x240?text=No+Image"
+            style={{ boxShadow: 'var(--mantine-shadow-md)' }}
           />
-          <Stack gap="xs" style={{ flex: 1 }}>
+          <Stack gap="sm" style={{ flex: 1, minWidth: 0 }}>
             <Tooltip label="Click to copy title" withArrow position="top">
               <Text
                 size="xl"
@@ -102,36 +103,36 @@ function SongDetailModal({ song, opened, onClose }) {
               </Text>
             </Tooltip>
 
-            <Group gap="xs">
-              <Text size="sm" c="dimmed" fw={700}>Artist:</Text>
-              <Text size="sm" c="dimmed">{song.artist}</Text>
-            </Group>
+            <Stack gap={2}>
+              <Text size="xs" c="dimmed" fw={700} tt="uppercase">Artist</Text>
+              <Text size="sm" c="dimmed" lineClamp={2} title={song.artist}>{song.artist}</Text>
+            </Stack>
 
-            <SimpleGrid cols={2} spacing="xs" verticalSpacing="xs" mt="xs">
-              <Group gap="xs">
-                <Text size="sm" c="dimmed" fw={700}>Category:</Text>
+            <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm" mt="xs">
+              <Stack gap={2}>
+                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Category</Text>
                 <Text size="sm" c="dimmed" lineClamp={1} title={CATEGORY_TRANSLATION[song.category] || song.category}>
                   {CATEGORY_TRANSLATION[song.category] || song.category}
                 </Text>
-              </Group>
+              </Stack>
 
-              <Group gap="xs">
-                <Text size="sm" c="dimmed" fw={700}>Version:</Text>
+              <Stack gap={2}>
+                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Version</Text>
                 <Text size="sm" c="dimmed" lineClamp={1} title={VERSION_MAPPING[song.version] || song.version}>
                   {VERSION_MAPPING[song.version] || song.version}
                 </Text>
-              </Group>
+              </Stack>
 
-              <Group gap="xs">
-                <Text size="sm" c="dimmed" fw={700}>Type:</Text>
-                <img src={typeImage} alt={song.cardType} style={{ height: 20 }} />
-              </Group>
+              <Stack gap={2}>
+                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Type</Text>
+                <img src={typeImage} alt={song.cardType} style={{ height: 20, maxWidth: '100%', objectFit: 'contain', alignSelf: 'flex-start' }} />
+              </Stack>
 
               {song.bpm && (
-                <Group gap="xs">
-                  <Text size="sm" c="dimmed" fw={700}>BPM:</Text>
+                <Stack gap={2}>
+                  <Text size="xs" c="dimmed" fw={700} tt="uppercase">BPM</Text>
                   <Text size="sm" c="dimmed">{song.bpm}</Text>
-                </Group>
+                </Stack>
               )}
             </SimpleGrid>
           </Stack>
@@ -139,12 +140,12 @@ function SongDetailModal({ song, opened, onClose }) {
 
         {/* Charts Table */}
         <ScrollArea>
-          <Table highlightOnHover horizontalSpacing="sm" verticalSpacing="xs">
+          <Table highlightOnHover horizontalSpacing="xs" verticalSpacing={4}>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Difficulty</Table.Th>
                 <Table.Th>Constant</Table.Th>
-                <Table.Th>Designer</Table.Th>
+                <Table.Th>Notes Designer</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>{rows}</Table.Tbody>
