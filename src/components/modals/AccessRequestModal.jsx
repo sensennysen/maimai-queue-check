@@ -128,14 +128,24 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
     existingRequests.some(r => r.branch_id === Number(id) && r.status === 'rejected')
   );
 
+  // Find the selected branch if only one is selected, for the new text
+  const selectedBranchId = form.values.branchIds.length === 1 ? Number(form.values.branchIds[0]) : null;
+  const selectedBranch = selectedBranchId ? branches.find(b => b.id === selectedBranchId) : null;
+
   return (
     <Modal opened={opened} onClose={onClose} title="Request Queue Edit Access" centered>
       <LoadingOverlay visible={loading} />
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
-          <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
-            Select the branch(es) you want to manage queue for. The requests will be sent to the respective branch admins.
-          </Text>
+          {selectedBranch ? (
+            <Text size="sm" c="secondary" fw={500} style={{ marginTop: '1rem' }}>
+              Requesting access for: {selectedBranch?.arcade_name}
+            </Text>
+          ) : (
+            <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
+              Select the branch(es) you want to manage queue for. The requests will be sent to the respective branch admins.
+            </Text>
+          )}
 
           <MultiSelect
             label="Select Branches"

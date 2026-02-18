@@ -21,7 +21,7 @@ function SongList({ songs, loading, onSongSelect }) {
       <Center p="xl" h={400}>
         <Stack align="center" gap="md">
           <Loader size="xl" variant="bars" color="primary" />
-          <Text c="dimmed" size="sm" className="animate-pulse">Loading Database...</Text>
+          <Text c="secondary" size="sm" fw={500} className="animate-pulse">Loading Database...</Text>
         </Stack>
       </Center>
     );
@@ -32,8 +32,8 @@ function SongList({ songs, loading, onSongSelect }) {
       <Center p="xl" h={300} className="hologram-card" style={{ borderRadius: '16px' }}>
         <Stack align="center">
           <Text size="xl">🎵</Text>
-          <Text c="dimmed">No songs found matching your criteria.</Text>
-          <Text size="xs" c="dimmed">Try adjusting your filters or search query.</Text>
+          <Text c="secondary" fw={500}>No songs found matching your criteria.</Text>
+          <Text size="xs" c="secondary">Try adjusting your filters or search query.</Text>
         </Stack>
       </Center>
     );

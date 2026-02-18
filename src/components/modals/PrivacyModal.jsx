@@ -44,8 +44,8 @@ function PrivacyModal({ opened, onClose }) {
           </Text>
         </div>
 
-        <Text size="xs" c="dimmed" mt="xs">
-          Last updated: {new Date().toLocaleDateString()}
+        <Text size="xs" c="secondary" mt="xs">
+          Last updated: May 20, 2024
         </Text>
       </Stack>
     </Modal>

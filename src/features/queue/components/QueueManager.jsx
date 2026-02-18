@@ -282,7 +282,7 @@ function QueueManager() {
       {isMutating && (
         <Box className="busy-overlay-message">
           <Loader size="sm" mr={8} />
-          <Text size="sm" c="dimmed">Saving…</Text>
+          <Text size="sm" c="secondary" fw={500}>Saving…</Text>
         </Box>
       )}
 
@@ -387,7 +387,7 @@ function QueueManager() {
         {queueLoading || scheduleLoading ? (
           <Group justify="space-between" align="center">
             <Skeleton height={40} width={120} radius="md" />
-            <Text size="sm" c="dimmed" italic>{loadingMessage}</Text>
+            <Text size="sm" c="secondary" fw={500} italic>{loadingMessage}</Text>
           </Group>
         ) : (
           <Group justify="space-between" align="center">

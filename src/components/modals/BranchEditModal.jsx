@@ -377,8 +377,8 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
           // Schedule Form
           <form onSubmit={handleScheduleSubmit}>
             <Stack gap="md">
-              <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
-                Step 2 of 2: Mall Schedule for {arcadeName}
+              <Text size="sm" c="secondary" fw={500} style={{ marginTop: '1rem' }}>
+                Editing Branch: {branchToEdit.arcade_name}
               </Text>
 
               <Paper p="md" withBorder className="schedule-container">

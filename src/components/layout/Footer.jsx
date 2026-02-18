@@ -69,8 +69,8 @@ function Footer() {
 
         </Group>
 
-        <Text size="xs" c="dimmed" className="footer-copyright">
-          © {currentYear} Made with ❤️ by Senny
+        <Text size="xs" c="secondary" className="footer-copyright">
+          © {new Date().getFullYear()} Maimai SMF Queue Check. Not affiliated with SEGA.
         </Text>
       </Stack>
 

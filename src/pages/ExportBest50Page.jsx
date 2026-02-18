@@ -125,8 +125,8 @@ const ExportBest50Page = () => {
         <Stack align="center" justify="center" h={300} gap="md">
           <Loader size="lg" color="teal" />
           <Text size="xl" fw={700}>Rendering the page...</Text>
-          <Text size="sm" c="dimmed">This might take a while so please do not close this tab.</Text>
-          <Text size="sm" c="dimmed">It will automatically close once the image starts downloading.</Text>
+          <Text size="sm" c="secondary">This might take a while so please do not close this tab.</Text>
+          <Text size="sm" c="secondary">It will automatically close once the image starts downloading.</Text>
         </Stack>
       </Container>
     );
@@ -174,8 +174,8 @@ const ExportBest50Page = () => {
             <Stack align="center" gap="md">
               <Loader size="lg" color="teal" />
               <Text size="xl" fw={700}>Rendering the page...</Text>
-              <Text size="sm" c="dimmed">This might take a while so please do not close this tab.</Text>
-              <Text size="sm" c="dimmed">It will automatically close once the image starts downloading.</Text>
+              <Text size="sm" c="secondary">This might take a while so please do not close this tab.</Text>
+              <Text size="sm" c="secondary">It will automatically close once the image starts downloading.</Text>
             </Stack>
           </Overlay>
         )}
@@ -202,7 +202,7 @@ const ExportBest50Page = () => {
                   {maimaiName && (
                     <Text size="xl" fw={800} style={{ fontSize: '1.8rem' }}>{maimaiName}</Text>
                   )}
-                  <Text size="sm" c="dimmed">Best 50 Scores</Text>
+                  <Text size="sm" c="secondary" fw={500}>Best 50 Scores</Text>
                 </Box>
                 <Box style={{ textAlign: 'right' }}>
                   <Text size="xl" fw={800} style={{ fontSize: '1.8rem' }}>
@@ -218,7 +218,7 @@ const ExportBest50Page = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <Title order={3}>Best 15 (New)</Title>
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <Text size="sm" c="dimmed" fw={500}>
+                    <Text size="sm" c="secondary" fw={500}>
                       Avg: {bestScores.new.songs.length > 0 ? Math.round(bestScores.new.totalRating / bestScores.new.songs.length) : 0}
                     </Text>
                     <Text size="sm" fw={700} style={{ color: isDark ? '#fff' : '#000' }}>
@@ -240,7 +240,7 @@ const ExportBest50Page = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <Title order={3}>Best 35 (Old)</Title>
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <Text size="sm" c="dimmed" fw={500}>
+                    <Text size="sm" c="secondary" fw={500}>
                       Avg: {bestScores.old.songs.length > 0 ? Math.round(bestScores.old.totalRating / bestScores.old.songs.length) : 0}
                     </Text>
                     <Text size="sm" fw={700} style={{ color: isDark ? '#fff' : '#000' }}>

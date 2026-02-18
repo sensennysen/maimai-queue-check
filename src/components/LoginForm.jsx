@@ -85,7 +85,7 @@ const LoginForm = ({ onOpenPreferences }) => {
               <Text size="sm" fw={500}>
                 {userRoles?.display_name || user.user_metadata?.full_name || 'User'}
               </Text>
-              <Text size="xs" c="dimmed">
+              <Text size="xs" c="secondary">
                 {user.email}
               </Text>
               {renderPreferredBranches()}

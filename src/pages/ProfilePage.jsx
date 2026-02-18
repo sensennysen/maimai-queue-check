@@ -320,19 +320,19 @@ const ProfilePage = () => {
             <Stack gap={0} align="flex-end" visibleFrom="sm">
               {maimaiName && (
                 <Group gap={4}>
-                  <Text size="sm" c="dimmed">maimai DX Name:</Text>
+                  <Text size="sm" c="secondary" fw={500}>maimai DX Name:</Text>
                   <Text size="sm" fw={600}>{maimaiName}</Text>
                 </Group>
               )}
               {bestScores ? (
                 <Stack gap={0} align="flex-end" mt={4}>
-                  <Text size="xs" fw={700} c="dimmed" tt="uppercase" lts={1}>Rating</Text>
+                  <Text size="xs" fw={700} c="secondary" tt="uppercase" lts={1}>Rating</Text>
                   <Text size="xl" fw={900} c="primary" style={{ fontSize: '2.5rem', lineHeight: 1 }}>
                     {bestScores.totalRating}
                   </Text>
                 </Stack>
               ) : (
-                <Text size="sm" c="dimmed">No rating data</Text>
+                <Text size="sm" c="secondary" italic>No rating data</Text>
               )}
             </Stack>
           </Group>
@@ -383,7 +383,7 @@ const ProfilePage = () => {
                 <Group mb="md" justify="space-between">
                   <Title order={3}>Best 15 (New)</Title>
                   <Group gap="md">
-                    <Text size="sm" c="dimmed" fw={500}>
+                    <Text size="sm" c="secondary" fw={500}>
                       Avg: {bestScores.new.songs.length > 0 ? Math.round(bestScores.new.totalRating / bestScores.new.songs.length) : 0}
                     </Text>
                     <Text size="sm" fw={700}>
@@ -405,7 +405,7 @@ const ProfilePage = () => {
                 <Group mb="md" justify="space-between">
                   <Title order={3}>Best 35 (Old)</Title>
                   <Group gap="md">
-                    <Text size="sm" c="dimmed" fw={500}>
+                    <Text size="sm" c="secondary" fw={500}>
                       Avg: {bestScores.old.songs.length > 0 ? Math.round(bestScores.old.totalRating / bestScores.old.songs.length) : 0}
                     </Text>
                     <Text size="sm" fw={700}>

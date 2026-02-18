@@ -148,7 +148,7 @@ function SongCard({ song, onClick, hideDifficulties = false, hideTags = false })
             <Text fw={700} lineClamp={1} title={song.title} size="lg" style={{ lineHeight: 1.2, fontFamily: 'var(--font-heading)' }}>
               {song.title}
             </Text>
-            <Text size="sm" c="dimmed" lineClamp={1} title={song.artist} mt={4} style={{ fontFamily: 'var(--font-body)' }}>
+            <Text size="sm" c="secondary" lineClamp={1} title={song.artist} mt={4} style={{ fontFamily: 'var(--font-body)' }}>
               {song.artist}
             </Text>
           </div>

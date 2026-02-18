@@ -21,10 +21,10 @@ function ChangelogModal({ opened, onClose }) {
         {changelogData.map((release, index) => (
           <div key={index}>
             <Group justify="space-between" mb="sm">
-              <Text fw={600} size="lg" c="dimmed">
+              <Text fw={600} size="lg" c="secondary">
                 Version {release.version}
               </Text>
-              <Text size="md" c="dimmed">
+              <Text size="md" c="secondary">
                 {release.date}
               </Text>
             </Group>
@@ -38,11 +38,11 @@ function ChangelogModal({ opened, onClose }) {
                 <List.Item key={i}>
                   <Stack gap={6}>
                     <Text fw={600} size="lg">{change.title}</Text>
-                    <Text size="md" c="dimmed" lh={1.6} style={{ textAlign: 'justify' }}>
+                    <Text size="md" c="secondary" lh={1.6} style={{ textAlign: 'justify' }}>
                       {change.description}
                     </Text>
                     {change.footnote && (
-                      <Text size="sm" c="dimmed" fs="italic" mt={2} lh={1.5} style={{ textAlign: 'justify' }}>
+                      <Text size="sm" c="secondary" fs="italic" mt={2} lh={1.5} style={{ textAlign: 'justify' }}>
                         * {change.footnote}
                       </Text>
                     )}

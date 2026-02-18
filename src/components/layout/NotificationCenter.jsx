@@ -165,7 +165,7 @@ const NotificationCenter = () => {
       <Popover.Dropdown p="sm">
         <Stack gap="xs">
           <Group justify="space-between">
-            <Text size="sm" fw={600} c="dimmed">
+            <Text size="sm" fw={600} c="secondary">
               Notifications
             </Text>
             {unreadCount > 0 && generalNotifications.some(n => !n.read) && (
@@ -181,8 +181,8 @@ const NotificationCenter = () => {
 
           <ScrollArea.Autosize mah="60vh" type="scroll">
             {allItems.length === 0 ? (
-              <Text size="sm" c="dimmed" ta="center" py="md">
-                No notifications
+              <Text size="sm" c="secondary" ta="center" py="md">
+                No new notifications
               </Text>
             ) : (
               <Stack gap="xs">
@@ -218,15 +218,15 @@ const NotificationCenter = () => {
                       <Text size="sm" fw={500}>
                         {item.type === 'request' ? 'Access Request' : item.data.title}
                       </Text>
-                      <Text size="xs" c="dimmed" style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                      <Text size="xs" c="secondary" style={{ marginTop: '1rem', marginBottom: '1rem' }}>
                         {item.type === 'request' ? (
                           `${item.data.user_roles?.email || 'Unknown User'} requested access to ${item.data.allowed_places?.short_name || 'Branch'}`
                         ) : (
                           item.data.message
                         )}
                       </Text>
-                      <Text size="xs" c="dimmed" mt={4}>
-                        {item.date.toLocaleDateString()}
+                      <Text size="xs" c="secondary" mt={4}>
+                        {item.date.toLocaleString()}
                       </Text>
                     </div>
 

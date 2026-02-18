@@ -226,7 +226,7 @@ const BranchList = ({ isSuperAdmin }) => {
           <Center>
             <Stack align="center" gap="sm">
               <IconBuildingStore size={48} opacity={0.3} />
-              <Text c="dimmed">No branches found</Text>
+              <Text c="secondary" fw={500}>No branches found</Text>
               <Button
                 variant="light"
                 leftSection={<IconPlus size={16} />}
@@ -279,7 +279,7 @@ const BranchList = ({ isSuperAdmin }) => {
                         <Text fw={500}>{branch.arcade_name}</Text>
                       </Table.Td>
                       <Table.Td>
-                        <Text size="sm" c="dimmed">
+                        <Text size="sm" c="secondary">
                           {branch.latitude?.toFixed(4)}, {branch.longitude?.toFixed(4)}
                         </Text>
                       </Table.Td>
@@ -352,10 +352,10 @@ const BranchList = ({ isSuperAdmin }) => {
                                     return (
                                       <Paper key={day} p="md" withBorder className="schedule-day-card">
                                         <Stack gap="xs" align="center">
-                                          <Text size="md" fw={600} c={schedule ? 'inherit' : 'dimmed'}>
+                                          <Text size="md" fw={600} c={schedule ? 'inherit' : 'secondary'}>
                                             {day}
                                           </Text>
-                                          <Text size="sm" c={schedule ? 'dimmed' : 'red'}>
+                                          <Text size="sm" c={schedule ? 'secondary' : 'red'}>
                                             {timeRange}
                                           </Text>
                                         </Stack>
@@ -364,7 +364,7 @@ const BranchList = ({ isSuperAdmin }) => {
                                   })}
                                 </div>
                               ) : (
-                                <Text size="sm" c="dimmed" ta="center">No schedule configured</Text>
+                                <Text size="sm" c="secondary" ta="center">No schedule configured</Text>
                               )}
                             </Stack>
                           </Paper>
@@ -400,7 +400,7 @@ const BranchList = ({ isSuperAdmin }) => {
         message={
           <>
             <Text style={{ marginTop: '1rem' }}>Are you sure you want to delete <Text component="span" fw={700}>{branchToDelete?.arcade_name}</Text>?</Text>
-            <Text size="sm" c="dimmed" mt="xs">This action cannot be undone. All associated mall schedules will also be deleted.</Text>
+            <Text size="sm" c="secondary" mt="xs">This action cannot be undone. All associated mall schedules will also be deleted.</Text>
           </>
         }
         loading={deleting}

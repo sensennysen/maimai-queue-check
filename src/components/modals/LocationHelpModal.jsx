@@ -26,8 +26,8 @@ function LocationHelpModal({ opened, onClose }) {
       }}
     >
       <Stack gap="lg" py="sm">
-        <Text size="md" c="dimmed">
-          Location permission was previously denied. Follow these steps to enable it:
+        <Text size="md" c="secondary">
+          In order to verify your location, we need access to your browser's geolocation.
         </Text>
 
         <Accordion variant="separated" defaultValue="chrome">

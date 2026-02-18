@@ -33,7 +33,7 @@ const ExperimentalFeaturesSection = () => {
               <Group justify="space-between" align="start">
                 <Stack gap={4} style={{ flex: 1 }}>
                   <Text fw={500} size="sm">{feature.label}</Text>
-                  <Text size="xs" c="dimmed">{feature.description}</Text>
+                  <Text size="xs" c="secondary">{feature.description}</Text>
                 </Stack>
                 <Switch
                   checked={!!flags[feature.id]}
