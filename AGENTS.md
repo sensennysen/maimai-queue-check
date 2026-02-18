@@ -6,6 +6,8 @@ This document serves as the central hub for the agent's operation, combining wor
 
 When tackling a feature request, the agent MUST follow these four phases:
 
+> **IMPORTANT**: The agent must always explicitly state which phase (Inquiry, Planning, Execution, Confirmation) the development is currently in.
+
 ### 1. Inquiry
 **Goal**: Deeply understand the user's requirements and context.
 - Ask clarifying questions about the feature's purpose, scope, and desired behavior.
