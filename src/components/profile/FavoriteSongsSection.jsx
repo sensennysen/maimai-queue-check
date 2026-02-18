@@ -139,7 +139,6 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
 
     try {
       // Optimistic update
-      const prevFavorites = [...favorites];
       setFavorites(prev => prev.filter(f => f.song_id !== songId));
 
       await favoritesService.removeFavorite(userId, songId);
@@ -214,7 +213,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
                       }}
                     />
                   </Box>
-                )
+                );
               })}
             </div>
           </ScrollArea>
@@ -235,7 +234,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
                     }}
                   />
                 </Box>
-              )
+              );
             })}
           </SimpleGrid>
         )

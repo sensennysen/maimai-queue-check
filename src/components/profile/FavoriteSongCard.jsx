@@ -1,7 +1,7 @@
 import { Paper, Text, Box, Image, ActionIcon, Tooltip } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 
-function FavoriteSongCard({ song, comment, onDelete, isOwnProfile, onClick }) {
+function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
   return (
     <Paper
       p={0}

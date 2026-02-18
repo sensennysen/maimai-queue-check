@@ -20,7 +20,7 @@ function SongCard({ song, onClick, hideDifficulties = false, hideTags = false })
       const diffB = DIFFICULTY_ORDER.indexOf(normalizeDiffForSort(b.difficulty));
       return diffA - diffB;
     });
-  }, [song.sheets]);
+  }, [song.sheets, hideDifficulties]);
 
   const typeImage = song.cardType === 'dx' ? dxImage : standardImage;
 

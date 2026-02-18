@@ -290,7 +290,7 @@ const ProfilePage = () => {
               {preferredBranchNames.length > 0 && (
                 <Group gap={6} align="center" wrap="wrap">
                   <IconStar size={14} style={{ color: 'var(--theme-accent)' }} />
-                  <Text size="sm" c="dimmed">Preferred:</Text>
+                  <Text size="sm">Preferred:</Text>
                   {preferredBranchNames.map(name => (
                     <Badge key={name} size="sm" variant="light" color="secondary">{name}</Badge>
                   ))}
@@ -301,7 +301,7 @@ const ProfilePage = () => {
                 {maimaiName && (
                   <Group gap={4} align="center">
                     <Text size="sm" fw={600}>DX Name:</Text>
-                    <Text size="sm" c="dimmed">{maimaiName}</Text>
+                    <Text size="sm">{maimaiName}</Text>
                   </Group>
                 )}
                 {bestScores && (
