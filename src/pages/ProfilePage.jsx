@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, Box, TextInput, SegmentedControl, MultiSelect, Input } from '@mantine/core';
+import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, TextInput, SegmentedControl, MultiSelect, Input } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
 import IconUpload from '@tabler/icons-react/dist/esm/icons/IconUpload.mjs';
@@ -242,7 +242,7 @@ const ProfilePage = () => {
       .map(id => {
         const parsed = typeof id === 'string' ? parseInt(id, 10) : id;
         const branch = branches.find(b => b.id === parsed);
-        return branch ? (branch.short_name || branch.arcade_name) : null;
+        return branch ? (branch.acronym || branch.short_name || branch.arcade_name) : null;
       })
       .filter(Boolean)
     : [];
@@ -255,7 +255,7 @@ const ProfilePage = () => {
           <ActionIcon variant="subtle" size="lg" onClick={() => navigate('/')}>
             <IconArrowLeft size={24} />
           </ActionIcon>
-          <Title order={2}>mpqCheckPH profile</Title>
+          <Title order={2} className="profile-page-title">mpqCheckPH profile</Title>
         </Group>
         <Group gap="xs">
           <ActionIcon variant="outline" size="lg" onClick={() => setIsSettingsModalOpen(true)} title="Settings">
@@ -268,8 +268,13 @@ const ProfilePage = () => {
       </Group>
 
       <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl">
-        <Group align="flex-start" wrap="nowrap" justify="space-between">
-          <Group align="flex-start" wrap="nowrap" style={{ flex: 1 }}>
+        <Group className="profile-card-row" wrap="nowrap" justify="space-between">
+          {/* Mobile: center avatar vertically; Desktop: align top */}
+          <Group
+            className="profile-card-row"
+            wrap="nowrap"
+            style={{ flex: 1 }}
+          >
             <Avatar src={profileData?.display_photo_url} size={90} radius={90} color="primary" className="profile-avatar-large">
               <IconUser size={45} />
             </Avatar>
@@ -290,6 +295,21 @@ const ProfilePage = () => {
                   ))}
                 </Group>
               )}
+              {/* Mobile: DX Name + Rating inline with branch details */}
+              <Stack gap={2} hiddenFrom="sm">
+                {maimaiName && (
+                  <Group gap={4} align="center">
+                    <Text size="sm" fw={600}>DX Name:</Text>
+                    <Text size="sm" c="dimmed">{maimaiName}</Text>
+                  </Group>
+                )}
+                {bestScores && (
+                  <Group gap={4} align="center">
+                    <Text size="sm" fw={600}>Rating:</Text>
+                    <Text size="sm" fw={700} c="primary">{bestScores.totalRating}</Text>
+                  </Group>
+                )}
+              </Stack>
             </Stack>
           </Group>
 
@@ -312,32 +332,17 @@ const ProfilePage = () => {
             )}
           </Stack>
         </Group>
-
-        {/* Mobile view for maimai details */}
-        <Stack gap={4} mt="md" hiddenFrom="sm">
-          {maimaiName && (
-            <Text size="sm" fw={600}>
-              DX Name: <Text span fw={400} c="dimmed">{maimaiName}</Text>
-            </Text>
-          )}
-          {bestScores && (
-            <Text size="sm" fw={600}>
-              Rating: <Text span fw={700} c="primary">{bestScores.totalRating}</Text>
-            </Text>
-          )}
-        </Stack>
       </Paper>
 
       {/* Overview / Best 50 */}
-      <Box pos="relative" mih={200}>
+      <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl" pos="relative" style={{ minHeight: 200 }}>
         <LoadingOverlay visible={isLoadingData || isCalculating} overlayProps={{ radius: "sm", blur: 2 }} />
 
-        <Group justify="space-between" mb="xl" align="flex-end">
-          <Stack gap={0}>
-            <Title order={2}>Your Best 50</Title>
-            <Text size="sm" c="dimmed">Detailed breakdown of your top performances</Text>
+        <Group justify="space-between" mb="xl" align="center" wrap="nowrap">
+          <Stack gap={0} style={{ minWidth: 0, overflow: 'hidden' }}>
+            <Title order={2} truncate>My Best 50</Title>
           </Stack>
-          <Group gap="sm">
+          <Group gap="sm" wrap="nowrap" className="best50-actions">
             <Button
               leftSection={<IconCamera size={18} />}
               variant="light"
@@ -406,7 +411,7 @@ const ProfilePage = () => {
             </div>
           </Stack>
         ) : null}
-      </Box>
+      </Paper>
 
       {/* Import Modal */}
       <Modal
