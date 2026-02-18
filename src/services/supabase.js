@@ -107,9 +107,19 @@ export const rolesService = {
         
         // Profile fields - prefer profileData, fallback to roleData
         display_name: profileData?.display_name || roleData?.display_name,
-        preferred_branches: Array.isArray(profileData?.preferred_branches) 
-          ? profileData.preferred_branches 
-          : (Array.isArray(roleData?.preferred_branches) ? roleData.preferred_branches : []),
+        
+        // UNION of preferred_branches from both tables to ensure no data is lost
+        preferred_branches: (() => {
+          const profileBranches = Array.isArray(profileData?.preferred_branches) 
+            ? profileData.preferred_branches.map(id => typeof id === 'string' ? parseInt(id, 10) : id)
+            : [];
+          const roleBranches = Array.isArray(roleData?.preferred_branches) 
+            ? roleData.preferred_branches.map(id => typeof id === 'string' ? parseInt(id, 10) : id)
+            : [];
+          
+          // Return unique union of both arrays
+          return [...new Set([...profileBranches, ...roleBranches])].filter(id => !isNaN(id));
+        })(),
           
         // Maimai fields (only in profileData)
         maimai_dx_name: profileData?.maimai_dx_name || null,
@@ -574,6 +584,16 @@ export const branchService = {
 
     if (error) throw error;
     return data;
+  },
+
+  // Fetch ALL branches for name resolution (ignores enabled filter)
+  async getBranchesForResolution() {
+    const { data, error } = await supabase
+      .from('allowed_places')
+      .select('id, arcade_name, short_name, acronym');
+
+    if (error) throw error;
+    return data || [];
   }
 };
 

@@ -73,7 +73,7 @@ const ProfilePage = () => {
 
   // Fetch branches for name resolution
   useEffect(() => {
-    branchService.getAllBranches().then(setBranches).catch(console.error);
+    branchService.getBranchesForResolution().then(setBranches).catch(console.error);
   }, []);
 
   // Handlers
