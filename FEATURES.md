@@ -42,6 +42,15 @@ This document tracks the features of the application, their status, and relevant
     *   Applied English translations for categories (e.g., "POPS & ANIME").
 4.  **Verification**: Verified manually by user.
 
+### 2026-02-18: Achievement Rate Formatting
+- **Status**: Released
+- **Phase**: Done
+
+**Summary of Changes**:
+1.  **Consistent Formatting**: Updated the `ScoreCard` component to always display achievement rates with exactly 4 decimal places (e.g., 100.0000%).
+2.  **Breadth**: Verified that all pages using `ScoreCard` (Profile, Export) reflect this change correctly.
+3.  **Verification**: Manually verified display precision.
+
 ### 2026-02-18: Song Database Visual & Interaction Refinements
 - **Status**: Released
 - **Phase**: Done

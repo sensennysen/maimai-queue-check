@@ -1,29 +1,20 @@
-# State Snapshot - Profile UI Refinement Phase
+# State Snapshot - Achievement Rate Formatting Phase
 
-**Objective:** Refine the Profile Page UI for a cleaner, more premium experience and improve code quality standards.
+**Objective:** Ensure achievement rates always display with 4 decimal places for consistency and precision.
 
 **Changes:**
-- **Settings Consolidation**: Moved "Display Name", "App Theme", and "Preferred Branches" into a dedicated modal on the Profile Page.
-- **Experimental Features**: Simplified the global `PreferencesModal` to only contain experimental toggles, renamed appropriately in the login menu.
-- **Best 50 Revamp**: Created a new "Your Best 50" section header and moved Export/Import actions there for better contextual relevance.
-- **Header Polishing**: Enlarged the main display name and moved Maimai details to a clean, right-aligned text layout (tags removed).
-- **Stability**: Fixed all JSX syntax errors and removed unused code.
-- **Workflow**: Enforced mandatory successful linting in the `execute` workflow.
+- **Formatting Fix**: Updated `ScoreCard.jsx` to use `.toFixed(4)` for the achievement rate display.
+- **Precision**: Ensured that the value is parsed as a float before formatting to handle any potential string inputs from the parser.
 
 **Files Touched:**
-- `src/pages/ProfilePage.jsx`
-- `src/components/LoginForm.jsx`
-- `src/components/modals/PreferencesModal.jsx`
-- `src/App.jsx`
-- `.agent/workflows/execute.md`
+- `src/components/maimai/ScoreCard.jsx`
 
 **Verification:**
-- `npm run lint`: Clean (0 errors)
-- Manual check: All modals, theme previews, and layout changes verified.
+- Manual verification via Profile and Export pages.
+- Broad search confirmed no other direct displays of `achievement` missed.
 
 **Risks/Debt:**
-- None identified; codebase is currently extremely clean.
+- None.
 
 **Next Wave TODO:**
-- Monitor for any edge-case feedback on the new modal-based settings flow.
-- Proceed with any further feature requests.
+- Proceed with any further UI refinements or feature requests.
