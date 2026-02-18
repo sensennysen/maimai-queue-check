@@ -70,40 +70,40 @@ function FavoriteSongDetailModal({ song, opened, onClose, comment }) {
             </Tooltip>
 
             <Stack gap={2}>
-              <Text size="xs" c="dimmed" fw={700} tt="uppercase">Artist</Text>
-              <Text size="sm" c="dimmed" lineClamp={2} title={song.artist}>{song.artist}</Text>
+              <Text size="xs" c="secondary" fw={700} tt="uppercase">Artist</Text>
+              <Text size="sm" lineClamp={2} title={song.artist}>{song.artist}</Text>
             </Stack>
 
             <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm" mt="xs">
               <Stack gap={2}>
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Category</Text>
-                <Text size="sm" c="dimmed" lineClamp={1} title={CATEGORY_TRANSLATION[song.category] || song.category}>
+                <Text size="xs" c="secondary" fw={700} tt="uppercase">Category</Text>
+                <Text size="sm" lineClamp={1} title={CATEGORY_TRANSLATION[song.category] || song.category}>
                   {CATEGORY_TRANSLATION[song.category] || song.category}
                 </Text>
               </Stack>
 
               <Stack gap={2}>
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Version</Text>
-                <Text size="sm" c="dimmed" lineClamp={1} title={VERSION_MAPPING[song.version] || song.version}>
+                <Text size="xs" c="secondary" fw={700} tt="uppercase">Version</Text>
+                <Text size="sm" lineClamp={1} title={VERSION_MAPPING[song.version] || song.version}>
                   {VERSION_MAPPING[song.version] || song.version}
                 </Text>
               </Stack>
 
               <Stack gap={2}>
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Type</Text>
+                <Text size="xs" c="secondary" fw={700} tt="uppercase">Type</Text>
                 <img src={typeImage} alt={song.cardType} style={{ height: 20, maxWidth: '100%', objectFit: 'contain', alignSelf: 'flex-start' }} />
               </Stack>
 
               {song.bpm && (
                 <Stack gap={2}>
-                  <Text size="xs" c="dimmed" fw={700} tt="uppercase">BPM</Text>
-                  <Text size="sm" c="dimmed">{song.bpm}</Text>
+                  <Text size="xs" c="secondary" fw={700} tt="uppercase">BPM</Text>
+                  <Text size="sm">{song.bpm}</Text>
                 </Stack>
               )}
             </SimpleGrid>
             {comment &&
               <>
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ marginTop: '1rem' }}>User Comment</Text>
+                <Text size="xs" c="secondary" fw={700} tt="uppercase" style={{ marginTop: '1rem' }}>User Comment</Text>
                 <Text
                   size="md"
                   style={{
@@ -111,7 +111,7 @@ function FavoriteSongDetailModal({ song, opened, onClose, comment }) {
                     fontStyle: 'italic',
                     textAlign: 'justify',
                     lineHeight: 1.5,
-                    color: 'var(--mantine-color-dimmed)',
+                    color: 'var(--theme-text-muted)',
                     fontSynthesis: 'style'
                   }}
                 >

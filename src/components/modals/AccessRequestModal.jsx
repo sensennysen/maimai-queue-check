@@ -142,7 +142,7 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
               Requesting access for: {selectedBranch?.arcade_name}
             </Text>
           ) : (
-            <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
+            <Text size="sm" c="secondary" style={{ marginTop: '1rem' }}>
               Select the branch(es) you want to manage queue for. The requests will be sent to the respective branch admins.
             </Text>
           )}

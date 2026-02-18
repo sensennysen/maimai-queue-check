@@ -282,7 +282,7 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
           // Branch Form
           <form onSubmit={handleBranchSubmit}>
             <Stack gap="md">
-              <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
+              <Text size="sm" c="secondary" fw={500} style={{ marginTop: '1rem' }}>
                 {mode === 'edit' ? 'Edit Branch Information' : 'Step 1 of 2: Branch Information'}
               </Text>
 

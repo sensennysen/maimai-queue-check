@@ -46,7 +46,7 @@ function LocationPermissionModal({ opened, onClose, onRequestLocation, onDecline
             <List.Item>
               <Stack gap={6}>
                 <Text fw={600} size="lg">Auto-detect nearest arcade</Text>
-                <Text size="md" c="dimmed" lh={1.6}>
+                <Text size="md" c="secondary" lh={1.6}>
                   Automatically select the branch closest to you for a seamless experience.
                 </Text>
               </Stack>

@@ -29,7 +29,7 @@ function Footer() {
             </Text>
           </Group>
 
-          <Text size="sm" c="dimmed" className="footer-divider">•</Text>
+          <Text size="sm" c="secondary" className="footer-divider">•</Text>
 
           <Group
             gap="xs"
@@ -43,7 +43,7 @@ function Footer() {
             </Text>
           </Group>
 
-          <Text size="sm" c="dimmed" className="footer-divider">•</Text>
+          <Text size="sm" c="secondary" className="footer-divider">•</Text>
 
           <Group
             gap="xs"
@@ -55,7 +55,7 @@ function Footer() {
             <Text size="sm" className="footer-link-text">Contact</Text>
           </Group>
 
-          <Text size="sm" c="dimmed" className="footer-divider">•</Text>
+          <Text size="sm" c="secondary" className="footer-divider">•</Text>
 
           <Group
             gap="xs"

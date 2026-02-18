@@ -65,7 +65,7 @@ export function ScoreCard({ score }) {
               {difficultyLabel}
             </Badge>
             {score.level && (
-              <Text size="xs" c="dimmed" fw={600}>
+              <Text size="xs" c="secondary" fw={600}>
                 {score.level.toFixed(1)}
               </Text>
             )}
