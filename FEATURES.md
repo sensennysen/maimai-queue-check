@@ -18,3 +18,47 @@ This document tracks the features of the application, their status, and relevant
 
 ## Recently Added
 *(Add features here when the "Confirmation" phase is complete)*
+
+### 2026-02-18: Song Database Refinements
+- **Status**: Released
+- **Phase**: Done
+
+**Summary of Changes**:
+1.  **Enriched Data**: Added BPM and Release Date (from `maimai_song_extras`) and Note Designer (from `maimai_sheet_extras`) to the database and modal.
+2.  **Internal Level Fallback**: Implemented logic to calculate internal levels from display levels (e.g., 13+ -> 13.6) when actual data is missing.
+3.  **Verification**: Verified correct sort order and data population with automated script.
+
+### 2026-02-18: Songs Database Improvements (Mobile & Details)
+- **Status**: Released
+- **Phase**: Done
+
+**Summary of Changes**:
+1.  **Mobile Optimization**: Implemented 2-column grid layout for mobile devices in `SongList.jsx`.
+2.  **Song Detail Modal**: Created `SongDetailModal.jsx` to display full song info (Artist, Category, Version, BPM, Charts).
+3.  **UI Refinements**:
+    *   Replaced badges with text labels in modal.
+    *   Used DX/Standard image logos.
+    *   Corrected difficulty sorting (Basic -> Re:Master) in both Modal and Card.
+    *   Applied English translations for categories (e.g., "POPS & ANIME").
+4.  **Verification**: Verified manually by user.
+
+### 2026-02-18: Song Database Visual & Interaction Refinements
+- **Status**: Released
+- **Phase**: Done
+
+**Summary of Changes**:
+1.  **Grid Layout**: Optimized song list to display 25 items per page.
+2.  **Interactions**: Added touch-responsive click animation to song cards. Implemented explicit "click title to copy" functionality in the modal.
+3.  **Modal Visuals**: Enlarged song jacket for better visibility. Reorganized metadata into a centered 2-column grid layout to minimize whitespace and improve balance.
+4.  **Verification**: Validated by user feedback and iteration.
+
+
+### 2026-02-18: Song Database Theme & Navigation
+- **Status**: Released
+- **Phase**: Done
+
+**Summary of Changes**:
+1.  **Theme Integration**: Integrated `ThemeContext` into Song Database. Replaced hardcoded colors with theme variables for consistent styling across Circle, Prism, and Buddies themes.
+2.  **Navigation**: Added a "Back to Queue" button to the header for better user flow.
+3.  **UI Controls**: Added a Theme Toggle button directly to the Song Database interface.
+4.  **Verification**: Verified theme switching and navigation functionality.

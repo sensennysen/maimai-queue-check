@@ -140,7 +140,7 @@ export const AuthProvider = ({ children }) => {
           table: 'user_profiles',
           filter: `id=eq.${user.id}`,
         },
-        (payload) => {
+        () => {
           // Profile changed/added/deleted
           // Just re-fetch the merged world state
           rolesService.getUserRoles(user.id).then(setUserRoles);

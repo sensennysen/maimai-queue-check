@@ -18,3 +18,16 @@ This document tracks new skills, patterns, and insights learned by the agent dur
 - **Insight**: Breaking down tasks into Inquiry, Planning, Execution, and Confirmation ensures clarity and user alignment.
 - **Application**: Always follow this 4-phase process for every new feature request.
 - **Date**: 2026-02-18
+
+**[Explicit vs Implicit Actions]**
+- **Context**: Refined song card interactions (auto-copy vs nav).
+- **Insight**: Users prefer explicit actions (clicking title to copy) over implicit ones (clicking card to copy) to avoid unintended side effects.
+- **Application**: Avoid coupling navigation actions with side-effects like clipboard copying; keep them distinct.
+- **Date**: 2026-02-18
+
+**[Modal Layout Optimization]**
+- **Context**: Reducing whitespace in song detail modal.
+- **Insight**: `SimpleGrid` with 2 columns is highly effective for displaying key-value metadata compactly next to a large image.
+- **Application**: Use grid layouts for metadata blocks to balance visual weight against large media elements.
+- **Date**: 2026-02-18
+
