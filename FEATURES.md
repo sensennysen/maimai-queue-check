@@ -52,3 +52,13 @@ This document tracks the features of the application, their status, and relevant
 3.  **Modal Visuals**: Enlarged song jacket for better visibility. Reorganized metadata into a centered 2-column grid layout to minimize whitespace and improve balance.
 4.  **Verification**: Validated by user feedback and iteration.
 
+
+### 2026-02-18: Song Database Theme & Navigation
+- **Status**: Released
+- **Phase**: Done
+
+**Summary of Changes**:
+1.  **Theme Integration**: Integrated `ThemeContext` into Song Database. Replaced hardcoded colors with theme variables for consistent styling across Circle, Prism, and Buddies themes.
+2.  **Navigation**: Added a "Back to Queue" button to the header for better user flow.
+3.  **UI Controls**: Added a Theme Toggle button directly to the Song Database interface.
+4.  **Verification**: Verified theme switching and navigation functionality.

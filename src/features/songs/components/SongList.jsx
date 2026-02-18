@@ -20,7 +20,7 @@ function SongList({ songs, loading }) {
     return (
       <Center p="xl" h={400}>
         <Stack align="center" gap="md">
-          <Loader size="xl" variant="bars" color="pink" />
+          <Loader size="xl" variant="bars" color="primary" />
           <Text c="dimmed" size="sm" className="animate-pulse">Loading Database...</Text>
         </Stack>
       </Center>
@@ -76,7 +76,7 @@ function SongList({ songs, loading }) {
             size="md"
             radius="xl"
             withEdges
-            color="pink"
+            color="primary"
             siblings={1}
           />
         )}

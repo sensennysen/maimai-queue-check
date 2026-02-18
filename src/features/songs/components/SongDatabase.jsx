@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Container, Title, Text, Stack, Box, Group, LoadingOverlay, ThemeIcon } from '@mantine/core';
+import { Container, Title, Text, Stack, Box, Group, LoadingOverlay, ThemeIcon, ActionIcon } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { songsService } from '../../../services/songs';
+import { useNavigate } from 'react-router-dom';
+import ThemeToggle from '../../../components/layout/ThemeToggle';
 import SongFilters from './SongFilters';
 import SongList from './SongList';
 import { VERSION_ORDER, DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION } from '../../../config/maimai-constants';
-import { IconMusic } from '@tabler/icons-react';
+import { IconMusic, IconArrowLeft } from '@tabler/icons-react';
 
 // Helper to convert level string (e.g., "13+") to number (13.7)
 const parseLevel = (levelStr) => {
@@ -18,6 +20,7 @@ const parseLevel = (levelStr) => {
 };
 
 function SongDatabase() {
+  const navigate = useNavigate();
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -191,16 +194,29 @@ function SongDatabase() {
           p="xl"
           style={{
             borderRadius: '24px',
-            background: 'linear-gradient(135deg, rgba(255, 40, 169, 0.1), rgba(0, 210, 255, 0.1))',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
+            background: 'linear-gradient(135deg, color-mix(in srgb, var(--theme-primary), transparent 90%), color-mix(in srgb, var(--theme-secondary), transparent 90%))',
+            border: '1px solid color-mix(in srgb, var(--theme-text-primary), transparent 80%)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.05)'
           }}
         >
-          <Group>
-            <Stack gap={0}>
-              <Title order={1} style={{ fontSize: '2rem', fontFamily: 'var(--font-heading)' }}>
-                Song Database
-              </Title>
-            </Stack>
+          <Group justify="space-between" align="center">
+            <Group>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                size="xl"
+                radius="xl"
+                onClick={() => navigate('/')}
+              >
+                <IconArrowLeft size={24} />
+              </ActionIcon>
+              <Stack gap={0}>
+                <Title order={1} style={{ fontSize: '2rem', fontFamily: 'var(--font-heading)' }}>
+                  Song Database
+                </Title>
+              </Stack>
+            </Group>
+            <ThemeToggle />
           </Group>
         </Box>
 
