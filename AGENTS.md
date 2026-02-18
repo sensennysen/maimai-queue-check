@@ -90,4 +90,5 @@ The agent is an adaptive system that learns from failures and successes.
 5.  **Result**: The system is now stronger.
 
 ## Directives
-(Link to or list specific directives here as they are created)
+
+- [GEMINI.md](file:///e:/git/smf-queue-check/adapters/GEMINI.md) — Gemini-specific GSD protocol adapter.
