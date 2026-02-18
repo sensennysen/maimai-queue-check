@@ -51,3 +51,41 @@
     max-width: 150px;
   }
 }
+
+/* Profile card: center avatar vertically on mobile, top-align on desktop */
+.profile-card-row {
+  align-items: flex-start;
+}
+
+@media (max-width: 768px) {
+  .profile-card-row {
+    align-items: center;
+  }
+
+  .profile-avatar-large {
+    width: 110px !important;
+    height: 110px !important;
+    min-width: 110px !important;
+  }
+
+  .profile-page-title {
+    font-size: 1.25rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .best50-actions .mantine-Button-root {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    font-size: var(--mantine-font-size-xs) !important;
+    height: 30px !important;
+  }
+
+  .best50-actions .mantine-Button-section {
+    margin-right: 4px !important;
+  }
+
+  .profile-page-title {
+    font-size: 1rem !important;
+  }
+}
