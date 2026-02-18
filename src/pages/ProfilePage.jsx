@@ -11,12 +11,14 @@ import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs'
 import IconSun from '@tabler/icons-react/dist/esm/icons/IconSun.mjs';
 import IconMoon from '@tabler/icons-react/dist/esm/icons/IconMoon.mjs';
 import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
+import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
+import IconStar from '@tabler/icons-react/dist/esm/icons/IconStar.mjs';
 import { ScoreCard } from '../components/maimai/ScoreCard';
 import { BookmarkletInstructions } from '../components/BookmarkletInstructions';
 import { useAuth } from '../hooks/useAuth';
 import { useFeatureFlags } from '../hooks/useFeatureFlags';
 import { useTheme } from '../contexts/ThemeContext';
-import { userService } from '../services/supabase';
+import { userService, branchService } from '../services/supabase';
 import { fetchSongConstants, calculateBest50 } from '../utils/maimai-calc';
 
 const ProfilePage = () => {
@@ -40,6 +42,7 @@ const ProfilePage = () => {
   // Local Data State (Bypassing AuthContext cache for freshness)
   const [profileData, setProfileData] = useState(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [branches, setBranches] = useState([]);
 
   // Fetch Maimai Data Helper
   // Fetch Maimai Data Helper
@@ -67,6 +70,11 @@ const ProfilePage = () => {
       fetchMaimaiData();
     }
   }, [userId, fetchMaimaiData]);
+
+  // Fetch branches for name resolution
+  useEffect(() => {
+    branchService.getAllBranches().then(setBranches).catch(console.error);
+  }, []);
 
   // Handlers
   const handleImport = async () => {
@@ -162,7 +170,21 @@ const ProfilePage = () => {
   // Names
   const appDisplayName = userRoles?.display_name || user.user_metadata.full_name || 'Guest User';
   const maimaiName = profileData?.maimai_dx_name;
-  console.log('profileData:', profileData);
+
+  // Branch resolution
+  const mainBranchName = profileData?.main_branch != null
+    ? (branches.find(b => b.id === profileData.main_branch)?.short_name || branches.find(b => b.id === profileData.main_branch)?.arcade_name || null)
+    : null;
+
+  const preferredBranchNames = Array.isArray(profileData?.preferred_branches)
+    ? profileData.preferred_branches
+      .map(id => {
+        const parsed = typeof id === 'string' ? parseInt(id, 10) : id;
+        const branch = branches.find(b => b.id === parsed);
+        return branch ? (branch.short_name || branch.arcade_name) : null;
+      })
+      .filter(Boolean)
+    : [];
 
   return (
     <Container size="lg" py="xl">
@@ -196,6 +218,21 @@ const ProfilePage = () => {
                 <Text c="dimmed">Rating: {bestScores.totalRating}</Text>
               ) : (
                 <Text c="dimmed">No rating data</Text>
+              )}
+              {mainBranchName && (
+                <Group gap={4} align="center">
+                  <IconMapPin size={14} style={{ color: 'var(--mantine-color-blue-6)' }} />
+                  <Text size="sm" fw={500}>Main Branch: {mainBranchName}</Text>
+                </Group>
+              )}
+              {preferredBranchNames.length > 0 && (
+                <Group gap={6} align="center" wrap="wrap">
+                  <IconStar size={14} style={{ color: 'var(--mantine-color-yellow-6)' }} />
+                  <Text size="sm" c="dimmed">Preferred:</Text>
+                  {preferredBranchNames.map(name => (
+                    <Badge key={name} size="sm" variant="light" color="teal">{name}</Badge>
+                  ))}
+                </Group>
               )}
             </Stack>
 

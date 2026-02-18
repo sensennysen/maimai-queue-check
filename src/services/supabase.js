@@ -74,8 +74,7 @@ export const rolesService = {
         
         supabase
           .from('user_profiles')
-
-          .select('id, display_name, preferred_branches, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url')
+          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url')
           .eq('id', userId)
           .maybeSingle()
       ]);
@@ -120,7 +119,10 @@ export const rolesService = {
         maimai_scores_updated_at: profileData?.maimai_scores_updated_at || null,
         
         // Display Photo
-        display_photo_url: profileData?.display_photo_url || null
+        display_photo_url: profileData?.display_photo_url || null,
+
+        // Main Branch
+        main_branch: profileData?.main_branch ?? null
       };
       
       return mergedData;
@@ -140,11 +142,11 @@ export const rolesService = {
 // User service functions
 export const userService = {
   // Update user preferences
-  async updatePreferences(userId, { branchIds, displayName }) {
+  async updatePreferences(userId, { branchIds, displayName, mainBranch }) {
     const updateData = {};
     if (branchIds !== undefined) updateData.preferred_branches = branchIds;
-
     if (displayName !== undefined) updateData.display_name = displayName;
+    if (mainBranch !== undefined) updateData.main_branch = mainBranch;
     // displayPhotoUrl is not usually updated here but could be if we wanted to
 
     
