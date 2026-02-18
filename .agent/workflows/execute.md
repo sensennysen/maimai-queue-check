@@ -18,7 +18,10 @@ Follow these steps when implementing any code change.
 
 3. Verify the change works as expected (run dev server, check browser, etc.).
 
-4. Commit the change with a descriptive message following the convention:
+4. Ask the user for confirmation that the task is done/implemented correctly.
+   - Do not proceed to commit until the user confirms the changes are correct.
+
+5. Commit the change with a descriptive message following the convention:
    ```
    type(scope): description
    ```

@@ -6,7 +6,8 @@
 ## Recent Accomplishments
 
 - Restored `.gsd` directory and GSD workflow infrastructure.
-- Completed Song Database UI refinements (25-per-page grid, click animations, modal layout).
+- Refined Song Modal UI: centered jacket, stacked metadata, compacted difficulty table.
+- Completed Song Database UI refinements (25-per-page grid, click animations).
 - Added BPM, Release Date, and Note Designer to song database and modal.
 - Implemented internal level fallback logic (e.g., 13+ → 13.6).
 - Secured `maimai_charts` table with Row Level Security (RLS) policies.
