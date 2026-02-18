@@ -172,7 +172,7 @@ export const theme = createTheme({
       },
     },
     Paper: {
-       styles: (theme) => ({
+     styles: () => ({
         root: {
            // handled by CSS variables/classes
         }

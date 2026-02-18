@@ -8,7 +8,7 @@ import IconSettings from '@tabler/icons-react/dist/esm/icons/IconSettings.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';
-import { useFeatureFlags } from '../contexts/FeatureFlagContext';
+import { useFeatureFlags } from '../hooks/useFeatureFlags';
 import './LoginForm.css';
 
 const LoginForm = ({ onOpenPreferences }) => {

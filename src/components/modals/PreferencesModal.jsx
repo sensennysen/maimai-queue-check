@@ -5,7 +5,7 @@ import { userService } from '../../services/supabase';
 import { useBranch } from '../../contexts/BranchContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
-import { useFeatureFlags } from '../../contexts/FeatureFlagContext';
+import { useFeatureFlags } from '../../hooks/useFeatureFlags';
 import { EXPERIMENTAL_FEATURES } from '../../constants/featureFlags';
 import { Switch, Alert, Card } from '@mantine/core';
 import IconFlask from '@tabler/icons-react/dist/esm/icons/IconFlask.mjs';
@@ -57,7 +57,7 @@ const ExperimentalFeaturesSection = () => {
 const PreferencesModal = ({ opened, onClose, userId, initialPreferences = [], initialDisplayName = '', onSaveSuccess }) => {
   const { branches, loading } = useBranch();
   const { currentTheme, setTheme } = useTheme();
-  const { userRoles } = useAuth(); // Get latest user data including maimai fields
+  useAuth(); // Ensure auth context is available
 
   const [saving, setSaving] = useState(false);
   const [selectedBranches, setSelectedBranches] = useState([]);

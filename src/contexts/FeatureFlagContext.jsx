@@ -1,19 +1,11 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { EXPERIMENTAL_FEATURES, getDefaultFeatureFlags } from '../constants/featureFlags';
 import { notifications } from '@mantine/notifications';
 
-const FeatureFlagContext = createContext({
-  experimentalEnabled: false,
-  flags: {}, // Map of featureId -> boolean
-  isLoading: true,
-  toggleExperimentalFeatures: async () => { },
-  toggleFlag: async () => { },
-  setExperimentalFeaturesEnabled: async () => { }, // Alias for toggleExperimentalFeatures with direct value
-});
+import { FeatureFlagContext } from './FeatureFlagContextDef';
 
-export const useFeatureFlags = () => useContext(FeatureFlagContext);
 
 export const FeatureFlagProvider = ({ children }) => {
   const { user } = useAuth();

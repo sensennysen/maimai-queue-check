@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, Box } from '@mantine/core';
 import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
@@ -14,7 +14,7 @@ import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
 import { ScoreCard } from '../components/maimai/ScoreCard';
 import { BookmarkletInstructions } from '../components/BookmarkletInstructions';
 import { useAuth } from '../hooks/useAuth';
-import { useFeatureFlags } from '../contexts/FeatureFlagContext';
+import { useFeatureFlags } from '../hooks/useFeatureFlags';
 import { useTheme } from '../contexts/ThemeContext';
 import { userService } from '../services/supabase';
 import { fetchSongConstants, calculateBest50 } from '../utils/maimai-calc';
@@ -42,7 +42,7 @@ const ProfilePage = () => {
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   // Fetch Maimai Data Helper
-  const fetchMaimaiData = async () => {
+  const fetchMaimaiData = useCallback(async () => {
     if (!user) return;
     setIsLoadingData(true);
     try {
@@ -51,19 +51,19 @@ const ProfilePage = () => {
       const data = await rolesService.getUserRoles(user.id);
 
       setProfileData(data);
-    } catch (e) {
-      console.error("Error fetching maimai data:", e);
+    } catch (_e) {
+      console.error("Error fetching maimai data:", _e);
     } finally {
       setIsLoadingData(false);
     }
-  };
+  }, [user]);
 
   // Fetch on mount or when user ID changes
   useEffect(() => {
     if (user?.id) {
       fetchMaimaiData();
     }
-  }, [user?.id]);
+  }, [user?.id, fetchMaimaiData]);
 
   // Handlers
   const handleImport = async () => {
@@ -75,7 +75,7 @@ const ProfilePage = () => {
       let data;
       try {
         data = JSON.parse(jsonInput);
-      } catch (e) {
+      } catch {
         throw new Error("Invalid JSON format. Please paste the exact output from the bookmarklet.");
       }
 

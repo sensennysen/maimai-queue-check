@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Container,
   Stack,
@@ -34,12 +34,6 @@ const AdminPage = () => {
     return isSuperAdmin ? 'branches' : 'users';
   });
 
-  // React to URL search param changes
-  useEffect(() => {
-    if (targetTab === 'requests') {
-      setActiveTab('users');
-    }
-  }, [targetTab]);
 
   if (!userRoles?.is_admin && !isSuperAdmin) {
     return (

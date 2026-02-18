@@ -29,7 +29,6 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
   const internalLevelOptions = useMemo(() => {
     if (internalLevels.length === 0) return [];
 
-    const dbValues = new Set(internalLevels);
     const lowestDb = parseFloat(internalLevels[0]); // already sorted
     const allOptions = new Set();
 

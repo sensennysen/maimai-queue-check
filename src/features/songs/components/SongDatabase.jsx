@@ -248,7 +248,7 @@ function SongDatabase() {
             </div>
 
             <div style={{ minWidth: 0 }}>
-              <SongList songs={filteredSongs} loading={loading} />
+              <SongList key={JSON.stringify(filters)} songs={filteredSongs} loading={loading} />
             </div>
           </div>
         </div>

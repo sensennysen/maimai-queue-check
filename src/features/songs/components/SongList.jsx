@@ -1,18 +1,13 @@
 import { SimpleGrid, Text, Center, Loader, Pagination, Stack, Box } from '@mantine/core';
 import SongCard from './SongCard';
 import SongDetailModal from './SongDetailModal';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 
 const ITEMS_PER_PAGE = 25;
 
 function SongList({ songs, loading }) {
   const [activePage, setPage] = useState(1);
   const [selectedSong, setSelectedSong] = useState(null);
-
-  // Reset page when songs filter changes (length changes)
-  useEffect(() => {
-    setPage(1);
-  }, [songs.length]);
 
   const paginatedSongs = useMemo(() => {
     const start = (activePage - 1) * ITEMS_PER_PAGE;
