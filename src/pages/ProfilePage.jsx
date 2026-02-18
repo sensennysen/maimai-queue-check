@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, Box } from '@mantine/core';
+import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, Box, TextInput, SegmentedControl, MultiSelect, Input } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
 import IconUpload from '@tabler/icons-react/dist/esm/icons/IconUpload.mjs';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
@@ -11,20 +12,20 @@ import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs'
 import IconSun from '@tabler/icons-react/dist/esm/icons/IconSun.mjs';
 import IconMoon from '@tabler/icons-react/dist/esm/icons/IconMoon.mjs';
 import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
-import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
-import IconStar from '@tabler/icons-react/dist/esm/icons/IconStar.mjs';
+import { IconMapPin, IconStar, IconSettings } from '@tabler/icons-react';
 import { ScoreCard } from '../components/maimai/ScoreCard';
 import { BookmarkletInstructions } from '../components/BookmarkletInstructions';
 import { useAuth } from '../hooks/useAuth';
 import { useFeatureFlags } from '../hooks/useFeatureFlags';
 import { useTheme } from '../contexts/ThemeContext';
 import { userService, branchService } from '../services/supabase';
+import { useBranch as useBranchContext } from '../contexts/BranchContext';
 import { fetchSongConstants, calculateBest50 } from '../utils/maimai-calc';
 
 const ProfilePage = () => {
   const { user, userRoles } = useAuth(); // Still need userRoles for display_name if profile fetch fails or for fallback
   const navigate = useNavigate();
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme, currentTheme, setTheme } = useTheme();
   const { flags, isLoading: flagsLoading } = useFeatureFlags();
 
   useEffect(() => {
@@ -35,14 +36,22 @@ const ProfilePage = () => {
 
   // State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
   const [isCalculating, setIsCalculating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
 
   // Local Data State (Bypassing AuthContext cache for freshness)
+  const { branches: allBranches, loading: branchesLoading } = useBranchContext();
   const [profileData, setProfileData] = useState(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
-  const [branches, setBranches] = useState([]);
+  const [branches, setBranches] = useState([]); // legacy branch list for resolution
+
+  // Preferences state
+  const [displayName, setDisplayName] = useState('');
+  const [selectedTheme, setSelectedTheme] = useState(currentTheme);
+  const [selectedBranches, setSelectedBranches] = useState([]);
+  const [isSavingPrefs, setIsSavingPrefs] = useState(false);
 
   // Fetch Maimai Data Helper
   // Fetch Maimai Data Helper
@@ -57,12 +66,21 @@ const ProfilePage = () => {
       const data = await rolesService.getUserRoles(userId);
 
       setProfileData(data);
+      if (data) {
+        setDisplayName(data.display_name || '');
+        setSelectedBranches(data.preferred_branches?.map(String) || []);
+      }
     } catch (_e) {
       console.error("Error fetching maimai data:", _e);
     } finally {
       setIsLoadingData(false);
     }
   }, [userId]);
+
+  // Sync theme selection with context if it changes from outside
+  useEffect(() => {
+    setSelectedTheme(currentTheme);
+  }, [currentTheme]);
 
   // Fetch on mount or when user ID changes
   useEffect(() => {
@@ -71,7 +89,7 @@ const ProfilePage = () => {
     }
   }, [userId, fetchMaimaiData]);
 
-  // Fetch branches for name resolution
+  // Fetch branches for name resolution (Legacy - could be consolidated)
   useEffect(() => {
     branchService.getBranchesForResolution().then(setBranches).catch(console.error);
   }, []);
@@ -155,6 +173,49 @@ const ProfilePage = () => {
     }
   };
 
+  const handleSavePreferences = async () => {
+    if (!displayName.trim()) {
+      notifications.show({
+        title: 'Error',
+        message: 'Display name cannot be empty',
+        color: 'red',
+      });
+      return;
+    }
+
+    try {
+      setIsSavingPrefs(true);
+
+      // 1. Update theme immediately
+      setTheme(selectedTheme);
+
+      // 2. Update DB
+      await userService.updatePreferences(user.id, {
+        displayName: displayName.trim(),
+        branchIds: selectedBranches.map(Number),
+      });
+
+      notifications.show({
+        title: 'Success',
+        message: 'Preferences updated successfully',
+        color: 'green',
+      });
+
+      setIsSettingsModalOpen(false);
+
+      // Refetch for good measure (AuthContext usually handles this via subscription, but explicit is fine)
+      fetchMaimaiData();
+    } catch (e) {
+      notifications.show({
+        title: 'Error',
+        message: e.message || 'Failed to update preferences',
+        color: 'red',
+      });
+    } finally {
+      setIsSavingPrefs(false);
+    }
+  };
+
   if (!user) {
     return (
       <Container size="lg" py="xl">
@@ -196,124 +257,156 @@ const ProfilePage = () => {
           </ActionIcon>
           <Title order={2}>mpqCheckPH profile</Title>
         </Group>
-        <ActionIcon variant="outline" size="lg" onClick={() => toggleTheme()}>
-          {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
-        </ActionIcon>
+        <Group gap="xs">
+          <ActionIcon variant="outline" size="lg" onClick={() => setIsSettingsModalOpen(true)} title="Settings">
+            <IconSettings size={20} />
+          </ActionIcon>
+          <ActionIcon variant="outline" size="lg" onClick={() => toggleTheme()} title="Toggle Mode">
+            {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
+          </ActionIcon>
+        </Group>
       </Group>
 
-      <Paper shadow="sm" p="lg" radius="md" withBorder>
-        <Stack>
-          <Group>
-            <Avatar src={profileData?.display_photo_url} size={80} radius={80} color="blue" className="profile-avatar-large">
-              <IconUser size={40} />
+      <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl">
+        <Group align="flex-start" wrap="nowrap" justify="space-between">
+          <Group align="flex-start" wrap="nowrap" style={{ flex: 1 }}>
+            <Avatar src={profileData?.display_photo_url} size={90} radius={90} color="primary" className="profile-avatar-large">
+              <IconUser size={45} />
             </Avatar>
             <Stack gap={4}>
-              <Text size="xl" fw={700}>{appDisplayName}</Text>
-              {maimaiName && (
-                <Text size="sm" c="dimmed" fw={500}>
-                  maimai DX Name: {maimaiName}
-                </Text>
-              )}
-              {bestScores ? (
-                <Text c="dimmed">Rating: {bestScores.totalRating}</Text>
-              ) : (
-                <Text c="dimmed">No rating data</Text>
-              )}
+              <Text size="xl" fw={800} style={{ fontSize: '1.75rem', lineHeight: 1.2 }}>{appDisplayName}</Text>
               {mainBranchName && (
                 <Group gap={4} align="center">
-                  <IconMapPin size={14} style={{ color: 'var(--mantine-color-blue-6)' }} />
+                  <IconMapPin size={14} style={{ color: 'var(--theme-primary)' }} />
                   <Text size="sm" fw={500}>Main Branch: {mainBranchName}</Text>
                 </Group>
               )}
               {preferredBranchNames.length > 0 && (
                 <Group gap={6} align="center" wrap="wrap">
-                  <IconStar size={14} style={{ color: 'var(--mantine-color-yellow-6)' }} />
+                  <IconStar size={14} style={{ color: 'var(--theme-accent)' }} />
                   <Text size="sm" c="dimmed">Preferred:</Text>
                   {preferredBranchNames.map(name => (
-                    <Badge key={name} size="sm" variant="light" color="teal">{name}</Badge>
+                    <Badge key={name} size="sm" variant="light" color="secondary">{name}</Badge>
                   ))}
                 </Group>
               )}
             </Stack>
-
-            <Group gap="sm" ml="auto">
-              <Button
-                leftSection={<IconCamera size={18} />}
-                variant="light"
-                color="teal"
-                onClick={() => window.open('/profile/export', '_blank')}
-                disabled={!hasScores}
-              >
-                Export Image
-              </Button>
-              <Button
-                leftSection={<IconUpload size={18} />}
-                variant="light"
-                onClick={() => setIsImportModalOpen(true)}
-              >
-                Import Scores
-              </Button>
-            </Group>
           </Group>
 
-          <Divider my="sm" />
-
-          {/* Overview / Best 50 */}
-          <Box pos="relative" mih={200}>
-            <LoadingOverlay visible={isLoadingData || isCalculating} overlayProps={{ radius: "sm", blur: 2 }} />
-
-            {!hasScores && !isLoadingData ? (
-              <Alert icon={<IconAlertCircle size={16} />} title="No Data" color="blue">
-                No score data found. Please import your scores using the button above.
-              </Alert>
-            ) : hasScores ? (
-              <Stack gap="xl">
-                {/* Best 15 New */}
-                <div>
-                  <Group mb="md" justify="space-between">
-                    <Title order={3}>Best 15 (New)</Title>
-                    <Group gap="md">
-                      <Text size="sm" c="dimmed" fw={500}>
-                        Avg: {bestScores.new.songs.length > 0 ? Math.round(bestScores.new.totalRating / bestScores.new.songs.length) : 0}
-                      </Text>
-                      <Text size="sm" fw={700}>
-                        Total: {bestScores.new.totalRating ?? 0}
-                      </Text>
-                    </Group>
-                  </Group>
-                  <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                    {bestScores.new.songs.map((score, index) => (
-                      <ScoreCard key={`${score.title}-${score.type}-${score.difficulty}-${index}`} score={score} />
-                    ))}
-                  </SimpleGrid>
-                </div>
-
-                <Divider />
-
-                {/* Best 35 Old */}
-                <div>
-                  <Group mb="md" justify="space-between">
-                    <Title order={3}>Best 35 (Old)</Title>
-                    <Group gap="md">
-                      <Text size="sm" c="dimmed" fw={500}>
-                        Avg: {bestScores.old.songs.length > 0 ? Math.round(bestScores.old.totalRating / bestScores.old.songs.length) : 0}
-                      </Text>
-                      <Text size="sm" fw={700}>
-                        Total: {bestScores.old.totalRating ?? 0}
-                      </Text>
-                    </Group>
-                  </Group>
-                  <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                    {bestScores.old.songs.map((score, index) => (
-                      <ScoreCard key={`${score.title}-${score.type}-${score.difficulty}-${index}`} score={score} />
-                    ))}
-                  </SimpleGrid>
-                </div>
+          <Stack gap={0} align="flex-end" visibleFrom="sm">
+            {maimaiName && (
+              <Group gap={4}>
+                <Text size="sm" c="dimmed">maimai DX Name:</Text>
+                <Text size="sm" fw={600}>{maimaiName}</Text>
+              </Group>
+            )}
+            {bestScores ? (
+              <Stack gap={0} align="flex-end" mt={4}>
+                <Text size="xs" fw={700} c="dimmed" tt="uppercase" lts={1}>Rating</Text>
+                <Text size="xl" fw={900} c="primary" style={{ fontSize: '2.5rem', lineHeight: 1 }}>
+                  {bestScores.totalRating}
+                </Text>
               </Stack>
-            ) : null}
-          </Box>
+            ) : (
+              <Text size="sm" c="dimmed">No rating data</Text>
+            )}
+          </Stack>
+        </Group>
+
+        {/* Mobile view for maimai details */}
+        <Stack gap={4} mt="md" hiddenFrom="sm">
+          {maimaiName && (
+            <Text size="sm" fw={600}>
+              DX Name: <Text span fw={400} c="dimmed">{maimaiName}</Text>
+            </Text>
+          )}
+          {bestScores && (
+            <Text size="sm" fw={600}>
+              Rating: <Text span fw={700} c="primary">{bestScores.totalRating}</Text>
+            </Text>
+          )}
         </Stack>
       </Paper>
+
+      {/* Overview / Best 50 */}
+      <Box pos="relative" mih={200}>
+        <LoadingOverlay visible={isLoadingData || isCalculating} overlayProps={{ radius: "sm", blur: 2 }} />
+
+        <Group justify="space-between" mb="xl" align="flex-end">
+          <Stack gap={0}>
+            <Title order={2}>Your Best 50</Title>
+            <Text size="sm" c="dimmed">Detailed breakdown of your top performances</Text>
+          </Stack>
+          <Group gap="sm">
+            <Button
+              leftSection={<IconCamera size={18} />}
+              variant="light"
+              color="secondary"
+              onClick={() => window.open('/profile/export', '_blank')}
+              disabled={!hasScores}
+            >
+              Export Image
+            </Button>
+            <Button
+              leftSection={<IconUpload size={18} />}
+              variant="light"
+              onClick={() => setIsImportModalOpen(true)}
+            >
+              Import Scores
+            </Button>
+          </Group>
+        </Group>
+
+        {!hasScores && !isLoadingData ? (
+          <Alert icon={<IconAlertCircle size={16} />} title="No Data" color="primary">
+            No score data found. Please import your scores using the button above.
+          </Alert>
+        ) : hasScores ? (
+          <Stack gap="xl">
+            {/* Best 15 New */}
+            <div>
+              <Group mb="md" justify="space-between">
+                <Title order={3}>Best 15 (New)</Title>
+                <Group gap="md">
+                  <Text size="sm" c="dimmed" fw={500}>
+                    Avg: {bestScores.new.songs.length > 0 ? Math.round(bestScores.new.totalRating / bestScores.new.songs.length) : 0}
+                  </Text>
+                  <Text size="sm" fw={700}>
+                    Total: {bestScores.new.totalRating ?? 0}
+                  </Text>
+                </Group>
+              </Group>
+              <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                {bestScores.new.songs.map((score, index) => (
+                  <ScoreCard key={`${score.title}-${score.type}-${score.difficulty}-${index}`} score={score} />
+                ))}
+              </SimpleGrid>
+            </div>
+
+            <Divider />
+
+            {/* Best 35 Old */}
+            <div>
+              <Group mb="md" justify="space-between">
+                <Title order={3}>Best 35 (Old)</Title>
+                <Group gap="md">
+                  <Text size="sm" c="dimmed" fw={500}>
+                    Avg: {bestScores.old.songs.length > 0 ? Math.round(bestScores.old.totalRating / bestScores.old.songs.length) : 0}
+                  </Text>
+                  <Text size="sm" fw={700}>
+                    Total: {bestScores.old.totalRating ?? 0}
+                  </Text>
+                </Group>
+              </Group>
+              <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                {bestScores.old.songs.map((score, index) => (
+                  <ScoreCard key={`${score.title}-${score.type}-${score.difficulty}-${index}`} score={score} />
+                ))}
+              </SimpleGrid>
+            </div>
+          </Stack>
+        ) : null}
+      </Box>
 
       {/* Import Modal */}
       <Modal
@@ -323,7 +416,7 @@ const ProfilePage = () => {
         size="lg"
       >
         <Stack>
-          <Text size="sm" style={{ marginTop: '1rem' }}>
+          <Text size="sm" mt="md">
             Paste the JSON output from the bookmarklet below.
             This will update your profile and recalculate your rating.
           </Text>
@@ -350,7 +443,7 @@ const ProfilePage = () => {
             </Alert>
           )}
 
-          <Group justify="flex-end">
+          <Group justify="flex-end" mt="md">
             <Button variant="default" onClick={() => setIsImportModalOpen(false)}>Cancel</Button>
             <Button
               leftSection={<IconCalculator size={18} />}
@@ -359,6 +452,78 @@ const ProfilePage = () => {
               disabled={!jsonInput.trim()}
             >
               Calculate & Save
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* Settings Modal */}
+      <Modal
+        opened={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        title={<Group gap="xs"><IconSettings size={18} /><Text fw={600}>Profile Settings</Text></Group>}
+        size="lg"
+        centered
+      >
+        <Stack gap="md" pt="md">
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg" align="flex-start">
+            <TextInput
+              label="Display Name"
+              placeholder="Enter your display name"
+              value={displayName}
+              onChange={(event) => {
+                const val = event.currentTarget.value;
+                const filtered = val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '');
+                setDisplayName(filtered);
+              }}
+              maxLength={10}
+              description="Used in queues and profile"
+            />
+
+            <Input.Wrapper
+              label="App Theme"
+              description="Choose your interface feel"
+            >
+              <SegmentedControl
+                value={selectedTheme}
+                onChange={(val) => {
+                  setSelectedTheme(val);
+                  setTheme(val); // Preview theme immediately
+                }}
+                data={[
+                  { label: 'Circle', value: 'circle' },
+                  { label: 'Prism', value: 'prism' },
+                  { label: 'Buddies', value: 'buddies' },
+                ]}
+                fullWidth
+                mt={3}
+              />
+            </Input.Wrapper>
+          </SimpleGrid>
+
+          <MultiSelect
+            label="Preferred Branches"
+            placeholder="Select one or more branches"
+            data={allBranches.map(b => ({
+              value: String(b.id),
+              label: b.short_name || b.arcade_name
+            }))}
+            value={selectedBranches}
+            onChange={setSelectedBranches}
+            searchable
+            clearable
+            description="These branches will show up in your quick menu"
+            disabled={branchesLoading}
+          />
+
+          <Group justify="flex-end" mt="md">
+            <Button variant="default" onClick={() => setIsSettingsModalOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleSavePreferences}
+              loading={isSavingPrefs}
+              leftSection={<IconCheck size={18} />}
+            >
+              Save Preferences
             </Button>
           </Group>
         </Stack>
