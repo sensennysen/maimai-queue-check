@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 
 const ITEMS_PER_PAGE = 25;
 
-function SongList({ songs, loading }) {
+function SongList({ songs, loading, onSongSelect }) {
   const [activePage, setPage] = useState(1);
   const [selectedSong, setSelectedSong] = useState(null);
 
@@ -59,7 +59,13 @@ function SongList({ songs, loading }) {
             >
               <SongCard
                 song={song}
-                onClick={() => setSelectedSong(song)}
+                onClick={() => {
+                  if (onSongSelect) {
+                    onSongSelect(song);
+                  } else {
+                    setSelectedSong(song);
+                  }
+                }}
               />
             </Box>
           ))}

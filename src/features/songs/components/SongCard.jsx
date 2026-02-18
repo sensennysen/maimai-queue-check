@@ -6,11 +6,11 @@ import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION } from '../../
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
 
-function SongCard({ song, onClick }) {
+function SongCard({ song, onClick, hideDifficulties = false, hideTags = false }) {
   // Sort sheets by difficulty
   // Sort sheets by difficulty
   const sortedSheets = useMemo(() => {
-    if (!song.sheets) return [];
+    if (hideDifficulties || !song.sheets) return [];
     return [...song.sheets].sort((a, b) => {
       const normalizeDiffForSort = (d) => {
         const map = { 'basic': 'Basic', 'advanced': 'Advanced', 'expert': 'Expert', 'master': 'Master', 'remaster': 'Re:Master' };
@@ -91,20 +91,22 @@ function SongCard({ song, onClick }) {
           />
 
           {/* Category Badge on Image */}
-          <Badge
-            size="sm"
-            variant="filled"
-            color="blue"
-            style={{
-              position: 'absolute',
-              top: 8,
-              left: 8,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-              fontFamily: 'var(--font-body)'
-            }}
-          >
-            {CATEGORY_TRANSLATION[song.category] || song.category}
-          </Badge>
+          {!hideTags && (
+            <Badge
+              size="sm"
+              variant="filled"
+              color="blue"
+              style={{
+                position: 'absolute',
+                top: 8,
+                left: 8,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                fontFamily: 'var(--font-body)'
+              }}
+            >
+              {CATEGORY_TRANSLATION[song.category] || song.category}
+            </Badge>
+          )}
 
           {/* DX/Standard Type Badge (Bottom Right) */}
           {song.cardType && (
@@ -122,20 +124,22 @@ function SongCard({ song, onClick }) {
           )}
 
           {/* Version badge (Bottom Left) */}
-          <Badge
-            size="sm"
-            variant="filled"
-            color="dark"
-            style={{
-              position: 'absolute',
-              bottom: 8,
-              left: 8,
-              opacity: 0.8,
-              fontFamily: 'var(--font-body)'
-            }}
-          >
-            {VERSION_MAPPING[song.version] || song.version}
-          </Badge>
+          {!hideTags && (
+            <Badge
+              size="sm"
+              variant="filled"
+              color="dark"
+              style={{
+                position: 'absolute',
+                bottom: 8,
+                left: 8,
+                opacity: 0.8,
+                fontFamily: 'var(--font-body)'
+              }}
+            >
+              {VERSION_MAPPING[song.version] || song.version}
+            </Badge>
+          )}
         </Box>
 
         {/* Content Area */}

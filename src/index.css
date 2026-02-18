@@ -28,7 +28,7 @@
   color: var(--theme-text-primary);
   background-color: var(--theme-background);
 
-  font-synthesis: none;
+  /* font-synthesis: none; */
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -258,13 +258,13 @@ html {
 }
 
 /* Ensure proper text contrast in different themes */
-.mantine-Text-root {
+/* .mantine-Text-root {
   color: inherit !important;
 }
 
 .mantine-Title-root {
   color: inherit !important;
-}
+} */
 
 /* Override Mantine Stack and Group backgrounds */
 .mantine-Stack-root,

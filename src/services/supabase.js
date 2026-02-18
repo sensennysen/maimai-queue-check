@@ -256,6 +256,48 @@ export const userService = {
   }
 };
 
+// Favorites service functions
+export const favoritesService = {
+  // Get all favorite songs for a user
+  async getFavorites(userId) {
+    const { data, error } = await supabase
+      .from('user_favorite_songs')
+      .select('song_id, created_at, comment')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Add a favorite song
+  async addFavorite(userId, songId, comment = null) {
+    const { data, error } = await supabase
+      .from('user_favorite_songs')
+      .insert([{ user_id: userId, song_id: songId, comment }])
+      .select()
+      .single();
+    
+    if (error) {
+      // Ignore duplicate key error (code 23505)
+      if (error.code === '23505') return null;
+      throw error;
+    }
+    return data;
+  },
+
+  // Remove a favorite song
+  async removeFavorite(userId, songId) {
+    const { error } = await supabase
+      .from('user_favorite_songs')
+      .delete()
+      .eq('user_id', userId)
+      .eq('song_id', songId);
+    
+    if (error) throw error;
+  }
+};
+
 // Queue service functions
 export const queueService = {
   // Fetch all queue entries (waiting and playing)

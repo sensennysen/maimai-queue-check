@@ -6,7 +6,7 @@ import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
 import IconUpload from '@tabler/icons-react/dist/esm/icons/IconUpload.mjs';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
-import IconCalculator from '@tabler/icons-react/dist/esm/icons/IconCalculator.mjs';
+import IconTrophy from '@tabler/icons-react/dist/esm/icons/IconTrophy.mjs';
 import IconUserCircle from '@tabler/icons-react/dist/esm/icons/IconUserCircle.mjs';
 import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs';
 import IconSun from '@tabler/icons-react/dist/esm/icons/IconSun.mjs';
@@ -21,6 +21,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { userService, branchService } from '../services/supabase';
 import { useBranch as useBranchContext } from '../contexts/BranchContext';
 import { fetchSongConstants, calculateBest50 } from '../utils/maimai-calc';
+import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection';
 
 const ProfilePage = () => {
   const { user, userRoles } = useAuth(); // Still need userRoles for display_name if profile fetch fails or for fallback
@@ -334,14 +335,18 @@ const ProfilePage = () => {
         </Group>
       </Paper>
 
+      {/* Favorite Songs Section */}
+      <FavoriteSongsSection userId={user.id} isOwnProfile={true} />
+
       {/* Overview / Best 50 */}
       <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl" pos="relative" style={{ minHeight: 200 }}>
         <LoadingOverlay visible={isLoadingData || isCalculating} overlayProps={{ radius: "sm", blur: 2 }} />
 
         <Group justify="space-between" mb="xl" align="center" wrap="nowrap">
-          <Stack gap={0} style={{ minWidth: 0, overflow: 'hidden' }}>
-            <Title order={2} truncate>My Best 50</Title>
-          </Stack>
+          <Group gap="xs" style={{ minWidth: 0, overflow: 'hidden' }}>
+            <IconTrophy size={24} style={{ color: 'var(--mantine-color-blue-6)' }} />
+            <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>My Best 50</Title>
+          </Group>
           <Group gap="sm" wrap="nowrap" className="best50-actions">
             <Button
               leftSection={<IconCamera size={18} />}
@@ -451,7 +456,6 @@ const ProfilePage = () => {
           <Group justify="flex-end" mt="md">
             <Button variant="default" onClick={() => setIsImportModalOpen(false)}>Cancel</Button>
             <Button
-              leftSection={<IconCalculator size={18} />}
               onClick={handleImport}
               loading={isCalculating}
               disabled={!jsonInput.trim()}
