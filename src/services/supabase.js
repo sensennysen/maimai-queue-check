@@ -74,7 +74,7 @@ export const rolesService = {
         
         supabase
           .from('user_profiles')
-          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url, slug, slug_updated_at, privacy_settings')
+          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url, slug, slug_updated_at, privacy_settings, is_public')
           .eq('id', userId)
           .maybeSingle()
       ]);
@@ -145,7 +145,8 @@ export const rolesService = {
           show_playlists: true,
           show_main_branch: true,
           show_preferred_branches: true
-        }
+        },
+        is_public: !!profileData?.is_public
       };
       
       return mergedData;
@@ -165,11 +166,12 @@ export const rolesService = {
 // User service functions
 export const userService = {
   // Update user preferences
-  async updatePreferences(userId, { branchIds, displayName, mainBranch }) {
+  async updatePreferences(userId, { branchIds, displayName, mainBranch, isPublic }) {
     const updateData = {};
     if (branchIds !== undefined) updateData.preferred_branches = branchIds;
     if (displayName !== undefined) updateData.display_name = displayName;
     if (mainBranch !== undefined) updateData.main_branch = mainBranch;
+    if (isPublic !== undefined) updateData.is_public = isPublic;
     // displayPhotoUrl is not usually updated here but could be if we wanted to
 
     
@@ -274,7 +276,7 @@ export const userService = {
 
     const { data, error: profileError } = await supabase
       .from('user_profiles')
-      .select('id, display_name, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url, main_branch, preferred_branches, privacy_settings')
+      .select('id, display_name, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url, main_branch, preferred_branches, privacy_settings, is_public')
       .eq('slug', slug.toLowerCase())
       .maybeSingle();
 

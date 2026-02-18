@@ -7,8 +7,9 @@ import {
 } from '@mantine/core';
 import {
   IconUser, IconTrophy, IconMapPin, IconAlertCircle,
-  IconArrowLeft, IconStar
+  IconArrowLeft, IconStar, IconLock, IconLogin
 } from '@tabler/icons-react';
+import { useAuth } from '../hooks/useAuth';
 import { userService, branchService } from '../services/supabase';
 import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection';
 import { PlaylistSection } from '../components/profile/PlaylistSection';
@@ -21,6 +22,8 @@ const PublicProfilePage = () => {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isRestricted, setIsRestricted] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,6 +36,8 @@ const PublicProfilePage = () => {
 
         if (!profileData) {
           setError('Profile not found');
+        } else if (!profileData.is_public && profileData.id !== user?.id) {
+          setIsRestricted(true);
         } else {
           setProfile(profileData);
           setBranches(branchesData);
@@ -48,7 +53,7 @@ const PublicProfilePage = () => {
     if (slug) {
       fetchData();
     }
-  }, [slug]);
+  }, [slug, user]);
 
   if (loading) {
     return (
@@ -61,17 +66,77 @@ const PublicProfilePage = () => {
     );
   }
 
+  if (isRestricted) {
+    return (
+      <Container size="lg" py="xl">
+        <Stack align="center" justify="center" style={{ minHeight: '70vh' }} gap="xl">
+          <Paper shadow="xl" p={40} radius="lg" withBorder style={{ maxWidth: 500, width: '100%', textAlign: 'center', backgroundColor: 'var(--mantine-color-body)' }}>
+            <ThemeIcon size={80} radius={80} variant="light" color="blue" mb="md">
+              <IconLock size={40} />
+            </ThemeIcon>
+            <Title order={2} mb="sm" fw={800}>Profile is Private</Title>
+            <Text size="lg" c="dimmed" mb="xl" style={{ lineHeight: 1.6 }}>
+              The user restricts viewing it in public so that they need to be logged in.
+            </Text>
+
+            <Stack gap="sm">
+              {!user && (
+                <Button
+                  component={Link}
+                  to="/login"
+                  size="lg"
+                  leftSection={<IconLogin size={20} />}
+                  variant="filled"
+                  color="blue"
+                  radius="md"
+                  fullWidth
+                >
+                  Log In to View
+                </Button>
+              )}
+              <Button
+                component={Link}
+                to="/"
+                variant="subtle"
+                color="gray"
+                leftSection={<IconArrowLeft size={18} />}
+                fullWidth
+              >
+                Back to Home
+              </Button>
+            </Stack>
+          </Paper>
+        </Stack>
+      </Container>
+    );
+  }
+
   if (error || !profile) {
     return (
       <Container size="lg" py="xl">
-        <Alert icon={<IconAlertCircle size={24} />} title="Oops!" color="red" variant="light">
-          {error || 'Profile not found'}
-          <Box mt="md">
-            <Button component={Link} to="/" leftSection={<IconArrowLeft size={18} />} variant="outline" color="red">
+        <Stack align="center" justify="center" style={{ minHeight: '70vh' }} gap="xl">
+          <Paper shadow="xl" p={40} radius="lg" withBorder style={{ maxWidth: 500, width: '100%', textAlign: 'center' }}>
+            <ThemeIcon size={80} radius={80} variant="light" color="red" mb="md">
+              <IconAlertCircle size={40} />
+            </ThemeIcon>
+            <Title order={2} mb="sm" fw={800}>Oops!</Title>
+            <Text size="lg" c="dimmed" mb="xl">
+              {error || 'Profile not found'}
+            </Text>
+            <Button
+              component={Link}
+              to="/"
+              size="lg"
+              variant="outline"
+              color="red"
+              radius="md"
+              leftSection={<IconArrowLeft size={18} />}
+              fullWidth
+            >
               Back to Home
             </Button>
-          </Box>
-        </Alert>
+          </Paper>
+        </Stack>
       </Container>
     );
   }

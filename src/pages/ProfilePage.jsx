@@ -56,6 +56,7 @@ const ProfilePage = () => {
   const [displayName, setDisplayName] = useState('');
   const [selectedBranches, setSelectedBranches] = useState([]);
   const [selectedMainBranch, setSelectedMainBranch] = useState(null);
+  const [isPublic, setIsPublic] = useState(false);
   const [isSavingPrefs, setIsSavingPrefs] = useState(false);
 
   // Profile sharing & Privacy state
@@ -91,6 +92,7 @@ const ProfilePage = () => {
         if (data.privacy_settings) {
           setPrivacySettings(data.privacy_settings);
         }
+        setIsPublic(!!data.is_public);
       }
     } catch (_e) {
       console.error("Error fetching maimai data:", _e);
@@ -208,7 +210,8 @@ const ProfilePage = () => {
       await userService.updatePreferences(user.id, {
         displayName: displayName.trim(),
         branchIds: selectedBranches.map(Number),
-        mainBranch: selectedMainBranch ? parseInt(selectedMainBranch, 10) : null
+        mainBranch: selectedMainBranch ? parseInt(selectedMainBranch, 10) : null,
+        isPublic: isPublic
       });
 
       notifications.show({
@@ -628,6 +631,14 @@ const ProfilePage = () => {
           <Divider label="Profile Sharing" labelPosition="center" />
 
           <Stack gap="xs">
+            <Switch
+              label="Enable Public Profile"
+              description="Anyone with your profile link can view it."
+              checked={isPublic}
+              onChange={(e) => setIsPublic(e.currentTarget.checked)}
+              color="blue"
+              mb="xs"
+            />
             <Input.Wrapper
               label="Custom Profile URL"
               description={
