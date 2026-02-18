@@ -3,7 +3,8 @@ import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
 import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import IconChevronUp from '@tabler/icons-react/dist/esm/icons/IconChevronUp.mjs';
 import IconChevronDown from '@tabler/icons-react/dist/esm/icons/IconChevronDown.mjs';
-import { Skeleton, ActionIcon, Tooltip } from '@mantine/core';
+import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
+import { Skeleton, ActionIcon, Tooltip, Avatar } from '@mantine/core';
 import './QueueItem.css';
 
 const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false, readOnly = false, isAdded = false, isMoved = false, isRemoving = false }) {
@@ -41,6 +42,18 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
         {isNextUp && (
           <span className="next-label">Next Up!</span>
         )}
+      </div>
+
+      <div className="item-avatar">
+        <Avatar
+          src={item.created_by_profile?.display_photo_url}
+          alt={item.created_by_profile?.display_name || 'User'}
+          radius="xl"
+          size="md"
+          color="blue"
+        >
+          <IconUser size="1.2rem" />
+        </Avatar>
       </div>
 
       <div className="players-section">

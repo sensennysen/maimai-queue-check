@@ -31,3 +31,9 @@ This document tracks new skills, patterns, and insights learned by the agent dur
 - **Application**: Use grid layouts for metadata blocks to balance visual weight against large media elements.
 - **Date**: 2026-02-18
 
+**[Object Dependencies in Effects]**
+- **Context**: Debugging `ProfilePage` re-fetching on focus.
+- **Insight**: Using complex objects (like `user` from AuthContext) as dependencies in `useEffect` or `useCallback` can trigger unintended re-renders/fetches even if properties haven't changed, due to reference inequality on context updates.
+- **Application**: Always destructure or select specific primitive properties (e.g., `user.id`) for dependency arrays to ensure stability and prevent unnecessary effect execution.
+- **Date**: 2026-02-18
+

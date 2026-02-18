@@ -74,7 +74,8 @@ export const rolesService = {
         
         supabase
           .from('user_profiles')
-          .select('id, display_name, preferred_branches, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at')
+
+          .select('id, display_name, preferred_branches, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url')
           .eq('id', userId)
           .maybeSingle()
       ]);
@@ -115,7 +116,11 @@ export const rolesService = {
         maimai_dx_name: profileData?.maimai_dx_name || null,
         maimai_rating: profileData?.maimai_rating || null,
         maimai_best_scores: profileData?.maimai_best_scores || null,
-        maimai_scores_updated_at: profileData?.maimai_scores_updated_at || null
+
+        maimai_scores_updated_at: profileData?.maimai_scores_updated_at || null,
+        
+        // Display Photo
+        display_photo_url: profileData?.display_photo_url || null
       };
       
       return mergedData;
@@ -138,7 +143,10 @@ export const userService = {
   async updatePreferences(userId, { branchIds, displayName }) {
     const updateData = {};
     if (branchIds !== undefined) updateData.preferred_branches = branchIds;
+
     if (displayName !== undefined) updateData.display_name = displayName;
+    // displayPhotoUrl is not usually updated here but could be if we wanted to
+
     
     // VALIDATION
     if (displayName) {
@@ -175,14 +183,19 @@ export const userService = {
   },
   
   // Update maimai profile specifically
-  async updateMaimaiProfile(userId, { maimaiDxName }) {
+
+  async updateMaimaiProfile(userId, { maimaiDxName, displayPhotoUrl }) {
+    const updates = {
+      id: userId,
+      updated_at: new Date().toISOString()
+    };
+
+    if (maimaiDxName !== undefined) updates.maimai_dx_name = maimaiDxName;
+    if (displayPhotoUrl !== undefined) updates.display_photo_url = displayPhotoUrl;
+
     const { data, error } = await supabase
       .from('user_profiles')
-      .upsert({
-        id: userId,
-        maimai_dx_name: maimaiDxName,
-        updated_at: new Date().toISOString()
-      })
+      .upsert(updates)
       .select()
       .single();
       
@@ -243,7 +256,7 @@ export const queueService = {
 
     let query = supabase
       .from('queue_entries')
-      .select('id, player1, player2, order_position, status, created_by, branch_id, cabinet_num, started_at, ended_at, created_at')
+      .select('id, player1, player2, order_position, status, created_by, branch_id, cabinet_num, started_at, ended_at, created_at, created_by_profile:created_by(display_photo_url)')
       .in('status', ['waiting', 'playing'])
       .gte('created_at', today.toISOString());
     
