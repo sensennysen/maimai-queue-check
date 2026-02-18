@@ -1,37 +1,29 @@
-# Session State
+# State Snapshot - Profile UI Refinement Phase
 
-> **Last Updated:** 2026-02-18
-> **Current Context:** Post-initialization. GSD infrastructure restored. Ready for next feature.
+**Objective:** Refine the Profile Page UI for a cleaner, more premium experience and improve code quality standards.
 
-## Recent Accomplishments
+**Changes:**
+- **Settings Consolidation**: Moved "Display Name", "App Theme", and "Preferred Branches" into a dedicated modal on the Profile Page.
+- **Experimental Features**: Simplified the global `PreferencesModal` to only contain experimental toggles, renamed appropriately in the login menu.
+- **Best 50 Revamp**: Created a new "Your Best 50" section header and moved Export/Import actions there for better contextual relevance.
+- **Header Polishing**: Enlarged the main display name and moved Maimai details to a clean, right-aligned text layout (tags removed).
+- **Stability**: Fixed all JSX syntax errors and removed unused code.
+- **Workflow**: Enforced mandatory successful linting in the `execute` workflow.
 
-- Restored `.gsd` directory and GSD workflow infrastructure.
-- Refined Song Modal UI: centered jacket, stacked metadata, compacted difficulty table.
-- Completed Song Database UI refinements (25-per-page grid, click animations).
-- Added BPM, Release Date, and Note Designer to song database and modal.
-- Implemented internal level fallback logic (e.g., 13+ → 13.6).
-- Secured `maimai_charts` table with Row Level Security (RLS) policies.
-- Implemented Feature Flags system (context, provider, DB schema, UI).
-- Optimized Supabase queries (explicit column selection, parallelized async ops).
-- Implemented User Display Pictures (iconUrl sync from scores).
-- Added `main_branch` support to `user_profiles` and Profile UI.
-- Improved `preferred_branches` rendering with UNION merge and all-branch resolution.
-- Restructured codebase for better organization.
+**Files Touched:**
+- `src/pages/ProfilePage.jsx`
+- `src/components/LoginForm.jsx`
+- `src/components/modals/PreferencesModal.jsx`
+- `src/App.jsx`
+- `.agent/workflows/execute.md`
 
-## Current Context
+**Verification:**
+- `npm run lint`: Clean (0 errors)
+- Manual check: All modals, theme previews, and layout changes verified.
 
-- **Stack**: React + Vite, Supabase (Postgres), Vercel deployment.
-- **Key Files**:
-  - `src/` — React components and pages
-  - `src/services/supabase.js` — All Supabase query logic
-  - `.agent/skills/` — Available agent skills
-  - `FEATURES.md` — Feature tracking log
-  - `LEARNED_SKILLS.md` — Agent knowledge base
-- **Active Skills**: `frontend-design`, `react-vite-best-practices`, `security-review`, `supabase-postgres-best-practices`, `vercel-react-best-practices`
-- **DB Tables**: `maimai_charts`, `maimai_song_extras`, `maimai_sheet_extras`, `branches`, `queues`, `profiles`, `feature_flags`
+**Risks/Debt:**
+- None identified; codebase is currently extremely clean.
 
-## Next Steps
-
-- Await next feature request from user.
-- Follow GSD protocol: SPEC → PLAN → EXECUTE → VERIFY → COMMIT.
-- Always state current phase explicitly (SPEC / PLAN / EXECUTE / VERIFY / COMMIT).
+**Next Wave TODO:**
+- Monitor for any edge-case feedback on the new modal-based settings flow.
+- Proceed with any further feature requests.
