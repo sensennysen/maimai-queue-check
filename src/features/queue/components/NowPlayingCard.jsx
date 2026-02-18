@@ -47,6 +47,7 @@ function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isL
 
         {isLoggedIn && canActuallyEdit && (
           <Button
+            className="finish-game-btn"
             color="orange"
             onClick={onFinishGame}
             loading={isBusy}
