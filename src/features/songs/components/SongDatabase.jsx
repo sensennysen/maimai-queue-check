@@ -184,9 +184,8 @@ function SongDatabase() {
   }, [songs, filters]);
 
   return (
-    <Container size="xl" pt="md" pb="xl">
+    <Container size="xl" pt="xl" pb="xl">
       <Stack gap="xl">
-        {/* Hero Header */}
         <Box
           className="hologram-card animate-fade-in"
           p="xl"
@@ -197,16 +196,10 @@ function SongDatabase() {
           }}
         >
           <Group>
-            <ThemeIcon size={64} radius="xl" variant="gradient" gradient={{ from: 'pink', to: 'cyan' }}>
-              <IconMusic size={32} />
-            </ThemeIcon>
             <Stack gap={0}>
-              <Title order={1} style={{ fontSize: '2.5rem', fontFamily: 'var(--font-heading)' }}>
+              <Title order={1} style={{ fontSize: '2rem', fontFamily: 'var(--font-heading)' }}>
                 Song Database
               </Title>
-              <Text c="dimmed" size="lg">
-                Browse {songs.length || '...'} songs available in the current version.
-              </Text>
             </Stack>
           </Group>
         </Box>
