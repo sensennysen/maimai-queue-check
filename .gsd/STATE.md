@@ -1,0 +1,13 @@
+# Session State
+
+> **Last Updated:** [Time]
+> **Current Context:** ...
+
+## Recent Accomplishments
+- ...
+
+## Current Context
+- ...
+
+## Next Steps
+- ...
