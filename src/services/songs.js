@@ -55,12 +55,14 @@ export const songsService = {
   async getFullSongDatabase() {
       try {
         // Fetch in parallel for performance, using fetchAll to handle large datasets
-        const [songs, sheets, versions, orders, internalLevels] = await Promise.all([
+        const [songs, sheets, versions, orders, internalLevels, songExtras, sheetExtras] = await Promise.all([
             this.fetchAll('maimai_songs'),
             this.fetchAll('maimai_intl_sheets'),
             this.fetchAll('maimai_intl_sheet_versions'),
             this.fetchAll('maimai_song_orders'),
-            this.fetchAll('maimai_sheet_internal_levels')
+            this.fetchAll('maimai_sheet_internal_levels'),
+            this.fetchAll('maimai_song_extras'),
+            this.fetchAll('maimai_sheet_extras')
         ]);
 
         // --- Step 1: Index Data for O(1) Lookup ---
@@ -75,7 +77,22 @@ export const songsService = {
             orders.forEach(order => ordersMap.set(order.songId, order.sortOrder));
         }
 
-        // 1c. Sheets Map: `${songId}-${type}` -> [sheets]
+        // 1c. Song Extras Map: songId -> extras object (bpm, releaseDate)
+        const songExtrasMap = new Map();
+        if (songExtras) {
+            songExtras.forEach(extra => songExtrasMap.set(extra.songId, extra));
+        }
+
+        // 1d. Sheet Extras Map: `${songId}-${type}-${difficulty}` -> extras object (noteDesigner, counts)
+        const sheetExtrasMap = new Map();
+        if (sheetExtras) {
+            sheetExtras.forEach(extra => {
+                 const type = (extra.type || 'standard').toLowerCase();
+                 sheetExtrasMap.set(`${extra.songId}-${type}-${extra.difficulty}`, extra);
+            });
+        }
+
+        // 1e. Sheets Map: `${songId}-${type}` -> [sheets]
         // This allows us to quickly grab all standard sheets for song X, or dx sheets for song X
         const sheetsMap = new Map();
         sheets.forEach(sheet => {
@@ -89,7 +106,7 @@ export const songsService = {
             sheetsMap.get(key).push(sheet);
         });
 
-        // 1d. Internal Levels Map: `${songId}-${type}-${difficulty}` -> internalLevel
+        // 1f. Internal Levels Map: `${songId}-${type}-${difficulty}` -> internalLevel
         const internalMap = new Map();
         if (internalLevels) {
             internalLevels.forEach(item => {
@@ -113,14 +130,9 @@ export const songsService = {
 
                 // 2a. Get base metadata
                 const baseMeta = metaMap.get(songId);
+                const extras = songExtrasMap.get(songId);
                 
-                // If metadata missing, create placeholder (or skip if stricter? User said "get the songId in maimai_songs", implies we need both)
-                // We'll create a placeholder if missing to be safe, but mark it.
-                // However, user demand was "remove those that doesn't complete matching". 
-                // We can interpret this as: valid entry requires Version AND Metadata? 
-                // Usually metadata defines the Title/Artist. Without it, the card is useless.
-                // Let's use placeholder if missing, but typically we expect it to exist.
-                
+                // If metadata missing, create placeholder
                 const songEntry = baseMeta ? { ...baseMeta } : {
                     songId: songId,
                     title: `Unknown Song (${songId})`,
@@ -134,6 +146,13 @@ export const songsService = {
                 songEntry.version = versionLabel; // The specific version for this type
                 songEntry.cardId = `${songId}-${type}`; // Unique React Key
                 songEntry.sortOrder = ordersMap.get(songId) ?? 999999;
+                
+                // Add extras
+                if (extras) {
+                    if (extras.bpm) songEntry.bpm = extras.bpm;
+                    if (extras.releaseDate) songEntry.releaseDate = extras.releaseDate;
+                }
+
                 songEntry.sheets = []; // To be filled
 
                 // --- Step 4 & 5: Fetch Levels & Internal Levels ---
@@ -144,18 +163,39 @@ export const songsService = {
                     matchingSheets.forEach(sheet => {
                         // Attach internal level
                         const internalKey = `${songId}-${type}-${sheet.difficulty}`;
-                        const internalLevel = internalMap.get(internalKey);
+                        let internalLevel = internalMap.get(internalKey);
+
+                        // Fallback logic for internal level
+                        if (!internalLevel && sheet.level) {
+                            const levelStr = sheet.level.toString();
+                            const isPlus = levelStr.endsWith('+');
+                            const baseLevel = parseFloat(levelStr); // parseFloat ignores non-numeric trailing chars like '+'
+                            
+                            if (!isNaN(baseLevel)) {
+                                internalLevel = isPlus ? (baseLevel + 0.7).toFixed(1) : (baseLevel + 0.0).toFixed(1);
+                                // User requested: 13 -> 13.0, 13+ -> 13.6
+                                // Wait, usually 13+ is 13.7 start? 
+                                // User said: "say, a 13 is 13.0 and 13+ is 13.6"
+                                // STRICTLY FOLLOW USER REQUEST: 13+ -> 13.6
+                                if (isPlus) {
+                                    internalLevel = (baseLevel + 0.6).toFixed(1);
+                                } else {
+                                    internalLevel = (baseLevel).toFixed(1);
+                                }
+                            }
+                        }
+
+                        // Attach sheet extras
+                        const sheetExtra = sheetExtrasMap.get(internalKey);
+                        const noteDesigner = sheetExtra ? sheetExtra.noteDesigner : null;
 
                         songEntry.sheets.push({
                             ...sheet,
-                            internalLevel: internalLevel || null
+                            internalLevel: internalLevel || null,
+                            noteDesigner: noteDesigner
                         });
                     });
                 }
-
-                // Only add if it has sheets? (User didn't strictly say, but a card with no sheets is useless)
-                // Let's include it, SongDatabase filters empty sheets anyway if needed, or displays empty card.
-                // Actually SongDatabase `songs` memo filters `!song.sheets`.
                 
                 resultSongs.push(songEntry);
             });
