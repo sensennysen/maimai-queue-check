@@ -4,7 +4,7 @@ import { notifications } from '@mantine/notifications';
 import { songsService } from '../../../services/songs';
 import SongFilters from './SongFilters';
 import SongList from './SongList';
-import { VERSION_ORDER, DIFFICULTY_COLORS, VERSION_MAPPING } from '../../../config/maimai-constants';
+import { VERSION_ORDER, DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION } from '../../../config/maimai-constants';
 import { IconMusic } from '@tabler/icons-react';
 
 // Helper to convert level string (e.g., "13+") to number (13.7)
@@ -67,8 +67,13 @@ function SongDatabase() {
       return indexB - indexA;
     });
 
+    const categoriesOptions = Array.from(cats).sort().map(cat => ({
+      value: cat,
+      label: CATEGORY_TRANSLATION[cat] || cat
+    }));
+
     return {
-      categories: Array.from(cats).sort(),
+      categories: categoriesOptions,
       versions: sortedVersions,
       levels: sortedLevels,
       internalLevels: sortedInternalLevels

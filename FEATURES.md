@@ -18,3 +18,17 @@ This document tracks the features of the application, their status, and relevant
 
 ## Recently Added
 *(Add features here when the "Confirmation" phase is complete)*
+
+### 2026-02-18: Songs Database Improvements (Mobile & Details)
+- **Status**: Completed
+- **Phase**: Confirmation
+
+**Summary of Changes**:
+1.  **Mobile Optimization**: Implemented 2-column grid layout for mobile devices in `SongList.jsx`.
+2.  **Song Detail Modal**: Created `SongDetailModal.jsx` to display full song info (Artist, Category, Version, BPM, Charts).
+3.  **UI Refinements**:
+    *   Replaced badges with text labels in modal.
+    *   Used DX/Standard image logos.
+    *   Corrected difficulty sorting (Basic -> Re:Master) in both Modal and Card.
+    *   Applied English translations for categories (e.g., "POPS & ANIME").
+4.  **Verification**: Verified manually by user.

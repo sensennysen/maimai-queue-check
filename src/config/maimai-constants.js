@@ -94,3 +94,12 @@ export const RATING_RATES = [
   { min: 10.0, rate: 1.6 },
   { min: 0, rate: 0 },
 ];
+
+export const CATEGORY_TRANSLATION = {
+  'POPS＆アニメ': 'POPS & ANIME',
+  'niconico＆ボーカロイド': 'niconico & VOCALOID',
+  'オンゲキ＆CHUNITHM': 'ONGEKI & CHUNITHM',
+  'ゲーム＆バラエティ': 'GAME & VARIETY',
+  'maimai': 'maimai',
+  '東方Project': '東方Project'
+};

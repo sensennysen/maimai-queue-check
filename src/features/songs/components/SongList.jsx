@@ -1,11 +1,13 @@
 import { SimpleGrid, Text, Center, Loader, Pagination, Stack, Box } from '@mantine/core';
 import SongCard from './SongCard';
+import SongDetailModal from './SongDetailModal';
 import { useState, useMemo, useEffect } from 'react';
 
 const ITEMS_PER_PAGE = 24;
 
 function SongList({ songs, loading }) {
   const [activePage, setPage] = useState(1);
+  const [selectedSong, setSelectedSong] = useState(null);
 
   // Reset page when songs filter changes (length changes)
   useEffect(() => {
@@ -43,43 +45,54 @@ function SongList({ songs, loading }) {
   }
 
   return (
-    <Stack align="center" gap="xl" w="100%">
-      <SimpleGrid
-        cols={{ base: 1, xs: 2, sm: 2, md: 3, lg: 3, xl: 4 }}
-        spacing="lg"
-        verticalSpacing="xl"
-        w="100%"
-      >
-        {paginatedSongs.map((song, index) => (
-          <Box
-            key={song.cardId || song.songId}
-            className="animate-fade-in"
-            style={{
-              animationDelay: `${index * 50}ms`, // Stagger effect
-              height: '100%'
-            }}
-          >
-            <SongCard song={song} />
-          </Box>
-        ))}
-      </SimpleGrid>
+    <>
+      <Stack align="center" gap="xl" w="100%">
+        <SimpleGrid
+          cols={{ base: 2, xs: 2, sm: 3, md: 3, lg: 4, xl: 5 }}
+          spacing="md"
+          verticalSpacing="lg"
+          w="100%"
+        >
+          {paginatedSongs.map((song, index) => (
+            <Box
+              key={song.cardId || song.songId}
+              className="animate-fade-in"
+              style={{
+                animationDelay: `${index * 50}ms`, // Stagger effect
+                height: '100%'
+              }}
+            >
+              <SongCard
+                song={song}
+                onClick={() => setSelectedSong(song)}
+              />
+            </Box>
+          ))}
+        </SimpleGrid>
 
-      {totalPages > 1 && (
-        <Pagination
-          total={totalPages}
-          value={activePage}
-          onChange={(page) => {
-            setPage(page);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          size="md"
-          radius="xl"
-          withEdges
-          color="pink"
-          siblings={1}
-        />
-      )}
-    </Stack>
+        {totalPages > 1 && (
+          <Pagination
+            total={totalPages}
+            value={activePage}
+            onChange={(page) => {
+              setPage(page);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            size="md"
+            radius="xl"
+            withEdges
+            color="pink"
+            siblings={1}
+          />
+        )}
+      </Stack>
+
+      <SongDetailModal
+        song={selectedSong}
+        opened={!!selectedSong}
+        onClose={() => setSelectedSong(null)}
+      />
+    </>
   );
 }
 

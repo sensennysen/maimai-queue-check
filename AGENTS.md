@@ -4,34 +4,38 @@ This document serves as the central hub for the agent's operation, combining wor
 
 ## Agentic Feature Request Workflow
 
-When tackling a feature request, the agent MUST follow these four phases:
+When tackling a feature request, the agent MUST follow these five phases, aligned with the **GSD Protocol**:
 
-> **IMPORTANT**: The agent must always explicitly state which phase (Inquiry, Planning, Execution, Confirmation) the development is currently in.
+> **IMPORTANT**: The agent must always explicitly state which phase (SPEC, PLAN, EXECUTE, VERIFY, COMMIT) the development is currently in.
 
-### 1. Inquiry
-**Goal**: Deeply understand the user's requirements and context.
-- Ask clarifying questions about the feature's purpose, scope, and desired behavior.
-- Identify any constraints or preferences (e.g., design aesthetics, specific libraries).
-- **Exit Condition**: You have a clear, unambiguous understanding of *what* needs to be built.
+### 1. SPEC (Inquiry)
+**Goal**: Deeply understand requirements and define the "what".
+- Ask clarifying questions.
+- Define requirements in `.gsd/SPEC.md` until status is `FINALIZED`.
+- **Exit Condition**: Clear, unambiguous understanding of requirements.
 
-### 2. Planning
-**Goal**: Define *how* the feature will be built.
-- Decompose the request into logical, manageable phases.
-- Determine the number of phases required.
-- Create an implementation plan (e.g., in `implementation_plan.md` or as a task list).
-- **User Confirmation Required**: You MUST get user approval on the plan before proceeding to Execution.
+### 2. PLAN
+**Goal**: Define "how" the feature will be built.
+- Decompose request into logical phases in `.gsd/ROADMAP.md`.
+- Create/Update `implementation_plan.md`.
+- **User Confirmation Required**: Must get approval before Execution.
 
-### 3. Execution
-**Goal**: Implement the feature according to the plan.
-- Execute each phase sequentially.
-- **Utilize Skills**: Refer to the "Available Skills" section below to apply best practices and specialized knowledge.
-- **Phase Checkpoints**: Ask the user if the current phase is done before proceeding to the next one, unless the plan explicitly allows for continuous execution.
+### 3. EXECUTE
+**Goal**: Implement the feature.
+- Execute logically grouped tasks (waves).
+- **Utilize Skills**: Refer to "Available Skills" below.
+- **Phase Checkpoints**: Verify work before moving to next phase.
 
-### 4. Confirmation
-**Goal**: Verify the feature satisfies the user's request.
-- Confirm with the user that the feature is working as expected.
-- If issues are found, return to Execution (or Planning if the scope changes).
-- **Exit Condition**: The user explicitly confirms the feature request is "done".
+### 4. VERIFY
+**Goal**: Prove completion with evidence.
+- Verify changes with tests, screenshots, or command output.
+- **Never accept**: "It looks correct". Always require proof.
+
+### 5. COMMIT (Confirmation)
+**Goal**: Finalize the work.
+- Commit changes with `type(scope): description` format.
+- Update `STATE.md` and feature tracking logs.
+- **Exit Condition**: User explicitly confirms the feature is done.
 
 ---
 
@@ -40,23 +44,23 @@ When tackling a feature request, the agent MUST follow these four phases:
 The following skills are available in the codebase. The agent should reference these to ensure high-quality implementation.
 
 ### Frontend Design
-- **Path**: [.agents/skills/frontend-design/SKILL.md](.agents/skills/frontend-design/SKILL.md)
+- **Path**: [.agent/skills/frontend-design/SKILL.md](.agent/skills/frontend-design/SKILL.md)
 - **Description**: Create distinctive, production-grade frontend interfaces with high design quality. Use this when building web components, pages, or applications to avoid generic aesthetics.
 
 ### React + Vite Best Practices
-- **Path**: [.agents/skills/react-vite-best-practices/SKILL.md](.agents/skills/react-vite-best-practices/SKILL.md)
+- **Path**: [.agent/skills/react-vite-best-practices/SKILL.md](.agent/skills/react-vite-best-practices/SKILL.md)
 - **Description**: Performance optimization guidelines for React applications built with Vite. Covers build optimization, code splitting, asset handling, and more.
 
 ### Security Review
-- **Path**: [.agents/skills/security-review/SKILL.md](.agents/skills/security-review/SKILL.md)
+- **Path**: [.agent/skills/security-review/SKILL.md](.agent/skills/security-review/SKILL.md)
 - **Description**: Security checklist and patterns for authentication, user input handling, secrets management, and API security. Must be used when touching sensitive features.
 
 ### Supabase Postgres Best Practices
-- **Path**: [.agents/skills/supabase-postgres-best-practices/SKILL.md](.agents/skills/supabase-postgres-best-practices/SKILL.md)
+- **Path**: [.agent/skills/supabase-postgres-best-practices/SKILL.md](.agent/skills/supabase-postgres-best-practices/SKILL.md)
 - **Description**: Postgres performance optimization and schema design best practices. Critical for SQL queries, indexing, and RLS policies.
 
 ### Vercel React Best Practices
-- **Path**: [.agents/skills/vercel-react-best-practices/SKILL.md](.agents/skills/vercel-react-best-practices/SKILL.md)
+- **Path**: [.agent/skills/vercel-react-best-practices/SKILL.md](.agent/skills/vercel-react-best-practices/SKILL.md)
 - **Description**: Optimization guidelines for React and Next.js applications, focusing on eliminating waterfalls, bundle size, and server-side performance.
 
 ---
