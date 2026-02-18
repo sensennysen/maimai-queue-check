@@ -41,3 +41,14 @@ This document tracks the features of the application, their status, and relevant
     *   Corrected difficulty sorting (Basic -> Re:Master) in both Modal and Card.
     *   Applied English translations for categories (e.g., "POPS & ANIME").
 4.  **Verification**: Verified manually by user.
+
+### 2026-02-18: Song Database Visual & Interaction Refinements
+- **Status**: Released
+- **Phase**: Done
+
+**Summary of Changes**:
+1.  **Grid Layout**: Optimized song list to display 25 items per page.
+2.  **Interactions**: Added touch-responsive click animation to song cards. Implemented explicit "click title to copy" functionality in the modal.
+3.  **Modal Visuals**: Enlarged song jacket for better visibility. Reorganized metadata into a centered 2-column grid layout to minimize whitespace and improve balance.
+4.  **Verification**: Validated by user feedback and iteration.
+

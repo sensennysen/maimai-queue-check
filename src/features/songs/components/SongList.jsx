@@ -3,7 +3,7 @@ import SongCard from './SongCard';
 import SongDetailModal from './SongDetailModal';
 import { useState, useMemo, useEffect } from 'react';
 
-const ITEMS_PER_PAGE = 24;
+const ITEMS_PER_PAGE = 25;
 
 function SongList({ songs, loading }) {
   const [activePage, setPage] = useState(1);

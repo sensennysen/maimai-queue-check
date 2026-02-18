@@ -8,6 +8,7 @@ const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
 
 function SongCard({ song, onClick }) {
   // Sort sheets by difficulty
+  // Sort sheets by difficulty
   const sortedSheets = useMemo(() => {
     if (!song.sheets) return [];
     return [...song.sheets].sort((a, b) => {
@@ -32,7 +33,14 @@ function SongCard({ song, onClick }) {
         height: '100%',
         overflow: 'hidden',
         position: 'relative',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transition: 'transform 0.1s ease, box-shadow 0.2s ease',
+      }}
+      styles={{
+        root: {
+          '&:active': {
+            transform: 'scale(0.95)',
+          },
+        },
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-4px)';
