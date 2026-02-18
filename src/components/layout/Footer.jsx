@@ -4,6 +4,7 @@ import IconMail from '@tabler/icons-react/dist/esm/icons/IconMail.mjs';
 import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
 import IconShieldLock from '@tabler/icons-react/dist/esm/icons/IconShieldLock.mjs';
 import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
+import IconHeart from '@tabler/icons-react/dist/esm/icons/IconHeart.mjs';
 import ChangelogModal from '../modals/ChangelogModal';
 import PrivacyModal from '../modals/PrivacyModal';
 import './Footer.css';
@@ -69,7 +70,7 @@ function Footer() {
         </Group>
 
         <Text size="xs" c="secondary" className="footer-copyright">
-          © {new Date().getFullYear()} Maimai SMF Queue Check. Not affiliated with SEGA.
+          © {new Date().getFullYear()} Made with <IconHeart size={12} fill="var(--theme-primary)" color="var(--theme-primary)" style={{ verticalAlign: 'middle', marginBottom: 2 }} /> by Senny
         </Text>
       </Stack>
 

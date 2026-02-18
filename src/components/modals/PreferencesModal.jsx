@@ -1,7 +1,8 @@
 import { Modal, Stack, Text, Group, Loader } from '@mantine/core';
 import { useFeatureFlags } from '../../hooks/useFeatureFlags';
 import { EXPERIMENTAL_FEATURES } from '../../constants/featureFlags';
-import { Switch, Alert, Card } from '@mantine/core';
+import { Switch, Alert, Card, SegmentedControl, Divider } from '@mantine/core';
+import { useTheme } from '../../contexts/ThemeContext';
 import IconFlask from '@tabler/icons-react/dist/esm/icons/IconFlask.mjs';
 
 const ExperimentalFeaturesSection = () => {
@@ -49,6 +50,7 @@ const ExperimentalFeaturesSection = () => {
 };
 
 const PreferencesModal = ({ opened, onClose }) => {
+  const { currentTheme, setTheme } = useTheme();
 
 
   return (
@@ -60,6 +62,20 @@ const PreferencesModal = ({ opened, onClose }) => {
       size="lg"
     >
       <Stack gap="md">
+        <Stack gap="xs">
+          <Text fw={600} size="sm">App Theme</Text>
+          <SegmentedControl
+            value={currentTheme}
+            onChange={(val) => setTheme(val)}
+            data={[
+              { label: 'Circle', value: 'circle' },
+              { label: 'Prism', value: 'prism' },
+              { label: 'Buddies', value: 'buddies' },
+            ]}
+            fullWidth
+          />
+        </Stack>
+        <Divider />
         <ExperimentalFeaturesSection />
       </Stack>
     </Modal>

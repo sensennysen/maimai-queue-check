@@ -18,7 +18,15 @@ export const userProfileSchema = z.object({
     .max(20, 'Maimai DX name must be 20 characters or less')
     .trim()
     .nullable()
+    .optional(),
+  slug: z.string()
+    .min(3, 'Profile URL must be at least 3 characters')
+    .max(20, 'Profile URL must be 20 characters or less')
+    .regex(/^[a-zA-Z0-9-]+$/, 'Profile URL can only contain letters, numbers, and hyphens')
+    .trim()
+    .lowercase()
     .optional()
+    .or(z.literal(''))
 });
 
 /**

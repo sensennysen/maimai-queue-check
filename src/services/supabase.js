@@ -74,7 +74,7 @@ export const rolesService = {
         
         supabase
           .from('user_profiles')
-          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url')
+          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url, slug, slug_updated_at, privacy_settings')
           .eq('id', userId)
           .maybeSingle()
       ]);
@@ -132,7 +132,20 @@ export const rolesService = {
         display_photo_url: profileData?.display_photo_url || null,
 
         // Main Branch
-        main_branch: profileData?.main_branch ?? null
+        main_branch: profileData?.main_branch ?? null,
+
+        // Profile sharing & Privacy
+        slug: profileData?.slug || null,
+        slug_updated_at: profileData?.slug_updated_at || null,
+        privacy_settings: profileData?.privacy_settings || {
+          show_maimai_name: true,
+          show_dx_rating: true,
+          show_best_50: true,
+          show_favorite_songs: true,
+          show_playlists: true,
+          show_main_branch: true,
+          show_preferred_branches: true
+        }
       };
       
       return mergedData;
@@ -253,6 +266,97 @@ export const userService = {
 
     if (roleError) throw roleError;
     return roles || [];
+  },
+
+  // Get profile by slug
+  async getProfileBySlug(slug) {
+    if (!slug) return null;
+
+    const { data, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('id, display_name, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url, main_branch, preferred_branches, privacy_settings')
+      .eq('slug', slug.toLowerCase())
+      .maybeSingle();
+
+    if (profileError) throw profileError;
+    return data;
+  },
+
+  // Update profile slug (once every 60 days)
+  async updateProfileSlug(userId, slug) {
+    if (!userId) throw new Error('User ID is required');
+
+    // 1. Validate slug
+    const validation = validateData(userProfileSchema.pick({ slug: true }), { slug });
+    if (!validation.success) throw new Error(validation.error);
+
+    // 2. Fetch current profile to check last update
+    const { data: existingProfile, error: errorFetch } = await supabase
+      .from('user_profiles')
+      .select('slug, slug_updated_at')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (errorFetch) throw errorFetch;
+
+    if (existingProfile?.slug_updated_at) {
+      const lastUpdate = new Date(existingProfile.slug_updated_at);
+      const sixtyDaysInMs = 60 * 24 * 60 * 60 * 1000;
+      const nextUpdateAllowed = lastUpdate.getTime() + sixtyDaysInMs;
+      const now = new Date().getTime();
+
+      if (now < nextUpdateAllowed) {
+        const daysRemaining = Math.ceil((nextUpdateAllowed - now) / (24 * 60 * 60 * 1000));
+        throw new Error(`Profile URL can only be updated once every 60 days. Please wait ${daysRemaining} more days.`);
+      }
+    }
+
+    // 3. Check uniqueness if changing
+    const normalizedSlug = slug.toLowerCase();
+    if (normalizedSlug !== existingProfile?.slug) {
+      const { data: existing } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('slug', normalizedSlug)
+        .maybeSingle();
+
+      if (existing) {
+        throw new Error('This profile URL is already taken. Please choose another one.');
+      }
+    }
+
+    // 4. Update
+    const { data: updated, error } = await supabase
+      .from('user_profiles')
+      .upsert({
+        id: userId,
+        slug: normalizedSlug,
+        slug_updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return updated;
+  },
+
+  // Update privacy settings
+  async updatePrivacySettings(userId, settings) {
+    if (!userId) throw new Error('User ID is required');
+
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .upsert({
+        id: userId,
+        privacy_settings: settings,
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 };
 
