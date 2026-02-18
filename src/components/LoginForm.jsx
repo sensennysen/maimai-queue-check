@@ -69,7 +69,7 @@ const LoginForm = ({ onOpenPreferences }) => {
         <Menu.Target>
           <ActionIcon variant="subtle" size="xl" className="login-icon">
             <Avatar
-              src={user.user_metadata?.avatar_url}
+              src={userRoles?.display_photo_url}
               alt={userRoles?.display_name || user.user_metadata?.full_name || user.email}
               size={40}
               radius="xl"

@@ -62,3 +62,13 @@ This document tracks the features of the application, their status, and relevant
 2.  **Navigation**: Added a "Back to Queue" button to the header for better user flow.
 3.  **UI Controls**: Added a Theme Toggle button directly to the Song Database interface.
 4.  **Verification**: Verified theme switching and navigation functionality.
+
+### 2026-02-18: User Display Picture
+- **Status**: Released
+- **Phase**: Done
+
+**Summary of Changes**:
+1.  **Database**: Added `display_photo_url` to `user_profiles` table.
+2.  **Display Logic**: Updated Queue entries and Profile page to display the user's custom profile picture (from Score Import data) instead of the default Google avatar.
+3.  **Fallback**: Implemented a strict fallback to a default filler image if no custom photo is present, ensuring consistent UI.
+4.  **Performance**: optimized `ProfilePage` to prevent unnecessary re-fetches on window focus.

@@ -42,13 +42,16 @@ const ProfilePage = () => {
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   // Fetch Maimai Data Helper
+  // Fetch Maimai Data Helper
+  const userId = user?.id;
+
   const fetchMaimaiData = useCallback(async () => {
-    if (!user) return;
+    if (!userId) return;
     setIsLoadingData(true);
     try {
       // Import rolesService
       const { rolesService } = await import('../services/supabase');
-      const data = await rolesService.getUserRoles(user.id);
+      const data = await rolesService.getUserRoles(userId);
 
       setProfileData(data);
     } catch (_e) {
@@ -56,14 +59,14 @@ const ProfilePage = () => {
     } finally {
       setIsLoadingData(false);
     }
-  }, [user]);
+  }, [userId]);
 
   // Fetch on mount or when user ID changes
   useEffect(() => {
-    if (user?.id) {
+    if (userId) {
       fetchMaimaiData();
     }
-  }, [user?.id, fetchMaimaiData]);
+  }, [userId, fetchMaimaiData]);
 
   // Handlers
   const handleImport = async () => {
@@ -105,11 +108,17 @@ const ProfilePage = () => {
 
       // 5b. Save Name if present in JSON (common export format)
       const importName = data.profile?.name || data.name || data.user_data?.name;
-      if (importName && typeof importName === 'string') {
+      const importIconUrl = data.profile?.iconUrl || data.iconUrl;
+
+      const updates = {};
+      if (importName && typeof importName === 'string') updates.maimaiDxName = importName;
+      if (importIconUrl && typeof importIconUrl === 'string') updates.displayPhotoUrl = importIconUrl;
+
+      if (Object.keys(updates).length > 0) {
         try {
-          await userService.updateMaimaiProfile(user.id, { maimaiDxName: importName });
+          await userService.updateMaimaiProfile(user.id, updates);
         } catch (err) {
-          console.error("Failed to save name to database:", err);
+          console.error("Failed to save profile data to database:", err);
         }
       }
 
@@ -173,7 +182,7 @@ const ProfilePage = () => {
       <Paper shadow="sm" p="lg" radius="md" withBorder>
         <Stack>
           <Group>
-            <Avatar src={user.user_metadata.avatar_url} size={80} radius={80} color="blue">
+            <Avatar src={profileData?.display_photo_url} size={80} radius={80} color="blue" className="profile-avatar-large">
               <IconUser size={40} />
             </Avatar>
             <Stack gap={4}>
