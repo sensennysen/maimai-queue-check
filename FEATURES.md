@@ -72,3 +72,13 @@ This document tracks the features of the application, their status, and relevant
 2.  **Display Logic**: Updated Queue entries and Profile page to display the user's custom profile picture (from Score Import data) instead of the default Google avatar.
 3.  **Fallback**: Implemented a strict fallback to a default filler image if no custom photo is present, ensuring consistent UI.
 4.  **Performance**: optimized `ProfilePage` to prevent unnecessary re-fetches on window focus.
+
+### 2026-02-18: Profile Improvements
+- **Status**: Released
+- **Phase**: Done
+
+**Summary of Changes**:
+1.  **Main Branch**: Added `main_branch` field to `user_profiles` (FK to `allowed_places`) and rendered it in the profile header.
+2.  **Preferred Branches**: Fixed rendering to show a UNION of branches from both `user_profiles` and legacy `user_roles` data.
+3.  **Name Resolution**: Implemented `branchService.getBranchesForResolution()` to ensure even "disabled" branches (e.g., test/proxy branches) resolve to human-readable names.
+4.  **UI**: Added Map Pin and Star icons/badges for branch information.

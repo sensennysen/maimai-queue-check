@@ -13,7 +13,9 @@
 - Secured `maimai_charts` table with Row Level Security (RLS) policies.
 - Implemented Feature Flags system (context, provider, DB schema, UI).
 - Optimized Supabase queries (explicit column selection, parallelized async ops).
-- Refactored icon imports for tree-shaking across all components.
+- Implemented User Display Pictures (iconUrl sync from scores).
+- Added `main_branch` support to `user_profiles` and Profile UI.
+- Improved `preferred_branches` rendering with UNION merge and all-branch resolution.
 - Restructured codebase for better organization.
 
 ## Current Context
