@@ -28,6 +28,8 @@ const SongsPage = lazy(() => import('./pages/SongsPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 import LoginForm from './components/LoginForm';
 
+const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
+
 // The main application content (Queue check, Login, etc.)
 function MainApp() {
   const { user } = useAuth();
@@ -108,6 +110,7 @@ function AppProviders() {
           <Route path="/songs" element={<SongsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/p/:slug" element={<PublicProfilePage />} />
           <Route path="/*" element={<MainApp />} />
         </Routes>
       </Suspense>

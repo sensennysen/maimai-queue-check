@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, TextInput, SegmentedControl, MultiSelect, Input } from '@mantine/core';
+import { Container, Title, Paper, Group, Stack, Avatar, Text, Textarea, Button, Alert, Loader, Card, SimpleGrid, Badge, ThemeIcon, Divider, Modal, LoadingOverlay, ActionIcon, TextInput, SegmentedControl, MultiSelect, Input, Box, Switch, Tooltip, CopyButton, Select } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
 import IconUpload from '@tabler/icons-react/dist/esm/icons/IconUpload.mjs';
@@ -12,7 +12,8 @@ import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs'
 import IconSun from '@tabler/icons-react/dist/esm/icons/IconSun.mjs';
 import IconMoon from '@tabler/icons-react/dist/esm/icons/IconMoon.mjs';
 import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
-import { IconMapPin, IconStar, IconSettings } from '@tabler/icons-react';
+import { IconMapPin, IconStar, IconSettings, IconShare, IconCopy, IconExternalLink, IconLock, IconEye, IconLink, IconClock } from '@tabler/icons-react';
+
 import { ScoreCard } from '../components/maimai/ScoreCard';
 import { BookmarkletInstructions } from '../components/BookmarkletInstructions';
 import { useAuth } from '../hooks/useAuth';
@@ -29,7 +30,7 @@ import Footer from '../components/layout/Footer';
 const ProfilePage = () => {
   const { user, userRoles } = useAuth(); // Still need userRoles for display_name if profile fetch fails or for fallback
   const navigate = useNavigate();
-  const { isDark, toggleTheme, currentTheme, setTheme } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
   const { flags, isLoading: flagsLoading } = useFeatureFlags();
 
   useEffect(() => {
@@ -53,9 +54,21 @@ const ProfilePage = () => {
 
   // Preferences state
   const [displayName, setDisplayName] = useState('');
-  const [selectedTheme, setSelectedTheme] = useState(currentTheme);
   const [selectedBranches, setSelectedBranches] = useState([]);
+  const [selectedMainBranch, setSelectedMainBranch] = useState(null);
   const [isSavingPrefs, setIsSavingPrefs] = useState(false);
+
+  // Profile sharing & Privacy state
+  const [slug, setSlug] = useState('');
+  const [privacySettings, setPrivacySettings] = useState({
+    show_dx_rating: true,
+    show_best_50: true,
+    show_favorite_songs: true,
+    show_playlists: true,
+    show_main_branch: true,
+    show_preferred_branches: true
+  });
+  const [isSavingSlug, setIsSavingSlug] = useState(false);
 
   // Fetch Maimai Data Helper
   // Fetch Maimai Data Helper
@@ -73,6 +86,11 @@ const ProfilePage = () => {
       if (data) {
         setDisplayName(data.display_name || '');
         setSelectedBranches(data.preferred_branches?.map(String) || []);
+        setSelectedMainBranch(data.main_branch ? String(data.main_branch) : null);
+        setSlug(data.slug || '');
+        if (data.privacy_settings) {
+          setPrivacySettings(data.privacy_settings);
+        }
       }
     } catch (_e) {
       console.error("Error fetching maimai data:", _e);
@@ -81,10 +99,6 @@ const ProfilePage = () => {
     }
   }, [userId]);
 
-  // Sync theme selection with context if it changes from outside
-  useEffect(() => {
-    setSelectedTheme(currentTheme);
-  }, [currentTheme]);
 
   // Fetch on mount or when user ID changes
   useEffect(() => {
@@ -190,13 +204,11 @@ const ProfilePage = () => {
     try {
       setIsSavingPrefs(true);
 
-      // 1. Update theme immediately
-      setTheme(selectedTheme);
-
       // 2. Update DB
       await userService.updatePreferences(user.id, {
         displayName: displayName.trim(),
         branchIds: selectedBranches.map(Number),
+        mainBranch: selectedMainBranch ? parseInt(selectedMainBranch, 10) : null
       });
 
       notifications.show({
@@ -219,6 +231,49 @@ const ProfilePage = () => {
       setIsSavingPrefs(false);
     }
   };
+
+  const handleUpdateSlug = async () => {
+    if (!userId) return;
+    setIsSavingSlug(true);
+    try {
+      await userService.updateProfileSlug(userId, slug);
+      notifications.show({
+        title: 'Success',
+        message: 'Profile URL updated successfully',
+        color: 'green',
+        icon: <IconCheck size={18} />
+      });
+      fetchMaimaiData();
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: error.message || 'Failed to update profile URL',
+        color: 'red'
+      });
+    } finally {
+      setIsSavingSlug(false);
+    }
+  };
+
+  const handleUpdatePrivacy = async (key, value) => {
+    if (!userId) return;
+    const newSettings = { ...privacySettings, [key]: value };
+    setPrivacySettings(newSettings); // Optimistic update
+
+    try {
+      await userService.updatePrivacySettings(userId, newSettings);
+    } catch {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to update privacy settings',
+        color: 'red'
+      });
+      // Revert if failed
+      setPrivacySettings(privacySettings);
+    }
+  };
+
+  const publicProfileUrl = slug ? `${window.location.origin}/p/${slug}` : null;
 
   if (!user) {
     return (
@@ -284,7 +339,25 @@ const ProfilePage = () => {
                 <IconUser size={45} />
               </Avatar>
               <Stack gap={4}>
-                <Text size="xl" fw={800} style={{ fontSize: '1.75rem', lineHeight: 1.2 }}>{appDisplayName}</Text>
+                <Group gap="xs" align="center">
+                  <Text size="xl" fw={800} style={{ fontSize: '1.75rem', lineHeight: 1.2 }}>{appDisplayName}</Text>
+                  {profileData?.slug && (
+                    <Tooltip label="Your profile is public! Click to copy link." position="right" withArrow>
+                      <CopyButton value={publicProfileUrl}>
+                        {({ copied, copy }) => (
+                          <ActionIcon
+                            variant="subtle"
+                            color={copied ? 'teal' : 'blue'}
+                            onClick={copy}
+                            size="sm"
+                          >
+                            {copied ? <IconCheck size={16} /> : <IconLink size={16} />}
+                          </ActionIcon>
+                        )}
+                      </CopyButton>
+                    </Tooltip>
+                  )}
+                </Group>
                 {mainBranchName && (
                   <Group gap={4} align="center">
                     <IconMapPin size={14} style={{ color: 'var(--theme-primary)' }} />
@@ -338,6 +411,7 @@ const ProfilePage = () => {
             </Stack>
           </Group>
         </Paper>
+
 
         {/* Favorite Songs Section */}
         <div className="animate-fade-in delay-200">
@@ -505,25 +579,21 @@ const ProfilePage = () => {
               description="Used in queues and profile"
             />
 
-            <Input.Wrapper
-              label="App Theme"
-              description="Choose your interface feel"
-            >
-              <SegmentedControl
-                value={selectedTheme}
-                onChange={(val) => {
-                  setSelectedTheme(val);
-                  setTheme(val); // Preview theme immediately
-                }}
-                data={[
-                  { label: 'Circle', value: 'circle' },
-                  { label: 'Prism', value: 'prism' },
-                  { label: 'Buddies', value: 'buddies' },
-                ]}
-                fullWidth
-                mt={3}
-              />
-            </Input.Wrapper>
+            <Select
+              label="Home Branch"
+              placeholder="Select your main branch"
+              data={allBranches.map(b => ({
+                value: String(b.id),
+                label: b.short_name || b.arcade_name
+              }))}
+              value={selectedMainBranch}
+              onChange={setSelectedMainBranch}
+              searchable
+              clearable
+              description="Select your home turf"
+              disabled={branchesLoading}
+            />
+
           </SimpleGrid>
 
           <MultiSelect
@@ -537,9 +607,91 @@ const ProfilePage = () => {
             onChange={setSelectedBranches}
             searchable
             clearable
-            description="These branches will show up in your quick menu"
             disabled={branchesLoading}
           />
+
+          <Group gap="sm">
+            <Switch
+              label="Publicly show home branch"
+              size="xs"
+              checked={privacySettings.show_main_branch}
+              onChange={(e) => handleUpdatePrivacy('show_main_branch', e.currentTarget.checked)}
+            />
+            <Switch
+              label="Publicly show preferred branches"
+              size="xs"
+              checked={privacySettings.show_preferred_branches}
+              onChange={(e) => handleUpdatePrivacy('show_preferred_branches', e.currentTarget.checked)}
+            />
+          </Group>
+
+          <Divider label="Profile Sharing" labelPosition="center" />
+
+          <Stack gap="xs">
+            <Input.Wrapper
+              label="Custom Profile URL"
+              description={
+                profileData?.slug_updated_at
+                  ? `Last updated: ${new Date(profileData.slug_updated_at).toLocaleDateString()}. You can change this once every 60 days.`
+                  : "Choose a unique URL for your public profile."
+              }
+            >
+              <Group gap="xs" align="flex-start" mt={5}>
+                <TextInput
+                  placeholder="my-cool-profile"
+                  value={slug}
+                  onChange={(e) => setSlug(e.currentTarget.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  leftSection={<IconLink size={16} />}
+                  style={{ flex: 1 }}
+                  error={slug.length > 0 && slug.length < 3 ? "Minimum 3 characters" : null}
+                />
+                <Button
+                  onClick={handleUpdateSlug}
+                  loading={isSavingSlug}
+                  disabled={slug === (profileData?.slug || '') || slug.length < 3}
+                >
+                  Save URL
+                </Button>
+              </Group>
+            </Input.Wrapper>
+
+            <Box p="md" bg="var(--mantine-color-gray-light)" style={{ borderRadius: 'var(--mantine-radius-md)' }}>
+              <Text size="xs" fw={700} mb="sm" c="dimmed" tt="uppercase" lts={1}>Public Visibility Controls</Text>
+              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                <Stack gap="xs">
+                  <Text size="sm" fw={600}>Score Data</Text>
+                  <Switch
+                    label="Show maimai DX Name"
+                    checked={privacySettings.show_maimai_name}
+                    onChange={(e) => handleUpdatePrivacy('show_maimai_name', e.currentTarget.checked)}
+                  />
+                  <Switch
+                    label="Show DX Rating"
+                    checked={privacySettings.show_dx_rating}
+                    onChange={(e) => handleUpdatePrivacy('show_dx_rating', e.currentTarget.checked)}
+                  />
+                  <Switch
+                    label="Show Best 50 Scores"
+                    checked={privacySettings.show_best_50}
+                    onChange={(e) => handleUpdatePrivacy('show_best_50', e.currentTarget.checked)}
+                  />
+                </Stack>
+                <Stack gap="xs">
+                  <Text size="sm" fw={600}>Collections</Text>
+                  <Switch
+                    label="Show Favorite Songs"
+                    checked={privacySettings.show_favorite_songs}
+                    onChange={(e) => handleUpdatePrivacy('show_favorite_songs', e.currentTarget.checked)}
+                  />
+                  <Switch
+                    label="Show Playlists"
+                    checked={privacySettings.show_playlists}
+                    onChange={(e) => handleUpdatePrivacy('show_playlists', e.currentTarget.checked)}
+                  />
+                </Stack>
+              </SimpleGrid>
+            </Box>
+          </Stack>
 
           <Group justify="flex-end" mt="md">
             <Button variant="default" onClick={() => setIsSettingsModalOpen(false)}>Cancel</Button>
