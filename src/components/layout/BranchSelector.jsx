@@ -1,16 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Menu, Text, Group, Badge, Loader } from '@mantine/core';
 import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
 import IconChevronDown from '@tabler/icons-react/dist/esm/icons/IconChevronDown.mjs';
 import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import { useBranch } from '../../hooks/useBranch';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getDistance } from '../../services/geolocation';
+import { getDistance, checkGeolocationPermission } from '../../services/geolocation';
 
 function BranchSelector() {
   const { branches, selectedBranch, setSelectedBranch, loading, userLocation, refreshLocation } = useBranch();
   const { themeColors } = useTheme();
   const [menuOpened, setMenuOpened] = useState(false);
+  const [locationRequested, setLocationRequested] = useState(false);
+
+  // Request location on mount if permission is already granted
+  useEffect(() => {
+    const initializeLocation = async () => {
+      if (!locationRequested) {
+        setLocationRequested(true);
+        const permissionState = await checkGeolocationPermission();
+        if (permissionState === 'granted') {
+          await refreshLocation();
+        }
+      }
+    };
+    
+    initializeLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Also request location when dropdown is opened for the first time
+  const handleMenuChange = async (opened) => {
+    setMenuOpened(opened);
+    
+    if (opened && !userLocation && !locationRequested) {
+      setLocationRequested(true);
+      await refreshLocation();
+    }
+  };
 
   if (loading) {
     return (
@@ -46,7 +73,7 @@ function BranchSelector() {
   return (
     <Menu
       opened={menuOpened}
-      onChange={setMenuOpened}
+      onChange={handleMenuChange}
       position="bottom-start"
       shadow="md"
       width={280}
