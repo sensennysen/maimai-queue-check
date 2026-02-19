@@ -74,7 +74,7 @@ export const rolesService = {
         
         supabase
           .from('user_profiles')
-          .select('id, display_name, preferred_branches, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at')
+          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, slug, slug_updated_at, privacy_settings, is_public')
           .eq('id', userId)
           .maybeSingle()
       ]);
@@ -107,15 +107,45 @@ export const rolesService = {
         
         // Profile fields - prefer profileData, fallback to roleData
         display_name: profileData?.display_name || roleData?.display_name,
-        preferred_branches: Array.isArray(profileData?.preferred_branches) 
-          ? profileData.preferred_branches 
-          : (Array.isArray(roleData?.preferred_branches) ? roleData.preferred_branches : []),
+        
+        // UNION of preferred_branches from both tables to ensure no data is lost
+        preferred_branches: (() => {
+          const profileBranches = Array.isArray(profileData?.preferred_branches) 
+            ? profileData.preferred_branches.map(id => typeof id === 'string' ? parseInt(id, 10) : id)
+            : [];
+          const roleBranches = Array.isArray(roleData?.preferred_branches) 
+            ? roleData.preferred_branches.map(id => typeof id === 'string' ? parseInt(id, 10) : id)
+            : [];
+          
+          // Return unique union of both arrays
+          return [...new Set([...profileBranches, ...roleBranches])].filter(id => !isNaN(id));
+        })(),
           
         // Maimai fields (only in profileData)
         maimai_dx_name: profileData?.maimai_dx_name || null,
-        maimai_rating: profileData?.maimai_rating || null,
         maimai_best_scores: profileData?.maimai_best_scores || null,
-        maimai_scores_updated_at: profileData?.maimai_scores_updated_at || null
+
+        maimai_scores_updated_at: profileData?.maimai_scores_updated_at || null,
+        
+        // Display Photo
+        display_photo_url: profileData?.display_photo_url || null,
+
+        // Main Branch
+        main_branch: profileData?.main_branch ?? null,
+
+        // Profile sharing & Privacy
+        slug: profileData?.slug || null,
+        slug_updated_at: profileData?.slug_updated_at || null,
+        privacy_settings: profileData?.privacy_settings || {
+          show_maimai_name: true,
+          show_dx_rating: true,
+          show_best_50: true,
+          show_favorite_songs: true,
+          show_playlists: true,
+          show_main_branch: true,
+          show_preferred_branches: true
+        },
+        is_public: !!profileData?.is_public
       };
       
       return mergedData;
@@ -135,10 +165,14 @@ export const rolesService = {
 // User service functions
 export const userService = {
   // Update user preferences
-  async updatePreferences(userId, { branchIds, displayName }) {
+  async updatePreferences(userId, { branchIds, displayName, mainBranch, isPublic }) {
     const updateData = {};
     if (branchIds !== undefined) updateData.preferred_branches = branchIds;
     if (displayName !== undefined) updateData.display_name = displayName;
+    if (mainBranch !== undefined) updateData.main_branch = mainBranch;
+    if (isPublic !== undefined) updateData.is_public = isPublic;
+    // displayPhotoUrl is not usually updated here but could be if we wanted to
+
     
     // VALIDATION
     if (displayName) {
@@ -175,14 +209,19 @@ export const userService = {
   },
   
   // Update maimai profile specifically
-  async updateMaimaiProfile(userId, { maimaiDxName }) {
+
+  async updateMaimaiProfile(userId, { maimaiDxName, displayPhotoUrl }) {
+    const updates = {
+      id: userId,
+      updated_at: new Date().toISOString()
+    };
+
+    if (maimaiDxName !== undefined) updates.maimai_dx_name = maimaiDxName;
+    if (displayPhotoUrl !== undefined) updates.display_photo_url = displayPhotoUrl;
+
     const { data, error } = await supabase
       .from('user_profiles')
-      .upsert({
-        id: userId,
-        maimai_dx_name: maimaiDxName,
-        updated_at: new Date().toISOString()
-      })
+      .upsert(updates)
       .select()
       .single();
       
@@ -228,6 +267,259 @@ export const userService = {
 
     if (roleError) throw roleError;
     return roles || [];
+  },
+
+  // Get profile by slug
+  async getProfileBySlug(slug) {
+    if (!slug) return null;
+
+    const { data, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('id, display_name, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at')
+      .eq('slug', slug.toLowerCase())
+      .maybeSingle();
+
+    if (profileError) throw profileError;
+    return data;
+  },
+
+  // Update profile slug (once every 60 days)
+  async updateProfileSlug(userId, slug) {
+    if (!userId) throw new Error('User ID is required');
+
+    // 1. Validate slug
+    const validation = validateData(userProfileSchema.pick({ slug: true }), { slug });
+    if (!validation.success) throw new Error(validation.error);
+
+    // 2. Fetch current profile to check last update
+    const { data: existingProfile, error: errorFetch } = await supabase
+      .from('user_profiles')
+      .select('slug, slug_updated_at')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (errorFetch) throw errorFetch;
+
+    if (existingProfile?.slug_updated_at) {
+      const lastUpdate = new Date(existingProfile.slug_updated_at);
+      const sixtyDaysInMs = 60 * 24 * 60 * 60 * 1000;
+      const nextUpdateAllowed = lastUpdate.getTime() + sixtyDaysInMs;
+      const now = new Date().getTime();
+
+      if (now < nextUpdateAllowed) {
+        const daysRemaining = Math.ceil((nextUpdateAllowed - now) / (24 * 60 * 60 * 1000));
+        throw new Error(`Profile URL can only be updated once every 60 days. Please wait ${daysRemaining} more days.`);
+      }
+    }
+
+    // 3. Check uniqueness if changing
+    const normalizedSlug = slug.toLowerCase();
+    if (normalizedSlug !== existingProfile?.slug) {
+      const { data: existing } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('slug', normalizedSlug)
+        .maybeSingle();
+
+      if (existing) {
+        throw new Error('This profile URL is already taken. Please choose another one.');
+      }
+    }
+
+    // 4. Update
+    const { data: updated, error } = await supabase
+      .from('user_profiles')
+      .upsert({
+        id: userId,
+        slug: normalizedSlug,
+        slug_updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return updated;
+  },
+
+  // Update privacy settings
+  async updatePrivacySettings(userId, settings) {
+    if (!userId) throw new Error('User ID is required');
+
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .upsert({
+        id: userId,
+        privacy_settings: settings,
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Clear maimai related data (scores, photo, name)
+  async clearMaimaiData(userId) {
+    if (!userId) throw new Error('User ID is required');
+
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update({
+        maimai_best_scores: null,
+        maimai_scores_updated_at: null,
+        display_photo_url: null,
+        maimai_dx_name: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+};
+
+// Favorites service functions
+export const favoritesService = {
+  // Get all favorite songs for a user
+  async getFavorites(userId) {
+    const { data, error } = await supabase
+      .from('user_favorite_songs')
+      .select('song_id, created_at, comment')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Add a favorite song
+  async addFavorite(userId, songId, comment = null) {
+    const { data, error } = await supabase
+      .from('user_favorite_songs')
+      .insert([{ user_id: userId, song_id: songId, comment }])
+      .select()
+      .single();
+    
+    if (error) {
+      // Ignore duplicate key error (code 23505)
+      if (error.code === '23505') return null;
+      throw error;
+    }
+    return data;
+  },
+
+  // Remove a favorite song
+  async removeFavorite(userId, songId) {
+    const { error } = await supabase
+      .from('user_favorite_songs')
+      .delete()
+      .eq('user_id', userId)
+      .eq('song_id', songId);
+    
+    if (error) throw error;
+  }
+};
+
+// Playlist service functions
+export const playlistService = {
+  // Fetch all playlists for a user
+  async getPlaylists(userId) {
+    const { data, error } = await supabase
+      .from('user_playlists')
+      .select(`
+        *,
+        songs:playlist_songs(
+          song_id,
+          order_index
+        )
+      `)
+      .eq('user_id', userId)
+      .order('order_index', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching playlists:', error);
+      throw error;
+    }
+
+    // Sort songs within each playlist by their own order_index
+    return data.map(playlist => ({
+      ...playlist,
+      songs: playlist.songs ? playlist.songs.sort((a, b) => a.order_index - b.order_index) : []
+    }));
+  },
+
+  // Update or create a playlist
+  async upsertPlaylist(userId, playlistId, { title, comment, songIds }) {
+    let finalPlaylistId = playlistId;
+
+    if (!finalPlaylistId) {
+      // Create new playlist
+      const { data, error } = await supabase
+        .from('user_playlists')
+        .insert({
+          user_id: userId,
+          title: title || 'New Playlist',
+          comment,
+          order_index: 0 // Default to start
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      finalPlaylistId = data.id;
+    } else {
+      // Update existing playlist
+      const { error } = await supabase
+        .from('user_playlists')
+        .update({ title, comment })
+        .eq('id', finalPlaylistId);
+
+      if (error) throw error;
+    }
+
+    // Update songs (Sync pattern: delete old, insert new)
+    const { error: deleteError } = await supabase
+      .from('playlist_songs')
+      .delete()
+      .eq('playlist_id', finalPlaylistId);
+
+    if (deleteError) throw deleteError;
+
+    if (songIds && songIds.length > 0) {
+      const songEntries = songIds.map((songId, index) => ({
+        playlist_id: finalPlaylistId,
+        song_id: songId,
+        order_index: index
+      }));
+
+      const { error: insertError } = await supabase
+        .from('playlist_songs')
+        .insert(songEntries);
+
+      if (insertError) throw insertError;
+    }
+
+    // Return the full updated playlist
+    const playlists = await this.getPlaylists(userId);
+    return playlists.find(p => p.id === finalPlaylistId);
+  },
+
+  // Delete a playlist
+  async deletePlaylist(playlistId) {
+    const { error } = await supabase
+      .from('user_playlists')
+      .delete()
+      .eq('id', playlistId);
+
+    if (error) {
+      console.error('Error deleting playlist:', error);
+      throw error;
+    }
+    return true;
   }
 };
 
@@ -243,7 +535,7 @@ export const queueService = {
 
     let query = supabase
       .from('queue_entries')
-      .select('id, player1, player2, order_position, status, created_by, branch_id, cabinet_num, started_at, ended_at, created_at')
+      .select('id, player1, player2, order_position, status, branch_id, cabinet_num, created_at, started_at, created_by_profile:created_by(display_photo_url)')
       .in('status', ['waiting', 'playing'])
       .gte('created_at', today.toISOString());
     
@@ -450,7 +742,7 @@ export const queueService = {
 
     const { data, error } = await supabase
       .from('queue_entries')
-      .select('*')
+      .select('player1, player2')
       .in('status', ['completed', 'cancelled'])
       .eq('branch_id', branchId)
       .gte('created_at', today.toISOString())
@@ -559,6 +851,16 @@ export const branchService = {
 
     if (error) throw error;
     return data;
+  },
+
+  // Fetch ALL branches for name resolution (ignores enabled filter)
+  async getBranchesForResolution() {
+    const { data, error } = await supabase
+      .from('allowed_places')
+      .select('id, arcade_name, short_name, acronym');
+
+    if (error) throw error;
+    return data || [];
   }
 };
 
@@ -823,7 +1125,7 @@ export const requestService = {
         .from('access_requests')
         .select(`
             id, user_id, branch_id, status, created_at,
-            allowed_places (
+            allowed_places!inner (
                 arcade_name,
                 short_name,
                 acronym
@@ -874,6 +1176,22 @@ export const requestService = {
       return data || [];
   },
 
+  // Check if a user has a pending request for a specific branch
+  async hasPendingRequest(userId, branchId) {
+      if (!userId || !branchId) return false;
+      
+      const { count, error } = await supabase
+          .from('access_requests')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('branch_id', branchId)
+          .eq('status', 'pending')
+          .limit(1);
+      
+      if (error) throw error;
+      return count > 0;
+  },
+
   // Update request status (approve/reject)
   async updateRequestStatus(requestId, status) {
       const { data, error } = await supabase
@@ -899,7 +1217,7 @@ export const notificationService = {
 
     const { data: notifications, error: notifError } = await supabase
       .from('notifications')
-      .select('id, user_id, type, title, message, data, created_at, read_at')
+      .select('id, type, title, message, created_at')
       .gte('created_at', oneWeekAgo.toISOString())
       .order('created_at', { ascending: false });
 
@@ -1010,7 +1328,7 @@ export const contactService = {
     // 1. Fetch reports
     const { data: reports, error } = await supabase
       .from('contact_reports')
-      .select('id, report_type, description, email, user_id, status, attachment_path, attachment_name, created_at')
+      .select('id, report_type, description, email, user_id, status, attachment_path, created_at')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -1090,3 +1408,4 @@ export const contactService = {
       if (error) throw error;
   }
 };
+

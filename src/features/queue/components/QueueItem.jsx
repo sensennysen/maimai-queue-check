@@ -43,6 +43,7 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
         )}
       </div>
 
+
       <div className="players-section">
         {item.player1 && item.player1.trim() && (
           <div className={`item-player player-1${(!item.player2 || !item.player2.trim()) ? ' player-solo' : ''}`}>

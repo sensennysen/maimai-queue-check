@@ -62,9 +62,9 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
       {queue.length === 0 ? (
         <Center p="xl">
           <Stack align="center" gap="md">
-            <Text size="xl" fw={600} c="dimmed">{emptyMessage}</Text>
+            <Text size="xl" fw={600} c="secondary">{emptyMessage}</Text>
             {user && (
-              <Text c="dimmed">Add to queue by pressing the Add to Queue button above</Text>
+              <Text c="secondary" size="sm">Add to queue by pressing the Add to Queue button above</Text>
             )}
           </Stack>
         </Center>
@@ -96,7 +96,7 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
       {/* Show loading message for actions if roles are loading */}
       {loadingRoles && (
         <Center p="md">
-          <Text size="sm" c="dimmed">Loading actions…</Text>
+          <Text size="sm" c="secondary">Loading actions…</Text>
         </Center>
       )}
     </Paper>

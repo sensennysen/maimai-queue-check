@@ -127,7 +127,7 @@ const ReportsManager = () => {
         <Center>
           <Stack align="center" gap="sm">
             <IconMessageReport size={48} opacity={0.3} />
-            <Text c="dimmed">No reports found</Text>
+            <Text c="secondary" fw={500}>No reports found</Text>
           </Stack>
         </Center>
       </Paper>
@@ -154,7 +154,7 @@ const ReportsManager = () => {
               <Table.Tr key={report.id}>
                 <Table.Td>
                   <Text size="sm">{new Date(report.created_at).toLocaleDateString()}</Text>
-                  <Text size="xs" c="dimmed">{new Date(report.created_at).toLocaleTimeString()}</Text>
+                  <Text size="xs" c="secondary">{new Date(report.created_at).toLocaleTimeString()}</Text>
                 </Table.Td>
                 <Table.Td>
                   <Badge variant="light" color={report.report_type === 'bug' ? 'red' : 'blue'}>
@@ -163,7 +163,7 @@ const ReportsManager = () => {
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm" fw={500}>{report.user_display}</Text>
-                  <Text size="xs" c="dimmed">{report.user_email}</Text>
+                  <Text size="xs" c="secondary">{report.user_email}</Text>
                 </Table.Td>
                 <Table.Td style={{ maxWidth: '300px' }}>
                   <Text size="sm" lineClamp={3} title={report.description}>
@@ -221,7 +221,7 @@ const ReportsManager = () => {
         message={
           <>
             <Text style={{ marginTop: '1rem' }}>Are you sure you want to delete this report?</Text>
-            <Text size="sm" c="dimmed" mt="xs">This action cannot be undone.</Text>
+            <Text size="sm" c="secondary" mt="xs">This action cannot be undone.</Text>
           </>
         }
         confirmLabel="Delete Report"

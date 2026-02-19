@@ -75,7 +75,7 @@ const AccessRequests = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
       ) : requests.length === 0 ? (
         <Paper p="xl" withBorder>
           <Center>
-            <Text c="dimmed">No pending access requests.</Text>
+            <Text c="secondary" fw={500}>No pending access requests.</Text>
           </Center>
         </Paper>
       ) : (
@@ -95,7 +95,7 @@ const AccessRequests = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
                   <Table.Td>
                     <Stack gap={0}>
                       <Text size="sm">{r.user_roles?.display_name || 'Unknown'}</Text>
-                      <Text size="xs" c="dimmed">{r.user_roles?.email}</Text>
+                      <Text size="xs" c="secondary">{r.user_roles?.email}</Text>
                     </Stack>
                   </Table.Td>
                   <Table.Td>

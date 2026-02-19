@@ -102,9 +102,7 @@ function QueueManager() {
     const checkPendingRequest = async () => {
       if (user && selectedBranch) {
         try {
-          // Optimize: could make a specific check function, but fetching all user requests is fine for now
-          const requests = await requestService.getUserRequests(user.id);
-          const isPending = requests.some(r => r.branch_id === selectedBranch.id && r.status === 'pending');
+          const isPending = await requestService.hasPendingRequest(user.id, selectedBranch.id);
           setHasPendingRequest(isPending);
         } catch (error) {
           console.error("Failed to check requests", error);
@@ -282,7 +280,7 @@ function QueueManager() {
       {isMutating && (
         <Box className="busy-overlay-message">
           <Loader size="sm" mr={8} />
-          <Text size="sm" c="dimmed">Saving…</Text>
+          <Text size="sm" c="secondary" fw={500}>Saving…</Text>
         </Box>
       )}
 
@@ -387,7 +385,7 @@ function QueueManager() {
         {queueLoading || scheduleLoading ? (
           <Group justify="space-between" align="center">
             <Skeleton height={40} width={120} radius="md" />
-            <Text size="sm" c="dimmed" italic>{loadingMessage}</Text>
+            <Text size="sm" c="secondary" fw={500} italic>{loadingMessage}</Text>
           </Group>
         ) : (
           <Group justify="space-between" align="center">
@@ -427,7 +425,7 @@ function QueueManager() {
               )}
               {user && !canEdit && !isAdmin && hasPendingRequest && (
                 <Button variant="subtle" size="sm" disabled>
-                  Request Pending use
+                  Request Pending
                 </Button>
               )}
               {user && canActuallyEdit && isMallOpen && queue.length > 0 && (

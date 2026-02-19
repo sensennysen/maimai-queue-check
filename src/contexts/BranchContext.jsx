@@ -14,6 +14,56 @@ export const BranchProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
+  const loadBranches = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Load branches ONLY, do not request location automatically on app load
+      const allBranches = await branchService.getAllBranches();
+
+      setBranches(allBranches);
+
+      if (allBranches.length === 0) {
+        setError('No branches found');
+        return;
+      }
+
+      // Logic to select branch
+      // 1. Check for saved branch
+      const savedBranchId = localStorage.getItem(STORAGE_KEY);
+      if (savedBranchId) {
+        const savedBranch = allBranches.find(b => b.id === savedBranchId);
+        if (savedBranch) {
+          setSelectedBranchState(savedBranch);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 2. Select nearest branch if location available (unlikely on first load now), otherwise first
+      // We keep the logic in case location is set elsewhere before this runs, though unlikely.
+      if (userLocation && allBranches.length > 0) {
+        const sorted = [...allBranches].sort((a, b) => {
+          const distA = getDistance(userLocation, { latitude: a.latitude, longitude: a.longitude });
+          const distB = getDistance(userLocation, { latitude: b.latitude, longitude: b.longitude });
+          return distA - distB;
+        });
+        setSelectedBranchState(sorted[0]);
+        localStorage.setItem(STORAGE_KEY, sorted[0].id);
+      } else {
+        // Default to first branch alphabetically (as sorted by DB or service)
+        setSelectedBranchState(allBranches[0]);
+        localStorage.setItem(STORAGE_KEY, allBranches[0].id);
+      }
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [userLocation]); // Re-run if userLocation changes
+
   const setSelectedBranch = useCallback((branch) => {
     setSelectedBranchState(branch);
     localStorage.setItem(STORAGE_KEY, branch.id);
@@ -99,7 +149,7 @@ export const BranchProvider = ({ children }) => {
   // Load branches and detect nearest on mount
   useEffect(() => {
     loadBranches();
-  }, []);
+  }, [loadBranches]); // Added loadBranches to dependency array
 
   // Set up real-time subscription for branch changes
   useEffect(() => {
@@ -124,59 +174,6 @@ export const BranchProvider = ({ children }) => {
       supabase.removeChannel(channel);
     };
   }, [handleBranchChange]);
-
-  const loadBranches = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Load branches and request location concurrently
-      // Use catch on location promise to prevent it from failing the whole Promise.all
-      const [allBranches, location] = await Promise.all([
-        branchService.getAllBranches(),
-        requestUserLocation().catch(() => null)
-      ]);
-
-      setBranches(allBranches);
-      if (location) setUserLocation(location);
-
-      if (allBranches.length === 0) {
-        setError('No branches found');
-        return;
-      }
-
-      // Logic to select branch
-      // 1. Check for saved branch
-      const savedBranchId = localStorage.getItem(STORAGE_KEY);
-      if (savedBranchId) {
-        const savedBranch = allBranches.find(b => b.id === savedBranchId);
-        if (savedBranch) {
-          setSelectedBranchState(savedBranch);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // 2. Select nearest branch if location available, otherwise first
-      if (location && allBranches.length > 0) {
-        const sorted = [...allBranches].sort((a, b) => {
-          const distA = getDistance(location, { latitude: a.latitude, longitude: a.longitude });
-          const distB = getDistance(location, { latitude: b.latitude, longitude: b.longitude });
-          return distA - distB;
-        });
-        setSelectedBranchState(sorted[0]);
-        localStorage.setItem(STORAGE_KEY, sorted[0].id);
-      } else {
-        setSelectedBranchState(allBranches[0]);
-        localStorage.setItem(STORAGE_KEY, allBranches[0].id);
-      }
-
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Refresh user location
   const refreshLocation = async () => {

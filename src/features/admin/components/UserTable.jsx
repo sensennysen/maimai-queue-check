@@ -317,7 +317,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
           <Center>
             <Stack align="center" gap="sm">
               <IconUsers size={48} opacity={0.3} />
-              <Text c="dimmed">{searchQuery ? 'No users match your search' : 'No users found'}</Text>
+              <Text c="secondary" fw={500}>{searchQuery ? 'No users match your search' : 'No users found'}</Text>
             </Stack>
           </Center>
         </Paper>
@@ -377,7 +377,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
                         <Text size="sm" lineClamp={1} title={user.email}>{user.email}</Text>
                       </Table.Td>
                       <Table.Td>
-                        <Text size="sm" c={user.display_name ? 'inherit' : 'dimmed'} lineClamp={1} title={user.display_name}>
+                        <Text size="sm" c={user.display_name ? 'inherit' : 'secondary'} lineClamp={1} title={user.display_name}>
                           {user.display_name || '-'}
                         </Text>
                       </Table.Td>
@@ -396,7 +396,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
                                 );
                               })
                             ) : (
-                              <Text size="sm" c="dimmed">-</Text>
+                              <Text size="sm" c="secondary">-</Text>
                             )}
                           </Group>
                         </Table.Td>
@@ -423,7 +423,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
                                   );
                                 })
                               ) : (
-                                <Text size="sm" c="dimmed">-</Text>
+                                <Text size="sm" c="secondary">-</Text>
                               )}
                             </Group>
                           </Table.Td>
@@ -473,7 +473,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
             </Group>
           )}
 
-          <Text size="xs" c="dimmed" ta="center">
+          <Text size="xs" c="secondary" ta="center">
             Showing {users.length} of {totalCount} users
           </Text>
         </Stack>
@@ -492,7 +492,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
         size="lg"
       >
         <Stack gap="md">
-          <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
+          <Text size="sm" c="secondary" fw={500} style={{ marginTop: '1rem' }}>
             Editing: {userToEdit?.email}
           </Text>
 

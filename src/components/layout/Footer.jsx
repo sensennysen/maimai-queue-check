@@ -3,6 +3,7 @@ import { Text, Group, Anchor, Stack } from '@mantine/core';
 import IconMail from '@tabler/icons-react/dist/esm/icons/IconMail.mjs';
 import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
 import IconShieldLock from '@tabler/icons-react/dist/esm/icons/IconShieldLock.mjs';
+import IconHeart from '@tabler/icons-react/dist/esm/icons/IconHeart.mjs';
 import ChangelogModal from '../modals/ChangelogModal';
 import PrivacyModal from '../modals/PrivacyModal';
 import './Footer.css';
@@ -10,7 +11,6 @@ import './Footer.css';
 function Footer() {
   const [changelogOpened, setChangelogOpened] = useState(false);
   const [privacyOpened, setPrivacyOpened] = useState(false);
-  const currentYear = new Date().getFullYear();
 
   return (
     <footer className="footer">
@@ -28,7 +28,7 @@ function Footer() {
             </Text>
           </Group>
 
-          <Text size="sm" c="dimmed" className="footer-divider">•</Text>
+          <Text size="sm" c="secondary" className="footer-divider">•</Text>
 
           <Group
             gap="xs"
@@ -42,7 +42,7 @@ function Footer() {
             </Text>
           </Group>
 
-          <Text size="sm" c="dimmed" className="footer-divider">•</Text>
+          <Text size="sm" c="secondary" className="footer-divider">•</Text>
 
           <Group
             gap="xs"
@@ -54,10 +54,14 @@ function Footer() {
             <Text size="sm" className="footer-link-text">Contact</Text>
           </Group>
 
+
+
+
+
         </Group>
 
-        <Text size="xs" c="dimmed" className="footer-copyright">
-          © {currentYear} Made with ❤️ by Senny
+        <Text size="xs" c="secondary" className="footer-copyright">
+          © {new Date().getFullYear()} Made with <IconHeart size={12} fill="var(--theme-primary)" color="var(--theme-primary)" style={{ verticalAlign: 'middle', marginBottom: 2 }} /> by Senny
         </Text>
       </Stack>
 

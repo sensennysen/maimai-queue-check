@@ -22,12 +22,12 @@
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     max-width: 100%;
   }
-  
+
   /* Limit to max 2 columns when there are 2+ cabinets */
   .monitor-grid:has(.cabinet-column:nth-child(2)) {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   /* Single cabinet takes full width */
   .monitor-grid:has(.cabinet-column:only-child) {
     grid-template-columns: 1fr;
@@ -55,7 +55,7 @@
   font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--mantine-color-dimmed);
+  color: var(--theme-secondary);
   margin-bottom: 0.75rem;
   margin-top: 1.5rem;
 }
@@ -104,7 +104,7 @@
 .monitor-empty {
   text-align: center;
   padding: 2rem;
-  color: var(--mantine-color-dimmed);
+  color: var(--theme-text-muted);
   font-style: italic;
 }
 

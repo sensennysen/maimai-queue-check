@@ -88,8 +88,8 @@ const ContactPage = () => {
             <Title order={2}>Contact Us</Title>
           </Group>
 
-          <Text c="dimmed">
-            Have a bug to report, or a suggestion for improvement? Let us know!
+          <Text c="secondary" size="lg" mb="xl">
+            Have a bug report or a suggestion? We'd love to hear from you.
           </Text>
 
           <form onSubmit={form.onSubmit(handleSubmit)}>

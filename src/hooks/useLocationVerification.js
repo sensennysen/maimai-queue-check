@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { useBranch } from './useBranch';
-import { verifyUserLocationAndPermissions, checkGeolocationPermission, requestUserLocation, findNearestBranch } from '../services/geolocation';
+import { verifyUserLocationAndPermissions, checkGeolocationPermission, findNearestBranch } from '../services/geolocation';
 import { ERRORS } from '../constants/queue';
 
 /**
@@ -10,7 +10,7 @@ import { ERRORS } from '../constants/queue';
  */
 export const useLocationVerification = () => {
   const { user, userRoles } = useAuth();
-  const { selectedBranch, setSelectedBranch, branches } = useBranch();
+  const { selectedBranch, setSelectedBranch, branches, refreshLocation } = useBranch();
 
   const [locationVerified, setLocationVerified] = useState(false);
   const [locationError, setLocationError] = useState(null);
@@ -155,8 +155,8 @@ export const useLocationVerification = () => {
     setGeolocationConsent('pending');
 
     try {
-      // Request location from browser
-      const location = await requestUserLocation();
+      // Request location from browser via BranchContext to ensure global state update
+      const location = await refreshLocation();
       
       // Success - mark as granted
       setGeolocationConsent('granted');
@@ -184,7 +184,7 @@ export const useLocationVerification = () => {
       setLocationCheckInProgress(false);
       setHasAttemptedVerification(true);
     }
-  }, [branches, setSelectedBranch, verifyLocation]);
+  }, [branches, setSelectedBranch, verifyLocation, refreshLocation]);
 
   // Handle when user declines consent modal
   const handleConsentDeclined = useCallback(() => {

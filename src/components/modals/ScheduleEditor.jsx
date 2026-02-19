@@ -149,12 +149,12 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
     >
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
-          <Text size="sm" c="dimmed" style={{ marginTop: '1rem' }}>
-            {branch?.arcade_name}
+          <Text size="sm" c="secondary" fw={500} style={{ marginTop: '1rem' }}>
+            Editing schedule for: {branch?.arcade_name}
           </Text>
 
           {loadingData ? (
-            <Text ta="center" c="dimmed">Loading schedules...</Text>
+            <Text ta="center" c="secondary" fw={500}>Loading schedules...</Text>
           ) : (
             <Paper p="md" withBorder className="schedule-container">
               <ScrollArea>

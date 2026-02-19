@@ -159,7 +159,7 @@ export default function ViewPage() {
 
   // Render Schedule List helper
   const renderSchedule = () => {
-    if (!schedule || schedule.length === 0) return <Text c="dimmed">No schedule available</Text>;
+    if (!schedule || schedule.length === 0) return <Text c="secondary" italic>No schedule available</Text>;
 
     // Sort days if needed, but usually API passes them in order or we can just map
     // Assuming schedule comes in a reasonable order or we map simply
@@ -221,7 +221,7 @@ export default function ViewPage() {
             <Stack align="center" gap="md">
               <IconClockOff size={60} color="var(--theme-text-muted)" />
               <Title order={2}>This arcade is currently closed</Title>
-              <Text c="dimmed">Operating Hours:</Text>
+              <Text c="secondary" fw={600} tt="uppercase" lts={1} size="xs">Operating Hours</Text>
               {renderSchedule()}
             </Stack>
           </Paper>

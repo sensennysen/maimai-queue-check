@@ -28,7 +28,10 @@
   color: var(--theme-text-primary);
   background-color: var(--theme-background);
 
-  font-synthesis: none;
+  /* Override Mantine's default gray dimmed color with our theme's muted text color */
+  --mantine-color-dimmed: var(--theme-text-muted) !important;
+
+  /* font-synthesis: none; */
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -222,13 +225,28 @@ html {
 [data-theme="dark"] {
   --mantine-color-body: var(--theme-background);
   --mantine-color-text: var(--theme-text-primary);
+  --mantine-color-dimmed: var(--theme-text-muted);
   color-scheme: dark;
 }
 
 [data-theme="light"] {
   --mantine-color-body: var(--theme-background);
   --mantine-color-text: var(--theme-text-primary);
+  --mantine-color-dimmed: var(--theme-text-muted);
   color-scheme: light;
+}
+
+/* Utility classes for text */
+.text-muted {
+  color: var(--theme-text-muted) !important;
+}
+
+.text-primary {
+  color: var(--theme-primary) !important;
+}
+
+.text-secondary {
+  color: var(--theme-secondary) !important;
 }
 
 /* Override Mantine Paper backgrounds to use our theme */
@@ -258,13 +276,13 @@ html {
 }
 
 /* Ensure proper text contrast in different themes */
-.mantine-Text-root {
+/* .mantine-Text-root {
   color: inherit !important;
 }
 
 .mantine-Title-root {
   color: inherit !important;
-}
+} */
 
 /* Override Mantine Stack and Group backgrounds */
 .mantine-Stack-root,

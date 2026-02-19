@@ -33,8 +33,8 @@ function LocationPermissionModal({ opened, onClose, onRequestLocation, onDecline
     >
       <Stack gap="xl" py="sm">
         <div>
-          <Text fw={600} size="lg" c="dimmed" mb="sm">
-            Why we need your location
+          <Text fw={600} size="lg" c="secondary" mb="sm">
+            Location Access Required
           </Text>
 
           <List
@@ -46,7 +46,7 @@ function LocationPermissionModal({ opened, onClose, onRequestLocation, onDecline
             <List.Item>
               <Stack gap={6}>
                 <Text fw={600} size="lg">Auto-detect nearest arcade</Text>
-                <Text size="md" c="dimmed" lh={1.6}>
+                <Text size="md" c="secondary" lh={1.6}>
                   Automatically select the branch closest to you for a seamless experience.
                 </Text>
               </Stack>
@@ -55,20 +55,8 @@ function LocationPermissionModal({ opened, onClose, onRequestLocation, onDecline
             <List.Item>
               <Stack gap={6}>
                 <Text fw={600} size="lg">Edit the queue in real-time</Text>
-                <Text size="md" c="dimmed" lh={1.6}>
-                  Add, remove, or manage queue entries when you're at the arcade.
-                </Text>
-              </Stack>
-            </List.Item>
-
-            <List.Item>
-              <Stack gap={6}>
-                <Text fw={600} size="lg">Proximity verification</Text>
-                <Text size="md" c="dimmed" lh={1.6}>
-                  You must be within 100 meters of the arcade to edit the queue.
-                </Text>
-                <Text size="sm" c="dimmed" fs="italic" mt={2} lh={1.5}>
-                  * Your location is only used to verify proximity and is never stored.
+                <Text size="md" c="secondary" lh={1.6}>
+                  mpqCheckPH needs your location to verify that you are physically at the branch.
                 </Text>
               </Stack>
             </List.Item>

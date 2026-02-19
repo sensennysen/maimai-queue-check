@@ -142,12 +142,26 @@
   gap: 1rem;
 }
 
+@media (max-width: 768px) {
+  .current-players {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 .player-display {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   flex: 1;
   min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .player-display {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
 }
 
 .playing-player {
@@ -239,6 +253,13 @@
   transition: all 0.2s ease;
   min-height: 44px;
   white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .finish-game-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .finish-game-btn:hover {

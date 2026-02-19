@@ -65,7 +65,7 @@ export function ScoreCard({ score }) {
               {difficultyLabel}
             </Badge>
             {score.level && (
-              <Text size="xs" c="dimmed" fw={600}>
+              <Text size="xs" c="secondary" fw={600}>
                 {score.level.toFixed(1)}
               </Text>
             )}
@@ -75,7 +75,7 @@ export function ScoreCard({ score }) {
           <Group gap="xs" mt={4} align="flex-end" justify="space-between" style={{ width: '100%' }}>
             <Box>
               <Text size="lg" fw={800} style={{ lineHeight: 1 }}>
-                {score.achievement}%
+                {parseFloat(score.achievement).toFixed(4)}%
               </Text>
               <Text size="md" fw={700}>
                 {scoreGrade}
