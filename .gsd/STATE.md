@@ -1,3 +1,20 @@
+# State Snapshot - Song Database Header Redesign
+
+**Objective:** Redesign the song database header to match the profile page's premium aesthetic and structure.
+
+**Changes:**
+- **Redesigned Header Card**: Replaced the custom hologram Box with a standard `Paper` component (shadow, border, radius) for consistency with profile sections.
+- **Avatar Integration**: Added a circular `Avatar` with a music icon to the header.
+- **Navigation Refactor**: Moved the "Back to queue" button above the header card, following the navigation pattern of the public profile page.
+- **Responsive Layout**: Optimized the header for both mobile and desktop, ensuring the `ThemeToggle` is appropriately placed.
+
+**Files Touched:**
+- `src/features/songs/components/SongDatabase.jsx`
+
+**Verification:**
+- Verified with `npm run lint` (Exit code 0 after fixing unused variables).
+- Manual verification of layout behavior across breakpoints.
+
 # State Snapshot - Query and View Page Optimizations
 
 **Objective:** Optimize Supabase queries and the View Page to reduce data transfer and eliminate background fetching of the song database.

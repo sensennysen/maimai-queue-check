@@ -1,13 +1,12 @@
-import { Container, Title, Box, Group, ActionIcon, Stack } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
-import { IconArrowLeft } from '@tabler/icons-react';
+import { Container, Title, Box, Group, ActionIcon, Stack, Paper, Avatar, Button, Text } from '@mantine/core';
+import { Link } from 'react-router-dom';
+import { IconArrowLeft, IconMusic } from '@tabler/icons-react';
 import ThemeToggle from '../../../components/layout/ThemeToggle';
 import SongFilters from './SongFilters';
 import SongList from './SongList';
 import { useSongDatabase } from '../../../hooks/useSongDatabase';
 
 function SongDatabase() {
-  const navigate = useNavigate();
   const {
     loading,
     filters,
@@ -17,42 +16,53 @@ function SongDatabase() {
     versions,
     levels,
     internalLevels,
-    error
+    error,
+    songs
   } = useSongDatabase();
 
   return (
     <Container size="xl" pt="xl" pb="xl">
-      <Stack gap="xl">
-        <Box
-          className="hologram-card animate-fade-in"
-          p="xl"
-          style={{
-            borderRadius: '24px',
-            background: 'linear-gradient(135deg, color-mix(in srgb, var(--theme-primary), transparent 90%), color-mix(in srgb, var(--theme-secondary), transparent 90%))',
-            border: '1px solid color-mix(in srgb, var(--theme-text-primary), transparent 80%)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.05)'
-          }}
-        >
-          <Group justify="space-between" align="center">
-            <Group>
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                size="xl"
-                radius="xl"
-                onClick={() => navigate('/')}
+      <Stack gap="lg">
+        {/* Back Button / Navigation */}
+        <Group justify="space-between">
+          <Button
+            component={Link}
+            to="/"
+            variant="subtle"
+            leftSection={<IconArrowLeft size={18} />}
+            className="animate-fade-in"
+          >
+            Back to queue
+          </Button>
+        </Group>
+
+        {/* redesigned Header Card */}
+        <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-100">
+          <Group wrap="nowrap" justify="space-between" align="center">
+            <Group wrap="nowrap" style={{ flex: 1 }}>
+              <Avatar
+                size={70}
+                radius={70}
+                color="primary"
+                variant="light"
               >
-                <IconArrowLeft size={24} />
-              </ActionIcon>
-              <Stack gap={0}>
-                <Title order={1} style={{ fontSize: '2rem', fontFamily: 'var(--font-heading)' }}>
+                <IconMusic size={35} />
+              </Avatar>
+
+              <Stack gap={4}>
+                <Title order={1} style={{ fontSize: '1.75rem', lineHeight: 1.2 }}>
                   Song Database
                 </Title>
+                <Text size="sm" c="dimmed" fw={500}>
+                  Explore and filter all available songs in the database
+                </Text>
               </Stack>
             </Group>
-            <ThemeToggle />
+            <Box hiddenFrom="sm">
+              <ThemeToggle />
+            </Box>
           </Group>
-        </Box>
+        </Paper>
 
         {/* Layout Grid */}
         <div style={{
