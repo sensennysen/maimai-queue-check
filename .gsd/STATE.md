@@ -1,3 +1,23 @@
+# State Snapshot - v1.7.0 Changelog Finalized
+
+**Objective:** Finalize the changelog for version 1.7.0 with community credits and detailed feature descriptions.
+
+**Changes:**
+- **Changelog UI**: Added v1.7.0 to `src/data/changelog.js`.
+- **Feature Highlights**:
+    - **User Profile**: Linked profile sharing, favorites, and Best 50 (Credits: albinokoi).
+    - **Queue Rules**: Custom rules for branch admins (Credits: UPTC maimai community).
+    - **Song Database**: SEARCH/FAV/PLAYLIST integration (Credits: zetaraku).
+    - **Privacy**: RA 10173 compliance.
+    - **Redesign**: Consistent header aesthetics across database and profile.
+
+**Files Touched:**
+- `src/data/changelog.js`
+
+**Verification:**
+- User-approved final content.
+- `npm run lint` verified.
+
 # State Snapshot - Privacy Policy Update (RA 10173)
 
 **Objective:** Update the site's privacy policy to comply with Philippines Data Privacy Laws (RA 10173).
