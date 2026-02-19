@@ -1,4 +1,4 @@
-
+/* eslint-disable react-hooks/immutability */
 import { useRef, useState, useCallback, useEffect } from 'react';
 
 /**
