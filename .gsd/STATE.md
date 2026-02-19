@@ -1,43 +1,37 @@
-# State Snapshot - Profile UI & Interactivity Polish
+# State Snapshot - Profile Loading & Consolidation
 
-**Objective:** Enhance the user experience on the profile page with horizontal scrolling, drag-to-scroll interactivity, responsive score metrics, and unlimited favorites.
+**Objective:** Clean up redundant codebase components, simplify the loading experience, and unify all user profile interactions under the slug-based system.
 
 **Changes:**
-- **Profile Layout**:
-    - Moved Maimai DX name/rating to "Best 50" section.
-    - Implemented responsive score summaries: desktop shows centralized totals; mobile shows totals per section.
-- **Playlist UI**:
-    - Enabled horizontal scrolling and drag-to-scroll (desktop) for playlists.
-    - Moved "New Playlist" button to section header.
-    - Relocated Delete button from Edit modal to Detail/View modal.
-    - Reduced spacing and hidden scrollbars for a premium feel.
-- **Favorite Songs**:
-    - Removed the 5-song limit.
-    - Enabled horizontal scrolling and drag-to-scroll.
-- **Service Layer**: 
-    - Fixed notification query by removing non-existent `user_id` column.
-- **Interactivity**: 
-    - Created `useMouseDragScroll` hook with `window` listeners and selection prevention.
-    - Disabled image/ghost dragging on scrollable cards.
+- **Loading UI**:
+    - Replaced intrusive `LoadingOverlay` with a centered `Loader` and `Text` in `PublicProfilePage.jsx`.
+    - Simplified the application's global `Suspense` fallback in `App.jsx` to match.
+    - Fixed missing `Loader` imports in both files.
+- **Consolidation**:
+    - Removed redundant `ProfilePage.jsx`.
+    - Consolidated all profile traffic into `PublicProfilePage.jsx`.
+    - Implemented a smart `ProfileRedirect` in `App.jsx` to route `/profile` to the user's personal slug.
+- **Slug Management**:
+    - Fixed `supabase.js` query to fetch `slug` and `slug_updated_at` reliably.
+    - Updated `ProfileSettingsModal.jsx` to lock slug editing once established.
+- **Data Coordination**:
+    - Refactored `useSongDatabase` and multiple sections to use `SongDatabaseProvider`, ensuring data is fetched once and loading states are perfectly synchronized.
 
 **Files Touched:**
+- `src/App.jsx`
+- `src/pages/PublicProfilePage.jsx`
+- `src/pages/ProfilePage.jsx` (DELETED)
+- `src/components/profile/ProfileSettingsModal.jsx`
 - `src/services/supabase.js`
-- `src/pages/ProfilePage.jsx`
-- `src/components/profile/PlaylistSection.jsx`
-- `src/components/profile/FavoriteSongsSection.jsx`
-- `src/hooks/useMouseDragScroll.js`
-- `src/components/profile/PlaylistDetailModal.jsx`
-- `src/components/profile/PlaylistEditModal.jsx`
-- `src/components/profile/PlaylistStack.jsx`
-- `src/components/profile/FavoriteSongCard.jsx`
-- `src/components/profile/PlaylistStack.css`
+- `src/hooks/useSongDatabase.js`
+- `src/contexts/SongDatabaseContext.jsx`
 
 **Verification:**
-- Verified drag-to-scroll on desktop across both sections.
-- Verified responsive score visibility at 640px breakpoint.
-- Verified unlimited favorites adding.
-- Verified no selection/ghost dragging during scroll.
+- Verified no "grey box" appears during loading.
+- Verified `/profile` redirects to `/p/:slug` for logged-in users.
+- Verified slug is visible but immutable in Settings.
+- Verified lint-clean codebase.
 
 **Next Wave TODO:**
-- Implement "View All" or pagination if favorites/playlists grow too large.
-- Add visual feedback (e.g., arrow icons) for horizontal scrolling on desktop for better affordance.
+- Implement 60-day cooldown visual countdown in the Slug settings.
+- Add error boundaries to the Profile sections for more robust fault tolerance.
