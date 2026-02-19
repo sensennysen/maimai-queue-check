@@ -9,7 +9,7 @@ import {
 import {
   IconUser, IconTrophy, IconMapPin, IconAlertCircle,
   IconArrowLeft, IconStar, IconLock, IconLogin,
-  IconSettings, IconUpload, IconCamera
+  IconSettings, IconUpload, IconCamera, IconTrash
 } from '@tabler/icons-react';
 import MaimaiImportModal from '../components/profile/MaimaiImportModal';
 import ProfileSettingsModal from '../components/profile/ProfileSettingsModal';
@@ -67,6 +67,22 @@ const PublicProfilePage = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, fetchData]); // Removed profile dependency to prevent infinite loop
+
+  const handleClearData = async () => {
+    if (!window.confirm('Are you sure you want to clear your Best 50 scores, maimai DX name, and profile photo? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await userService.clearMaimaiData(user.id);
+      await fetchData();
+    } catch (err) {
+      console.error('Error clearing data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const isOwner = profile?.id === user?.id;
 
@@ -218,14 +234,14 @@ const PublicProfilePage = () => {
                   )}
                 </Group>
 
-                {privacy.show_main_branch && mainBranchName && (
+                {(privacy.show_main_branch || isOwner) && mainBranchName && (
                   <Group gap={4} align="center">
                     <IconMapPin size={14} style={{ color: 'var(--theme-primary)' }} />
                     <Text size="sm" fw={500}>Main Branch: {mainBranchName}</Text>
                   </Group>
                 )}
 
-                {privacy.show_preferred_branches && preferredBranchNames.length > 0 && (
+                {(privacy.show_preferred_branches || isOwner) && preferredBranchNames.length > 0 && (
                   <Group gap={6} align="center" wrap="wrap">
                     <IconStar size={14} style={{ color: 'var(--theme-accent)' }} />
                     <Text size="sm">Preferred:</Text>
@@ -237,13 +253,13 @@ const PublicProfilePage = () => {
 
                 {/* Mobile: DX Name + Rating inline */}
                 <Stack gap={2} hiddenFrom="sm">
-                  {privacy.show_maimai_name && profile.maimai_dx_name && (
+                  {(privacy.show_maimai_name || isOwner) && profile.maimai_dx_name && (
                     <Group gap={4} align="center">
                       <Text size="sm" fw={600}>DX Name:</Text>
                       <Text size="sm">{profile.maimai_dx_name}</Text>
                     </Group>
                   )}
-                  {privacy.show_dx_rating && profile.maimai_best_scores?.totalRating && (
+                  {(privacy.show_dx_rating || isOwner) && profile.maimai_best_scores?.totalRating && (
                     <Group gap={4} align="center">
                       <Text size="sm" fw={600}>Rating:</Text>
                       <Text size="sm" fw={700} c="primary">{profile.maimai_best_scores.totalRating}</Text>
@@ -254,13 +270,13 @@ const PublicProfilePage = () => {
             </Group>
 
             <Stack gap={0} align="flex-end" visibleFrom="sm">
-              {privacy.show_maimai_name && profile.maimai_dx_name && (
+              {(privacy.show_maimai_name || isOwner) && profile.maimai_dx_name && (
                 <Group gap={4}>
                   <Text size="sm" c="secondary" fw={500}>maimai DX Name:</Text>
                   <Text size="sm" fw={600}>{profile.maimai_dx_name}</Text>
                 </Group>
               )}
-              {privacy.show_dx_rating && profile.maimai_best_scores?.totalRating && (
+              {(privacy.show_dx_rating || isOwner) && profile.maimai_best_scores?.totalRating && (
                 <Stack gap={0} align="flex-end" mt={4}>
                   <Text size="xs" fw={700} c="secondary" tt="uppercase" lts={1}>Rating</Text>
                   <Text size="xl" fw={900} c="primary" style={{ fontSize: '2.5rem', lineHeight: 1 }}>
@@ -287,7 +303,7 @@ const PublicProfilePage = () => {
         )}
 
         {/* Best 50 Section */}
-        {(privacy.show_best_50 || isOwner) && profile.maimai_best_scores && (
+        {(privacy.show_best_50 || isOwner) && (
           <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-400">
             <Group justify="space-between" mb="xl">
               <Group gap="xs">
@@ -304,43 +320,72 @@ const PublicProfilePage = () => {
                   >
                     {isMobile ? 'Import' : 'Import Scores'}
                   </Button>
-                  <Button
-                    leftSection={<IconCamera size={18} />}
-                    variant="light"
-                    color="secondary"
-                    size="sm"
-                    onClick={() => window.open('/profile/export', '_blank')}
-                  >
-                    {isMobile ? 'Export' : 'Export Image'}
-                  </Button>
+                  {profile.maimai_best_scores && (
+                    <>
+                      <Button
+                        leftSection={<IconCamera size={18} />}
+                        variant="light"
+                        color="secondary"
+                        size="sm"
+                        onClick={() => window.open('/profile/export', '_blank')}
+                      >
+                        {isMobile ? 'Export' : 'Export Image'}
+                      </Button>
+                      <Button
+                        leftSection={<IconTrash size={18} />}
+                        variant="light"
+                        color="red"
+                        size="sm"
+                        onClick={handleClearData}
+                      >
+                        {isMobile ? 'Clear' : 'Clear Data'}
+                      </Button>
+                    </>
+                  )}
                 </Group>
               )}
             </Group>
 
-            <Stack gap="xl">
-              {profile.maimai_best_scores.new?.songs?.length > 0 && (
+            {profile.maimai_best_scores ? (
+              <Stack gap="md">
                 <div>
                   <Title order={3} mb="md">Best 15 (New)</Title>
-                  <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                    {profile.maimai_best_scores.new.songs.map((score, index) => (
-                      <ScoreCard key={`new-${index}`} score={score} />
-                    ))}
-                  </SimpleGrid>
+                  {profile.maimai_best_scores.new?.songs?.length > 0 ? (
+                    <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                      {profile.maimai_best_scores.new.songs.map((score, index) => (
+                        <ScoreCard key={`new-${index}`} score={score} />
+                      ))}
+                    </SimpleGrid>
+                  ) : (
+                    <Alert icon={<IconAlertCircle size={16} />} color="gray" variant="light">
+                      The user hasn't played new songs yet
+                    </Alert>
+                  )}
                 </div>
-              )}
 
-              {profile.maimai_best_scores.old?.songs?.length > 0 && (
                 <div>
-                  <Divider my="xl" />
+                  <Divider my="md" />
                   <Title order={3} mb="md">Best 35 (Old)</Title>
-                  <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                    {profile.maimai_best_scores.old.songs.map((score, index) => (
-                      <ScoreCard key={`old-${index}`} score={score} />
-                    ))}
-                  </SimpleGrid>
+                  {profile.maimai_best_scores.old?.songs?.length > 0 ? (
+                    <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                      {profile.maimai_best_scores.old.songs.map((score, index) => (
+                        <ScoreCard key={`old-${index}`} score={score} />
+                      ))}
+                    </SimpleGrid>
+                  ) : (
+                    <Alert icon={<IconAlertCircle size={16} />} color="gray" variant="light">
+                      The user hasn't played old songs yet
+                    </Alert>
+                  )}
                 </div>
-              )}
-            </Stack>
+              </Stack>
+            ) : (
+              <Alert icon={<IconAlertCircle size={16} />} title="No Best 50" color="gray" variant="light">
+                {isOwner
+                  ? "Display your Best 50 starting by clicking on the import button"
+                  : "This user hasn't imported their Best 50 yet"}
+              </Alert>
+            )}
           </Paper>
         )}
 
@@ -348,31 +393,33 @@ const PublicProfilePage = () => {
       </Stack>
 
       {/* Modals for Owner */}
-      {isOwner && (
-        <>
-          <MaimaiImportModal
-            opened={isImportModalOpen}
-            onClose={() => setIsImportModalOpen(false)}
-            userId={user.id}
-            onSuccess={fetchData}
-          />
-          <ProfileSettingsModal
-            opened={isSettingsModalOpen}
-            onClose={() => setIsSettingsModalOpen(false)}
-            userId={user.id}
-            initialData={profile}
-            allBranches={branches}
-            onSuccess={(newSlug) => {
-              if (newSlug && newSlug !== slug) {
-                navigate(`/p/${newSlug}`, { replace: true });
-              } else {
-                fetchData();
-              }
-            }}
-          />
-        </>
-      )}
-    </Container>
+      {
+        isOwner && (
+          <>
+            <MaimaiImportModal
+              opened={isImportModalOpen}
+              onClose={() => setIsImportModalOpen(false)}
+              userId={user.id}
+              onSuccess={fetchData}
+            />
+            <ProfileSettingsModal
+              opened={isSettingsModalOpen}
+              onClose={() => setIsSettingsModalOpen(false)}
+              userId={user.id}
+              initialData={profile}
+              allBranches={branches}
+              onSuccess={(newSlug) => {
+                if (newSlug && newSlug !== slug) {
+                  navigate(`/p/${newSlug}`, { replace: true });
+                } else {
+                  fetchData();
+                }
+              }}
+            />
+          </>
+        )
+      }
+    </Container >
   );
 };
 

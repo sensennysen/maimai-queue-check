@@ -358,6 +358,27 @@ export const userService = {
 
     if (error) throw error;
     return data;
+  },
+
+  // Clear maimai related data (scores, photo, name)
+  async clearMaimaiData(userId) {
+    if (!userId) throw new Error('User ID is required');
+
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update({
+        maimai_best_scores: null,
+        maimai_scores_updated_at: null,
+        display_photo_url: null,
+        maimai_dx_name: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 };
 
