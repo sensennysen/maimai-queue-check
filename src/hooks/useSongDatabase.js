@@ -75,9 +75,8 @@ export function useSongDatabase() {
   }, [songs]);
 
   const filteredSongs = useMemo(() => {
-    const hasLevelFilter = filters.levelMin !== '' || filters.levelMax !== '';
-
-    return songs.filter(song => {
+    const filtered = songs.filter(song => {
+      const hasLevelFilter = filters.levelMin !== '' || filters.levelMax !== '';
       // 0. Skip Unknown/Missing Metadata songs
       if (song.isMissingMetadata || song.category === 'Unknown') return false;
 
@@ -133,7 +132,10 @@ export function useSongDatabase() {
       }
 
       return true;
-    }).sort((a, b) => {
+    });
+    
+    // Sort a copy to ensure immutability
+    return [...filtered].sort((a, b) => {
       // 1. Sort by Version (Newest First)
       // Normalize version strings using mapping
       const versionA = VERSION_MAPPING[a.version] || a.version;

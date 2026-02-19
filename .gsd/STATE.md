@@ -1,32 +1,24 @@
-# State Snapshot - Feature Graduation & Navigation Cleanup
+# State Snapshot - Infinite Request Mitigation
 
-**Objective:** Graduate the Profile Tab feature to permanent status, remove experimental flag infrastructure, and optimize main navigation by moving the "Songs" link to the profile dropdown.
+**Objective:** Resolve issues where redundant or infinite network requests were being performed by the application, particularly in context providers and hooks.
 
 **Changes:**
-- **Feature Graduation**:
-    - Removed `profile_tab` from `EXPERIMENTAL_FEATURES` in `featureFlags.js` (array is now empty).
-    - Removed conditional rendering of the Profile menu item in `LoginForm.jsx`.
-    - Removed the "Experimental Features" section and `IconFlask` from `PreferencesModal.jsx`.
-- **Navigation Optimization**:
-    - Moved the "Songs" link from `Footer.jsx` to the profile dropdown in `LoginForm.jsx` for better accessibility.
-    - Cleaned up unused imports (`IconMusic`, `IconLogin`, `useFeatureFlags`) and variables across modified files.
-- **UI Refinement**:
-    - Renamed the "Experimental Features" modal title to "Preferences".
-    - Removed redundant dividers and spacing in `Footer.jsx` and `PreferencesModal.jsx`.
+- **Critical Fix**: Resolved an infinite re-render loop in `BranchContext.jsx` by adding a missing dependency array to the initialization `useEffect`.
+- **Refactoring**:
+    - Wrapped `loadBranches` in `useCallback` to prevent unnecessary downstream re-renders.
+    - Optimized `useSongDatabase.js` to use immutable operations (array spreading) before sorting, satisfying strict lint rules and ensuring stable `useMemo` references.
+- **Audit**:
+    - Audited `AuthContext.jsx`, `useQueueData.js`, and `useMonitorData.js` for similar issues; confirmed stability and correct usage of dependency arrays.
 
 **Files Touched:**
-- `src/constants/featureFlags.js`
-- `src/components/LoginForm.jsx`
-- `src/components/modals/PreferencesModal.jsx`
-- `src/components/layout/Footer.jsx`
+- `src/contexts/BranchContext.jsx`
+- `src/hooks/useSongDatabase.js`
 
 **Verification:**
-- Verified the "Profile" link is always visible in the dropdown for authenticated users.
-- Verified the "Songs" link is visible in the dropdown and removed from the footer.
-- Verified the "Experimental Features" section is gone from Preferences.
-- Ran `npm run lint` and confirmed no new errors were introduced in touched files.
+- Verified that network activity settles after initial load.
+- Observed `BranchContext` initialization running correctly on mount.
+- Confirmed that `npm run dev` remains stable with no recursion errors.
 
 **Next Wave TODO:**
 - Implement 60-day cooldown visual countdown in the Slug settings.
 - Add error boundaries to the Profile sections for more robust fault tolerance.
-
