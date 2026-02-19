@@ -94,14 +94,14 @@ export function PlaylistSection({ userId, isOwnProfile }) {
 
   if (isEverythingLoading && playlists.length === 0) {
     return (
-      <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl" style={{ minHeight: 150 }}>
+      <Paper shadow="sm" p="lg" radius="md" withBorder style={{ minHeight: 150 }}>
         <LoadingOverlay visible={true} />
       </Paper>
     );
   }
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl" pos="relative" className="playlist-section">
+    <Paper shadow="sm" p="lg" radius="md" withBorder pos="relative" className="playlist-section">
       <Group justify="space-between" mb="lg">
         <Group gap="xs">
           <IconPlaylist size={24} style={{ color: 'var(--theme-primary)' }} />

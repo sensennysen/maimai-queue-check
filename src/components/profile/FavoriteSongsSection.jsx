@@ -162,7 +162,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
   }
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl" pos="relative">
+    <Paper shadow="sm" p="lg" radius="md" withBorder pos="relative">
       <Group justify="space-between" mb="lg">
         <Group gap="xs">
           <IconHeart size={24} style={{ color: 'var(--mantine-color-red-6)' }} />
