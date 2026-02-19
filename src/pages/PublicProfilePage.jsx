@@ -27,7 +27,7 @@ const PublicProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isRestricted, setIsRestricted] = useState(false);
-  const { user } = useAuth();
+  const { user, refreshUserRoles } = useAuth();
   const isMobile = useMediaQuery('(max-width: 640px)');
   const navigate = useNavigate();
 
@@ -408,10 +408,12 @@ const PublicProfilePage = () => {
               userId={user.id}
               initialData={profile}
               allBranches={branches}
-              onSuccess={(newSlug) => {
+              onSuccess={async (newSlug) => {
                 if (newSlug && newSlug !== slug) {
+                  await refreshUserRoles();
                   navigate(`/p/${newSlug}`, { replace: true });
                 } else {
+                  await refreshUserRoles();
                   fetchData();
                 }
               }}

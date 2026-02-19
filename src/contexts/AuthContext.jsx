@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { authService, rolesService, supabase } from '../services/supabase';
 import { useBranch } from '../hooks/useBranch';
 import { AuthContext } from './AuthContextProvider';
@@ -28,6 +28,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Define fetch roles logic as a reusable function
+  // Define fetch roles logic as a reusable function
+  const refreshUserRoles = useCallback(async () => {
+    if (!user) return null;
+
+    // Fetch roles in background (non-blocking) with timeout
+    const branchId = selectedBranch?.id;
+    const rolesPromise = rolesService.getUserRoles(user.id, branchId);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Role fetch timeout')), 5000)
+    );
+
+    try {
+      const roles = await Promise.race([rolesPromise, timeoutPromise]);
+      setUserRoles(roles);
+      cacheRoles(user.id, roles);
+      return roles;
+    } catch {
+      // Set default permissions on error (keep existing permissions if available)
+      setUserRoles(prevRoles =>
+        prevRoles || {
+          user_id: user.id,
+          can_edit: false,
+          is_admin: false,
+          is_super_admin: false
+        }
+      );
+      return null;
+    }
+  }, [user, selectedBranch?.id]);
+
   useEffect(() => {
     // Listen for auth changes - this properly handles session restoration on page load
     let isMounted = true;
@@ -51,30 +82,15 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
 
         if (currentUser) {
-          // Fetch roles in background (non-blocking) with timeout
-          const branchId = selectedBranch?.id;
-          const rolesPromise = rolesService.getUserRoles(currentUser.id, branchId);
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Role fetch timeout')), 5000)
-          );
+          // We can't use the hoisted refreshUserRoles directly here because it depends on 'user' state 
+          // which is being set in this very callback. However, we can duplicate the logic 
+          // OR rely on the separate effect below that reacts to 'user' or 'selectedBranch'.
+          //
+          // ADDITIONALLY: We need to ensure we fetch based on the currentUser from the event, 
+          // not the closure 'user' which might be stale.
 
-          try {
-            const roles = await Promise.race([rolesPromise, timeoutPromise]);
-            if (isMounted) {
-              setUserRoles(roles);
-              cacheRoles(currentUser.id, roles);
-            }
-          } catch {
-            // Set default permissions on error (keep existing permissions if available)
-            if (isMounted) setUserRoles(prevRoles =>
-              prevRoles || {
-                user_id: currentUser.id,
-                can_edit: false,
-                is_admin: false,
-                is_super_admin: false
-              }
-            );
-          }
+          // To be safe and clean, let's just let the effect below handle the fetching
+          // when 'user' state updates.
         } else {
           if (isMounted) setUserRoles(null);
         }
@@ -87,15 +103,20 @@ export const AuthProvider = ({ children }) => {
       isMounted = false;
       subscription?.unsubscribe();
     };
-  }, [selectedBranch?.id]); // Re-subscribe/re-run when branch changes to ensure correct roles are fetched
+  }, []);
+
+  // Effect to fetch roles whenever user or branch changes
+  useEffect(() => {
+    if (user) {
+      refreshUserRoles();
+    }
+  }, [user, refreshUserRoles]);
 
   // Add real-time subscription for role and profile changes
   useEffect(() => {
     if (!user) {
       return;
     }
-
-    let isMounted = true;
 
     const rolesChannel = supabase
       .channel(`user-roles-${user.id}`)
@@ -111,7 +132,7 @@ export const AuthProvider = ({ children }) => {
           if (payload.eventType === 'DELETE') {
             // If role row deleted, we might still have a profile, but usually this means user gone?
             // For now, let's just re-fetch to be safe and consistent
-            rolesService.getUserRoles(user.id).then(setUserRoles);
+            refreshUserRoles();
           } else {
             const newData = payload.new;
             setUserRoles(prev => ({
@@ -119,19 +140,9 @@ export const AuthProvider = ({ children }) => {
               ...newData,
               is_admin: !!newData.is_admin,
               is_super_admin: !!newData.is_super_admin,
-              // If profile exists, its preferred_branches/name should take precedence,
-              // but we might not know if profile exists here without checking prev state.
-              // Strategy: If we have prev state, keep profile-specific overrides if they differ from legacy role data?
-              // Simpler: Just re-fetch everything to ensure correct precedence logic from getUserRoles is applied.
-              // It's safer and cleaner than duplicating merge logic here.
             }));
             // Trigger re-fetch to ensure consistency
-            rolesService.getUserRoles(user.id).then(roles => {
-              if (isMounted) {
-                setUserRoles(roles);
-                cacheRoles(user.id, roles);
-              }
-            });
+            refreshUserRoles();
           }
         }
       )
@@ -150,22 +161,16 @@ export const AuthProvider = ({ children }) => {
         () => {
           // Profile changed/added/deleted
           // Just re-fetch the merged world state
-          rolesService.getUserRoles(user.id).then(roles => {
-            if (isMounted) {
-              setUserRoles(roles);
-              cacheRoles(user.id, roles);
-            }
-          });
+          refreshUserRoles();
         }
       )
       .subscribe();
 
     return () => {
-      isMounted = false;
       supabase.removeChannel(rolesChannel);
       supabase.removeChannel(profilesChannel);
     };
-  }, [user]);
+  }, [user, refreshUserRoles]);
 
   const signInWithProvider = async (provider) => {
     setLoading(true);
@@ -193,6 +198,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     signInWithProvider,
     signOut,
+    refreshUserRoles,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
