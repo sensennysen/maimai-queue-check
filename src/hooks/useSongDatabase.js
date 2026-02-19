@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useSongDatabaseContext } from '../contexts/SongDatabaseContext';
+import { useSongDatabaseContext } from './useSongDatabaseContext';
 import { VERSION_ORDER, VERSION_MAPPING, CATEGORY_TRANSLATION } from '../config/maimai-constants';
 
 // Helper to convert level string (e.g., "13+") to number (13.7)

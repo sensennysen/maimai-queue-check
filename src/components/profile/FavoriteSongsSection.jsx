@@ -8,7 +8,7 @@ import FavoriteSongCard from './FavoriteSongCard';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
 import FavoriteSongDetailModal from './FavoriteSongDetailModal';
 import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
-import { useSongDatabaseContext } from '../../contexts/SongDatabaseContext';
+import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 
 export function FavoriteSongsSection({ userId, isOwnProfile }) {
   const { songs: allSongs, loading: songsLoading } = useSongDatabaseContext();

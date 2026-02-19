@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { notifications } from '@mantine/notifications';
 import { songsService } from '../services/songs';
-
-const SongDatabaseContext = createContext(null);
+import { SongDatabaseContext } from './SongDatabaseContextDef';
 
 export function SongDatabaseProvider({ children }) {
   const [songs, setSongs] = useState([]);
@@ -47,12 +46,4 @@ export function SongDatabaseProvider({ children }) {
       {children}
     </SongDatabaseContext.Provider>
   );
-}
-
-export function useSongDatabaseContext() {
-  const context = useContext(SongDatabaseContext);
-  if (!context) {
-    throw new Error('useSongDatabaseContext must be used within a SongDatabaseProvider');
-  }
-  return context;
 }

@@ -1,3 +1,30 @@
+# State Snapshot - Song Database Error Handling and Context Refactor
+
+**Objective:** Use the unused `error` field in `useSongDatabase` and refactor `SongDatabaseContext` to resolve Fast Refresh lint errors.
+
+**Changes:**
+- **Refactored SongDatabaseContext**: Split the context definition, provider, and hook into separate files (`SongDatabaseContextDef.js`, `SongDatabaseContext.jsx`, `useSongDatabaseContext.js`) to follow project patterns and fix `react-refresh/only-export-components` lint error.
+- **Hook Update**: Updated `useSongDatabase.js` to return the `error` field from the new `useSongDatabaseContext` hook.
+- **Component Destructuring**: Updated `SongSelectionModal.jsx` and `SongDatabase.jsx` to destructure and use the `error` state.
+- **Error UI**: Updated `SongList.jsx` to display a user-friendly error message when a database error occurs.
+- **Import Sync**: Updated all imports of `useSongDatabaseContext` to point to the new location.
+
+**Files Touched:**
+- `src/contexts/SongDatabaseContextDef.js` [NEW]
+- `src/hooks/useSongDatabaseContext.js` [NEW]
+- `src/contexts/SongDatabaseContext.jsx` [MODIFY]
+- `src/hooks/useSongDatabase.js` [MODIFY]
+- `src/features/songs/components/SongSelectionModal.jsx` [MODIFY]
+- `src/features/songs/components/SongDatabase.jsx` [MODIFY]
+- `src/features/songs/components/SongList.jsx` [MODIFY]
+- `src/components/profile/PlaylistSection.jsx` [MODIFY]
+- `src/components/profile/FavoriteSongsSection.jsx` [MODIFY]
+
+**Verification:**
+- Full `npm run lint` check confirms the `SongDatabaseContext.jsx` error is resolved.
+- Targeted ESLint check on all modified files passed (Exit code 0).
+- Verified error state propagation from context to UI.
+
 # State Snapshot - Song Database Error Handling implemented
 
 **Objective:** Use the unused `error` field in `useSongDatabase` and implement error UI in consuming components.

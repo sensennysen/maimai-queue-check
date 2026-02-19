@@ -7,7 +7,7 @@ import { PlaylistEditModal } from './PlaylistEditModal';
 import { PlaylistStack } from './PlaylistStack';
 import { PlaylistDetailModal } from './PlaylistDetailModal';
 import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
-import { useSongDatabaseContext } from '../../contexts/SongDatabaseContext';
+import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 import './PlaylistStack.css';
 
 export function PlaylistSection({ userId, isOwnProfile }) {
