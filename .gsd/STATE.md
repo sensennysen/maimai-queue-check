@@ -1,15 +1,19 @@
 # Project State
 
-## Session: Bookmarklet Improvement
+## Session: Best 50 Calculation Update
 **Date**: 2026-02-20
-**Mode**: Maintenance/Feature
+**Mode**: Feature/Refactor
 
 ### Changes
-- Updated `src/assets/bookmarklet.js` to scrape `iconUrl` from `.basic_block.p_10.f_0 .w_112.f_l`.
-- Updated `src/components/BookmarkletInstructions.jsx` with minified bookmarklet code.
+- Updated `src/utils/maimai-calc.js`:
+  - Modified `processScore` to check for `sheet.regionOverrides.intl.version`.
+  - Uses the overridden version for "New" vs "Old" categorization if available.
+- Updated `src/hooks/useMouseDragScroll.js`:
+  - Removed unused `eslint-disable` directive.
 
 ### Verification
-- User confirmed the fix works.
+- Verified logic with `scripts/test-best50.mjs` (PASSED).
+- Lint check passed.
 
 ### Next Steps
 - None.
