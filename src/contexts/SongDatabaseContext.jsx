@@ -5,10 +5,13 @@ import { SongDatabaseContext } from './SongDatabaseContextDef';
 
 export function SongDatabaseProvider({ children }) {
   const [songs, setSongs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isRequested, setIsRequested] = useState(false);
 
   useEffect(() => {
+    if (!isRequested) return;
+
     const fetchSongs = async () => {
       try {
         setLoading(true);
@@ -29,17 +32,22 @@ export function SongDatabaseProvider({ children }) {
     };
 
     fetchSongs();
-  }, []);
+  }, [isRequested]);
 
   const value = useMemo(() => ({
     songs,
     loading,
     error,
+    requestFetch: () => setIsRequested(true),
     refresh: () => {
       songsService.clearCache();
-      // Trigger a re-fetch logic if needed, but usually not required for static DB
+      if (isRequested) {
+        // Re-trigger fetch if already requested
+        setIsRequested(false);
+        setTimeout(() => setIsRequested(true), 0);
+      }
     }
-  }), [songs, loading, error]);
+  }), [songs, loading, error, isRequested]);
 
   return (
     <SongDatabaseContext.Provider value={value}>

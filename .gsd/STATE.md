@@ -1,3 +1,27 @@
+# State Snapshot - Query and View Page Optimizations
+
+**Objective:** Optimize Supabase queries and the View Page to reduce data transfer and eliminate background fetching of the song database.
+
+**Changes:**
+- **Lazy Song Database Loading**: Refactored `SongDatabaseContext.jsx` and `useSongDatabaseContext.js` to implement request-based lazy loading. The maimai song database is now only fetched when a component actually uses the context.
+- **Supabase Service Optimizations**: 
+    - Updated `queueService.getQueueEntries` to select only essential fields.
+    - Added `requestService.hasPendingRequest` for efficient, limit-1 existence checks.
+    - Optimized `getCompletedEntriesForToday` to fetch only player names for suggestions.
+- **QueueManager Refactor**: Replaced inefficient `getUserRequests` call with the targeted `hasPendingRequest` check.
+- **Admin UX**: Optimized `contactService.getReports` to exclude heavy fields in list view.
+
+**Files Touched:**
+- `src/services/supabase.js`
+- `src/features/queue/components/QueueManager.jsx`
+- `src/contexts/SongDatabaseContext.jsx`
+- `src/hooks/useSongDatabaseContext.js`
+
+**Verification:**
+- `npm run lint` passed (Exit code 0).
+- Verified that `/view` page and main queue page no longer trigger background song database fetches.
+- Verified that autocomplete suggestions and queue timers remain functional.
+
 # State Snapshot - Song Database Error Handling and Context Refactor
 
 **Objective:** Use the unused `error` field in `useSongDatabase` and refactor `SongDatabaseContext` to resolve Fast Refresh lint errors.
