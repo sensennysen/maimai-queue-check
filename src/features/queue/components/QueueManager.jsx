@@ -102,9 +102,7 @@ function QueueManager() {
     const checkPendingRequest = async () => {
       if (user && selectedBranch) {
         try {
-          // Optimize: could make a specific check function, but fetching all user requests is fine for now
-          const requests = await requestService.getUserRequests(user.id);
-          const isPending = requests.some(r => r.branch_id === selectedBranch.id && r.status === 'pending');
+          const isPending = await requestService.hasPendingRequest(user.id, selectedBranch.id);
           setHasPendingRequest(isPending);
         } catch (error) {
           console.error("Failed to check requests", error);

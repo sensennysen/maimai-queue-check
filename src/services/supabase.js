@@ -535,7 +535,7 @@ export const queueService = {
 
     let query = supabase
       .from('queue_entries')
-      .select('id, player1, player2, order_position, status, created_by, branch_id, cabinet_num, started_at, ended_at, created_at, created_by_profile:created_by(display_photo_url)')
+      .select('id, player1, player2, order_position, status, branch_id, cabinet_num, created_at, started_at, created_by_profile:created_by(display_photo_url)')
       .in('status', ['waiting', 'playing'])
       .gte('created_at', today.toISOString());
     
@@ -742,7 +742,7 @@ export const queueService = {
 
     const { data, error } = await supabase
       .from('queue_entries')
-      .select('*')
+      .select('player1, player2')
       .in('status', ['completed', 'cancelled'])
       .eq('branch_id', branchId)
       .gte('created_at', today.toISOString())
@@ -1125,7 +1125,7 @@ export const requestService = {
         .from('access_requests')
         .select(`
             id, user_id, branch_id, status, created_at,
-            allowed_places (
+            allowed_places!inner (
                 arcade_name,
                 short_name,
                 acronym
@@ -1174,6 +1174,22 @@ export const requestService = {
       
       if (error) throw error;
       return data || [];
+  },
+
+  // Check if a user has a pending request for a specific branch
+  async hasPendingRequest(userId, branchId) {
+      if (!userId || !branchId) return false;
+      
+      const { count, error } = await supabase
+          .from('access_requests')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('branch_id', branchId)
+          .eq('status', 'pending')
+          .limit(1);
+      
+      if (error) throw error;
+      return count > 0;
   },
 
   // Update request status (approve/reject)
@@ -1312,7 +1328,7 @@ export const contactService = {
     // 1. Fetch reports
     const { data: reports, error } = await supabase
       .from('contact_reports')
-      .select('id, report_type, description, email, user_id, status, attachment_path, attachment_name, created_at')
+      .select('id, report_type, description, email, user_id, status, attachment_path, created_at')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
