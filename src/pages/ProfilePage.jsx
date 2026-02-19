@@ -27,11 +27,14 @@ import { PlaylistSection } from '../components/profile/PlaylistSection';
 
 import Footer from '../components/layout/Footer';
 
+import { useMediaQuery } from '@mantine/hooks';
+
 const ProfilePage = () => {
   const { user, userRoles } = useAuth(); // Still need userRoles for display_name if profile fetch fails or for fallback
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
   const { flags, isLoading: flagsLoading } = useFeatureFlags();
+  const isWide = useMediaQuery('(min-width: 641px)');
 
   useEffect(() => {
     if (!flagsLoading && !flags['profile_tab']) {
@@ -377,41 +380,11 @@ const ProfilePage = () => {
                   </Group>
                 )}
                 {/* Mobile: DX Name + Rating inline with branch details */}
-                <Stack gap={2} hiddenFrom="sm">
-                  {maimaiName && (
-                    <Group gap={4} align="center">
-                      <Text size="sm" fw={600}>DX Name:</Text>
-                      <Text size="sm">{maimaiName}</Text>
-                    </Group>
-                  )}
-                  {bestScores && (
-                    <Group gap={4} align="center">
-                      <Text size="sm" fw={600}>Rating:</Text>
-                      <Text size="sm" fw={700} c="primary">{bestScores.totalRating}</Text>
-                    </Group>
-                  )}
-                </Stack>
+                {/* Mobile: DX Name + Rating moved to Best 50 section */}
               </Stack>
             </Group>
 
-            <Stack gap={0} align="flex-end" visibleFrom="sm">
-              {maimaiName && (
-                <Group gap={4}>
-                  <Text size="sm" c="secondary" fw={500}>maimai DX Name:</Text>
-                  <Text size="sm" fw={600}>{maimaiName}</Text>
-                </Group>
-              )}
-              {bestScores ? (
-                <Stack gap={0} align="flex-end" mt={4}>
-                  <Text size="xs" fw={700} c="secondary" tt="uppercase" lts={1}>Rating</Text>
-                  <Text size="xl" fw={900} c="primary" style={{ fontSize: '2.5rem', lineHeight: 1 }}>
-                    {bestScores.totalRating}
-                  </Text>
-                </Stack>
-              ) : (
-                <Text size="sm" c="secondary" italic>No rating data</Text>
-              )}
-            </Stack>
+            {/* Desktop: Name & Rating moved to Best 50 section */}
           </Group>
         </Paper>
 
@@ -461,6 +434,52 @@ const ProfilePage = () => {
             </Alert>
           ) : hasScores ? (
             <Stack gap="xl">
+              {/* Player Info Section (Moved from Header) */}
+              <Paper p="md" withBorder style={{
+                backgroundColor: 'var(--mantine-color-default-hover)',
+                borderColor: 'var(--mantine-color-default-border)'
+              }}>
+                <Group justify="space-between" align="flex-end">
+                  <Stack gap={4}>
+                    {maimaiName && (
+                      <Group gap={6} align="baseline">
+                        <Text size="sm" c="dimmed" fw={500}>maimai DX name:</Text>
+                        <Text size="lg" fw={700} className="font-outfit">{maimaiName}</Text>
+                      </Group>
+                    )}
+                    <Group gap={6} align="baseline">
+                      <Text size="sm" c="dimmed" fw={500}>RATING:</Text>
+                      <Text
+                        size="xl"
+                        fw={900}
+                        style={{
+                          fontSize: '2rem',
+                          lineHeight: 1,
+                          color: 'var(--theme-primary)'
+                        }}
+                      >
+                        {bestScores.totalRating}
+                      </Text>
+                    </Group>
+                  </Stack>
+
+                  {/* Stats / Metadata could go here */}
+                  {isWide && (
+                    <Group gap="xl">
+                      <Stack gap={0} align="center">
+                        <Text size="xs" c="dimmed" tt="uppercase" fw={700}>New</Text>
+                        <Text fw={700}>{bestScores.new.totalRating}</Text>
+                      </Stack>
+                      <Divider orientation="vertical" />
+                      <Stack gap={0} align="center">
+                        <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Old</Text>
+                        <Text fw={700}>{bestScores.old.totalRating}</Text>
+                      </Stack>
+                    </Group>
+                  )}
+                </Group>
+              </Paper>
+
               {/* Best 15 New */}
               <div>
                 <Group mb="md" justify="space-between">
@@ -469,9 +488,11 @@ const ProfilePage = () => {
                     <Text size="sm" c="secondary" fw={500}>
                       Avg: {bestScores.new.songs.length > 0 ? Math.round(bestScores.new.totalRating / bestScores.new.songs.length) : 0}
                     </Text>
-                    <Text size="sm" fw={700}>
-                      Total: {bestScores.new.totalRating ?? 0}
-                    </Text>
+                    {!isWide && (
+                      <Text size="sm" fw={700}>
+                        Total: {bestScores.new.totalRating ?? 0}
+                      </Text>
+                    )}
                   </Group>
                 </Group>
                 <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
@@ -491,9 +512,11 @@ const ProfilePage = () => {
                     <Text size="sm" c="secondary" fw={500}>
                       Avg: {bestScores.old.songs.length > 0 ? Math.round(bestScores.old.totalRating / bestScores.old.songs.length) : 0}
                     </Text>
-                    <Text size="sm" fw={700}>
-                      Total: {bestScores.old.totalRating ?? 0}
-                    </Text>
+                    {!isWide && (
+                      <Text size="sm" fw={700}>
+                        Total: {bestScores.old.totalRating ?? 0}
+                      </Text>
+                    )}
                   </Group>
                 </Group>
                 <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">

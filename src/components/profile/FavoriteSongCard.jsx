@@ -54,7 +54,8 @@ function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
               left: 0,
               width: '100%',
               height: '100%',
-              objectFit: 'cover'
+              objectFit: 'cover',
+              pointerEvents: 'none'
             }}
             fallbackSrc="https://placehold.co/300x300?text=No+Image"
           />

@@ -9,6 +9,7 @@ import { TextInput, Modal as MantineModal } from '@mantine/core';
 import FavoriteSongCard from './FavoriteSongCard';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
 import FavoriteSongDetailModal from './FavoriteSongDetailModal';
+import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
 
 export function FavoriteSongsSection({ userId, isOwnProfile }) {
   const [allSongs, setAllSongs] = useState([]);
@@ -21,7 +22,10 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
   const [pendingSong, setPendingSong] = useState(null);
   const [comment, setComment] = useState('');
   const [isAdding, setIsAdding] = useState(false);
-  const isMobile = useMediaQuery('(max-width: 48em)'); // 768px breakpoint
+
+
+  const { scrollRef, isDragging } = useMouseDragScroll();
+  // const isMobile = useMediaQuery('(max-width: 48em)'); // Removed per requirement
 
   // Fetch data
   useEffect(() => {
@@ -66,15 +70,8 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
   }, [allSongs, favorites]);
 
   const handleSongSelect = (song) => {
-    // Check limit
-    if (favorites.length >= 5) {
-      notifications.show({
-        title: 'Limit Reached',
-        message: 'You can only add up to 5 favorite songs',
-        color: 'red'
-      });
-      return;
-    }
+    // Limit removed per requirement
+    // if (favorites.length >= 5) { ... }
 
     // Check if already favorite
     if (favorites.some(f => f.song_id === song.songId)) {
@@ -177,7 +174,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
           <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>Favorite Songs</Title>
         </Group>
 
-        {isOwnProfile && favorites.length < 5 && (
+        {isOwnProfile && (
           <Button
             leftSection={<IconPlus size={18} />}
             variant="light"
@@ -195,49 +192,29 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
             : "This user hasn't added any favorite songs yet."}
         </Alert>
       ) : (
-        isMobile ? (
-          <ScrollArea type="never" offsetScrollbars={false}>
-            <div style={{ display: 'flex', gap: '12px', paddingBottom: '4px' }}>
-              {favoriteSongs.map((song) => {
-                const favData = favorites.find(f => f.song_id === song.songId);
-                return (
-                  <Box key={song.songId} style={{ minWidth: '160px', width: '40%', flexShrink: 0 }}>
-                    <FavoriteSongCard
-                      song={song}
-                      comment={favData?.comment}
-                      onDelete={handleRemoveFavorite}
-                      isOwnProfile={isOwnProfile}
-                      onClick={(s) => {
-                        setSelectedSongDetails(s);
-                        setSelectedSongComment(favData?.comment);
-                      }}
-                    />
-                  </Box>
-                );
-              })}
-            </div>
-          </ScrollArea>
-        ) : (
-          <SimpleGrid cols={5} spacing={{ base: 'xs', sm: 'sm' }}>
+        <ScrollArea viewportRef={scrollRef} type="never" offsetScrollbars={false} pb="lg">
+          <div style={{ display: 'flex', gap: '12px', paddingBottom: '4px' }}>
             {favoriteSongs.map((song) => {
               const favData = favorites.find(f => f.song_id === song.songId);
               return (
-                <Box key={song.songId} pos="relative" style={{ height: '100%' }}>
+                <Box key={song.songId} style={{ minWidth: '160px', width: '180px', flexShrink: 0 }}>
                   <FavoriteSongCard
                     song={song}
                     comment={favData?.comment}
                     onDelete={handleRemoveFavorite}
                     isOwnProfile={isOwnProfile}
                     onClick={(s) => {
-                      setSelectedSongDetails(s);
-                      setSelectedSongComment(favData?.comment);
+                      if (!isDragging) {
+                        setSelectedSongDetails(s);
+                        setSelectedSongComment(favData?.comment);
+                      }
                     }}
                   />
                 </Box>
               );
             })}
-          </SimpleGrid>
-        )
+          </div>
+        </ScrollArea>
       )}
 
       {isOwnProfile && (
@@ -254,7 +231,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
         onClose={() => !isAdding && setCommentModalOpen(false)}
         title="Add a Comment (Optional)"
         centered
-        zIndex={201} // Above selection modal if needed, though selection closes first
+        zIndex={201}
       >
         <Stack>
           <Text size="sm">Add a short comment about why you like <b>{pendingSong?.title}</b>:</Text>

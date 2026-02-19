@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Paper, Title, Button, SimpleGrid, Text, Group, LoadingOverlay, Box, Alert, ScrollArea } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
+import { Paper, Title, Button, Text, Group, LoadingOverlay, Box, Alert, ScrollArea } from '@mantine/core';
 import { IconPlaylist, IconPlaylistAdd, IconAlertCircle, IconMusic } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { playlistService } from '../../services/supabase';
@@ -10,16 +9,18 @@ import FavoriteSongDetailModal from './FavoriteSongDetailModal';
 import { PlaylistEditModal } from './PlaylistEditModal';
 import { PlaylistStack } from './PlaylistStack';
 import { PlaylistDetailModal } from './PlaylistDetailModal';
+import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
 import './PlaylistStack.css';
 
 export function PlaylistSection({ userId, isOwnProfile }) {
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  // const isMobile = useMediaQuery('(max-width: 768px)'); // Removed per requirement
   const [playlists, setPlaylists] = useState([]);
   const [allSongs, setAllSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null); // Playlist being viewed/edited
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const { scrollRef, isDragging } = useMouseDragScroll();
 
   const fetchData = useCallback(async () => {
     try {
@@ -63,9 +64,16 @@ export function PlaylistSection({ userId, isOwnProfile }) {
     }
   };
 
-  const handleDeletePlaylist = (deletedId) => {
-    setPlaylists(prev => prev.filter(p => p.id !== deletedId));
-    setIsDetailModalOpen(false);
+  const handleDeletePlaylist = async (deletedId) => {
+    try {
+      await playlistService.deletePlaylist(deletedId);
+      setPlaylists(prev => prev.filter(p => p.id !== deletedId));
+      setIsDetailModalOpen(false);
+      notifications.show({ title: 'Deleted', message: 'Playlist removed', color: 'blue' });
+    } catch (error) {
+      console.error('Error deleting playlist:', error);
+      notifications.show({ title: 'Error', message: 'Failed to delete playlist', color: 'red' });
+    }
   };
 
   const getPlaylistSongs = (playlist) => {
@@ -106,6 +114,15 @@ export function PlaylistSection({ userId, isOwnProfile }) {
           <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>My Playlists</Title>
         </Group>
 
+        {isOwnProfile && (
+          <Button
+            leftSection={<IconPlaylistAdd size={18} />}
+            variant="light"
+            onClick={handleCreateNew}
+          >
+            New Playlist
+          </Button>
+        )}
       </Group>
 
       {playlists.length === 0 ? (
@@ -122,73 +139,33 @@ export function PlaylistSection({ userId, isOwnProfile }) {
           )}
         </Alert>
       ) : (
-        isMobile ? (
-          <ScrollArea type="never" offsetScrollbars={false}>
-            <Group wrap="nowrap" gap="md" pb="xs">
-              {playlists.map((pl) => (
-                <Box key={pl.id} style={{ minWidth: '180px', width: '200px' }}>
-                  <PlaylistStack
-                    playlist={pl}
-                    songs={getPlaylistSongs(pl)}
-                    onClick={() => handleViewDetails(pl)}
-                  />
-                </Box>
-              ))}
-              {isOwnProfile && (
-                <Box className="add-playlist-wrapper" style={{ minWidth: '180px', width: '200px' }}>
-                  <Paper
-                    withBorder
-                    className="add-playlist-card"
-                    onClick={handleCreateNew}
-                  >
-                    <IconPlaylistAdd size={32} />
-                    <Text size="xs" fw={700} mt="xs">NEW PLAYLIST</Text>
-                  </Paper>
-                </Box>
-              )}
-            </Group>
-          </ScrollArea>
-        ) : (
-          <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="lg">
+        <ScrollArea viewportRef={scrollRef} type="never" offsetScrollbars={false} pb={0}>
+          <Group wrap="nowrap" gap="xs" pb="xs">
             {playlists.map((pl) => (
-              <PlaylistStack
-                key={pl.id}
-                playlist={pl}
-                songs={getPlaylistSongs(pl)}
-                onClick={() => handleViewDetails(pl)}
-              />
-            ))}
-            {isOwnProfile && (
-              <Box className="add-playlist-wrapper">
-                <Paper
-                  withBorder
-                  className="add-playlist-card"
-                  onClick={handleCreateNew}
-                >
-                  <IconPlaylistAdd size={32} />
-                  <Text size="xs" fw={700} mt="xs">NEW PLAYLIST</Text>
-                </Paper>
+              <Box key={pl.id} style={{ minWidth: '200px', width: '220px' }}>
+                <PlaylistStack
+                  playlist={pl}
+                  songs={getPlaylistSongs(pl)}
+                  onClick={() => !isDragging && handleViewDetails(pl)}
+                />
               </Box>
-            )}
-          </SimpleGrid>
-        )
+            ))}
+          </Group>
+        </ScrollArea>
       )}
 
-      {
-        isOwnProfile && (
-          <PlaylistEditModal
-            opened={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            userId={userId}
-            initialPlaylist={selectedPlaylist ? {
-              ...selectedPlaylist,
-              fullSongs: getPlaylistSongs(selectedPlaylist)
-            } : null}
-            onSave={handleSavePlaylist}
-            onDelete={handleDeletePlaylist}
-          />
-        )
-      }
+      {isOwnProfile && (
+        <PlaylistEditModal
+          opened={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          userId={userId}
+          initialPlaylist={selectedPlaylist ? {
+            ...selectedPlaylist,
+            fullSongs: getPlaylistSongs(selectedPlaylist)
+          } : null}
+          onSave={handleSavePlaylist}
+        />
+      )}
 
       <PlaylistDetailModal
         playlist={selectedPlaylist}
@@ -197,7 +174,8 @@ export function PlaylistSection({ userId, isOwnProfile }) {
         onClose={() => setIsDetailModalOpen(false)}
         isOwnProfile={isOwnProfile}
         onEdit={handleEditFromDetail}
+        onDelete={handleDeletePlaylist}
       />
-    </Paper >
+    </Paper>
   );
 }

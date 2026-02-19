@@ -1,8 +1,8 @@
 import { Modal, Stack, Text, Group, SimpleGrid, Box, Divider, Button } from '@mantine/core';
-import { IconPlaylist, IconEdit, IconMusic } from '@tabler/icons-react';
+import { IconPlaylist, IconEdit, IconMusic, IconTrash } from '@tabler/icons-react';
 import FavoriteSongCard from './FavoriteSongCard';
 
-export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isOwnProfile, onEdit }) {
+export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isOwnProfile, onEdit, onDelete }) {
   if (!playlist) return null;
 
   return (
@@ -54,7 +54,19 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
         )}
 
         {isOwnProfile && (
-          <Group justify="flex-end">
+          <Group justify="space-between" mt="md">
+            <Button
+              variant="subtle"
+              color="red"
+              leftSection={<IconTrash size={16} />}
+              onClick={() => {
+                if (window.confirm('Are you sure you want to delete this playlist?')) {
+                  onDelete(playlist.id);
+                }
+              }}
+            >
+              Delete
+            </Button>
             <Button
               variant="light"
               leftSection={<IconEdit size={16} />}

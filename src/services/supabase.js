@@ -1181,7 +1181,7 @@ export const notificationService = {
 
     const { data: notifications, error: notifError } = await supabase
       .from('notifications')
-      .select('id, user_id, type, title, message, data, created_at, read_at')
+      .select('id, type, title, message, created_at')
       .gte('created_at', oneWeekAgo.toISOString())
       .order('created_at', { ascending: false });
 

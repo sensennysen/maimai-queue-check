@@ -11,7 +11,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
   const [selectedSongs, setSelectedSongs] = useState([]); // Array of full song objects
   const [isSongPickerOpen, setIsSongPickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+
 
   useEffect(() => {
     if (opened && initialPlaylist) {
@@ -88,23 +88,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
     }
   };
 
-  const handleDelete = async () => {
-    if (!initialPlaylist?.id) return;
-    if (!window.confirm('Are you sure you want to delete this playlist?')) return;
 
-    setIsDeleting(true);
-    try {
-      await playlistService.deletePlaylist(initialPlaylist.id);
-      notifications.show({ title: 'Deleted', message: 'Playlist removed', color: 'blue' });
-      if (onDelete) onDelete(initialPlaylist.id);
-      onClose();
-    } catch (error) {
-      console.error('Error deleting playlist:', error);
-      notifications.show({ title: 'Error', message: 'Failed to delete playlist', color: 'red' });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   return (
     <Modal
@@ -198,15 +182,9 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
           mt="md"
         />
 
-        <Group justify="space-between" mt="xl">
-          {initialPlaylist ? (
-            <Button variant="subtle" color="red" leftSection={<IconTrash size={18} />} onClick={handleDelete} loading={isDeleting}>
-              Delete
-            </Button>
-          ) : <Box />}
-
+        <Group justify="flex-end" mt="xl">
           <Group gap="sm">
-            <Button variant="default" onClick={onClose} disabled={isSaving || isDeleting}>Cancel</Button>
+            <Button variant="default" onClick={onClose} disabled={isSaving}>Cancel</Button>
             <Button leftSection={isSaving ? <Loader size={18} /> : <IconDeviceFloppy size={18} />} onClick={handleSave} loading={isSaving}>
               Save Playlist
             </Button>
