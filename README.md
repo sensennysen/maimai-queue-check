@@ -9,6 +9,27 @@ A React-based queue management system for maimai rhythm game sessions.
 - **Song Database**: Comprehensive searchable database for maimai DX songs.
 - **Multi-Location**: Geolocation-restricted queueing for different arcade branches.
 
+## 🤖 Agentic Development
+
+This project is built using an **Agentic Workflow** to ensure high-velocity development without compromising on quality or security.
+
+### ⚡ GSD Protocol
+Every change follows the **Get Shit Done (GSD)** methodology:
+1. **SPEC**: Define requirements in `.gsd/SPEC.md`.
+2. **PLAN**: Decompose into waves and detailed implementation plans.
+3. **EXECUTE**: Atomic commits with specialized skills.
+4. **VERIFY**: Empirical proof for every single change.
+5. **COMMIT**: Verified, high-quality code.
+
+### 🧠 Specialized Skills
+The AI agent (Antigravity) utilizes a library of specialized skills to maintain production-grade standards:
+- **🎨 Frontend Design**: Premium, responsive interfaces using modern aesthetics.
+- **🚀 Performance**: React + Vite best practices for lightning-fast UX.
+- **🛡️ Security**: Rigorous security reviews for all sensitive code.
+- **💾 Database**: Supabase + Postgres optimization and RLS mastery.
+
+Detailed agent logs and learned skills can be found in [AGENTS.md](AGENTS.md) and [LEARNED_SKILLS.md](LEARNED_SKILLS.md).
+
 ## 🚀 Scripts
 
 1. **Install Dependencies**: `npm install`
