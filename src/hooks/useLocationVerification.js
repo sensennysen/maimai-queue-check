@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { useBranch } from './useBranch';
-import { verifyUserLocationAndPermissions, checkGeolocationPermission, requestUserLocation, findNearestBranch } from '../services/geolocation';
+import { verifyUserLocationAndPermissions, checkGeolocationPermission, findNearestBranch } from '../services/geolocation';
 import { ERRORS } from '../constants/queue';
 
 /**

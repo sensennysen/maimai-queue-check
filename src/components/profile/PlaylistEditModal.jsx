@@ -5,7 +5,7 @@ import { notifications } from '@mantine/notifications';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
 import { playlistService } from '../../services/supabase';
 
-export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, onSave, onDelete }) {
+export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, onSave }) {
   const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
   const [selectedSongs, setSelectedSongs] = useState([]); // Array of full song objects

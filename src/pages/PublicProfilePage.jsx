@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@mantine/hooks';
 import {
   Container, Paper, Stack, Group, Title, Text, Avatar,
@@ -29,6 +29,7 @@ const PublicProfilePage = () => {
   const [isRestricted, setIsRestricted] = useState(false);
   const { user } = useAuth();
   const isMobile = useMediaQuery('(max-width: 640px)');
+  const navigate = useNavigate();
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -361,7 +362,13 @@ const PublicProfilePage = () => {
             userId={user.id}
             initialData={profile}
             allBranches={branches}
-            onSuccess={fetchData}
+            onSuccess={(newSlug) => {
+              if (newSlug && newSlug !== slug) {
+                navigate(`/p/${newSlug}`, { replace: true });
+              } else {
+                fetchData();
+              }
+            }}
           />
         </>
       )}

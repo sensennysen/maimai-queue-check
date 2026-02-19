@@ -74,7 +74,7 @@ export const rolesService = {
         
         supabase
           .from('user_profiles')
-          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url, slug, slug_updated_at, privacy_settings, is_public')
+          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, slug, slug_updated_at, privacy_settings, is_public')
           .eq('id', userId)
           .maybeSingle()
       ]);
@@ -123,7 +123,6 @@ export const rolesService = {
           
         // Maimai fields (only in profileData)
         maimai_dx_name: profileData?.maimai_dx_name || null,
-        maimai_rating: profileData?.maimai_rating || null,
         maimai_best_scores: profileData?.maimai_best_scores || null,
 
         maimai_scores_updated_at: profileData?.maimai_scores_updated_at || null,
@@ -276,7 +275,7 @@ export const userService = {
 
     const { data, error: profileError } = await supabase
       .from('user_profiles')
-      .select('id, display_name, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at')
+      .select('id, display_name, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at')
       .eq('slug', slug.toLowerCase())
       .maybeSingle();
 

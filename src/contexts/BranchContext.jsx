@@ -99,7 +99,7 @@ export const BranchProvider = ({ children }) => {
   // Load branches and detect nearest on mount
   useEffect(() => {
     loadBranches();
-  }, []);
+  });
 
   // Set up real-time subscription for branch changes
   useEffect(() => {

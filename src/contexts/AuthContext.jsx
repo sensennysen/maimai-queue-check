@@ -95,6 +95,8 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
+    let isMounted = true;
+
     const rolesChannel = supabase
       .channel(`user-roles-${user.id}`)
       .on(
@@ -124,7 +126,12 @@ export const AuthProvider = ({ children }) => {
               // It's safer and cleaner than duplicating merge logic here.
             }));
             // Trigger re-fetch to ensure consistency
-            rolesService.getUserRoles(user.id).then(setUserRoles);
+            rolesService.getUserRoles(user.id).then(roles => {
+              if (isMounted) {
+                setUserRoles(roles);
+                cacheRoles(user.id, roles);
+              }
+            });
           }
         }
       )
@@ -143,12 +150,18 @@ export const AuthProvider = ({ children }) => {
         () => {
           // Profile changed/added/deleted
           // Just re-fetch the merged world state
-          rolesService.getUserRoles(user.id).then(setUserRoles);
+          rolesService.getUserRoles(user.id).then(roles => {
+            if (isMounted) {
+              setUserRoles(roles);
+              cacheRoles(user.id, roles);
+            }
+          });
         }
       )
       .subscribe();
 
     return () => {
+      isMounted = false;
       supabase.removeChannel(rolesChannel);
       supabase.removeChannel(profilesChannel);
     };

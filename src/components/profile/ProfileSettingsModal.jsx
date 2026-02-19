@@ -81,7 +81,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
         message: 'Profile URL updated successfully',
         color: 'green',
       });
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess(slug);
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -181,9 +181,9 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
                     onChange={(e) => setSlug(e.currentTarget.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                     leftSection={<IconLink size={16} />}
                     style={{ flex: 1 }}
-                    disabled={!!initialData?.slug}
+                    disabled={!!initialData?.slug_updated_at}
                   />
-                  {!initialData?.slug && (
+                  {!initialData?.slug_updated_at && (
                     <Button
                       onClick={handleUpdateSlug}
                       loading={isSavingSlug}
