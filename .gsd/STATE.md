@@ -1,3 +1,21 @@
+# State Snapshot - Privacy Policy Update (RA 10173)
+
+**Objective:** Update the site's privacy policy to comply with Philippines Data Privacy Laws (RA 10173).
+
+**Changes:**
+- **Comprehensive Policy Content**: Rewrote `PrivacyModal.jsx` to include legally required disclosures.
+- **Data Categories**: Disclosed collection of Account Data (Auth), Profile Data (voluntary), and Usage Data (service-specific).
+- **Purpose Disclosure**: Clarified that data is used for service delivery and anonymous analytics only.
+- **User Rights**: Included explicit mention of rights under RA 10173 (Access, Correction, Erasure).
+- **Service Disclosure**: Disclosed use of Supabase and Vercel services.
+
+**Files Touched:**
+- `src/components/modals/PrivacyModal.jsx`
+
+**Verification:**
+- Code-level verification confirms correct React/Mantine implementation.
+- Content verified against Philippines Data Privacy Act requirements.
+
 # State Snapshot - Song Database Header Redesign
 
 **Objective:** Redesign the song database header to match the profile page's premium aesthetic and structure.
