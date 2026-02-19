@@ -98,7 +98,8 @@
       }
 
       var tr = d1.querySelector('.trophy_block');
-      var ic = d1.querySelector('.w_112.f_l');
+      var block = d1.querySelector('.basic_block.p_10.f_0');
+      var ic = block ? block.querySelector('.w_112.f_l') : null;
       var pc = "0";
       var blocks = d1.querySelectorAll('.m_5.f_12.break');
       for (var i = 0; i < blocks.length; i++) {
