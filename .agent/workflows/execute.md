@@ -13,8 +13,11 @@ Follow these steps when implementing any code change.
    ```
    npm run lint
    ```
-   - Fix any lint errors (including unused variables and JSX nesting) before proceeding.
+   - Fix any lint errors (including **undefined variables**, unused variables, and JSX nesting) before proceeding.
+   - Pay special attention to **broken references** and missing state/prop definitions after refactoring.
    - If `--fix` can resolve them automatically, run `npm run lint:fix` first, then re-run `npm run lint` to confirm clean output.
+
+3. Self-check for any code pollution (e.g., accidental markdown markers, backticks, or file headers) introduced during the edit.
 
 3. Verify the change works as expected (run dev server, check browser, etc.).
 

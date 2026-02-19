@@ -1,6 +1,12 @@
 import { supabase } from './supabase';
 
+let songDatabasePromise = null;
+
 export const songsService = {
+  // Clear cache if needed (e.g. for admin updates)
+  clearCache() {
+    songDatabasePromise = null;
+  },
   // Fetch all songs with their metadata
   async getSongs() {
     const { data, error } = await supabase
@@ -52,8 +58,11 @@ export const songsService = {
   },
 
   // Fetch everything needed for the DB
-  async getFullSongDatabase() {
-      try {
+  getFullSongDatabase() {
+      if (songDatabasePromise) return songDatabasePromise;
+      
+      songDatabasePromise = (async () => {
+        try {
         // Fetch in parallel for performance, using fetchAll to handle large datasets
         const [songs, sheets, versions, orders, internalLevels, songExtras, sheetExtras] = await Promise.all([
             this.fetchAll('maimai_songs'),
@@ -202,11 +211,16 @@ export const songsService = {
         }
 
         // Sort by sortOrder
-        return resultSongs.sort((a, b) => a.sortOrder - b.sortOrder);
+        const finalResults = resultSongs.sort((a, b) => a.sortOrder - b.sortOrder);
+        return finalResults;
 
       } catch (error) {
+          songDatabasePromise = null; // Clear if failed so next call can retry
           console.error('Failed to load song database:', error);
           throw error;
       }
+    })();
+    
+    return songDatabasePromise;
   }
 };

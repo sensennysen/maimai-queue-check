@@ -1,42 +1,34 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Paper, Title, Button, Text, Group, LoadingOverlay, Box, Alert, ScrollArea } from '@mantine/core';
-import { IconPlaylist, IconPlaylistAdd, IconAlertCircle, IconMusic } from '@tabler/icons-react';
+import { IconPlaylist, IconPlaylistAdd, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { playlistService } from '../../services/supabase';
-import { songsService } from '../../services/songs';
-import FavoriteSongCard from './FavoriteSongCard';
-import FavoriteSongDetailModal from './FavoriteSongDetailModal';
 import { PlaylistEditModal } from './PlaylistEditModal';
 import { PlaylistStack } from './PlaylistStack';
 import { PlaylistDetailModal } from './PlaylistDetailModal';
 import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
+import { useSongDatabaseContext } from '../../contexts/SongDatabaseContext';
 import './PlaylistStack.css';
 
 export function PlaylistSection({ userId, isOwnProfile }) {
-  // const isMobile = useMediaQuery('(max-width: 768px)'); // Removed per requirement
+  const { songs: allSongs, loading: songsLoading } = useSongDatabaseContext();
   const [playlists, setPlaylists] = useState([]);
-  const [allSongs, setAllSongs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Loading for playlists data
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null); // Playlist being viewed/edited
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { scrollRef, isDragging } = useMouseDragScroll();
 
-  const fetchData = useCallback(async () => {
+  const fetchPlaylists = useCallback(async () => {
     try {
       setLoading(true);
-      const [playlistsData, songsData] = await Promise.all([
-        playlistService.getPlaylists(userId),
-        songsService.getFullSongDatabase()
-      ]);
-
+      const playlistsData = await playlistService.getPlaylists(userId);
       setPlaylists(playlistsData);
-      setAllSongs(songsData);
     } catch (error) {
-      console.error("Error loading playlist:", error);
+      console.error("Error loading playlists:", error);
       notifications.show({
         title: 'Error',
-        message: 'Failed to load playlist',
+        message: 'Failed to load playlists',
         color: 'red'
       });
     } finally {
@@ -46,9 +38,9 @@ export function PlaylistSection({ userId, isOwnProfile }) {
 
   useEffect(() => {
     if (userId) {
-      fetchData();
+      fetchPlaylists();
     }
-  }, [userId, fetchData]);
+  }, [userId, fetchPlaylists]);
 
   const handleSavePlaylist = (updatedPlaylist) => {
     setPlaylists(prev => {
@@ -98,7 +90,9 @@ export function PlaylistSection({ userId, isOwnProfile }) {
     setIsEditModalOpen(true);
   };
 
-  if (loading && allSongs.length === 0) {
+  const isEverythingLoading = loading || songsLoading;
+
+  if (isEverythingLoading && playlists.length === 0) {
     return (
       <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl" style={{ minHeight: 150 }}>
         <LoadingOverlay visible={true} />
@@ -130,13 +124,6 @@ export function PlaylistSection({ userId, isOwnProfile }) {
           {isOwnProfile
             ? "Showcase your recent grind set here!"
             : "This user hasn't created any playlists yet."}
-          {isOwnProfile && (
-            <Box mt="sm">
-              <Button leftSection={<IconPlaylistAdd size={18} />} onClick={handleCreateNew} size="sm">
-                Create First Playlist
-              </Button>
-            </Box>
-          )}
         </Alert>
       ) : (
         <ScrollArea viewportRef={scrollRef} type="never" offsetScrollbars={false} pb={0}>

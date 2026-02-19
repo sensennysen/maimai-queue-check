@@ -1,14 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useMediaQuery } from '@mantine/hooks';
 import {
   Container, Paper, Stack, Group, Title, Text, Avatar,
-  Badge, SimpleGrid, LoadingOverlay, Button, Alert,
-  Divider, ThemeIcon, Box
+  Badge, SimpleGrid, Loader, Button, Alert,
+  Divider, ThemeIcon, Box, ActionIcon
 } from '@mantine/core';
 import {
   IconUser, IconTrophy, IconMapPin, IconAlertCircle,
-  IconArrowLeft, IconStar, IconLock, IconLogin
+  IconArrowLeft, IconStar, IconLock, IconLogin,
+  IconSettings, IconUpload, IconCamera
 } from '@tabler/icons-react';
+import MaimaiImportModal from '../components/profile/MaimaiImportModal';
+import ProfileSettingsModal from '../components/profile/ProfileSettingsModal';
 import { useAuth } from '../hooks/useAuth';
 import { userService, branchService } from '../services/supabase';
 import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection';
@@ -24,43 +28,53 @@ const PublicProfilePage = () => {
   const [error, setError] = useState(null);
   const [isRestricted, setIsRestricted] = useState(false);
   const { user } = useAuth();
+  const isMobile = useMediaQuery('(max-width: 640px)');
+
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [profileData, branchesData] = await Promise.all([
+        userService.getProfileBySlug(slug),
+        branchService.getBranchesForResolution()
+      ]);
+
+      if (!profileData) {
+        setError('Profile not found');
+      } else if (!profileData.is_public && profileData.id !== user?.id) {
+        setIsRestricted(true);
+      } else {
+        setProfile(profileData);
+        setBranches(branchesData);
+      }
+    } catch (err) {
+      console.error('Error fetching public profile:', err);
+      setError('Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
+  }, [slug, user?.id]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [profileData, branchesData] = await Promise.all([
-          userService.getProfileBySlug(slug),
-          branchService.getBranchesForResolution()
-        ]);
-
-        if (!profileData) {
-          setError('Profile not found');
-        } else if (!profileData.is_public && profileData.id !== user?.id) {
-          setIsRestricted(true);
-        } else {
-          setProfile(profileData);
-          setBranches(branchesData);
-        }
-      } catch (err) {
-        console.error('Error fetching public profile:', err);
-        setError('Failed to load profile');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (slug) {
+      // Use a ref-less check or just rely on slug for initial loading state
+      if (!profile || profile.slug !== slug) {
+        setLoading(true);
+      }
       fetchData();
     }
-  }, [slug, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, fetchData]); // Removed profile dependency to prevent infinite loop
+
+  const isOwner = profile?.id === user?.id;
 
   if (loading) {
     return (
       <Container size="lg" py="xl">
         <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
-          <LoadingOverlay visible={true} overlayProps={{ blur: 2 }} />
-          <Text size="lg" fw={500}>Loading profile...</Text>
+          <Loader size="xl" color="pink" type="bars" />
+          <Text size="lg" fw={500} mt="md">Loading profile...</Text>
         </Stack>
       </Container>
     );
@@ -158,7 +172,7 @@ const PublicProfilePage = () => {
     <Container size="lg" py="xl">
       <Stack gap="lg">
         {/* Back Button / Navigation */}
-        <Group>
+        <Group justify="space-between">
           <Button
             component={Link}
             to="/"
@@ -168,6 +182,8 @@ const PublicProfilePage = () => {
           >
             maiPaQueueCheck PH
           </Button>
+
+          {/* No management buttons here anymore */}
         </Group>
 
         {/* Profile Header Card */}
@@ -184,9 +200,22 @@ const PublicProfilePage = () => {
               </Avatar>
 
               <Stack gap={4}>
-                <Title order={1} style={{ fontSize: '1.75rem', lineHeight: 1.2 }}>
-                  {profile.display_name || 'Anonymous Player'}
-                </Title>
+                <Group gap="xs" align="center">
+                  <Title order={1} style={{ fontSize: '1.75rem', lineHeight: 1.2 }}>
+                    {profile.display_name || 'Anonymous Player'}
+                  </Title>
+                  {isOwner && (
+                    <ActionIcon
+                      variant="subtle"
+                      color="gray"
+                      onClick={() => setIsSettingsModalOpen(true)}
+                      title="Profile Settings"
+                      size="md"
+                    >
+                      <IconSettings size={20} />
+                    </ActionIcon>
+                  )}
+                </Group>
 
                 {privacy.show_main_branch && mainBranchName && (
                   <Group gap={4} align="center">
@@ -243,25 +272,48 @@ const PublicProfilePage = () => {
         </Paper>
 
         {/* Favorite Songs Section */}
-        {privacy.show_favorite_songs && (
+        {(privacy.show_favorite_songs || isOwner) && (
           <div className="animate-fade-in delay-300">
-            <FavoriteSongsSection userId={profile.id} isOwnProfile={false} />
+            <FavoriteSongsSection userId={profile.id} isOwnProfile={isOwner} />
           </div>
         )}
 
         {/* Playlist Section */}
-        {privacy.show_playlists && (
+        {(privacy.show_playlists || isOwner) && (
           <div className="animate-fade-in delay-350">
-            <PlaylistSection userId={profile.id} isOwnProfile={false} />
+            <PlaylistSection userId={profile.id} isOwnProfile={isOwner} />
           </div>
         )}
 
         {/* Best 50 Section */}
-        {privacy.show_best_50 && profile.maimai_best_scores && (
+        {(privacy.show_best_50 || isOwner) && profile.maimai_best_scores && (
           <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-400">
-            <Group gap="xs" mb="xl">
-              <IconTrophy size={24} style={{ color: 'var(--mantine-color-yellow-6)' }} />
-              <Title order={2}>Best 50</Title>
+            <Group justify="space-between" mb="xl">
+              <Group gap="xs">
+                <IconTrophy size={24} style={{ color: 'var(--mantine-color-yellow-6)' }} />
+                <Title order={2}>Best 50</Title>
+              </Group>
+              {isOwner && (
+                <Group gap="xs" wrap="nowrap">
+                  <Button
+                    leftSection={<IconUpload size={18} />}
+                    variant="light"
+                    size="sm"
+                    onClick={() => setIsImportModalOpen(true)}
+                  >
+                    {isMobile ? 'Import' : 'Import Scores'}
+                  </Button>
+                  <Button
+                    leftSection={<IconCamera size={18} />}
+                    variant="light"
+                    color="secondary"
+                    size="sm"
+                    onClick={() => window.open('/profile/export', '_blank')}
+                  >
+                    {isMobile ? 'Export' : 'Export Image'}
+                  </Button>
+                </Group>
+              )}
             </Group>
 
             <Stack gap="xl">
@@ -293,6 +345,26 @@ const PublicProfilePage = () => {
 
         <Footer />
       </Stack>
+
+      {/* Modals for Owner */}
+      {isOwner && (
+        <>
+          <MaimaiImportModal
+            opened={isImportModalOpen}
+            onClose={() => setIsImportModalOpen(false)}
+            userId={user.id}
+            onSuccess={fetchData}
+          />
+          <ProfileSettingsModal
+            opened={isSettingsModalOpen}
+            onClose={() => setIsSettingsModalOpen(false)}
+            userId={user.id}
+            initialData={profile}
+            allBranches={branches}
+            onSuccess={fetchData}
+          />
+        </>
+      )}
     </Container>
   );
 };

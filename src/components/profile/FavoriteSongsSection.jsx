@@ -1,20 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Paper, Title, Button, SimpleGrid, Text, Group, LoadingOverlay, ActionIcon, Stack, Box, Alert, ScrollArea } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { IconPlus, IconX, IconHeart, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { favoritesService } from '../../services/supabase';
-import { songsService } from '../../services/songs';
 import { TextInput, Modal as MantineModal } from '@mantine/core';
 import FavoriteSongCard from './FavoriteSongCard';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
 import FavoriteSongDetailModal from './FavoriteSongDetailModal';
 import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
+import { useSongDatabaseContext } from '../../contexts/SongDatabaseContext';
 
 export function FavoriteSongsSection({ userId, isOwnProfile }) {
-  const [allSongs, setAllSongs] = useState([]);
+  const { songs: allSongs, loading: songsLoading } = useSongDatabaseContext();
   const [favorites, setFavorites] = useState([]); // [{ song_id, created_at }]
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Loading for favorites data
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSongDetails, setSelectedSongDetails] = useState(null);
   const [selectedSongComment, setSelectedSongComment] = useState(null);
@@ -27,21 +26,15 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
   const { scrollRef, isDragging } = useMouseDragScroll();
   // const isMobile = useMediaQuery('(max-width: 48em)'); // Removed per requirement
 
-  // Fetch data
+  // Fetch favorites data
   useEffect(() => {
     let mounted = true;
-    const fetchData = async () => {
+    const fetchFavorites = async () => {
       try {
         setLoading(true);
-        // Fetch favorites and songs in parallel
-        const [favsData, songsData] = await Promise.all([
-          favoritesService.getFavorites(userId),
-          songsService.getFullSongDatabase()
-        ]);
-
+        const favsData = await favoritesService.getFavorites(userId);
         if (mounted) {
           setFavorites(favsData);
-          setAllSongs(songsData);
         }
       } catch (error) {
         console.error("Error loading favorites:", error);
@@ -56,7 +49,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
     };
 
     if (userId) {
-      fetchData();
+      fetchFavorites();
     }
 
     return () => { mounted = false; };
@@ -158,7 +151,9 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
     }
   };
 
-  if (loading && allSongs.length === 0) {
+  const isEverythingLoading = loading || songsLoading;
+
+  if (isEverythingLoading && favorites.length === 0) {
     return (
       <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl" style={{ minHeight: 200 }}>
         <LoadingOverlay visible={true} />

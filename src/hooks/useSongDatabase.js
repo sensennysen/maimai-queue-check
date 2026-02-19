@@ -1,6 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { notifications } from '@mantine/notifications';
-import { songsService } from '../services/songs';
+import { useState, useMemo } from 'react';
+import { useSongDatabaseContext } from '../contexts/SongDatabaseContext';
 import { VERSION_ORDER, VERSION_MAPPING, CATEGORY_TRANSLATION } from '../config/maimai-constants';
 
 // Helper to convert level string (e.g., "13+") to number (13.7)
@@ -14,8 +13,7 @@ const parseLevel = (levelStr) => {
 };
 
 export function useSongDatabase() {
-  const [songs, setSongs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { songs, loading, error } = useSongDatabaseContext();
   const [filters, setFilters] = useState({
     query: '',
     categories: [],
@@ -24,27 +22,6 @@ export function useSongDatabase() {
     levelMax: '',
     showInternalLevels: false
   });
-
-  useEffect(() => {
-    const fetchSongs = async () => {
-      try {
-        setLoading(true);
-        const data = await songsService.getFullSongDatabase();
-        setSongs(data);
-      } catch (error) {
-        console.error(error);
-        notifications.show({
-          title: 'Error',
-          message: 'Failed to load song database',
-          color: 'red'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSongs();
-  }, []);
 
   // Extract unique categories, versions, and levels for filter dropdowns
   const { categories, versions, levels, internalLevels } = useMemo(() => {

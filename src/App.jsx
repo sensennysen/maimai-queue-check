@@ -1,13 +1,14 @@
 import { useState, lazy, Suspense, useMemo } from 'react';
-import { MantineProvider, Container, Title, Paper, Stack, Group, Button, LoadingOverlay, createTheme } from '@mantine/core';
+import { MantineProvider, Container, Title, Paper, Stack, Group, Button, Loader, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { Analytics } from '@vercel/analytics/react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';
+import { SongDatabaseProvider } from './contexts/SongDatabaseContext';
 import { useAuth } from './hooks/useAuth';
 import { theme as mantineTheme, themes } from './config/theme';
 import QueueManager from './features/queue/components/QueueManager';
@@ -21,7 +22,7 @@ import './App.css';
 
 // Lazy load pages
 const AdminPage = lazy(() => import('./pages/AdminPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+// ProfilePage is removed in favor of PublicProfilePage
 const ExportBest50Page = lazy(() => import('./pages/ExportBest50Page'));
 const ViewPage = lazy(() => import('./pages/ViewPage'));
 const SongsPage = lazy(() => import('./pages/SongsPage'));
@@ -99,13 +100,29 @@ function AppProviders() {
     });
   }, [currentTheme]);
 
+  // Redirect /profile to the user's public slug
+  const ProfileRedirect = () => {
+    const { user, userRoles, loading: authLoading } = useAuth();
+    if (authLoading) return null;
+    if (!user) return <Navigate to="/" replace />;
+    if (userRoles?.slug) return <Navigate to={`/p/${userRoles.slug}`} replace />;
+    // If no slug yet, fallback to main app or a default view
+    return <Navigate to="/" replace />;
+  };
+
   return (
     <MantineProvider theme={dynamicTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
       <Notifications position="top-right" />
-      <Suspense fallback={<LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} loaderProps={{ color: 'pink', type: 'bars' }} />}>
+      <Suspense fallback={
+        <Container size="lg" py="xl">
+          <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
+            <Loader size="xl" color="pink" type="bars" />
+          </Stack>
+        </Container>
+      }>
         <Routes>
           <Route path="/profile/export" element={<ExportBest50Page />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile" element={<ProfileRedirect />} />
           <Route path="/view" element={<ViewPage />} />
           <Route path="/songs" element={<SongsPage />} />
           <Route path="/contact" element={<ContactPage />} />
@@ -129,9 +146,11 @@ function App() {
       <ThemeProvider>
         <BranchProvider>
           <AuthProvider>
-            <FeatureFlagProvider>
-              <AppProviders />
-            </FeatureFlagProvider>
+            <SongDatabaseProvider>
+              <FeatureFlagProvider>
+                <AppProviders />
+              </FeatureFlagProvider>
+            </SongDatabaseProvider>
           </AuthProvider>
         </BranchProvider>
       </ThemeProvider>

@@ -276,7 +276,7 @@ export const userService = {
 
     const { data, error: profileError } = await supabase
       .from('user_profiles')
-      .select('id, display_name, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url, main_branch, preferred_branches, privacy_settings, is_public')
+      .select('id, display_name, maimai_dx_name, maimai_rating, maimai_best_scores, maimai_scores_updated_at, display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at')
       .eq('slug', slug.toLowerCase())
       .maybeSingle();
 

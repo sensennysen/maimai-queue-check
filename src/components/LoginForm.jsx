@@ -95,7 +95,13 @@ const LoginForm = ({ onOpenPreferences }) => {
           {flags['profile_tab'] && (
             <Menu.Item
               leftSection={<IconUser size={16} />}
-              onClick={() => navigate('/profile')}
+              onClick={() => {
+                if (userRoles?.slug) {
+                  navigate(`/p/${userRoles.slug}`);
+                } else {
+                  navigate('/profile');
+                }
+              }}
             >
               Profile
             </Menu.Item>
