@@ -33,7 +33,7 @@ export const BranchProvider = ({ children }) => {
       // 1. Check for saved branch
       const savedBranchId = localStorage.getItem(STORAGE_KEY);
       if (savedBranchId) {
-        const savedBranch = allBranches.find(b => b.id === savedBranchId);
+        const savedBranch = allBranches.find(b => b.id == savedBranchId);
         if (savedBranch) {
           setSelectedBranchState(savedBranch);
           setLoading(false);
