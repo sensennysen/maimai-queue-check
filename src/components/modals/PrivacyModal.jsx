@@ -10,42 +10,57 @@ function PrivacyModal({ opened, onClose }) {
       radius="md"
     >
       <Stack gap="md">
-        <Text size="sm" style={{ marginTop: '1rem' }}>
-          Your privacy is important to us. This page explains what data we collect and how it is used.
+        <Text size="sm" mt="xs">
+          We respect your privacy and are committed to protecting your personal data in accordance with the <b>Data Privacy Act of 2012 (RA 10173)</b> of the Philippines. This policy explains what information we collect and how it is used.
         </Text>
 
+        <Divider />
+
         <div>
-          <Title order={4} mb="xs">Data Collection</Title>
+          <Title order={5} mb="xs">1. Information We Collect</Title>
           <List size="sm" withPadding spacing="xs">
             <List.Item>
-              <Text span fw={700}>Player Names:</Text> When you join a queue, we store the player names you provide to manage the arcade queue.
+              <Text span fw={700}>Account Data:</Text> If you sign in, we collect your email address, name, and profile picture from your login provider (Google, Discord, etc.) to manage your session via Supabase Auth.
             </List.Item>
             <List.Item>
-              <Text span fw={700}>Account Information:</Text> If you sign in, we use Supabase Auth to manage your session. This may include your email or profile information from your login provider.
+              <Text span fw={700}>Profile Data:</Text> You may voluntarily provide your Maimai DX Name, best scores, preferred branches, and display photos to personalize your profile.
+            </List.Item>
+            <List.Item>
+              <Text span fw={700}>Usage Data:</Text> When you join a queue, create playlists, or favorite songs, we store this data to provide the application's core functionality.
             </List.Item>
           </List>
         </div>
 
-        <Divider />
-
         <div>
-          <Title order={4} mb="xs">Tracking & Analytics</Title>
-          <Text size="sm" mb="xs">
-            We use <Text span fw={700}>Vercel Analytics</Text> to understand how our app is used and to improve the user experience. This service collects anonymous data about page views and interactions.
-          </Text>
-        </div>
-
-        <Divider />
-
-        <div>
-          <Title order={4} mb="xs">Cookies & Local Storage</Title>
+          <Title order={5} mb="xs">2. How We Use Your Data</Title>
           <Text size="sm">
-            We use <Text span fw={700}>Local Storage</Text> to keep you logged in and to remember your preferences (like your selected branch). No third-party advertising cookies are used.
+            Your data is used solely to facilitate the arcade queuing system, personalize your gaming profile, and improve the user experience through anonymous analytics provided by Vercel.
           </Text>
         </div>
 
-        <Text size="xs" c="secondary" mt="xs">
-          Last updated: May 20, 2024
+        <div>
+          <Title order={5} mb="xs">3. Data Sharing & Disclosure</Title>
+          <Text size="sm">
+            We do not sell your personal data. Your information is stored securely on <b>Supabase</b>. Public profiles are visible to others based on your privacy settings in the account dashboard.
+          </Text>
+        </div>
+
+        <div>
+          <Title order={5} mb="xs">4. Your Rights</Title>
+          <Text size="sm">
+            Under RA 10173, you have the right to access, correct, or request the erasure of your personal data. You can update your profile directly in the settings or contact us to request account deletion.
+          </Text>
+        </div>
+
+        <div>
+          <Title order={5} mb="xs">5. Cookies & Local Storage</Title>
+          <Text size="sm">
+            We use <b>Local Storage</b> to maintain your login session and remember your branch preferences. We do not use third-party advertising cookies.
+          </Text>
+        </div>
+
+        <Text size="xs" c="dimmed" mt="xs">
+          Last updated: February 19, 2026
         </Text>
       </Stack>
     </Modal>
