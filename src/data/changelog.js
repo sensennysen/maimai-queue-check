@@ -9,6 +9,11 @@ export const changelogData = [
         description: 'Fixed an issue where the Best 50 songs are in incorrect order and does not match maimai DX International versioning.',
       },
       {
+        type: 'bugfix',
+        title: 'Custom URL not updating',
+        description: 'Fixed an issue where the custom URL is not updating on the profile menu when the slug is changed.',
+      },
+      {
         type: 'refactor',
         title: 'Custom URL Character limit',
         description: 'Added a character limit of 20 to custom URLs.',
