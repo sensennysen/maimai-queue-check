@@ -427,7 +427,7 @@ function QueueManager() {
               )}
               {user && !canEdit && !isAdmin && hasPendingRequest && (
                 <Button variant="subtle" size="sm" disabled>
-                  Request Pending use
+                  Request Pending
                 </Button>
               )}
               {user && canActuallyEdit && isMallOpen && queue.length > 0 && (
