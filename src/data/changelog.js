@@ -17,6 +17,7 @@ export const changelogData = [
         type: 'refactor',
         title: 'Custom URL Character limit',
         description: 'Added a character limit of 20 to custom URLs.',
+        footnote: 'Thanks to Tear, really.'
       }
     ]
   },
