@@ -7,6 +7,7 @@ import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.
 import IconAlertTriangle from '@tabler/icons-react/dist/esm/icons/IconAlertTriangle.mjs';
 import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
 import IconExternalLink from '@tabler/icons-react/dist/esm/icons/IconExternalLink.mjs';
+import IconFileText from '@tabler/icons-react/dist/esm/icons/IconFileText.mjs';
 const QueueForm = lazy(() => import('./QueueForm'));
 import QueueList from './QueueList';
 import LocationPermissionModal from '../../../components/modals/LocationPermissionModal';
@@ -21,6 +22,7 @@ import { closedMessages, loadingMessages } from '../../../data/subtitleMessages'
 import { usePermissions } from '../../../hooks/usePermissions';
 import { requestService } from '../../../services/supabase';
 import AccessRequestModal from '../../../components/modals/AccessRequestModal';
+import QueueRulesModal from './QueueRulesModal';
 import './QueueManager.css';
 
 
@@ -86,6 +88,7 @@ function QueueManager() {
   const [showForm, setShowForm] = useState(false);
   const [showLocationHelp, setShowLocationHelp] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [showRulesModal, setShowRulesModal] = useState(false);
 
   // Animation state
   const [addedIds, setAddedIds] = useState(new Set());
@@ -380,6 +383,12 @@ function QueueManager() {
         onClose={() => setShowRequestModal(false)}
       />
 
+      <QueueRulesModal
+        opened={showRulesModal}
+        onClose={() => setShowRulesModal(false)}
+        branchId={selectedBranch?.id}
+      />
+
       {/* Header with credits and actions */}
       <div>
         {queueLoading || scheduleLoading ? (
@@ -393,6 +402,15 @@ function QueueManager() {
               <Badge variant="light" size="lg">
                 Credits: {(isMallOpen ? filterQueue(queue) : []).reduce((sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0), 0)}
               </Badge>
+              <Button
+                variant="subtle"
+                size="compact-xs"
+                leftSection={<IconFileText size={14} />}
+                onClick={() => setShowRulesModal(true)}
+                color="blue"
+              >
+                Queue Rules
+              </Button>
             </Group>
             <Group gap="sm">
               {user && (

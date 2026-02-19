@@ -1,3 +1,58 @@
+# State Snapshot - README Agentic Development Update
+
+**Objective:** Update the README to include information about skills and agents to speed development.
+
+**Changes:**
+- **Agentic Development Section**: Added a comprehensive section explaining the project's use of an agentic workflow.
+- **GSD Protocol Disclosure**: Documented the 5-phase (SPEC → PLAN → EXECUTE → VERIFY → COMMIT) development methodology.
+- **Skills Highlight**: Listed specialized agent skills (Frontend, Performance, Security, Database) used to maintain high standards.
+- **Documentation Links**: Added links to `AGENTS.md` and `LEARNED_SKILLS.md` for transparency.
+
+**Files Touched:**
+- `README.md`
+
+**Verification:**
+- Manual review of content for clarity and accuracy.
+- Verified links to supporting documentation.
+
+# State Snapshot - README Simplified & Dependencies Fixed
+
+**Objective:** Ultra-simplify the README.md and resolve Mantine package version conflicts.
+
+**Changes:**
+- **README Ultra-Simplification**: Focused on Queue, Profiles, Song DB, essential scripts, and song data acknowledgment.
+- **Dependency Sync**: Updated all `@mantine/*` packages to `8.3.15` to resolve peer dependency conflicts with `@mantine/tiptap`.
+- **Credits**: Added direct attribution to `zetaraku/arcade-songs-fetch` for song data.
+
+**Files Touched:**
+- `README.md`
+- `package.json`
+
+**Verification:**
+- Content verified for accuracy and readability.
+- Mantine packages synchronized to a common version.
+- Verified specific link to `zetaraku` repo.
+
+# State Snapshot - v1.7.0 Changelog Finalized
+
+**Objective:** Finalize the changelog for version 1.7.0 with community credits and detailed feature descriptions.
+
+**Changes:**
+- **Changelog UI**: Added v1.7.0 to `src/data/changelog.js`.
+- **Feature Highlights**:
+    - **User Profile**: Linked profile sharing, favorites, and Best 50 (Credits: albinokoi).
+    - **Queue Rules**: Custom rules for branch admins (Credits: UPTC maimai community).
+    - **Song Database**: SEARCH/FAV/PLAYLIST integration (Credits: zetaraku).
+    - **Privacy**: RA 10173 compliance.
+    - **Redesign**: Consistent header aesthetics across database and profile.
+
+**Files Touched:**
+- `src/data/changelog.js`
+
+**Verification:**
+- User-approved final content.
+- `npm run lint` verified.
+
 # State Snapshot - Privacy Policy Update (RA 10173)
 
 **Objective:** Update the site's privacy policy to comply with Philippines Data Privacy Laws (RA 10173).
