@@ -56,19 +56,7 @@ function LocationPermissionModal({ opened, onClose, onRequestLocation, onDecline
               <Stack gap={6}>
                 <Text fw={600} size="lg">Edit the queue in real-time</Text>
                 <Text size="md" c="secondary" lh={1.6}>
-                  "The Maimai SMF Queue Check needs your location to verify that you are physically at the branch."
-                </Text>
-              </Stack>
-            </List.Item>
-
-            <List.Item>
-              <Stack gap={6}>
-                <Text fw={600} size="lg">Proximity verification</Text>
-                <Text size="md" c="secondary" lh={1.6}>
-                  "This site would like to access your location"
-                </Text>
-                <Text size="sm" c="secondary" fs="italic" mt={2} lh={1.5}>
-                  (You can always change this in your browser settings later)
+                  mpqCheckPH needs your location to verify that you are physically at the branch.
                 </Text>
               </Stack>
             </List.Item>

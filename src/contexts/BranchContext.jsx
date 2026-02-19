@@ -130,15 +130,10 @@ export const BranchProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      // Load branches and request location concurrently
-      // Use catch on location promise to prevent it from failing the whole Promise.all
-      const [allBranches, location] = await Promise.all([
-        branchService.getAllBranches(),
-        requestUserLocation().catch(() => null)
-      ]);
+      // Load branches ONLY, do not request location automatically on app load
+      const allBranches = await branchService.getAllBranches();
 
       setBranches(allBranches);
-      if (location) setUserLocation(location);
 
       if (allBranches.length === 0) {
         setError('No branches found');
@@ -157,16 +152,18 @@ export const BranchProvider = ({ children }) => {
         }
       }
 
-      // 2. Select nearest branch if location available, otherwise first
-      if (location && allBranches.length > 0) {
+      // 2. Select nearest branch if location available (unlikely on first load now), otherwise first
+      // We keep the logic in case location is set elsewhere before this runs, though unlikely.
+      if (userLocation && allBranches.length > 0) {
         const sorted = [...allBranches].sort((a, b) => {
-          const distA = getDistance(location, { latitude: a.latitude, longitude: a.longitude });
-          const distB = getDistance(location, { latitude: b.latitude, longitude: b.longitude });
+          const distA = getDistance(userLocation, { latitude: a.latitude, longitude: a.longitude });
+          const distB = getDistance(userLocation, { latitude: b.latitude, longitude: b.longitude });
           return distA - distB;
         });
         setSelectedBranchState(sorted[0]);
         localStorage.setItem(STORAGE_KEY, sorted[0].id);
       } else {
+        // Default to first branch alphabetically (as sorted by DB or service)
         setSelectedBranchState(allBranches[0]);
         localStorage.setItem(STORAGE_KEY, allBranches[0].id);
       }
