@@ -3,18 +3,16 @@ import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider, Badge, 
 import IconBrandGoogle from '@tabler/icons-react/dist/esm/icons/IconBrandGoogle.mjs';
 import IconLogout from '@tabler/icons-react/dist/esm/icons/IconLogout.mjs';
 import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
-import IconLogin from '@tabler/icons-react/dist/esm/icons/IconLogin.mjs';
+import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
 import IconSettings from '@tabler/icons-react/dist/esm/icons/IconSettings.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';
-import { useFeatureFlags } from '../hooks/useFeatureFlags';
 import './LoginForm.css';
 
 const LoginForm = ({ onOpenPreferences }) => {
   const { user, loading, signInWithProvider, signOut, userRoles } = useAuth();
   const { branches } = useBranch();
-  const { flags } = useFeatureFlags();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -92,20 +90,24 @@ const LoginForm = ({ onOpenPreferences }) => {
             </Stack>
           </Menu.Label>
           <Divider />
-          {flags['profile_tab'] && (
-            <Menu.Item
-              leftSection={<IconUser size={16} />}
-              onClick={() => {
-                if (userRoles?.slug) {
-                  navigate(`/p/${userRoles.slug}`);
-                } else {
-                  navigate('/profile');
-                }
-              }}
-            >
-              Profile
-            </Menu.Item>
-          )}
+          <Menu.Item
+            leftSection={<IconUser size={16} />}
+            onClick={() => {
+              if (userRoles?.slug) {
+                navigate(`/p/${userRoles.slug}`);
+              } else {
+                navigate('/profile');
+              }
+            }}
+          >
+            Profile
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<IconMusic size={16} />}
+            onClick={() => navigate('/songs')}
+          >
+            Songs
+          </Menu.Item>
           <Menu.Item
             leftSection={<IconSettings size={16} />}
             onClick={onOpenPreferences}

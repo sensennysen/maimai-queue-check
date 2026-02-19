@@ -5,14 +5,7 @@
  * These flags are stored in the user_profiles table in Supabase.
  */
 
-export const EXPERIMENTAL_FEATURES = [
-  {
-    id: 'profile_tab',
-    label: 'Profile Tab',
-    description: 'Enables the new dedicated Profile tab in the Profile Dropdown Menu which contains your maimai Best 50 songs.',
-    defaultValue: false
-  }
-];
+export const EXPERIMENTAL_FEATURES = [];
 
 // Helper to get default flags state
 export const getDefaultFeatureFlags = () => {
