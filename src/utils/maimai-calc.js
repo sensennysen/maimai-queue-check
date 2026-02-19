@@ -94,10 +94,18 @@ const processScore = (score, songMap) => {
     return null;
   }
 
+  /* 
+   * Determine version:
+   * 1. Check if the specific sheet has a region override for 'intl' version
+   * 2. Fallback to the song's main version
+   */
+  const versionOverride = sheet?.regionOverrides?.intl?.version;
+  const songVersion = versionOverride || song.version;
+
   const achievement = parseAchievement(score.score);
   const rating = calculateSongRating(achievement, internalLevel);
   const grade = getGrade(achievement);
-  const isNew = NEW_VERSIONS.includes(song.version);
+  const isNew = NEW_VERSIONS.includes(songVersion);
 
   return {
     title: score.title,

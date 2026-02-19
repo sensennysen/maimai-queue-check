@@ -17,7 +17,6 @@ function SongDatabase() {
     levels,
     internalLevels,
     error,
-    songs
   } = useSongDatabase();
 
   return (
