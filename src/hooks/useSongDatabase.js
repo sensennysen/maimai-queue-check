@@ -161,6 +161,7 @@ export function useSongDatabase() {
   return {
     songs,
     loading,
+    error,
     filters,
     setFilters,
     filteredSongs,

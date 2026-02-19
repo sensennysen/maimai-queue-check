@@ -16,7 +16,8 @@ function SongDatabase() {
     categories,
     versions,
     levels,
-    internalLevels
+    internalLevels,
+    error
   } = useSongDatabase();
 
   return (
@@ -90,7 +91,7 @@ function SongDatabase() {
             </div>
 
             <div style={{ minWidth: 0 }}>
-              <SongList key={JSON.stringify(filters)} songs={filteredSongs} loading={loading} />
+              <SongList key={JSON.stringify(filters)} songs={filteredSongs} loading={loading} error={error} />
             </div>
           </div>
         </div>

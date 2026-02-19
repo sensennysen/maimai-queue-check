@@ -12,7 +12,8 @@ function SongSelectionModal({ opened, onClose, onSelect }) {
     categories,
     versions,
     levels,
-    internalLevels
+    internalLevels,
+    error
   } = useSongDatabase();
 
   return (
@@ -69,6 +70,7 @@ function SongSelectionModal({ opened, onClose, onSelect }) {
                 key={JSON.stringify(filters)}
                 songs={filteredSongs}
                 loading={loading}
+                error={error}
                 onSongSelect={(song) => {
                   onSelect(song);
                   onClose();

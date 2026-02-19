@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 
 const ITEMS_PER_PAGE = 25;
 
-function SongList({ songs, loading, onSongSelect }) {
+function SongList({ songs, loading, error, onSongSelect }) {
   const [activePage, setPage] = useState(1);
   const [selectedSong, setSelectedSong] = useState(null);
 
@@ -15,6 +15,18 @@ function SongList({ songs, loading, onSongSelect }) {
   }, [songs, activePage]);
 
   const totalPages = Math.ceil(songs.length / ITEMS_PER_PAGE);
+
+  if (error) {
+    return (
+      <Center p="xl" h={300} className="hologram-card" style={{ borderRadius: '16px', borderColor: 'var(--mantine-color-red-6)' }}>
+        <Stack align="center">
+          <Text size="xl">❌</Text>
+          <Text c="red" fw={500}>Failed to load song database.</Text>
+          <Text size="xs" c="red">Please check your connection or try again later.</Text>
+        </Stack>
+      </Center>
+    );
+  }
 
   if (loading) {
     return (
