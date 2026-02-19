@@ -1,4 +1,20 @@
 export const changelogData = [
+   {
+    version: 'v1.7.1',
+    date: 'February 20, 2026',
+    changes: [
+      {
+        type: 'bugfix',
+        title: 'Best 50 Discrepancies',
+        description: 'Fixed an issue where the Best 50 songs are in incorrect order and does not match maimai DX International versioning.',
+      },
+      {
+        type: 'refactor',
+        title: 'Custom URL Character limit',
+        description: 'Added a character limit of 20 to custom URLs.',
+      }
+    ]
+  },
   {
     version: 'v1.7.0',
     date: 'February 19, 2026',
