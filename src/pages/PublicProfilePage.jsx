@@ -180,7 +180,7 @@ const PublicProfilePage = () => {
             leftSection={<IconArrowLeft size={18} />}
             className="animate-fade-in"
           >
-            maiPaQueueCheck PH
+            Back to queue
           </Button>
 
           {/* No management buttons here anymore */}
