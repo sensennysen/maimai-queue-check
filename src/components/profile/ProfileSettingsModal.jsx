@@ -179,6 +179,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
                     placeholder="my-cool-profile"
                     value={slug}
                     onChange={(e) => setSlug(e.currentTarget.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    maxLength={20}
                     leftSection={<IconLink size={16} />}
                     style={{ flex: 1 }}
                     disabled={!!initialData?.slug_updated_at}
