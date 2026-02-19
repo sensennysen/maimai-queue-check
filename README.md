@@ -1,39 +1,24 @@
 # 🎵 Maimai Queue Management System
 
-A React-based queue management system designed specifically for maimai rhythm game sessions. This application allows players to manage game queues efficiently with an intuitive, responsive interface.
+A React-based queue management system for maimai rhythm game sessions.
 
-![Maimai Queue System](https://img.shields.io/badge/React-18.3.1-61dafb) ![Vite](https://img.shields.io/badge/Vite-7.3.1-646cff) ![License](https://img.shields.io/badge/License-MIT-green)
+## ✨ Features
 
-## ✨ Key Features
+- **Queue Management**: Real-time sync, "Now Playing" timer, and role-based access.
+- **User Profiles**: Custom player profiles with rating tracking and "Best 50" scores.
+- **Song Database**: Comprehensive searchable database for maimai DX songs.
+- **Multi-Location**: Geolocation-restricted queueing for different arcade branches.
 
-- **Queue Management**: Real-time synchronization, reordering, and "Now Playing" timer.
-- **Branch & Location**: Multi-branch support with geolocation-based access.
-- **Multi-Cabinet Support**: Independent queues for arcades with multiple machines.
-- **Authentication**: Secure Google OAuth for management access.
-- **Design**: Modern Maimai DX-inspired theme with Dark/Light mode.
+## 🚀 Scripts
 
-## 🚀 Getting Started
+1. **Install Dependencies**: `npm install`
+2. **Development Mode**: `npm run dev`
+3. **Build Profile**: `npm run build`
+4. **Linting**: `npm run lint`
 
-1. **Clone & Install**:
-   ```bash
-   git clone https://github.com/your-username/smf-queue-check.git
-   cd smf-queue-check
-   npm install
-   ```
-2. **Setup Env**: Copy `.env.example` to `.env` and add your Supabase credentials.
-3. **Run**: `npm run dev`
+## 🙏 Acknowledgments
 
-## 🕹️ How to Use
+Song data provided by the [arcade-songs-fetch](https://github.com/zetaraku/arcade-songs-fetch/) repository by [zetaraku](https://github.com/zetaraku).
 
-- **Players**: Select your branch, join the queue, and track your position live.
-- **Managers**: Log in to manage entries, start/end games, and clear queues.
-- **Admins**: Access the dashboard to manage branches, schedules, and cabinets.
-
-## 🛠️ Stack
-
-- **Frontend**: React 19, Vite 7, Mantine UI, CSS3.
-- **Backend**: Supabase (Auth, DB, Real-time).
-
-## 📄 License & Credits
-
-Licensed under the MIT License. Designed for the rhythm gaming community.
+---
+*Built for the rhythm gaming community.*
