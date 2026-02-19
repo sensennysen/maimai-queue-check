@@ -26,3 +26,20 @@
 **Next Wave TODO:**
 - Implement 60-day cooldown visual countdown in the Slug settings.
 - Add error boundaries to the Profile sections for more robust fault tolerance.
+
+# State Snapshot - User Profile Creation Fixed
+
+**Objective:** Fix missing user_profiles entries upon signup and implement random slug generation.
+
+**Changes:**
+- **Trigger Fix**: Updated `handle_new_user()` trigger function in Supabase to insert into both `user_profiles` and `user_roles`.
+- **Slug Generation**: Added `generate_unique_slug()` Postgres function to automatically assign random 8-character slugs on signup.
+- **Backfill**: Synchronized 100% of existing users (52 records) to have matching profiles and slugs.
+
+**Files Touched:**
+- `supabase/migrations` (Applied via SQL Editor)
+
+**Verification:**
+- Verified 52/52 count synchronization between `auth.users` and `user_profiles`.
+- Confirmed trigger success on latest signup (`dev.bille.lagarde@gmail.com`).
+
