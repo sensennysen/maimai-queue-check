@@ -378,7 +378,7 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
           <form onSubmit={handleScheduleSubmit}>
             <Stack gap="md">
               <Text size="sm" c="secondary" fw={500} style={{ marginTop: '1rem' }}>
-                Editing Branch: {branchToEdit.arcade_name}
+                {mode === 'edit' ? 'Editing Branch' : 'Creating Branch'}: {arcadeName}
               </Text>
 
               <Paper p="md" withBorder className="schedule-container">

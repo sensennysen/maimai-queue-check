@@ -12,7 +12,7 @@ const PreferencesModal = ({ opened, onClose }) => {
       centered
       size="lg"
     >
-      <Stack gap="md">
+      <Stack gap="md" style={{ marginTop: '1rem' }}>
         <Stack gap="xs">
           <Text fw={600} size="sm">App Theme</Text>
           <SegmentedControl
