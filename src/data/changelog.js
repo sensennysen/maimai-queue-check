@@ -9,12 +9,16 @@ export const changelogData = [
         description: 'Showcase your favorite songs, build a playlist, and import your best 50 songs for everyone to see!',
         footnote: 'You can share your profile via the link button beside your display name. You can also set privacy settings. Big thanks to albinokoi for this idea!'
       },
-
       {
         type: 'feature',
         title: 'Queue Rules',
         description: 'Added a way for branch admins to display their queue rules',
         footnote: 'Thanks to the UPTC maimai community for this one!'
+      },
+      {
+        type: 'feature',
+        title: 'Best 50 render',
+        description: 'Allows the user to render their Best 50 in an image.',
       },
       {
         type: 'visual',
