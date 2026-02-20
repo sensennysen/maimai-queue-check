@@ -103,7 +103,12 @@ const processScore = (score, songMap) => {
   const songVersion = versionOverride || song.version;
 
   const achievement = parseAchievement(score.score);
-  const rating = calculateSongRating(achievement, internalLevel);
+  let rating = calculateSongRating(achievement, internalLevel);
+  
+  if (score.isAP) {
+    rating += 1;
+  }
+  
   const grade = getGrade(achievement);
   const isNew = NEW_VERSIONS.includes(songVersion);
 
@@ -116,7 +121,8 @@ const processScore = (score, songMap) => {
     rating,
     grade,
     isNew,
-    imageName: song.imageName
+    imageName: song.imageName,
+    isAP: score.isAP || false
   };
 };
 
@@ -130,7 +136,8 @@ export const calculateBest50 = async (rawScores, songs, rawBestFifty = null) => 
           title: item.title,
           score: item.score,
           difficulty: item.difficulty,
-          type: item.type || (item.title.includes("[DX]") ? "DX" : "Standard")
+          type: item.type || (item.title.includes("[DX]") ? "DX" : "Standard"),
+          isAP: item.isAP
         }, songMap);
 
         if (processed) {
