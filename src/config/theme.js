@@ -171,6 +171,11 @@ export const theme = createTheme({
         color: 'primary',
       },
     },
+    Modal: {
+      defaultProps: {
+        removeScrollProps: { allowPinchZoom: true },
+      },
+    },
     Paper: {
      styles: () => ({
         root: {

@@ -1,21 +1,19 @@
-# SPEC-003: Toggle for Sharing Most Played Songs
+# SPEC-004: Fix Mobile Keyboard Modal Shake
 
 ## Status: FINALIZED
 
 ## Problem Statement
-Currently, a user's "Most Played Songs" section is always visible on their public profile if the profile itself is public. Users need granular control over whether this specific section is displayed to others, similar to other collections like Favorites and Playlists.
+When viewing modals on mobile devices (e.g. `QueueRulesModal` or `BranchEditModal`), tapping an input causes the virtual keyboard to appear. This shrinks the viewport and causes the Mantine `<Modal>` component to infinitely jump/shake, which freezes the UI and prevents the user from typing.
 
 ## Requirements
-1.  **Privacy Setting Addition**:
-    *   Introduce a new privacy setting `show_most_played` inside the `privacy_settings` object for a user's profile.
-    *   Default value should be `true` for backwards compatibility or when the setting is missing.
-2.  **UI Updates - Profile Settings**:
-    *   Add a toggle switch in the `ProfileSettingsModal` under the "Score Data" or "Collections" section, labeled "Most Played Songs".
-    *   This toggle should allow users to conditionally set the `show_most_played` privacy setting.
-3.  **UI Updates - Public Profile**:
-    *   In the `PublicProfilePage`, the "Most Played Songs" section must only render if the profile owner's `privacy_settings.show_most_played` is not strictly `false`.
+1.  **Stop Modal Layout Thrashing**:
+    *   Find the root cause of the Mantine `Modal` shaking (typically related to `removeScrollProps` or `centered` calculations).
+    *   Apply a global fix in the Mantine theme configuration (`src/config/theme.js`) so that all modals in the application inherit the fix.
+    *   Ensure the fix does not break desktop scrolling or click-outside behaviors.
+2.  **No Code Duplication**:
+    *   The fix must be applied at the theme level to avoid manually updating every single modal file.
 
 ## Success Criteria
-- Users can toggle the visibility of their "Most Played Songs" section via the Profile Settings modal.
-- The state is persistently saved in the database under `privacy_settings`.
-- The public profile strictly respects this setting when viewing another user's profile.
+- Opening a modal on a mobile device and focusing an input (triggering the keyboard) smoothly resizes the viewport.
+- The modal does not shake indefinitely.
+- Desktop modal behavior remains unaffected.
