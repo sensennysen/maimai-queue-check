@@ -1,9 +1,10 @@
 import { Modal, Image, Text, Group, Stack, Tooltip, SimpleGrid } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconCheck } from '@tabler/icons-react';
-import { VERSION_MAPPING, CATEGORY_TRANSLATION } from '../../config/maimai-constants';
+import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS } from '../../config/maimai-constants';
+import { Badge } from '@mantine/core';
 
-function MaimaiSongDetailModal({ song, opened, onClose, comment, playCount, title = "Song Details" }) {
+function MaimaiSongDetailModal({ song, opened, onClose, comment, playCount, difficulty, title = "Song Details" }) {
   if (!song) return null;
 
   const handleTitleClick = () => {
@@ -102,12 +103,25 @@ function MaimaiSongDetailModal({ song, opened, onClose, comment, playCount, titl
               )}
             </SimpleGrid>
 
-            {playCount !== undefined && (
+            {(playCount !== undefined || difficulty) && (
               <Stack gap={2} mt="md">
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Play Count</Text>
-                <Group gap={4} align="baseline">
-                  <Text size="xl" fw={900} c="primary.6" style={{ lineHeight: 1 }}>{playCount}</Text>
-                  <Text size="xs" fw={700} c="dimmed">plays</Text>
+                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Play Status</Text>
+                <Group gap={8} align="center">
+                  {playCount !== undefined && (
+                    <Group gap={4} align="baseline">
+                      <Text size="xl" fw={900} c="primary.6" style={{ lineHeight: 1 }}>{playCount}</Text>
+                      <Text size="xs" fw={700} c="dimmed">plays</Text>
+                    </Group>
+                  )}
+                  {difficulty && (
+                    <Badge
+                      color={DIFFICULTY_COLORS[difficulty] || 'gray'}
+                      variant="filled"
+                      size="lg"
+                    >
+                      {difficulty}
+                    </Badge>
+                  )}
                 </Group>
               </Stack>
             )}

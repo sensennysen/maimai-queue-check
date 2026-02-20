@@ -380,7 +380,8 @@ export const userService = {
   async clearMaimaiData(userId) {
     if (!userId) throw new Error('User ID is required');
 
-    const { data, error } = await supabase
+    // 1. Clear profile fields
+    const { error: profileError } = await supabase
       .from('user_profiles')
       .update({
         maimai_best_scores: null,
@@ -389,12 +390,31 @@ export const userService = {
         maimai_dx_name: null,
         updated_at: new Date().toISOString()
       })
-      .eq('id', userId)
-      .select()
-      .single();
+      .eq('id', userId);
 
-    if (error) throw error;
-    return data;
+    if (profileError) throw profileError;
+
+    // 2. Delete from user_most_played_songs
+    const { error: mostPlayedError } = await supabase
+      .from('user_most_played_songs')
+      .delete()
+      .eq('user_id', userId);
+
+    if (mostPlayedError) {
+      console.error('Failed to clear most played songs:', mostPlayedError);
+    }
+
+    // 3. Delete from user_all_scores
+    const { error: allScoresError } = await supabase
+      .from('user_all_scores')
+      .delete()
+      .eq('user_id', userId);
+
+    if (allScoresError) {
+      console.error('Failed to clear all scores:', allScoresError);
+    }
+
+    return { success: true };
   }
 };
 
@@ -1456,6 +1476,41 @@ export const rulesService = {
       .select()
       .single();
     
+    if (error) throw error;
+    return data;
+  }
+};
+
+// Most Played service functions
+export const mostPlayedService = {
+  // Get most played for a user
+  async getMostPlayed(userId) {
+    if (!userId) return [];
+
+    const { data, error } = await supabase
+      .from('user_most_played_songs')
+      .select('data, updated_at')
+      .eq('user_id', userId)
+      .maybeSingle();
+      
+    if (error) throw error;
+    return data?.data || [];
+  },
+
+  // Update most played for a user
+  async upsertMostPlayed(userId, mostPlayedData) {
+    if (!userId) throw new Error('user_id is required');
+
+    const { data, error } = await supabase
+      .from('user_most_played_songs')
+      .upsert({
+        user_id: userId,
+        data: mostPlayedData,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' })
+      .select()
+      .single();
+
     if (error) throw error;
     return data;
   }

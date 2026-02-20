@@ -13,181 +13,219 @@
   const container = document.createElement('div');
   container.style.cssText = 'background:#222;padding:2rem;border-radius:12px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.5);max-width:90%;width:300px;';
 
-  const title = document.createElement('h2');
-  title.innerText = 'maimai Score Export';
-  title.style.cssText = 'margin:0 0 1rem 0;font-size:1.2rem;';
+  const titleEl = document.createElement('h2');
+  titleEl.innerText = 'maimai Score Export';
+  titleEl.style.cssText = 'margin:0 0 1rem 0;font-size:1.2rem;';
 
-  const status = document.createElement('p');
-  status.id = 'maimai-export-status';
-  status.innerText = 'Ready to fetch scores';
-  status.style.cssText = 'margin-bottom:1.5rem;color:#aaa;font-size:0.9rem;word-break: break-all;';
+  const statusEl = document.createElement('p');
+  statusEl.id = 'maimai-export-status';
+  statusEl.innerText = 'Ready to fetch scores';
+  statusEl.style.cssText = 'margin-bottom:0.5rem;color:#aaa;font-size:0.9rem;word-break: break-all;';
 
-  const btn = document.createElement('button');
-  btn.innerText = 'Fetch Scores';
-  btn.style.cssText = 'background:#007bff;color:white;border:none;padding:10px 20px;border-radius:6px;font-size:1rem;cursor:pointer;width:100%;font-weight:bold;transition:background 0.2s;';
+  const warnEl = document.createElement('p');
+  warnEl.innerText = 'Please do not close or leave this page while the process is ongoing.';
+  warnEl.style.cssText = 'margin-bottom:1.5rem;color:#ffcc00;font-size:0.8rem;font-weight:bold;';
+
+  const fetchBtn = document.createElement('button');
+  fetchBtn.innerText = 'Fetch Scores';
+  fetchBtn.style.cssText = 'background:#007bff;color:white;border:none;padding:10px 20px;border-radius:6px;font-size:1rem;cursor:pointer;width:100%;font-weight:bold;transition:background 0.2s;';
   
   const closeBtn = document.createElement('button');
   closeBtn.innerText = 'Close';
   closeBtn.style.cssText = 'background:transparent;color:#888;border:none;margin-top:1rem;cursor:pointer;text-decoration:underline;font-size:0.8rem;';
   closeBtn.onclick = () => overlay.remove();
 
-  container.appendChild(title);
-  container.appendChild(status);
-  container.appendChild(btn);
+  container.appendChild(titleEl);
+  container.appendChild(statusEl);
+  container.appendChild(warnEl);
+  container.appendChild(fetchBtn);
   container.appendChild(document.createElement('br'));
   container.appendChild(closeBtn);
   overlay.appendChild(container);
   document.body.appendChild(overlay);
 
   /* Helper to update status */
-  const setStatus = (msg, loading = false) => {
-    status.innerText = msg;
+  const updateStatus = (msg, loading = false) => {
+    statusEl.innerText = msg;
     if (loading) {
-      btn.disabled = true;
-      btn.style.background = '#666';
-      btn.innerText = 'Fetching...';
+      fetchBtn.disabled = true;
+      fetchBtn.style.background = '#666';
+      fetchBtn.innerText = 'Fetching...';
     } else {
-      btn.disabled = false;
-      btn.style.background = '#007bff';
+      fetchBtn.disabled = false;
+      fetchBtn.style.background = '#007bff';
+      fetchBtn.innerText = 'Fetch Scores';
     }
   };
 
   /* Main Logic */
-  btn.onclick = async () => {
+  fetchBtn.onclick = async () => {
     try {
-      setStatus('Initializing...', true);
-      var p = new DOMParser();
-      var out = { profile: {}, scores: [] };
-
-      // Helper for path checks
-      const basePath = window.location.origin + '/maimai-mobile';
-
-      // Fetch Profile
-      setStatus('Fetching Profile...');
-      // credentials: 'include' is crucial for mobile browsers to send cookies on fetch
-      var r1 = await fetch(basePath + '/playerData/', { credentials: 'include' });
-      
-      var t1 = await r1.text();
-      // Debug checks
-      if (r1.redirected && r1.url.includes('login')) {
-         throw new Error('Redirected to login page. Please log in.');
-      }
-      if (t1.includes('Enter SEGA ID') || t1.includes('submit_btn')) {
-         throw new Error('Login page detected. Please log in.');
-      }
-      if (t1.includes('Maintenance') || t1.includes('maintenance')) {
-         throw new Error('Maintenance detected.');
-      }
-      // Relaxed error check to avoid false positives with "connection expired" messages if they aren't critical
-      // But keeping it for now to see what the user gets.
-      if (t1.includes('Error') && t1.includes('error_block')) {
-         throw new Error('Error page detected (e.g. Aime not registered or expired session).');
-      }
-
-      var d1 = p.parseFromString(t1, 'text/html');
-      
-      var n = d1.querySelector('.name_block');
-      var rt = d1.querySelector('.rating_block');
-      
-      if (!n || !rt) {
-        // Detailed error
-        const titleTag = d1.querySelector('title');
-        const titleText = titleTag ? titleTag.innerText : 'No Title';
-        const bodyText = d1.body ? d1.body.innerText.substring(0, 100).replace(/\n/g, ' ') : 'No Body';
-        throw new Error('Parse Error. Title: "' + titleText + '". Body: "' + bodyText + '"');
-      }
-
-      var tr = d1.querySelector('.trophy_block');
-      var block = d1.querySelector('.basic_block.p_10.f_0');
-      var ic = block ? block.querySelector('.w_112.f_l') : null;
-      var pc = "0";
-      var blocks = d1.querySelectorAll('.m_5.f_12.break');
-      for (var i = 0; i < blocks.length; i++) {
-        if (blocks[i].innerText.match(/Play Count|プレイ回数/)) {
-          pc = blocks[i].innerText.split(':')[1].trim();
-        }
-      }
-      
-      out.profile = {
-        name: n ? n.innerText.trim() : "",
-        rating: rt ? parseInt(rt.innerText, 10) : 0,
-        trophy: tr ? tr.innerText.trim() : "",
-        playCount: pc,
-        iconUrl: ic ? ic.src : ""
+      updateStatus('Initializing...', true);
+      const parser = new DOMParser();
+      const output = { 
+        profile: {}, 
+        scores: [], 
+        best_fifty: { best_new: [], best_old: [] },
+        most_played: [] 
       };
 
-      // Fetch Scores
-      var diffs = [
-        { i: 0, n: 'Basic' },
-        { i: 1, n: 'Advanced' },
-        { i: 2, n: 'Expert' },
-        { i: 3, n: 'Master' },
-        { i: 4, n: 'Re:Master' }
+      const endpoint = window.location.origin + '/maimai-mobile';
+
+      // 1. Fetch Profile
+      updateStatus('Fetching Profile...');
+      const profileResp = await fetch(endpoint + '/playerData/', { credentials: 'include' });
+      const profileHtml = await profileResp.text();
+      if (profileResp.redirected && profileResp.url.includes('login')) throw new Error('Please log in.');
+      
+      const profileDoc = parser.parseFromString(profileHtml, 'text/html');
+      const playerName = profileDoc.querySelector('.name_block')?.innerText.trim();
+      const playerRating = profileDoc.querySelector('.rating_block')?.innerText.trim();
+      
+      if (!playerName || !playerRating) throw new Error('Profile not found.');
+
+      let statsTxt = "";
+      profileDoc.querySelectorAll('.m_5.m_b_5.t_r.f_12, .m_5.f_12.break, .m_5.f_12').forEach(el => {
+          if (el.innerText.toLowerCase().match(/play count|プレイ回数|current version/)) {
+              statsTxt += el.innerText + "\n";
+          }
+      });
+
+      const verPCMatch = statsTxt.match(/current version[：:]\s*([\d,]+)/i);
+      const totalPCMatch = statsTxt.match(/total play count[：:]\s*([\d,]+)/i);
+
+      output.profile = {
+        name: playerName,
+        rating: parseInt(playerRating, 10),
+        trophy: profileDoc.querySelector('.trophy_block')?.innerText.trim() || "",
+        current_version_play_count: verPCMatch ? verPCMatch[1] : "0",
+        total_play_count: totalPCMatch ? totalPCMatch[1] : "0",
+        icon_url: profileDoc.querySelector('.basic_block.p_10.f_0 .w_112.f_l')?.src || ""
+      };
+
+      // 2. Fetch All Scores
+      const difficultyMap = [
+        { id: 0, name: 'Basic' },
+        { id: 1, name: 'Advanced' },
+        { id: 2, name: 'Expert' },
+        { id: 3, name: 'Master' },
+        { id: 4, name: 'Re:Master' }
       ];
 
-      for (var j = 0; j < diffs.length; j++) {
-        var d = diffs[j];
-        setStatus('Fetching ' + d.n + ' scores...', true);
+      for (const diffObj of difficultyMap) {
+        updateStatus(`Fetching ${diffObj.name} scores...`, true);
+        const scoreResp = await fetch(endpoint + '/record/musicGenre/search/?genre=99&diff=' + diffObj.id, { credentials: 'include' });
+        const scoreHtml = await scoreResp.text();
+        const scoreDoc = parser.parseFromString(scoreHtml, 'text/html');
         
-        var r2 = await fetch(basePath + '/record/musicGenre/search/?genre=99&diff=' + d.i, { credentials: 'include' });
-        var t2 = await r2.text();
-        var d2 = p.parseFromString(t2, 'text/html');
-        
-        d2.querySelectorAll('.w_450').forEach(function(r) {
-          var te = r.querySelector('.music_name_block');
-          var se = r.querySelector('.music_score_block');
-          var ki = r.querySelector('.music_kind_icon');
-          if (te && se) {
-            out.scores.push({
-              title: te.innerText.trim(),
-              score: parseFloat(se.innerText.replace('%', '')),
-              difficulty: d.n,
-              difficultyId: d.i,
-              type: ki && ki.src.indexOf('dx.png') > -1 ? 'DX' : 'Standard'
+        scoreDoc.querySelectorAll('.w_450').forEach(row => {
+          const title = row.querySelector('.music_name_block')?.innerText.trim();
+          const achievement = row.querySelector('.music_score_block')?.innerText.trim();
+          const kindImg = row.querySelector('.music_kind_icon')?.src;
+          if (title && achievement) {
+            output.scores.push({
+              title: title,
+              score: parseFloat(achievement.replace('%', '')),
+              difficulty: diffObj.name,
+              difficulty_id: diffObj.id,
+              type: kindImg && kindImg.includes('dx.png') ? 'DX' : 'Standard'
             });
           }
         });
+        await new Promise(res => setTimeout(res, 100));
+      }
+
+      // 3. Fetch Most Played (Iterate through all difficulties)
+      for (const diffObj of difficultyMap) {
+        updateStatus(`Fetching Most Played: ${diffObj.name}...`, true);
+        const bestResp = await fetch(endpoint + `/record/musicMybest/search/?diff=${diffObj.id}`, { credentials: 'include' });
+        const bestHtml = await bestResp.text();
+        const bestDoc = parser.parseFromString(bestHtml, 'text/html');
         
-        // Polite delay
-        await new Promise(res => setTimeout(res, 200));
+        bestDoc.querySelectorAll('.w_450').forEach(entry => {
+          const title = entry.querySelector('.music_name_block')?.innerText.trim();
+          const playCountInfo = entry.querySelector('.music_score_block.w_215.t_r.f_r.f_12')?.innerText || "";
+          const kindImg = entry.querySelector('.music_kind_icon')?.src;
+          const pcMatch = playCountInfo.match(/PLAY COUNT[：:]\s*([\d,]+)/i);
+
+          if (title && pcMatch) {
+            output.most_played.push({
+              title,
+              difficulty: diffObj.name,
+              play_count: parseInt(pcMatch[1].replace(/,/g, ''), 10),
+              type: kindImg && kindImg.includes('dx.png') ? 'DX' : 'Standard'
+            });
+          }
+        });
+        await new Promise(res => setTimeout(res, 100));
+      }
+
+      // 4. Fetch Rating Target (Best 50)
+      updateStatus('Fetching Rating Target...', true);
+      const targetResp = await fetch(endpoint + '/home/ratingTargetMusic/', { credentials: 'include' });
+      const targetHtml = await targetResp.text();
+      const targetDoc = parser.parseFromString(targetHtml, 'text/html');
+      const idxInputs = targetDoc.querySelectorAll('input[name="idx"]');
+      const b50Jobs = [];
+
+      for (let i = 0; i < Math.min(idxInputs.length, 50); i++) {
+        const inp = idxInputs[i];
+        const card = inp.closest('.w_450');
+        const diffIcon = card?.querySelector('img.h_20.f_l')?.src;
+        const sTitle = card?.querySelector('.music_name_block')?.innerText.trim();
+        if (inp.value && diffIcon) {
+          const dStr = diffIcon.split('_').pop().split('.')[0].toLowerCase();
+          b50Jobs.push({ idx: inp.value, diff: dStr, title: sTitle, is_new: i < 15 });
+        }
+      }
+
+      for (let i = 0; i < b50Jobs.length; i++) {
+        const job = b50Jobs[i];
+        updateStatus(`Fetching Best 50: ${i+1}/${b50Jobs.length}...`, true);
+        const detResp = await fetch(endpoint + `/record/musicDetail/?idx=${encodeURIComponent(job.idx)}`, { credentials: 'include' });
+        const detHtml = await detResp.text();
+        const detDoc = parser.parseFromString(detHtml, 'text/html');
+        const levelDiv = detDoc.getElementById(job.diff);
+        
+        if (levelDiv) {
+            const ach = levelDiv.querySelector('.music_score_block')?.innerText.trim();
+            const infoTable = levelDiv.querySelector('table.collapse.f_11');
+            const infoRows = infoTable?.querySelectorAll('tr');
+            const lp = infoRows?.[0]?.cells[1]?.innerText.trim();
+            const pc = infoRows?.[1]?.cells[1]?.innerText.trim();
+            const kImg = detDoc.querySelector('.music_kind_icon')?.src;
+            const fullSync = !!levelDiv.querySelector('img[src*="music_icon_ap.png"], img[src*="music_icon_app.png"]');
+
+            const finalScore = {
+                title: job.title,
+                score: ach,
+                difficulty: job.diff.charAt(0).toUpperCase() + job.diff.slice(1),
+                last_played: lp,
+                play_count: pc,
+                type: kImg && kImg.includes('dx.png') ? 'DX' : 'Standard',
+                isAP: fullSync
+            };
+
+            if (job.is_new) output.best_fifty.best_new.push(finalScore);
+            else output.best_fifty.best_old.push(finalScore);
+        }
+        await new Promise(res => setTimeout(res, 100));
       }
 
       // Success
-      var json = JSON.stringify(out);
-      
-      try {
-          await navigator.clipboard.writeText(json);
-          setStatus('Success! ' + out.scores.length + ' scores copied.');
-          btn.innerText = 'Copied to Clipboard!';
-          btn.style.background = '#28a745';
-          
-          setTimeout(() => {
-             if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-          }, 3000);
-      } catch (clipErr) {
-          console.error("Clipboard failed", clipErr);
-          status.innerHTML = 'Clipboard write failed.<br>Please copy below:';
-          const ta = document.createElement('textarea');
-          ta.value = json;
-          ta.style.width = '100%';
-          ta.style.height = '100px';
-          ta.style.marginTop = '10px';
-          // Prevent closing overlay accidentally
-          ta.onclick = (e) => e.stopPropagation();
-          
-          if (!container.querySelector('textarea')) {
-              container.insertBefore(ta, btn);
-          }
-          btn.innerText = 'Close';
-          btn.onclick = () => overlay.remove(); 
-      }
+      const finalJson = JSON.stringify(output);
+      await navigator.clipboard.writeText(finalJson);
+      updateStatus(`Success! ${output.scores.length} scores copied.`);
+      fetchBtn.innerText = 'Copied!';
+      fetchBtn.style.background = '#28a745';
+      setTimeout(() => overlay.remove(), 3000);
 
-    } catch (e) {
-      console.error(e);
-      setStatus('Error: ' + e.message);
-      btn.disabled = false;
-      btn.innerText = 'Retry';
-      btn.style.background = '#dc3545';
+    } catch (err) {
+      console.error(err);
+      updateStatus('Error: ' + err.message);
+      fetchBtn.disabled = false;
+      fetchBtn.innerText = 'Retry';
+      fetchBtn.style.background = '#dc3545';
     }
   };
 })();

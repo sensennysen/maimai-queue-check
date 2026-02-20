@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Modal, Stack, Text, Textarea, Divider, Alert, Group, Button } from '@mantine/core';
 import { IconCheck, IconAlertCircle, IconUpload } from '@tabler/icons-react';
 import { BookmarkletInstructions } from '../BookmarkletInstructions';
-import { userService } from '../../services/supabase';
+import { userService, mostPlayedService } from '../../services/supabase';
 import { fetchSongConstants, calculateBest50 } from '../../utils/maimai-calc';
 
 const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
@@ -41,17 +41,31 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
       result.current_version_play_count = data.profile?.current_version_play_count || "0";
       result.total_play_count = data.profile?.total_play_count || "0";
 
-      // Enrich most_played with image names from song database
-      const enrichedMostPlayed = (data.most_played || []).map(item => {
-        const matchingSong = songs.find(s => s.title === item.title);
-        return {
-          ...item,
-          imageName: matchingSong?.imageName || null
-        };
-      });
+      // Enrich most_played with image names and filter to Top 20
+      const enrichedMostPlayed = (data.most_played || [])
+        .map(item => {
+          const matchingSong = songs.find(s => s.title === item.title);
+          return {
+            ...item,
+            imageName: matchingSong?.imageName || null,
+            imageUrl: matchingSong?.imageUrl || null
+          };
+        })
+        .sort((a, b) => b.play_count - a.play_count)
+        .slice(0, 20);
+
       result.most_played = enrichedMostPlayed;
 
-      await userService.updateMaimaiBestScores(userId, result);
+      // Save most played data to its own table
+      if (enrichedMostPlayed.length > 0) {
+        await mostPlayedService.upsertMostPlayed(userId, enrichedMostPlayed);
+      }
+
+      // Save the rest to user profile, excluding most_played from the JSON structure
+      const dbScores = { ...result };
+      delete dbScores.most_played;
+
+      await userService.updateMaimaiBestScores(userId, dbScores);
       await userService.saveUserAllScores(userId, data);
 
       const import_name = data.profile?.name || data.name || data.user_data?.name;

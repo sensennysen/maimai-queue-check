@@ -15,7 +15,7 @@ import MaimaiImportModal from '../components/profile/MaimaiImportModal';
 import ProfileSettingsModal from '../components/profile/ProfileSettingsModal';
 import MaimaiSongDetailModal from '../components/profile/MaimaiSongDetailModal';
 import { useAuth } from '../hooks/useAuth';
-import { userService, branchService } from '../services/supabase';
+import { userService, branchService, mostPlayedService } from '../services/supabase';
 import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection';
 import { PlaylistSection } from '../components/profile/PlaylistSection';
 import { ScoreCard } from '../components/maimai/ScoreCard';
@@ -60,6 +60,13 @@ const PublicProfilePage = () => {
       } else if (!profileData.is_public && profileData.id !== user?.id) {
         setIsRestricted(true);
       } else {
+        const mostPlayedData = await mostPlayedService.getMostPlayed(profileData.id);
+        if (profileData.maimai_best_scores) {
+          profileData.maimai_best_scores.most_played = mostPlayedData || [];
+        } else if (mostPlayedData && mostPlayedData.length > 0) {
+          profileData.maimai_best_scores = { most_played: mostPlayedData };
+        }
+
         setProfile(profileData);
         setBranches(branchesData);
       }
@@ -359,19 +366,44 @@ const PublicProfilePage = () => {
                       overflow: 'hidden',
                       position: 'relative',
                       cursor: 'pointer',
-                      transition: 'transform 0.1s ease'
+                      transition: 'transform 0.1s ease',
+                      border: `2px solid ${DIFFICULTY_COLORS[song.difficulty] || 'transparent'}`
                     }}
                     onClick={() => {
                       if (!isDragging) {
                         setSelectedMostPlayedSong({
                           ...matchedSong,
                           play_count: song.play_count,
-                          title: song.title
+                          title: song.title,
+                          difficulty: song.difficulty
                         });
                       }
                     }}
                   >
                     <Box style={{ position: 'relative', width: '100%', height: '100%' }}>
+                      {/* Difficulty Badge */}
+                      {song.difficulty && (
+                        <Box
+                          style={{
+                            position: 'absolute',
+                            top: 6,
+                            right: 6,
+                            zIndex: 10,
+                            background: DIFFICULTY_COLORS[song.difficulty] || 'gray',
+                            color: 'white',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontSize: '9px',
+                            fontWeight: 900,
+                            textTransform: 'uppercase',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                            textShadow: 'none'
+                          }}
+                        >
+                          {song.difficulty}
+                        </Box>
+                      )}
+
                       <Image
                         src={matchedSong?.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
                         alt={song.title}
@@ -567,6 +599,7 @@ const PublicProfilePage = () => {
             opened={!!selectedMostPlayedSong}
             onClose={() => setSelectedMostPlayedSong(null)}
             playCount={selectedMostPlayedSong?.play_count}
+            difficulty={selectedMostPlayedSong?.difficulty}
             title="Most Played Details"
           />
         </>
