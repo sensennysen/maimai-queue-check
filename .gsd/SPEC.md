@@ -1,19 +1,21 @@
-# SPEC-004: Fix Mobile Keyboard Modal Shake
+# SPEC-005: Simplify Mobile Bookmarklet
 
 ## Status: FINALIZED
 
 ## Problem Statement
-When viewing modals on mobile devices (e.g. `QueueRulesModal` or `BranchEditModal`), tapping an input causes the virtual keyboard to appear. This shrinks the viewport and causes the Mantine `<Modal>` component to infinitely jump/shake, which freezes the UI and prevents the user from typing.
+The current bookmarklet is over 4,000 characters long because it embeds the entire scraping logic. Mobile browsers (like Safari and Chrome on iOS/Android) often have strict character limits on bookmark URLs (such as 2048 characters), making it impossible for users to save the bookmarklet and use it to extract their maimai DX NET scores.
 
 ## Requirements
-1.  **Stop Modal Layout Thrashing**:
-    *   Find the root cause of the Mantine `Modal` shaking (typically related to `removeScrollProps` or `centered` calculations).
-    *   Apply a global fix in the Mantine theme configuration (`src/config/theme.js`) so that all modals in the application inherit the fix.
-    *   Ensure the fix does not break desktop scrolling or click-outside behaviors.
-2.  **No Code Duplication**:
-    *   The fix must be applied at the theme level to avoid manually updating every single modal file.
+1.  **Reduce Bookmarklet Length**:
+    *   The bookmarklet URL must be significantly shorter than 2048 characters.
+    *   Achieve this by creating a "loader" bookmarklet that dynamically injects the scraping script into the page.
+2.  **Host the Scraping Script**:
+    *   Extract the large scraping script and serve it statically from the app's `public` directory (e.g., `/bookmarklet.js`).
+3.  **Update Instructions UI**:
+    *   Update `BookmarkletInstructions.jsx` to provide the new, shorter loader script instead of the full giant string.
+    *   The loader script should reference the current origin (`window.location.origin`) so it correctly loads the script from the deployed app's domain.
 
 ## Success Criteria
-- Opening a modal on a mobile device and focusing an input (triggering the keyboard) smoothly resizes the viewport.
-- The modal does not shake indefinitely.
-- Desktop modal behavior remains unaffected.
+- The generated bookmarklet code displayed in the UI is very short (under 200 characters).
+- Clicking the bookmarklet on the maimai DX NET site successfully fetches the externally hosted script and executes the scraping logic.
+- Mobile users can successfully copy and save the bookmark without being truncated.

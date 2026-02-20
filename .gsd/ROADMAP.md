@@ -1,11 +1,18 @@
-# Roadmap - Best 50 Validation and Changelog Update
+# Roadmap - Simplify Mobile Bookmarklet
 
-## Phase 1: Implementation (Immediate)
-- Implement Best 50 malformed/outdated check in `PublicProfilePage.jsx`.
-- Update `src/data/changelog.js` with `v1.7.2` entries.
-- Status: READY
+## Phase 1: Planning
+- Define requirements in `SPEC.md`.
+- Create `implementation_plan.md`.
+- Status: IN PROGRESS
 
-## Phase 2: Verification
-- Verify Best 50 warning message.
-- Verify changelog modal display.
+## Phase 2: Implementation (Immediate)
+- Update `public/bookmarklet.js` with the full scraper script from `BookmarkletInstructions.jsx`.
+- Update `BookmarkletInstructions.jsx` to generate the loader script.
+- Ensure the loader script utilizes `window.location.origin` for the correct host.
+- Status: PLANNED
+
+## Phase 3: Verification
+- Verify the `public/bookmarklet.js` file is accessible.
+- Verify the generated bookmarklet code is short.
+- Verify no lint errors are introduced.
 - Status: PLANNED
