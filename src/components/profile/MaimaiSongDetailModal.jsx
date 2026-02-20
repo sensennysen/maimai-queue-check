@@ -1,7 +1,7 @@
 import { Modal, Image, Text, Group, Stack, Tooltip, SimpleGrid } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconCheck } from '@tabler/icons-react';
-import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS } from '../../config/maimai-constants';
+import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
 import { Badge } from '@mantine/core';
 
 function MaimaiSongDetailModal({ song, opened, onClose, comment, playCount, difficulty, title = "Song Details" }) {
@@ -23,6 +23,8 @@ function MaimaiSongDetailModal({ song, opened, onClose, comment, playCount, diff
   const typeImage = song.cardType === 'dx'
     ? new URL('../../assets/music_dx.png', import.meta.url).href
     : new URL('../../assets/music_standard.png', import.meta.url).href;
+
+  const normalizedDifficulty = normalizeDifficulty(difficulty);
 
   return (
     <Modal
@@ -115,11 +117,11 @@ function MaimaiSongDetailModal({ song, opened, onClose, comment, playCount, diff
                   )}
                   {difficulty && (
                     <Badge
-                      color={DIFFICULTY_COLORS[difficulty] || 'gray'}
+                      color={DIFFICULTY_COLORS[normalizedDifficulty] || 'gray'}
                       variant="filled"
                       size="lg"
                     >
-                      {difficulty}
+                      {normalizedDifficulty}
                     </Badge>
                   )}
                 </Group>

@@ -1,3 +1,31 @@
+## Wave 8 Summary
+
+**Objective:** Refine "Most Played" scraping, storage, and cross-schema data integrity.
+
+**Changes:**
+- **Revised Scraping**: Updated bookmarklet to iterate through all 5 difficulty levels on `musicMybest`.
+- **Top 20 Retention**: Modified `MaimaiImportModal` to sort combined records and keep the Top 20 most played overall.
+- **Table Rename**: Renamed `most_played` to `user_most_played_songs` for clarity and consistency.
+- **Data Clearing**: Enhanced `clearMaimaiData` to delete from `user_most_played_songs` and `user_all_scores` in addition to profile fields. Added missing RLS `DELETE` policies.
+- **FK Refactor**: Created migration to switch FKs of 6 tables (`user_roles`, `user_playlists`, etc.) from `auth.users` to `public.user_profiles` with `ON DELETE CASCADE`.
+
+**Files Touched:**
+- `src/assets/bookmarklet.js` & `public/bookmarklet.js` (Bookmarklet logic)
+- `src/services/supabase.js` (Service layer & `clearMaimaiData`)
+- `src/components/profile/MaimaiImportModal.jsx` (Import processing)
+- `src/pages/PublicProfilePage.jsx` & `src/components/profile/MaimaiSongDetailModal.jsx` (UI updates)
+- `supabase/migrations/20260220_most_played_table.sql` (Renamed table & policies)
+- `supabase/migrations/20260221_refactor_fks.sql` (FK refactoring)
+
+**Verification:**
+- `npm run lint`: 0 errors.
+- Manual verification of scraper output and DB migration success.
+
+**Next Wave TODO:**
+- Monitor for any edge cases in Top 20 sorting or FK cascading.
+
+---
+
 ## Wave 7 Summary
 
 **Objective:** Implement SPEC-005: Simplify Mobile Bookmarklet

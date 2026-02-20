@@ -2,22 +2,17 @@ import { Paper, Text, Group, Badge, Image, Stack, Tooltip, Box } from '@mantine/
 import { useMemo } from 'react';
 import dxImage from '../../../assets/music_dx.png';
 import standardImage from '../../../assets/music_standard.png';
-import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION } from '../../../config/maimai-constants';
+import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty } from '../../../config/maimai-constants';
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
 
 function SongCard({ song, onClick, hideDifficulties = false, hideTags = false }) {
   // Sort sheets by difficulty
-  // Sort sheets by difficulty
   const sortedSheets = useMemo(() => {
     if (hideDifficulties || !song.sheets) return [];
     return [...song.sheets].sort((a, b) => {
-      const normalizeDiffForSort = (d) => {
-        const map = { 'basic': 'Basic', 'advanced': 'Advanced', 'expert': 'Expert', 'master': 'Master', 'remaster': 'Re:Master' };
-        return map[d.toLowerCase()] || d;
-      };
-      const diffA = DIFFICULTY_ORDER.indexOf(normalizeDiffForSort(a.difficulty));
-      const diffB = DIFFICULTY_ORDER.indexOf(normalizeDiffForSort(b.difficulty));
+      const diffA = DIFFICULTY_ORDER.indexOf(normalizeDifficulty(a.difficulty));
+      const diffB = DIFFICULTY_ORDER.indexOf(normalizeDifficulty(b.difficulty));
       return diffA - diffB;
     });
   }, [song.sheets, hideDifficulties]);
@@ -157,14 +152,7 @@ function SongCard({ song, onClick, hideDifficulties = false, hideTags = false })
           <Group gap={4} wrap="wrap" mt="sm">
             {sortedSheets.map((sheet) => {
               // Normalize difficulty string to match keys in DIFFICULTY_COLORS
-              const diffMap = {
-                'basic': 'Basic',
-                'advanced': 'Advanced',
-                'expert': 'Expert',
-                'master': 'Master',
-                'remaster': 'Re:Master'
-              };
-              const normalizedDiff = diffMap[sheet.difficulty.toLowerCase()] || sheet.difficulty;
+              const normalizedDiff = normalizeDifficulty(sheet.difficulty);
               const diffColor = DIFFICULTY_COLORS[normalizedDiff] || 'gray';
 
               return (

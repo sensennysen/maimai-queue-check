@@ -4,7 +4,7 @@ import dxImage from '../../assets/music_dx.png';
 import standardImage from '../../assets/music_standard.png';
 
 import { getGrade } from '../../utils/maimai-calc';
-import { BASE_JACKET_URL, DIFFICULTY_COLORS } from '../../config/maimai-constants';
+import { BASE_JACKET_URL, DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
 
 export function ScoreCard({ score }) {
   // Use imageName from score object (populated from otoge-db)
@@ -15,10 +15,8 @@ export function ScoreCard({ score }) {
   // Use grade from score or calculate fallback (for existing data)
   const scoreGrade = score.grade || getGrade(score.achievement);
 
-  const difficultyColor = DIFFICULTY_COLORS[score.difficulty] || 'gray';
-  // Use full difficulty string, ensuring consistent capitalization if needed
-  // score.difficulty is usually "Master", "Re:Master" etc from the parser
-  const difficultyLabel = score.difficulty;
+  const difficultyLabel = normalizeDifficulty(score.difficulty);
+  const difficultyColor = DIFFICULTY_COLORS[difficultyLabel] || 'gray';
 
   const typeImage = score.type === 'DX' ? dxImage : standardImage;
 
