@@ -326,7 +326,7 @@ const PublicProfilePage = () => {
         )}
 
         {/* Most Played Songs Section */}
-        {(privacy.show_best_50 || isOwner) && profile.maimai_best_scores?.most_played?.length > 0 && (
+        {(privacy.show_most_played !== false || isOwner) && profile.maimai_best_scores?.most_played?.length > 0 && (
           <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-350">
             <Group gap="xs" mb="md">
               <IconStar size={24} style={{ color: 'var(--mantine-color-pink-5)' }} />

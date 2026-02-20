@@ -13,6 +13,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
   const [privacySettings, setPrivacySettings] = useState({
     show_dx_rating: true,
     show_best_50: true,
+    show_most_played: true,
     show_favorite_songs: true,
     show_playlists: true,
     show_main_branch: true,
@@ -210,6 +211,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
                 <Switch label="Maimai Name" checked={privacySettings.show_maimai_name} onChange={(e) => handleUpdatePrivacy('show_maimai_name', e.currentTarget.checked)} />
                 <Switch label="DX Rating" checked={privacySettings.show_dx_rating} onChange={(e) => handleUpdatePrivacy('show_dx_rating', e.currentTarget.checked)} />
                 <Switch label="Best 50" checked={privacySettings.show_best_50} onChange={(e) => handleUpdatePrivacy('show_best_50', e.currentTarget.checked)} />
+                <Switch label="Most Played" checked={privacySettings.show_most_played !== false} onChange={(e) => handleUpdatePrivacy('show_most_played', e.currentTarget.checked)} />
               </Stack>
               <Stack gap="xs">
                 <Text size="sm" fw={600}>Collections</Text>
