@@ -1,3 +1,23 @@
+## Wave 9 Summary
+
+**Objective:** Fix "Remaster" tag color in Best 50 and centralize difficulty normalization.
+
+**Changes:**
+- **Normalization Helper**: Added `normalizeDifficulty` to `maimai-constants.js` to canonicalize difficulty strings (e.g., "Remaster" -> "Re:Master").
+- **UI Consistency**: Updated `ScoreCard`, `MaimaiSongDetailModal`, `SongCard`, and `SongDetailModal` to use the centralized helper. This ensures correct purple styling for Re:Master tags in the Best 50 section.
+
+**Files Touched:**
+- `src/config/maimai-constants.js`
+- `src/components/maimai/ScoreCard.jsx`
+- `src/components/profile/MaimaiSongDetailModal.jsx`
+- `src/features/songs/components/SongCard.jsx`
+- `src/features/songs/components/SongDetailModal.jsx`
+
+**Verification:**
+- `npm run lint`: 0 errors.
+
+---
+
 ## Wave 8 Summary
 
 **Objective:** Refine "Most Played" scraping, storage, and cross-schema data integrity.
