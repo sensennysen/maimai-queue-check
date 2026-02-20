@@ -1,14 +1,11 @@
-# Roadmap - Fix Infinite Queries/Mutations
+# Roadmap - Best 50 Validation and Changelog Update
 
-## Phase 1: Core Fix (Immediate)
-- Fix infinite loop in `BranchContext.jsx`.
+## Phase 1: Implementation (Immediate)
+- Implement Best 50 malformed/outdated check in `PublicProfilePage.jsx`.
+- Update `src/data/changelog.js` with `v1.7.2` entries.
 - Status: READY
 
-## Phase 2: Audit & Optimization
-- Audit `AuthContext.jsx` for redundant fetches.
-- Audit `useQueueData.js` and `useMonitorData.js` for real-time fetch overhead.
-- Status: PLANNED
-
-## Phase 3: Verification
-- Verify network stability in DevTools.
+## Phase 2: Verification
+- Verify Best 50 warning message.
+- Verify changelog modal display.
 - Status: PLANNED

@@ -1,5 +1,21 @@
 export const changelogData = [
-   {
+  {
+    version: 'v1.7.2',
+    date: 'February 20, 2026',
+    changes: [
+      {
+        type: 'feature',
+        title: 'Most Played & Total Play Count',
+        description: 'Added Most Played section and Total Play Count to user profiles.',
+      },
+      {
+        type: 'fix',
+        title: 'Best 50 Calculation',
+        description: 'Fixed Best 50 calculation logic.',
+      }
+    ]
+  },
+  {
     version: 'v1.7.1',
     date: 'February 20, 2026',
     changes: [

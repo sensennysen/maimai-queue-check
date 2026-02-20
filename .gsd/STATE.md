@@ -1,30 +1,21 @@
-# Project State
+## Wave 5 Summary
 
-## Session: Best 50 Calculation Update
-**Date**: 2026-02-20
-**Mode**: Feature/Refactor
+**Objective:** Implement Best 50 malformed data check and update changelog.
 
-### Changes
-- Updated `src/utils/maimai-calc.js`:
-  - Modified `processScore` to check for `sheet.regionOverrides.intl.version`.
-  - Uses the overridden version for "New" vs "Old" categorization if available.
-- Updated `src/hooks/useMouseDragScroll.js`:
-  - Removed unused `eslint-disable` directive.
+**Changes:**
+- Added `isMalformedBest50` check in `PublicProfilePage.jsx`.
+- Added rendering of an `Alert` when data is malformed.
+- Updated `src/data/changelog.js` with v1.7.2 features.
 
-### Verification
-- Verified logic with `scripts/test-best50.mjs` (PASSED).
-- Lint check passed.
+**Files Touched:**
+- `src/pages/PublicProfilePage.jsx`
+- `src/data/changelog.js`
 
-## Session: Profile Slug Limit
-**Date**: 2026-02-20
-**Mode**: Feature
+**Verification:**
+- `npm run lint`: 0 errors.
 
-### Changes
-- Updated `src/components/profile/ProfileSettingsModal.jsx`:
-  - Added `maxLength={20}` to slug input field.
-
-### Verification
-- Manual verification confirmed input stops at 20 characters.
-
-### Next Steps
+**Risks/Debt:**
 - None.
+
+**Next Wave TODO:**
+- Ready for next feature request.

@@ -199,6 +199,15 @@ const PublicProfilePage = () => {
   const mainBranchName = profile.main_branch ? getBranchName(profile.main_branch) : null;
   const preferredBranchNames = profile.preferred_branches?.map(id => getBranchName(id, true)) || [];
 
+  const isMalformedBest50 = profile?.maimai_best_scores && (
+    !profile.maimai_best_scores.best_new ||
+    !profile.maimai_best_scores.best_old ||
+    !Array.isArray(profile.maimai_best_scores.best_new?.songs) ||
+    !Array.isArray(profile.maimai_best_scores.best_old?.songs) ||
+    !profile.maimai_best_scores.most_played ||
+    typeof profile.maimai_best_scores.total_play_count === 'undefined'
+  );
+
   return (
     <Container size="lg" py="xl">
       <Stack gap="lg">
@@ -415,7 +424,7 @@ const PublicProfilePage = () => {
                       </Box>
                     </Box>
                   </Paper>
-                )
+                );
               })}
             </div>
           </Paper>
@@ -424,6 +433,11 @@ const PublicProfilePage = () => {
         {/* Best 50 Section */}
         {(privacy.show_best_50 || isOwner) && (
           <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-400">
+            {isOwner && isMalformedBest50 && (
+              <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light" mb="md" title="Action Required">
+                Data and Bookmark is out of date. Please create a new bookmark from the Import message and reimport
+              </Alert>
+            )}
             <Group justify="space-between" mb="xl">
               <Stack gap={0}>
                 <Group gap="xs">
