@@ -341,6 +341,16 @@ html {
   /* meaningful initial state */
 }
 
+/* Scrollbar Utilities */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
 .delay-100 {
   animation-delay: 100ms;
 }

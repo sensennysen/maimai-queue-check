@@ -120,9 +120,49 @@ const processScore = (score, songMap) => {
   };
 };
 
-export const calculateBest50 = async (rawScores, songs) => {
+export const calculateBest50 = async (rawScores, songs, rawBestFifty = null) => {
   const songMap = buildSongMap(songs);
   
+  if (rawBestFifty && (rawBestFifty.best_new?.length > 0 || rawBestFifty.best_old?.length > 0)) {
+    const processBestList = (list) => {
+      return list.map(item => {
+        const processed = processScore({
+          title: item.title,
+          score: item.score,
+          difficulty: item.difficulty,
+          type: item.type || (item.title.includes("[DX]") ? "DX" : "Standard")
+        }, songMap);
+
+        if (processed) {
+          return {
+            ...processed,
+            last_played: item.last_played,
+            play_count: item.play_count
+          };
+        }
+        return null;
+      }).filter(s => s !== null);
+    };
+
+    const bestNew = processBestList(rawBestFifty.best_new || []);
+    const bestOld = processBestList(rawBestFifty.best_old || []);
+
+    const totalNew = bestNew.reduce((sum, s) => sum + s.rating, 0);
+    const totalOld = bestOld.reduce((sum, s) => sum + s.rating, 0);
+
+    return {
+      best_new: {
+        songs: bestNew,
+        total_rating: totalNew
+      },
+      best_old: {
+        songs: bestOld,
+        total_rating: totalOld
+      },
+      total_rating: totalNew + totalOld
+    };
+  }
+
   const calculatedScores = rawScores
     .map(score => processScore(score, songMap))
     .filter(s => s !== null && s.rating > 0)
@@ -135,15 +175,15 @@ export const calculateBest50 = async (rawScores, songs) => {
   const totalOld = bestOld.reduce((sum, s) => sum + s.rating, 0);
 
   return {
-    new: {
+    best_new: {
       songs: bestNew,
-      totalRating: totalNew
+      total_rating: totalNew
     },
-    old: {
+    best_old: {
       songs: bestOld,
-      totalRating: totalOld
+      total_rating: totalOld
     },
-    totalRating: totalNew + totalOld
+    total_rating: totalNew + totalOld
   };
 };
 

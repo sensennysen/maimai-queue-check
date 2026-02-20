@@ -47,10 +47,10 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
     try {
       setIsSaving(true);
       await userService.updatePreferences(userId, {
-        displayName: displayName.trim(),
-        branchIds: selectedBranches.map(Number),
-        mainBranch: selectedMainBranch ? parseInt(selectedMainBranch, 10) : null,
-        isPublic: isPublic
+        display_name: displayName.trim(),
+        branch_ids: selectedBranches.map(Number),
+        main_branch: selectedMainBranch ? parseInt(selectedMainBranch, 10) : null,
+        is_public: isPublic
       });
 
       notifications.show({

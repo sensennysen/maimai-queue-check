@@ -8,13 +8,13 @@ const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp
  * User Profile Schemas
  */
 export const userProfileSchema = z.object({
-  displayName: z.string()
+  display_name: z.string()
     .min(1, 'Display name is required')
     .max(20, 'Display name must be 20 characters or less')
     .trim()
     .optional(),
-  branchIds: z.array(z.number().int()).optional(),
-  maimaiDxName: z.string()
+  branch_ids: z.array(z.number().int()).optional(),
+  maimai_dx_name: z.string()
     .max(20, 'Maimai DX name must be 20 characters or less')
     .trim()
     .nullable()
@@ -42,9 +42,9 @@ export const queueEntrySchema = z.object({
     .trim()
     .optional()
     .or(z.literal('')),
-  branchId: z.number().int(),
-  cabinetNum: z.number().int().min(1),
-  orderPosition: z.number().int()
+  branch_id: z.number().int(),
+  cabinet_num: z.number().int().min(1),
+  order_position: z.number().int()
 });
 
 /**

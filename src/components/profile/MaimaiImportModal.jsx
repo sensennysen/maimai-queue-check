@@ -31,20 +31,35 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
       }
 
       const songs = await fetchSongConstants();
-      const result = await calculateBest50(data.scores, songs);
+      const result = await calculateBest50(data.scores, songs, data.best_fifty);
 
-      if (!result || (result.new.songs.length === 0 && result.old.songs.length === 0)) {
+      if (!result || (result.best_new.songs.length === 0 && result.best_old.songs.length === 0)) {
         throw new Error("No valid scores could be calculated. Please check your score data.");
       }
 
-      await userService.updateMaimaiBestScores(userId, result);
+      // Include play counts and most played in the result object for display persistence
+      result.current_version_play_count = data.profile?.current_version_play_count || "0";
+      result.total_play_count = data.profile?.total_play_count || "0";
 
-      const importName = data.profile?.name || data.name || data.user_data?.name;
-      const importIconUrl = data.profile?.iconUrl || data.iconUrl;
+      // Enrich most_played with image names from song database
+      const enrichedMostPlayed = (data.most_played || []).map(item => {
+        const matchingSong = songs.find(s => s.title === item.title);
+        return {
+          ...item,
+          imageName: matchingSong?.imageName || null
+        };
+      });
+      result.most_played = enrichedMostPlayed;
+
+      await userService.updateMaimaiBestScores(userId, result);
+      await userService.saveUserAllScores(userId, data);
+
+      const import_name = data.profile?.name || data.name || data.user_data?.name;
+      const import_icon_url = data.profile?.icon_url || data.icon_url;
 
       const updates = {};
-      if (importName && typeof importName === 'string') updates.maimaiDxName = importName;
-      if (importIconUrl && typeof importIconUrl === 'string') updates.displayPhotoUrl = importIconUrl;
+      if (import_name && typeof import_name === 'string') updates.maimai_dx_name = import_name;
+      if (import_icon_url && typeof import_icon_url === 'string') updates.display_photo_url = import_icon_url;
 
       if (Object.keys(updates).length > 0) {
         try {
@@ -56,7 +71,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
 
       setValidationResult({
         success: true,
-        message: `Import Successful! Calculated Rating: ${result.totalRating}`
+        message: `Import Successful! Calculated Rating: ${result.total_rating}`
       });
 
       if (onSuccess) onSuccess(result);
