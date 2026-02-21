@@ -60,6 +60,8 @@ export default async function handler(req, res) {
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${photo}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
@@ -67,6 +69,7 @@ export default async function handler(req, res) {
   <meta property="twitter:title" content="${title}">
   <meta property="twitter:description" content="${description}">
   <meta property="twitter:image" content="${photo}">
+  <meta property="twitter:site" content="@maipaqueue">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
