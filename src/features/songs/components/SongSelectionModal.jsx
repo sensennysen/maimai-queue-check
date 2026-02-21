@@ -5,8 +5,8 @@ import { useSongDatabase } from '../../../hooks/useSongDatabase';
 import SongFilters from './SongFilters';
 import SongList from './SongList';
 
-function SongSelectionModal({ opened, onClose, onSelect, multiple = false, preSelectedSongs = [] }) {
-  const [selectedSongs, setSelectedSongs] = useState([]);
+function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initialSelectedSongs = [] }) {
+  const [selectedSongs, setSelectedSongs] = useState(initialSelectedSongs);
   const {
     loading,
     filters,
@@ -83,12 +83,13 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, preSe
 
           <div className="song-modal-grid" style={{
             display: 'grid',
-            gridTemplateColumns: '1fr',
+            gridTemplateColumns: 'minmax(0, 1fr)', // Use minmax to prevent overflow
             gap: '2rem',
             alignItems: 'start',
-            width: '100%'
+            width: '100%',
+            maxWidth: '100%'
           }}>
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
               <SongFilters
                 filters={filters}
                 onFilterChange={setFilters}
@@ -99,7 +100,7 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, preSe
               />
             </div>
 
-            <div style={{ minWidth: 0 }}>
+            <div style={{ minWidth: 0, maxWidth: '100%' }}>
               <SongList
                 key={JSON.stringify(filters)}
                 songs={filteredSongs}
@@ -115,7 +116,6 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, preSe
                 }}
                 multiple={multiple}
                 selectedSongs={selectedSongs}
-                preSelectedSongs={preSelectedSongs}
                 onSelectionChange={setSelectedSongs}
               />
             </div>

@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 
 const ITEMS_PER_PAGE = 25;
 
-function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs = [], preSelectedSongs = [], onSelectionChange }) {
+function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs = [], onSelectionChange }) {
   const [activePage, setPage] = useState(1);
   const [selectedSong, setSelectedSong] = useState(null);
 
@@ -72,9 +72,6 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
               <SongCard
                 song={song}
                 onClick={() => {
-                  const isPreSelected = preSelectedSongs.some(s => s.songId === song.songId);
-                  if (isPreSelected) return;
-
                   if (multiple) {
                     const isSelected = selectedSongs.some(s => s.songId === song.songId);
                     if (isSelected) {
@@ -89,23 +86,12 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
                   }
                 }}
                 style={(() => {
-                  const isPreSelected = preSelectedSongs.some(s => s.songId === song.songId);
                   const isSelected = selectedSongs.some(s => s.songId === song.songId);
-
-                  if (isPreSelected) {
-                    return {
-                      outline: '3px solid var(--mantine-color-green-6)',
-                      outlineOffset: '2px',
-                      borderRadius: '12px',
-                      opacity: 0.7,
-                      cursor: 'not-allowed'
-                    };
-                  }
 
                   if (multiple && isSelected) {
                     return {
                       outline: '3px solid var(--mantine-color-primary-6)',
-                      outlineOffset: '2px',
+                      outlineOffset: '-3px',
                       borderRadius: '12px',
                       transition: 'outline 0.1s ease'
                     };

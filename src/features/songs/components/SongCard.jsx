@@ -33,18 +33,15 @@ function SongCard({ song, onClick, hideDifficulties = false, hideTags = false, s
       }}
       styles={{
         root: {
+          transition: 'transform 0.1s ease, box-shadow 0.2s ease',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: '0 12px 24px -8px rgba(0, 0, 0, 0.2)',
+          },
           '&:active': {
             transform: 'scale(0.95)',
           },
         },
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-4px)';
-        e.currentTarget.style.boxShadow = '0 12px 24px -8px rgba(0, 0, 0, 0.2)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = '';
       }}
     >
       <div

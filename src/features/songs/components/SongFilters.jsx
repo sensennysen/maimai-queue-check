@@ -95,7 +95,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
 
   // Inline the filter content instead of using a component function (avoids remount/focus loss)
   const filterContent = (
-    <Stack gap="lg">
+    <Stack gap="lg" style={{ width: '100%', maxWidth: '100%' }}>
       <TextInput
         placeholder="Search title, artist..."
         leftSection={<IconSearch size={16} />}

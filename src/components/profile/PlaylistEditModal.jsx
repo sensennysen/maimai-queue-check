@@ -26,23 +26,8 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
   }, [opened, initialPlaylist]);
 
   const handleAddSong = (songOrSongs) => {
-    const newSongsToAdd = Array.isArray(songOrSongs) ? songOrSongs : [songOrSongs];
-
-    // Filter out songs already in the playlist
-    const existingIds = new Set(selectedSongs.map(s => s.songId));
-    const uniqueNewSongs = newSongsToAdd.filter(s => !existingIds.has(s.songId));
-
-    if (uniqueNewSongs.length < newSongsToAdd.length) {
-      notifications.show({
-        title: 'Songs Filtered',
-        message: 'Some songs were already in your playlist and were skipped',
-        color: 'blue'
-      });
-    }
-
-    if (uniqueNewSongs.length === 0) return;
-
-    setSelectedSongs([...selectedSongs, ...uniqueNewSongs]);
+    const newSelection = Array.isArray(songOrSongs) ? songOrSongs : [songOrSongs];
+    setSelectedSongs(newSelection);
     setIsSongPickerOpen(false);
   };
 
@@ -212,11 +197,12 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
       </Stack>
 
       <SongSelectionModal
+        key={isSongPickerOpen ? 'open' : 'closed'}
         opened={isSongPickerOpen}
         onClose={() => setIsSongPickerOpen(false)}
         onSelect={handleAddSong}
         multiple={true}
-        preSelectedSongs={selectedSongs}
+        initialSelectedSongs={selectedSongs}
       />
     </Modal>
   );
