@@ -379,7 +379,8 @@ const PublicProfilePage = () => {
                 overflowX: 'auto',
                 display: 'flex',
                 gap: '12px',
-                paddingBottom: '2px',
+                paddingBottom: '12px', // Increased from 2px
+                paddingTop: '8px',     // Added to prevent clipping
                 cursor: 'grab'
               }}
             >
@@ -399,8 +400,16 @@ const PublicProfilePage = () => {
                       overflow: 'hidden',
                       position: 'relative',
                       cursor: 'pointer',
-                      transition: 'transform 0.1s ease',
+                      transition: 'transform 0.1s ease, box-shadow 0.2s ease', // Added box-shadow transition
                       border: `2px solid ${DIFFICULTY_COLORS[song.difficulty] || 'transparent'}`
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 12px 24px -8px rgba(0, 0, 0, 0.2)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '';
                     }}
                     onClick={() => {
                       if (!isDragging) {

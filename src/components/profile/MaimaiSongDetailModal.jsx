@@ -1,11 +1,34 @@
-import { Modal, Image, Text, Group, Stack, Tooltip, SimpleGrid } from '@mantine/core';
+import { Modal, Image, Text, Group, Stack, Tooltip, SimpleGrid, TextInput, ActionIcon, Button, Loader } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconCheck } from '@tabler/icons-react';
+import { IconCheck, IconEdit, IconCheck as IconSave, IconX } from '@tabler/icons-react';
+import { useState, useEffect } from 'react';
 import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
 import { Badge } from '@mantine/core';
 
-function MaimaiSongDetailModal({ song, opened, onClose, comment, playCount, difficulty, title = "Song Details" }) {
+function MaimaiSongDetailModal({ song, opened, onClose, comment: initialComment, playCount, difficulty, title = "Song Details", isOwnProfile, onCommentSave }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [comment, setComment] = useState(initialComment || '');
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    setComment(initialComment || '');
+    setIsEditing(false);
+  }, [initialComment, opened]);
+
   if (!song) return null;
+
+  const handleSaveComment = async () => {
+    if (!onCommentSave) return;
+    setIsSaving(true);
+    try {
+      await onCommentSave(comment);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to save comment:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleTitleClick = () => {
     navigator.clipboard.writeText(song.title).then(() => {
@@ -128,20 +151,49 @@ function MaimaiSongDetailModal({ song, opened, onClose, comment, playCount, diff
               </Stack>
             )}
 
-            {comment && (
+            {(comment || isOwnProfile) && (
               <Stack gap={2} mt="md">
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">User Comment</Text>
-                <Text
-                  size="sm"
-                  style={{
-                    fontFamily: 'var(--font-body)',
-                    fontStyle: 'italic',
-                    lineHeight: 1.5,
-                    color: 'var(--theme-text-muted)',
-                  }}
-                >
-                  "{comment}"
-                </Text>
+                <Group justify="space-between" align="center">
+                  <Text size="xs" c="dimmed" fw={700} tt="uppercase">User Comment</Text>
+                  {isOwnProfile && !isEditing && (
+                    <ActionIcon variant="subtle" size="sm" onClick={() => setIsEditing(true)}>
+                      <IconEdit size={14} />
+                    </ActionIcon>
+                  )}
+                </Group>
+
+                {isEditing ? (
+                  <Stack gap="xs">
+                    <TextInput
+                      value={comment}
+                      onChange={(e) => setComment(e.currentTarget.value)}
+                      placeholder="Add a comment..."
+                      maxLength={100}
+                      autoFocus
+                    />
+                    <Group gap="xs" justify="flex-end">
+                      <ActionIcon variant="light" color="red" onClick={() => { setIsEditing(false); setComment(initialComment || ''); }}>
+                        <IconX size={14} />
+                      </ActionIcon>
+                      <ActionIcon variant="filled" color="green" onClick={handleSaveComment} loading={isSaving}>
+                        <IconSave size={14} />
+                      </ActionIcon>
+                    </Group>
+                  </Stack>
+                ) : (
+                  <Text
+                    size="sm"
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontStyle: 'italic',
+                      lineHeight: 1.5,
+                      color: 'var(--theme-text-muted)',
+                      wordBreak: 'break-word'
+                    }}
+                  >
+                    {comment ? `"${comment}"` : <Text span c="dimmed" fs="italic">No comment added.</Text>}
+                  </Text>
+                )}
               </Stack>
             )}
           </Stack>

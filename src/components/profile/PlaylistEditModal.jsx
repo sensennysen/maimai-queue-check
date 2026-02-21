@@ -25,18 +25,24 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
     }
   }, [opened, initialPlaylist]);
 
-  const handleAddSong = (song) => {
+  const handleAddSong = (songOrSongs) => {
+    const newSongsToAdd = Array.isArray(songOrSongs) ? songOrSongs : [songOrSongs];
 
-    if (selectedSongs.some(s => s.songId === song.songId)) {
+    // Filter out songs already in the playlist
+    const existingIds = new Set(selectedSongs.map(s => s.songId));
+    const uniqueNewSongs = newSongsToAdd.filter(s => !existingIds.has(s.songId));
+
+    if (uniqueNewSongs.length < newSongsToAdd.length) {
       notifications.show({
-        title: 'Already Added',
-        message: `${song.title} is already in your playlist`,
+        title: 'Songs Filtered',
+        message: 'Some songs were already in your playlist and were skipped',
         color: 'blue'
       });
-      return;
     }
 
-    setSelectedSongs([...selectedSongs, song]);
+    if (uniqueNewSongs.length === 0) return;
+
+    setSelectedSongs([...selectedSongs, ...uniqueNewSongs]);
     setIsSongPickerOpen(false);
   };
 
@@ -95,9 +101,22 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
       opened={opened}
       onClose={onClose}
       title={
-        <Group gap="xs">
-          <IconPlaylistAdd size={20} />
-          <Text fw={700}>{initialPlaylist ? 'Edit Playlist' : 'New Playlist'}</Text>
+        <Group justify="space-between" w="100%">
+          <Group gap="xs">
+            <IconPlaylistAdd size={20} />
+            <Text fw={700}>{initialPlaylist ? 'Edit Playlist' : 'New Playlist'}</Text>
+          </Group>
+          {selectedSongs.length > 0 && (
+            <Button
+              size="xs"
+              variant="subtle"
+              color="red"
+              leftSection={<IconTrash size={14} />}
+              onClick={() => setSelectedSongs([])}
+            >
+              Clear All
+            </Button>
+          )}
         </Group>
       }
       size="lg"
@@ -192,7 +211,13 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
         </Group>
       </Stack>
 
-      <SongSelectionModal opened={isSongPickerOpen} onClose={() => setIsSongPickerOpen(false)} onSelect={handleAddSong} />
+      <SongSelectionModal
+        opened={isSongPickerOpen}
+        onClose={() => setIsSongPickerOpen(false)}
+        onSelect={handleAddSong}
+        multiple={true}
+        preSelectedSongs={selectedSongs}
+      />
     </Modal>
   );
 }

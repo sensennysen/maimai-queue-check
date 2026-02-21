@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 
 const ITEMS_PER_PAGE = 25;
 
-function SongList({ songs, loading, error, onSongSelect }) {
+function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs = [], preSelectedSongs = [], onSelectionChange }) {
   const [activePage, setPage] = useState(1);
   const [selectedSong, setSelectedSong] = useState(null);
 
@@ -72,12 +72,47 @@ function SongList({ songs, loading, error, onSongSelect }) {
               <SongCard
                 song={song}
                 onClick={() => {
-                  if (onSongSelect) {
+                  const isPreSelected = preSelectedSongs.some(s => s.songId === song.songId);
+                  if (isPreSelected) return;
+
+                  if (multiple) {
+                    const isSelected = selectedSongs.some(s => s.songId === song.songId);
+                    if (isSelected) {
+                      onSelectionChange(selectedSongs.filter(s => s.songId !== song.songId));
+                    } else {
+                      onSelectionChange([...selectedSongs, song]);
+                    }
+                  } else if (onSongSelect) {
                     onSongSelect(song);
                   } else {
                     setSelectedSong(song);
                   }
                 }}
+                style={(() => {
+                  const isPreSelected = preSelectedSongs.some(s => s.songId === song.songId);
+                  const isSelected = selectedSongs.some(s => s.songId === song.songId);
+
+                  if (isPreSelected) {
+                    return {
+                      outline: '3px solid var(--mantine-color-green-6)',
+                      outlineOffset: '2px',
+                      borderRadius: '12px',
+                      opacity: 0.7,
+                      cursor: 'not-allowed'
+                    };
+                  }
+
+                  if (multiple && isSelected) {
+                    return {
+                      outline: '3px solid var(--mantine-color-primary-6)',
+                      outlineOffset: '2px',
+                      borderRadius: '12px',
+                      transition: 'outline 0.1s ease'
+                    };
+                  }
+
+                  return {};
+                })()}
               />
             </Box>
           ))}

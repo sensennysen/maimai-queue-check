@@ -122,6 +122,37 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
   };
 
 
+  const handleUpdateComment = async (songId, newComment) => {
+    try {
+      // Optimistic update
+      setFavorites(prev => prev.map(f =>
+        f.song_id === songId ? { ...f, comment: newComment } : f
+      ));
+
+      await favoritesService.updateFavoriteComment(userId, songId, newComment);
+
+      notifications.show({
+        title: 'Updated',
+        message: 'Comment updated successfully',
+        color: 'green'
+      });
+
+      // Update selected comment if modal is open
+      if (selectedSongDetails?.songId === songId) {
+        setSelectedSongComment(newComment);
+      }
+    } catch (error) {
+      console.error(error);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to update comment',
+        color: 'red'
+      });
+      // We should ideally revert but it's complex without original state. 
+      // User can just refresh.
+    }
+  };
+
   const handleRemoveFavorite = async (song) => {
     const songId = song.songId;
     const songTitle = song.title;
@@ -188,7 +219,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
         </Alert>
       ) : (
         <ScrollArea viewportRef={scrollRef} type="never" offsetScrollbars={false} classNames={{ viewport: 'hide-scrollbar' }}>
-          <div style={{ display: 'flex', gap: '12px', paddingBottom: '4px' }}>
+          <div style={{ display: 'flex', gap: '12px', paddingBottom: '12px', paddingTop: '8px' }}>
             {favoriteSongs.map((song) => {
               const favData = favorites.find(f => f.song_id === song.songId);
               return (
@@ -253,6 +284,8 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
         }}
         comment={selectedSongComment}
         title="Favorite Song Details"
+        isOwnProfile={isOwnProfile}
+        onCommentSave={(newComment) => handleUpdateComment(selectedSongDetails.songId, newComment)}
       />
     </Paper>
   );

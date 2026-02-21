@@ -6,7 +6,7 @@ import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDiff
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
 
-function SongCard({ song, onClick, hideDifficulties = false, hideTags = false }) {
+function SongCard({ song, onClick, hideDifficulties = false, hideTags = false, style }) {
   // Sort sheets by difficulty
   const sortedSheets = useMemo(() => {
     if (hideDifficulties || !song.sheets) return [];
@@ -29,6 +29,7 @@ function SongCard({ song, onClick, hideDifficulties = false, hideTags = false })
         overflow: 'hidden',
         position: 'relative',
         transition: 'transform 0.1s ease, box-shadow 0.2s ease',
+        ...style,
       }}
       styles={{
         root: {
@@ -184,7 +185,7 @@ function SongCard({ song, onClick, hideDifficulties = false, hideTags = false })
           </Group>
         </Stack>
       </div>
-    </Paper>
+    </Paper >
   );
 }
 
