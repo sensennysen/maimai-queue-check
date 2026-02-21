@@ -28,15 +28,16 @@ export default async function handler(req, res) {
     }
 
     // 2. Prepare metadata
+    const host = req.headers.host || 'mpqcheckph.vercel.app';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+    
     const name = profile.display_name || 'Anonymous Player';
-    const photo = profile.display_photo_url || profile.dx_display_photo_url || 'https://maipaqueuecheck.vercel.app/icon.png';
+    const photo = profile.display_photo_url || profile.dx_display_photo_url || `${baseUrl}/icon.png`;
     const title = `${name} | maiPaQueueCheck PH`;
     const description = `Check out ${name}'s maimai profile and best scores on maiPaQueueCheck PH.`;
-    const url = `https://maipaqueuecheck.vercel.app/p/${slug}`;
-    
-    // We'll use a dynamic OG image if we can, otherwise fallback to profile photo
-    // For now, let's use the profile photo directly as requested
-    const ogImage = photo;
+    const url = `${baseUrl}/p/${slug}`;
+    const siteName = 'maiPaQueueCheck PH';
 
     // 3. Generate HTML with Meta Tags
     // We use a template based on the project's index.html
@@ -55,16 +56,17 @@ export default async function handler(req, res) {
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="${url}">
+  <meta property="og:site_name" content="${siteName}">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
-  <meta property="og:image" content="${ogImage}">
+  <meta property="og:image" content="${photo}">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="${url}">
   <meta property="twitter:title" content="${title}">
   <meta property="twitter:description" content="${description}">
-  <meta property="twitter:image" content="${ogImage}">
+  <meta property="twitter:image" content="${photo}">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
