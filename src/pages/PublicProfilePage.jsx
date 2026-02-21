@@ -13,6 +13,7 @@ import {
 } from '@tabler/icons-react';
 import MaimaiImportModal from '../components/profile/MaimaiImportModal';
 import ProfileSettingsModal from '../components/profile/ProfileSettingsModal';
+import ProfilePictureUploadModal from '../components/profile/ProfilePictureUploadModal';
 import MaimaiSongDetailModal from '../components/profile/MaimaiSongDetailModal';
 import { useAuth } from '../hooks/useAuth';
 import { userService, branchService, mostPlayedService } from '../services/supabase';
@@ -36,6 +37,7 @@ const PublicProfilePage = () => {
   const navigate = useNavigate();
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedMostPlayedSong, setSelectedMostPlayedSong] = useState(null);
 
@@ -237,14 +239,45 @@ const PublicProfilePage = () => {
         <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-100">
           <Group wrap="nowrap" justify="space-between" align="flex-start">
             <Group wrap="nowrap" style={{ flex: 1 }}>
-              <Avatar
-                src={profile.display_photo_url}
-                size={90}
-                radius={90}
-                color="primary"
+              <div
+                style={{
+                  position: 'relative',
+                  cursor: isOwner ? 'pointer' : 'default',
+                  transition: 'transform 0.1s ease'
+                }}
+                className={isOwner ? 'hover-scale' : ''}
+                onClick={() => isOwner && setIsUploadModalOpen(true)}
               >
-                <IconUser size={45} />
-              </Avatar>
+                <Avatar
+                  src={profile.display_photo_url || profile.dx_display_photo_url}
+                  size={90}
+                  radius={90}
+                  color="primary"
+                >
+                  <IconUser size={45} />
+                </Avatar>
+                {isOwner && (
+                  <Box
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      background: 'var(--mantine-color-blue-6)',
+                      color: 'white',
+                      borderRadius: '50%',
+                      width: 28,
+                      height: 28,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '2px solid white',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    <IconCamera size={16} />
+                  </Box>
+                )}
+              </div>
 
               <Stack gap={4}>
                 <Group gap="xs" align="center">
@@ -576,6 +609,13 @@ const PublicProfilePage = () => {
             opened={isImportModalOpen}
             onClose={() => setIsImportModalOpen(false)}
             userId={user.id}
+            onSuccess={fetchData}
+          />
+          <ProfilePictureUploadModal
+            opened={isUploadModalOpen}
+            onClose={() => setIsUploadModalOpen(false)}
+            userId={user.id}
+            currentPhotoUrl={profile.display_photo_url || profile.dx_display_photo_url}
             onSuccess={fetchData}
           />
           <ProfileSettingsModal

@@ -73,7 +73,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
 
       const updates = {};
       if (import_name && typeof import_name === 'string') updates.maimai_dx_name = import_name;
-      if (import_icon_url && typeof import_icon_url === 'string') updates.display_photo_url = import_icon_url;
+      if (import_icon_url && typeof import_icon_url === 'string') updates.dx_display_photo_url = import_icon_url;
 
       if (Object.keys(updates).length > 0) {
         try {
