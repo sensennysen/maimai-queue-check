@@ -130,7 +130,6 @@ function MaimaiSongDetailModal({ song, opened, onClose, comment: initialComment,
 
             {(playCount !== undefined || difficulty) && (
               <Stack gap={2} mt="md">
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Play Status</Text>
                 <Group gap={8} align="center">
                   {playCount !== undefined && (
                     <Group gap={4} align="baseline">
