@@ -9,8 +9,10 @@ import {
 import {
   IconUser, IconTrophy, IconMapPin, IconAlertCircle,
   IconArrowLeft, IconStar, IconLock, IconLogin,
-  IconSettings, IconUpload, IconCamera, IconTrash
+  IconSettings, IconUpload, IconCamera, IconTrash,
+  IconShare
 } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
 import MaimaiImportModal from '../components/profile/MaimaiImportModal';
 import ProfileSettingsModal from '../components/profile/ProfileSettingsModal';
 import ProfilePictureUploadModal from '../components/profile/ProfilePictureUploadModal';
@@ -232,7 +234,24 @@ const PublicProfilePage = () => {
             Back to queue
           </Button>
 
-          {/* No management buttons here anymore */}
+          {/* Share Button for everyone */}
+          <Button
+            variant="light"
+            color="blue"
+            leftSection={<IconShare size={18} />}
+            onClick={() => {
+              const url = window.location.href;
+              navigator.clipboard.writeText(url);
+              notifications.show({
+                title: 'Link Copied',
+                message: 'Profile link copied to clipboard!',
+                color: 'blue',
+              });
+            }}
+            className="animate-fade-in"
+          >
+            Share Profile
+          </Button>
         </Group>
 
         {/* Profile Header Card */}

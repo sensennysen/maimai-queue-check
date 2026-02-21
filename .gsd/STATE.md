@@ -4,10 +4,10 @@
 
 **Changes:**
 - **Favorite Songs**: Added `updateFavoriteComment` to `favoritesService`. Updated `MaimaiSongDetailModal` with edit mode and `FavoriteSongsSection` with optimistic updates.
-- **Playlist Multi-select**: Updated `SongList` and `SongSelectionModal` to support `multiple` selection. Distinguished new vs already-added songs with blue/green border highlights.
-- **Clear Actions**: Added "Clear Selection" in the song picker and "Clear All" in the playlist editor.
-- **UI/UX**: Added hover animations and fixed clipping for "Most Played" cards in `PublicProfilePage`. Fixed horizontal stretching on mobile via overflow controls.
-- **Bug Fixes**: Corrected `SongCard` to support `style` prop and fixed `SongList` styling logic. Resolved a lint error in `supabase.js`.
+- **Playlist Multi-select**: Implemented unified selection where already-added songs are part of the active picker set, allowing them to be unselected centrally.
+- **Clear Actions**: Added "Clear Selection" in the song picker (resets all) and "Clear All" in the playlist editor.
+- **UI/UX Refinements**: Moved hover animations in `SongCard` to Mantine styles to prevent clobbering selection states. Switched to `outline` with negative `-3px` offset for highlights to ensure visibility and prevent clipping.
+- **State Management**: Used React `key` prop on the selection modal to ensure automatic state reset (filters/pagination) on every open. Fixes horizontal stretching on mobile via stricter CSS width constraints.
 
 **Files Touched:**
 - `src/services/supabase.js`
