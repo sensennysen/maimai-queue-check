@@ -52,7 +52,7 @@ body {
     radial-gradient(at 100% 0%, rgba(0, 210, 255, 0.15) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(255, 210, 0, 0.1) 0px, transparent 50%),
     radial-gradient(at 0% 100%, rgba(255, 40, 169, 0.1) 0px, transparent 50%);
-  background-attachment: fixed;
+  background-attachment: scroll; /* Changed from fixed for mobile performance */
   background-size: 100% 100%;
 
   /* Noise overlay */
@@ -73,8 +73,8 @@ body::before {
   background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.4;
-  mix-blend-mode: overlay;
+  opacity: 0.15; /* Adjusted opacity to compensate for missing mix-blend */
+  /* mix-blend-mode: overlay; -> Disabled for GPU composite speed */
 }
 
 /* Glassmorphism / Hologram Look */
@@ -106,6 +106,28 @@ body::before {
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.2),
     inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Mobile glassmorphism fallback (Disable backdrop blur to fix scroll lag) */
+@media (max-width: 768px) {
+  .hologram-card,
+  .mantine-Paper-root,
+  .mantine-Modal-content,
+  .mantine-Card-root,
+  .mantine-Menu-dropdown {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--theme-background) !important;
+    /* Maintain border and shadow but replace blur with solid/semi-solid background */
+  }
+
+  [data-mantine-color-scheme="dark"] .hologram-card,
+  [data-mantine-color-scheme="dark"] .mantine-Paper-root,
+  [data-mantine-color-scheme="dark"] .mantine-Modal-content,
+  [data-mantine-color-scheme="dark"] .mantine-Card-root,
+  [data-mantine-color-scheme="dark"] .mantine-Menu-dropdown {
+    background: var(--theme-background) !important;
+  }
 }
 
 

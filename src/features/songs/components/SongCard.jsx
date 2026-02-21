@@ -1,12 +1,12 @@
 import { Paper, Text, Group, Badge, Image, Stack, Tooltip, Box } from '@mantine/core';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import dxImage from '../../../assets/music_dx.png';
 import standardImage from '../../../assets/music_standard.png';
 import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty } from '../../../config/maimai-constants';
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
 
-function SongCard({ song, onClick, hideDifficulties = false, hideTags = false, style }) {
+export const SongCard = React.memo(function SongCard({ song, onClick, hideDifficulties = false, hideTags = false, style }) {
   // Sort sheets by difficulty
   const sortedSheets = useMemo(() => {
     if (hideDifficulties || !song.sheets) return [];
@@ -29,6 +29,8 @@ function SongCard({ song, onClick, hideDifficulties = false, hideTags = false, s
         overflow: 'hidden',
         position: 'relative',
         transition: 'transform 0.1s ease, box-shadow 0.2s ease',
+        contentVisibility: 'auto',
+        containIntrinsicSize: 'auto 360px', /* Approximate height of card */
         ...style,
       }}
       styles={{
@@ -68,6 +70,7 @@ function SongCard({ song, onClick, hideDifficulties = false, hideTags = false, s
               height: '100%',
               objectFit: 'cover'
             }}
+            loading="lazy"
             fallbackSrc="https://placehold.co/300x300?text=No+Image"
           />
           {/* Gradient Overlay */}
@@ -106,6 +109,7 @@ function SongCard({ song, onClick, hideDifficulties = false, hideTags = false, s
             <img
               src={typeImage}
               alt={song.cardType === 'dx' ? 'DX' : 'Standard'}
+              loading="lazy"
               style={{
                 position: 'absolute',
                 bottom: 8,
@@ -184,6 +188,6 @@ function SongCard({ song, onClick, hideDifficulties = false, hideTags = false, s
       </div>
     </Paper >
   );
-}
+});
 
 export default SongCard;
