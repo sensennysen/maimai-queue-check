@@ -553,6 +553,7 @@ export const playlistService = {
         *,
         songs:playlist_songs(
           song_id,
+          level,
           order_index
         )
       `)
@@ -572,7 +573,7 @@ export const playlistService = {
   },
 
   // Update or create a playlist
-  async upsertPlaylist(userId, playlistId, { title, comment, songIds }) {
+  async upsertPlaylist(userId, playlistId, { title, comment, songIds, songs }) {
     let finalPlaylistId = playlistId;
 
     if (!finalPlaylistId) {
@@ -608,10 +609,24 @@ export const playlistService = {
 
     if (deleteError) throw deleteError;
 
-    if (songIds && songIds.length > 0) {
+    if (songs && songs.length > 0) {
+      const songEntries = songs.map((song, index) => ({
+        playlist_id: finalPlaylistId,
+        song_id: song.id,
+        level: song.level || null,
+        order_index: index
+      }));
+
+      const { error: insertError } = await supabase
+        .from('playlist_songs')
+        .insert(songEntries);
+
+      if (insertError) throw insertError;
+    } else if (songIds && songIds.length > 0) {
       const songEntries = songIds.map((songId, index) => ({
         playlist_id: finalPlaylistId,
         song_id: songId,
+        level: null,
         order_index: index
       }));
 

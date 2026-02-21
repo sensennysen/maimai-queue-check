@@ -1,9 +1,15 @@
 import React from 'react';
-import { Paper, Text, Box, Image, ActionIcon, Tooltip } from '@mantine/core';
+import { Paper, Text, Box, Image, ActionIcon, Tooltip, Badge } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 import dxImage from '../../assets/music_dx.png';
 import standardImage from '../../assets/music_standard.png';
+import { DIFFICULTY_COLORS, normalizeDifficulty, VERSION_MAPPING } from '../../config/maimai-constants';
+
 const FavoriteSongCard = React.memo(function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
+  const selectedSheet = React.useMemo(() => {
+    if (!song.level || !song.sheets) return null;
+    return song.sheets.find(s => normalizeDifficulty(s.difficulty) === song.level || s.difficulty === song.level);
+  }, [song.level, song.sheets]);
   return (
     <Paper
       p={0}
@@ -136,6 +142,23 @@ const FavoriteSongCard = React.memo(function FavoriteSongCard({ song, onDelete, 
               justifyContent: 'flex-end'
             }}
           >
+            {/* Level Badge */}
+            {song.level && (
+              <Badge
+                size="sm"
+                color={DIFFICULTY_COLORS[song.level] || 'gray'}
+                variant="filled"
+                mb={4}
+                style={{
+                  alignSelf: 'flex-start',
+                  textTransform: 'none',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                }}
+              >
+                {song.level}{selectedSheet ? ` Lv. ${selectedSheet.level}` : ''}
+              </Badge>
+            )}
+
             {/* Title */}
             <Text
               fw={700}

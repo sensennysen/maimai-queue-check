@@ -1,4 +1,5 @@
-import { SimpleGrid, Text, Center, Loader, Pagination, Stack, Box } from '@mantine/core';
+import { SimpleGrid, Text, Center, Loader, Pagination, Stack, Box, Modal, Button, Group } from '@mantine/core';
+import { DIFFICULTY_COLORS, normalizeDifficulty } from '../../../config/maimai-constants';
 import SongCard from './SongCard';
 import SongDetailModal from './SongDetailModal';
 import { useState, useMemo } from 'react';
@@ -8,6 +9,19 @@ const ITEMS_PER_PAGE = 25;
 function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs = [], onSelectionChange }) {
   const [activePage, setPage] = useState(1);
   const [selectedSong, setSelectedSong] = useState(null);
+  const [songToSelectLevel, setSongToSelectLevel] = useState(null);
+
+  const toggleSongLevel = (song, level) => {
+    const getSongKey = (s) => (s.cardId || s.songId) + '__' + (s.level || '');
+    const targetKey = (song.cardId || song.songId) + '__' + level;
+
+    const isSelected = selectedSongs.some(s => getSongKey(s) === targetKey);
+    if (isSelected) {
+      onSelectionChange(selectedSongs.filter(s => getSongKey(s) !== targetKey));
+    } else {
+      onSelectionChange([...selectedSongs, { ...song, level }]);
+    }
+  };
 
   const paginatedSongs = useMemo(() => {
     const start = (activePage - 1) * ITEMS_PER_PAGE;
@@ -73,13 +87,7 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
                 song={song}
                 onClick={() => {
                   if (multiple) {
-                    const getSongKey = (s) => s.cardId || s.songId;
-                    const isSelected = selectedSongs.some(s => getSongKey(s) === getSongKey(song));
-                    if (isSelected) {
-                      onSelectionChange(selectedSongs.filter(s => getSongKey(s) !== getSongKey(song)));
-                    } else {
-                      onSelectionChange([...selectedSongs, song]);
-                    }
+                    setSongToSelectLevel(song);
                   } else if (onSongSelect) {
                     onSongSelect(song);
                   } else {
@@ -128,6 +136,35 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
         opened={!!selectedSong}
         onClose={() => setSelectedSong(null)}
       />
+
+      <Modal opened={!!songToSelectLevel} onClose={() => setSongToSelectLevel(null)} title="Select Chart Level" centered zIndex={250}>
+        {songToSelectLevel && (
+          <Stack align="center">
+            <Text fw={700} ta="center">{songToSelectLevel.title}</Text>
+            <Text size="sm" c="dimmed" ta="center">Pick the levels you want to add. Deselect to remove.</Text>
+            <Group justify="center" gap="sm">
+              {songToSelectLevel.sheets?.map(sheet => {
+                const normalizedDiff = normalizeDifficulty(sheet.difficulty);
+                const diffColor = DIFFICULTY_COLORS[normalizedDiff] || 'gray';
+                const getSongKey = (s) => (s.cardId || s.songId) + '__' + (s.level || '');
+                const targetKey = (songToSelectLevel.cardId || songToSelectLevel.songId) + '__' + normalizedDiff;
+                const isSelected = selectedSongs.some(s => getSongKey(s) === targetKey);
+
+                return (
+                  <Button
+                    key={normalizedDiff}
+                    variant={isSelected ? 'filled' : 'outline'}
+                    color={diffColor}
+                    onClick={() => toggleSongLevel(songToSelectLevel, normalizedDiff)}
+                  >
+                    {normalizedDiff} {sheet.level}
+                  </Button>
+                );
+              })}
+            </Group>
+          </Stack>
+        )}
+      </Modal>
     </>
   );
 }

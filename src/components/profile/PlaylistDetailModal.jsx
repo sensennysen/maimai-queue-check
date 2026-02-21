@@ -1,85 +1,156 @@
-import { Modal, Stack, Text, Group, SimpleGrid, Box, Divider, Button } from '@mantine/core';
+import { useState } from 'react';
+import { Modal, Stack, Text, Group, SimpleGrid, Box, Divider, Button, Image, Badge } from '@mantine/core';
 import { IconPlaylist, IconEdit, IconMusic, IconTrash } from '@tabler/icons-react';
 import FavoriteSongCard from './FavoriteSongCard';
+import { DIFFICULTY_COLORS, normalizeDifficulty, VERSION_MAPPING } from '../../config/maimai-constants';
+import dxImage from '../../assets/music_dx.png';
+import standardImage from '../../assets/music_standard.png';
 
 export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isOwnProfile, onEdit, onDelete }) {
+  const [selectedSongDetails, setSelectedSongDetails] = useState(null);
+
   if (!playlist) return null;
 
   return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title={
-        <Group gap="xs">
-          <IconPlaylist size={24} style={{ color: 'var(--theme-primary)' }} />
-          <Text fw={700} size="lg">{playlist.title}</Text>
-        </Group>
-      }
-      size="xl"
-      radius="md"
-      centered
-    >
-      <Stack gap="lg" pt="md">
-        <Divider label={<Group gap={4}><IconMusic size={14} /> Songs ({songs.length})</Group>} labelPosition="center" />
-
-        <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
-          {songs.map((song) => (
-            <FavoriteSongCard
-              key={song.songId}
-              song={song}
-              onDelete={() => { }}
-              isOwnProfile={false}
-              onClick={() => { }}
-            />
-          ))}
-          {songs.length === 0 && (
-            <Text ta="center" c="dimmed" style={{ gridColumn: '1 / -1' }}>No songs in this playlist yet.</Text>
-          )}
-        </SimpleGrid>
-
-        {playlist.comment && (
-          <Box
-            p="md"
-            radius="md"
-            style={{
-              background: 'var(--mantine-color-default-hover)',
-              borderLeft: '4px solid var(--theme-primary)',
-              fontStyle: 'italic'
-            }}
-          >
-            <Text size="sm" c="var(--theme-text-muted)">
-              "{playlist.comment}"
-            </Text>
-          </Box>
-        )}
-
-        {isOwnProfile && (
-          <Group justify="space-between" mt="md">
-            <Button
-              variant="subtle"
-              color="red"
-              leftSection={<IconTrash size={16} />}
-              onClick={() => {
-                if (window.confirm('Are you sure you want to delete this playlist?')) {
-                  onDelete(playlist.id);
-                }
-              }}
-            >
-              Delete
-            </Button>
-            <Button
-              variant="light"
-              leftSection={<IconEdit size={16} />}
-              onClick={() => {
-                onClose();
-                onEdit(playlist);
-              }}
-            >
-              Edit Playlist
-            </Button>
+    <>
+      <Modal
+        opened={opened}
+        onClose={onClose}
+        title={
+          <Group gap="xs">
+            <IconPlaylist size={24} style={{ color: 'var(--theme-primary)' }} />
+            <Text fw={700} size="lg">{playlist.title}</Text>
           </Group>
-        )}
-      </Stack>
-    </Modal>
+        }
+        size="xl"
+        radius="md"
+        centered
+      >
+        <Stack gap="lg" pt="md">
+          <Divider label={<Group gap={4}><IconMusic size={14} /> Songs ({songs.length})</Group>} labelPosition="center" />
+
+          <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
+            {songs.map((song, index) => (
+              <FavoriteSongCard
+                key={`${song.songId}-${song.level || 'nolvl'}-${index}`}
+                song={song}
+                onDelete={() => { }}
+                isOwnProfile={false}
+                onClick={() => setSelectedSongDetails(song)}
+              />
+            ))}
+            {songs.length === 0 && (
+              <Text ta="center" c="dimmed" style={{ gridColumn: '1 / -1' }}>No songs in this playlist yet.</Text>
+            )}
+          </SimpleGrid>
+
+          {playlist.comment && (
+            <Box
+              p="md"
+              radius="md"
+              style={{
+                background: 'var(--mantine-color-default-hover)',
+                borderLeft: '4px solid var(--theme-primary)',
+                fontStyle: 'italic'
+              }}
+            >
+              <Text size="sm" c="var(--theme-text-muted)">
+                "{playlist.comment}"
+              </Text>
+            </Box>
+          )}
+
+          {isOwnProfile && (
+            <Group justify="space-between" mt="md">
+              <Button
+                variant="subtle"
+                color="red"
+                leftSection={<IconTrash size={16} />}
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to delete this playlist?')) {
+                    onDelete(playlist.id);
+                  }
+                }}
+              >
+                Delete
+              </Button>
+              <Button
+                variant="light"
+                leftSection={<IconEdit size={16} />}
+                onClick={() => {
+                  onClose();
+                  onEdit(playlist);
+                }}
+              >
+                Edit Playlist
+              </Button>
+            </Group>
+          )}
+        </Stack>
+      </Modal>
+
+      <Modal
+        opened={!!selectedSongDetails}
+        onClose={() => setSelectedSongDetails(null)}
+        title={<Text fw={700}>Chart Details</Text>}
+        centered
+        size="sm"
+        zIndex={250}
+      >
+        {selectedSongDetails && (() => {
+          const selectedSheet = selectedSongDetails.sheets?.find(
+            s => normalizeDifficulty(s.difficulty) === selectedSongDetails.level || s.difficulty === selectedSongDetails.level
+          );
+
+          return (
+            <Stack align="center" gap="md" pb="sm" mt="md">
+              <Image
+                src={selectedSongDetails.imageUrl}
+                alt={selectedSongDetails.title}
+                w={140}
+                h={140}
+                radius="md"
+                fallbackSrc="https://placehold.co/140x140?text=No+Image"
+                style={{ boxShadow: 'var(--mantine-shadow-md)' }}
+              />
+              <Stack gap={2} align="center">
+                <Text fw={700} ta="center" size="lg" style={{ lineHeight: 1.2 }}>{selectedSongDetails.title}</Text>
+                <Text size="sm" c="dimmed" ta="center">{selectedSongDetails.artist}</Text>
+
+                <Group gap="xs" justify="center" mt={4}>
+                  <Badge size="sm" variant="outline">{VERSION_MAPPING?.[selectedSongDetails.version] || selectedSongDetails.version}</Badge>
+                  {selectedSheet?.type && (
+                    <img
+                      src={selectedSheet.type === 'dx' ? dxImage : standardImage}
+                      alt={selectedSheet.type === 'dx' ? 'DX' : 'Standard'}
+                      style={{ height: 16, objectFit: 'contain' }}
+                    />
+                  )}
+                </Group>
+              </Stack>
+
+              {selectedSongDetails.level && selectedSheet ? (
+                <Stack align="center" gap="xs" mt="xs">
+                  <Badge size="xl" color={DIFFICULTY_COLORS[selectedSongDetails.level] || 'gray'} variant="filled" style={{ textTransform: 'none' }}>
+                    {selectedSongDetails.level}
+                  </Badge>
+                  <Stack gap={0} align="center">
+                    <Text fw={800} size="xl" style={{ fontSize: '1.8rem' }}>
+                      {selectedSheet.internalLevel || '-'}
+                    </Text>
+                    <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Constant</Text>
+                  </Stack>
+                  {selectedSheet.noteDesigner && selectedSheet.noteDesigner !== '-' && (
+                    <Text size="xs" c="dimmed" mt={4}>Notes: {selectedSheet.noteDesigner}</Text>
+                  )}
+                </Stack>
+              ) : (
+                <Text size="sm" c="dimmed" mt="md">Specific chart details are unavailable for this song.</Text>
+              )}
+            </Stack>
+          );
+        })()}
+      </Modal >
+    </>
   );
 }
