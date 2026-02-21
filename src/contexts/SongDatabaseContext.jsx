@@ -34,8 +34,20 @@ export function SongDatabaseProvider({ children }) {
     fetchSongs();
   }, [isRequested]);
 
+  const [songMapById, songMapByTitle] = useMemo(() => {
+    const byId = new Map();
+    const byTitle = new Map();
+    for (const song of songs) {
+      if (song.songId) byId.set(song.songId, song);
+      if (song.title) byTitle.set(song.title, song);
+    }
+    return [byId, byTitle];
+  }, [songs]);
+
   const value = useMemo(() => ({
     songs,
+    songMapById,
+    songMapByTitle,
     loading,
     error,
     requestFetch: () => setIsRequested(true),
@@ -47,7 +59,7 @@ export function SongDatabaseProvider({ children }) {
         setTimeout(() => setIsRequested(true), 0);
       }
     }
-  }), [songs, loading, error, isRequested]);
+  }), [songs, songMapById, songMapByTitle, loading, error, isRequested]);
 
   return (
     <SongDatabaseContext.Provider value={value}>

@@ -1,7 +1,8 @@
+import React from 'react';
 import { Box, Paper, Image, Text, Stack } from '@mantine/core';
 import './PlaylistStack.css';
 
-export function PlaylistStack({ playlist, songs = [], onClick }) {
+export const PlaylistStack = React.memo(function PlaylistStack({ playlist, songs = [], onClick }) {
   // Get up to 3 song images for the stack
   const stackImages = songs.slice(0, 3).map(s => s.imageUrl).filter(Boolean);
 
@@ -11,7 +12,14 @@ export function PlaylistStack({ playlist, songs = [], onClick }) {
   }
 
   return (
-    <Box className="playlist-stack-container" onClick={onClick}>
+    <Box
+      className="playlist-stack-container"
+      onClick={onClick}
+      style={{
+        contentVisibility: 'auto',
+        containIntrinsicSize: 'auto 200px'
+      }}
+    >
       <Box className="playlist-stack">
         {/* Render background cards (offsets) */}
         {stackImages.slice(1).reverse().map((img, idx) => (
@@ -27,6 +35,7 @@ export function PlaylistStack({ playlist, songs = [], onClick }) {
               style={{ pointerEvents: 'none' }}
               fit="cover"
               h="100%"
+              loading="lazy"
             />
           </Paper>
         ))}
@@ -40,6 +49,7 @@ export function PlaylistStack({ playlist, songs = [], onClick }) {
             style={{ pointerEvents: 'none' }}
             fit="cover"
             h="100%"
+            loading="lazy"
           />
           <Box className="stack-overlay">
             <Stack gap={2}>
@@ -55,4 +65,4 @@ export function PlaylistStack({ playlist, songs = [], onClick }) {
       </Box>
     </Box>
   );
-}
+});

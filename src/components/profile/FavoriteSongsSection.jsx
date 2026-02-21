@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Paper, Title, Button, SimpleGrid, Text, Group, LoadingOverlay, ActionIcon, Stack, Box, Alert, ScrollArea } from '@mantine/core';
+import { Paper, Title, Button, SimpleGrid, Text, Group, LoadingOverlay, ActionIcon, Stack, Box, Alert } from '@mantine/core';
 import { IconPlus, IconX, IconHeart, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { favoritesService } from '../../services/supabase';
@@ -11,7 +11,7 @@ import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
 import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 
 export function FavoriteSongsSection({ userId, isOwnProfile }) {
-  const { songs: allSongs, loading: songsLoading } = useSongDatabaseContext();
+  const { loading: songsLoading, songMapById } = useSongDatabaseContext();
   const [favorites, setFavorites] = useState([]); // [{ song_id, created_at }]
   const [loading, setLoading] = useState(true); // Loading for favorites data
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,12 +55,19 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
     return () => { mounted = false; };
   }, [userId]);
 
-  const favoriteSongs = useMemo(() => {
-    // Map favorite song IDs to full song objects, preserving order of favorites (newest first)
+  const favoriteSongsMap = useMemo(() => {
+    // Map favorite song IDs to full song objects + the favorite comment metadata preserving order of favorites (newest first)
     return favorites
-      .map(fav => allSongs.find(s => s.songId === fav.song_id))
+      .map(fav => {
+        const songData = songMapById?.get(fav.song_id);
+        if (!songData) return null;
+        return {
+          song: songData,
+          comment: fav.comment
+        };
+      })
       .filter(Boolean);
-  }, [allSongs, favorites]);
+  }, [songMapById, favorites]);
 
   const handleSongSelect = (song) => {
     // Limit removed per requirement
@@ -184,7 +191,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
 
   const isEverythingLoading = loading || songsLoading;
 
-  if (isEverythingLoading && favorites.length === 0) {
+  if (isEverythingLoading && favoriteSongsMap.length === 0) {
     return (
       <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl" style={{ minHeight: 200 }}>
         <LoadingOverlay visible={true} />
@@ -211,36 +218,42 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
         )}
       </Group>
 
-      {favoriteSongs.length === 0 ? (
+      {favoriteSongsMap.length === 0 ? (
         <Alert icon={<IconAlertCircle size={16} />} title="No Favorites" color="gray" variant="light">
           {isOwnProfile
             ? "You haven't added any favorite songs yet. Click the button above to add some!"
             : "This user hasn't added any favorite songs yet."}
         </Alert>
       ) : (
-        <ScrollArea viewportRef={scrollRef} type="never" offsetScrollbars={false} classNames={{ viewport: 'hide-scrollbar' }}>
-          <div style={{ display: 'flex', gap: '12px', paddingBottom: '12px', paddingTop: '8px' }}>
-            {favoriteSongs.map((song) => {
-              const favData = favorites.find(f => f.song_id === song.songId);
-              return (
-                <Box key={song.songId} style={{ minWidth: '160px', width: '180px', flexShrink: 0 }}>
-                  <FavoriteSongCard
-                    song={song}
-                    comment={favData?.comment}
-                    onDelete={handleRemoveFavorite}
-                    isOwnProfile={isOwnProfile}
-                    onClick={(s) => {
-                      if (!isDragging) {
-                        setSelectedSongDetails(s);
-                        setSelectedSongComment(favData?.comment);
-                      }
-                    }}
-                  />
-                </Box>
-              );
-            })}
-          </div>
-        </ScrollArea>
+        <div
+          ref={scrollRef}
+          className="hide-scrollbar"
+          style={{
+            display: 'flex',
+            gap: '12px',
+            paddingBottom: '12px',
+            paddingTop: '8px',
+            overflowX: 'auto',
+            scrollBehavior: 'smooth'
+          }}
+        >
+          {favoriteSongsMap.map(({ song, comment: favComment }) => (
+            <Box key={song.songId} style={{ minWidth: '160px', width: '180px', flexShrink: 0 }}>
+              <FavoriteSongCard
+                song={song}
+                comment={favComment}
+                onDelete={handleRemoveFavorite}
+                isOwnProfile={isOwnProfile}
+                onClick={(s) => {
+                  if (!isDragging) {
+                    setSelectedSongDetails(s);
+                    setSelectedSongComment(favComment);
+                  }
+                }}
+              />
+            </Box>
+          ))}
+        </div>
       )}
 
       {isOwnProfile && (

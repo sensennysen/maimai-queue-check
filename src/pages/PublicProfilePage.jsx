@@ -43,7 +43,7 @@ const PublicProfilePage = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedMostPlayedSong, setSelectedMostPlayedSong] = useState(null);
 
-  const { songs: allSongs, requestFetch } = useSongDatabaseContext();
+  const { requestFetch, songMapByTitle } = useSongDatabaseContext();
   const { scrollRef, isDragging } = useMouseDragScroll();
 
   useEffect(() => {
@@ -404,7 +404,7 @@ const PublicProfilePage = () => {
               }}
             >
               {profile.maimai_best_scores.most_played.map((song, index) => {
-                const matchedSong = allSongs.find(s => s.title === song.title);
+                const matchedSong = songMapByTitle?.get(song.title);
                 return (
                   <Paper
                     key={index}
@@ -420,7 +420,9 @@ const PublicProfilePage = () => {
                       position: 'relative',
                       cursor: 'pointer',
                       transition: 'transform 0.1s ease, box-shadow 0.2s ease', // Added box-shadow transition
-                      border: `2px solid ${DIFFICULTY_COLORS[song.difficulty] || 'transparent'}`
+                      border: `2px solid ${DIFFICULTY_COLORS[song.difficulty] || 'transparent'}`,
+                      contentVisibility: 'auto',
+                      containIntrinsicSize: 'auto 160px'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-4px)';

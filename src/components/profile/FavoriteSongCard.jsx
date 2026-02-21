@@ -1,7 +1,8 @@
+import React from 'react';
 import { Paper, Text, Box, Image, ActionIcon, Tooltip } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 
-function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
+const FavoriteSongCard = React.memo(function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
   return (
     <Paper
       p={0}
@@ -12,7 +13,9 @@ function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
         overflow: 'hidden',
         position: 'relative',
         transition: 'transform 0.1s ease, box-shadow 0.2s ease',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        contentVisibility: 'auto',
+        containIntrinsicSize: 'auto 160px'
       }}
       styles={{
         root: {
@@ -58,6 +61,7 @@ function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
               pointerEvents: 'none'
             }}
             fallbackSrc="https://placehold.co/300x300?text=No+Image"
+            loading="lazy"
           />
 
           {/* Dark Overlay for Text Readability */}
@@ -134,6 +138,6 @@ function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
       </div>
     </Paper>
   );
-}
+});
 
 export default FavoriteSongCard;
