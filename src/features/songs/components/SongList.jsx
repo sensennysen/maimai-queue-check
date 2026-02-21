@@ -73,9 +73,10 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
                 song={song}
                 onClick={() => {
                   if (multiple) {
-                    const isSelected = selectedSongs.some(s => s.songId === song.songId);
+                    const getSongKey = (s) => s.cardId || s.songId;
+                    const isSelected = selectedSongs.some(s => getSongKey(s) === getSongKey(song));
                     if (isSelected) {
-                      onSelectionChange(selectedSongs.filter(s => s.songId !== song.songId));
+                      onSelectionChange(selectedSongs.filter(s => getSongKey(s) !== getSongKey(song)));
                     } else {
                       onSelectionChange([...selectedSongs, song]);
                     }
@@ -86,7 +87,8 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
                   }
                 }}
                 style={(() => {
-                  const isSelected = selectedSongs.some(s => s.songId === song.songId);
+                  const getSongKey = (s) => s.cardId || s.songId;
+                  const isSelected = selectedSongs.some(s => getSongKey(s) === getSongKey(song));
 
                   if (multiple && isSelected) {
                     return {

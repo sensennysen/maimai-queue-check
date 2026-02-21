@@ -56,7 +56,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
 
     setIsSaving(true);
     try {
-      const songIds = selectedSongs.map(s => s.songId);
+      const songIds = selectedSongs.map(s => s.cardId || s.songId);
       const updatedPlaylist = await playlistService.upsertPlaylist(userId, initialPlaylist?.id, {
         title: title.trim(),
         comment: comment.trim(),

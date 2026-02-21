@@ -234,24 +234,26 @@ const PublicProfilePage = () => {
             Back to queue
           </Button>
 
-          {/* Share Button for everyone */}
-          <Button
-            variant="light"
-            color="blue"
-            leftSection={<IconShare size={18} />}
-            onClick={() => {
-              const url = window.location.href;
-              navigator.clipboard.writeText(url);
-              notifications.show({
-                title: 'Link Copied',
-                message: 'Profile link copied to clipboard!',
-                color: 'blue',
-              });
-            }}
-            className="animate-fade-in"
-          >
-            Share Profile
-          </Button>
+          {/* Share Button only for owner */}
+          {isOwner && (
+            <Button
+              variant="light"
+              color="blue"
+              leftSection={<IconShare size={18} />}
+              onClick={() => {
+                const url = window.location.href;
+                navigator.clipboard.writeText(url);
+                notifications.show({
+                  title: 'Link Copied',
+                  message: 'Profile link copied to clipboard!',
+                  color: 'blue',
+                });
+              }}
+              className="animate-fade-in"
+            >
+              Share Profile
+            </Button>
+          )}
         </Group>
 
         {/* Profile Header Card */}
