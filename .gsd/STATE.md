@@ -17,11 +17,18 @@
 - Changed `body` gradient from `background-attachment: fixed` back to default `scroll` layout to prevent whole-screen repaints during mobile scrolls.
 - Removed `mix-blend-mode: overlay` from `body::before` (the noise filter overlay) restoring hardware GPU composition. Lowered opacity to maintain aesthetic balance.
 - Implemented `@media (max-width: 768px)` breaking out of glassmorphism selectively for mobile viewports by explicitly disabling `backdrop-filter: blur(12px)` for all recursive component containers (`Paper`, `Card`, `.hologram-card`).
+
+## Wave 4 Summary
+**Objective:** Songs Database Mobile Optimization
+**Changes:**
+- Wrapped exported `<SongCard>` in `React.memo`.
+- Added `loading="lazy"` to `<SongCard>` imagery (`imageUrl` and `typeImage`).
+- Added `content-visibility: auto` and `contain-intrinsic-size` into `<SongCard>` root Paper style.
 **Files Touched:**
-- `src/index.css`
+- `src/features/songs/components/SongCard.jsx`
 **Verification:**
 - Builds successfully via Vite.
 **Risks/Debt:**
-- Glassmorphism effect is lost for mobile bounds strictly to salvage frame rates.
+- None.
 **Next Wave TODO:**
-- Wait for user confirmation and merge/commit changes.
+- Provide clear confirmation and merge.

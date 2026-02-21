@@ -69,7 +69,8 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
           display: 'grid',
           gridTemplateColumns: '1fr',
           gap: '2rem',
-          alignItems: 'start'
+          alignItems: 'start',
+          marginTop: '2rem'
         }}>
           {/* Desktop: standard grid, Mobile: Stack */}
           <style dangerouslySetInnerHTML={{
