@@ -12,6 +12,7 @@ export const changelogData = [
         type: 'fix',
         title: 'Favorite songs improvement',
         description: 'Allows user to edit the comment on their favorite songs.',
+        footnote: 'Thanks to Sunnyjim for this suggestion!'
       },
       {
         type: 'feature',
