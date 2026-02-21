@@ -1,5 +1,26 @@
 export const changelogData = [
   {
+    version: 'v1.7.4',
+    date: 'February 21, 2026',
+    changes: [
+      {
+        type: 'optimization',
+        title: 'Profile Page Optimization on Mobile',
+        description: 'Refactored CSS that caused performance issues on mobile devices and introduced various optimizations.',
+      },
+      {
+        type: 'bugfix',
+        title: 'Bug Fixes',
+        description: 'Fixed an issue where multiselect selected both chart types for the same song title. Removed the shareable profile link for visitors.',
+      },
+      {
+        type: 'feature',
+        title: 'Playlist enhancements',
+        description: 'You can now select DX and Standard charts separately, and select the specific difficulty you want to showcase!',
+      }
+    ]
+  },
+  {
     version: 'v1.7.3',
     date: 'February 21, 2026',
     changes: [
