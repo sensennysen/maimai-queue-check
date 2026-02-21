@@ -446,7 +446,7 @@ export const userService = {
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('profile-pictures')
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -526,6 +526,20 @@ export const favoritesService = {
       .eq('song_id', songId);
     
     if (error) throw error;
+  },
+
+  // Update a favorite song comment
+  async updateFavoriteComment(userId, songId, comment) {
+    const { data, error } = await supabase
+      .from('user_favorite_songs')
+      .update({ comment })
+      .eq('user_id', userId)
+      .eq('song_id', songId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
   }
 };
 

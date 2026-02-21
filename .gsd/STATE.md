@@ -1,3 +1,31 @@
+## Wave 11 Summary
+
+**Objective:** Enhance Profile Features: Favorite Song Comment Editing, Playlist Multi-select, and UI/UX Refinements.
+
+**Changes:**
+- **Favorite Songs**: Added `updateFavoriteComment` to `favoritesService`. Updated `MaimaiSongDetailModal` with edit mode and `FavoriteSongsSection` with optimistic updates.
+- **Playlist Multi-select**: Updated `SongList` and `SongSelectionModal` to support `multiple` selection. Distinguished new vs already-added songs with blue/green border highlights.
+- **Clear Actions**: Added "Clear Selection" in the song picker and "Clear All" in the playlist editor.
+- **UI/UX**: Added hover animations and fixed clipping for "Most Played" cards in `PublicProfilePage`. Fixed horizontal stretching on mobile via overflow controls.
+- **Bug Fixes**: Corrected `SongCard` to support `style` prop and fixed `SongList` styling logic. Resolved a lint error in `supabase.js`.
+
+**Files Touched:**
+- `src/services/supabase.js`
+- `src/components/profile/MaimaiSongDetailModal.jsx`
+- `src/components/profile/FavoriteSongsSection.jsx`
+- `src/features/songs/components/SongList.jsx`
+- `src/features/songs/components/SongSelectionModal.jsx`
+- `src/components/profile/PlaylistEditModal.jsx`
+- `src/pages/PublicProfilePage.jsx`
+- `src/features/songs/components/SongCard.jsx`
+- `src/features/songs/components/SongFilters.jsx`
+
+**Verification:**
+- `npm run lint`: 0 errors.
+- Manual verification of highlights, animations, and "Clear" button functionality.
+
+---
+
 ## Wave 10 Summary
 
 **Objective:** Implement Profile Picture Feature with custom uploads, cropping, and fallback logic.

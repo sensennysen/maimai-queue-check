@@ -182,7 +182,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
   );
 
   return (
-    <Stack gap="md">
+    <Stack gap="md" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
       {/* Mobile Toggle */}
       <Button
         variant="light"
@@ -199,7 +199,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
 
       {/* Mobile Collapse content */}
       <Collapse in={isOpen} transitionDuration={200} animateOpacity display={{ base: 'block', md: 'none' }}>
-        <Paper p="md" radius="lg" className="hologram-card">
+        <Paper p="md" radius="lg" className="hologram-card" style={{ width: '100%', overflowX: 'hidden' }}>
           {filterContent}
         </Paper>
       </Collapse>
@@ -213,8 +213,8 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         style={{ position: 'sticky', top: '2rem' }}
       >
         <Stack gap="lg">
-          <Group justify="space-between" align="center">
-            <Text fw={700} size="lg" style={{ fontFamily: 'var(--font-heading)' }}>Filters</Text>
+          <Group justify="space-between" align="center" wrap="nowrap">
+            <Text fw={700} size="lg" style={{ fontFamily: 'var(--font-heading)' }} truncate>Filters</Text>
             {hasActiveFilters && (
               <Tooltip label="Reset all filters">
                 <ActionIcon variant="subtle" color="gray" onClick={resetFilters}>
