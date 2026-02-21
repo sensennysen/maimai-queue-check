@@ -67,7 +67,7 @@ const LoginForm = ({ onOpenPreferences }) => {
         <Menu.Target>
           <ActionIcon variant="subtle" size="xl" className="login-icon">
             <Avatar
-              src={userRoles?.display_photo_url}
+              src={userRoles?.display_photo_url || userRoles?.dx_display_photo_url}
               alt={userRoles?.display_name || user.user_metadata?.full_name || user.email}
               size={40}
               radius="xl"
