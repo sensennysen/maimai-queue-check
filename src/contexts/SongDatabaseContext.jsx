@@ -38,7 +38,10 @@ export function SongDatabaseProvider({ children }) {
     const byId = new Map();
     const byTitle = new Map();
     for (const song of songs) {
-      if (song.songId) byId.set(song.songId, song);
+      if (song.cardId) byId.set(song.cardId, song);
+      // Fallback for older saves that only used songId
+      if (song.songId && !byId.has(song.songId)) byId.set(song.songId, song);
+
       if (song.title) byTitle.set(song.title, song);
     }
     return [byId, byTitle];

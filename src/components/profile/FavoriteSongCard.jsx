@@ -1,7 +1,8 @@
 import React from 'react';
 import { Paper, Text, Box, Image, ActionIcon, Tooltip } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
-
+import dxImage from '../../assets/music_dx.png';
+import standardImage from '../../assets/music_standard.png';
 const FavoriteSongCard = React.memo(function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
   return (
     <Paper
@@ -102,6 +103,23 @@ const FavoriteSongCard = React.memo(function FavoriteSongCard({ song, onDelete, 
             >
               <IconX size={14} />
             </ActionIcon>
+          )}
+
+          {/* DX/Standard Type Badge */}
+          {song.cardType && (
+            <img
+              src={song.cardType === 'dx' ? dxImage : standardImage}
+              alt={song.cardType === 'dx' ? 'DX' : 'Standard'}
+              loading="lazy"
+              style={{
+                position: 'absolute',
+                top: 8,
+                left: 8,
+                height: 16,
+                zIndex: 10,
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))'
+              }}
+            />
           )}
 
           {/* Content Overlay */}

@@ -73,8 +73,8 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
     // Limit removed per requirement
     // if (favorites.length >= 5) { ... }
 
-    // Check if already favorite
-    if (favorites.some(f => f.song_id === song.songId)) {
+    const songKey = song.cardId || song.songId;
+    if (favorites.some(f => f.song_id === songKey)) {
       notifications.show({
         title: 'Already Added',
         message: `${song.title} is already in your favorites`,
@@ -93,17 +93,18 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
     if (!pendingSong) return;
 
     setIsAdding(true);
+    const pendingSongKey = pendingSong.cardId || pendingSong.songId;
     try {
       // Optimistic update
       const newFav = {
-        song_id: pendingSong.songId,
+        song_id: pendingSongKey,
         created_at: new Date().toISOString(),
         comment: comment.trim() || null
       };
 
       setFavorites(prev => [newFav, ...prev]);
 
-      await favoritesService.addFavorite(userId, pendingSong.songId, comment.trim() || null);
+      await favoritesService.addFavorite(userId, pendingSongKey, comment.trim() || null);
 
       notifications.show({
         title: 'Added',
@@ -117,7 +118,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
     } catch (error) {
       console.error(error);
       // Revert on error
-      setFavorites(prev => prev.filter(f => f.song_id !== pendingSong.songId));
+      setFavorites(prev => prev.filter(f => f.song_id !== pendingSongKey));
       notifications.show({
         title: 'Error',
         message: 'Failed to add favorite',
@@ -145,7 +146,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
       });
 
       // Update selected comment if modal is open
-      if (selectedSongDetails?.songId === songId) {
+      if ((selectedSongDetails?.cardId || selectedSongDetails?.songId) === songId) {
         setSelectedSongComment(newComment);
       }
     } catch (error) {
@@ -161,7 +162,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
   };
 
   const handleRemoveFavorite = async (song) => {
-    const songId = song.songId;
+    const songId = song.cardId || song.songId;
     const songTitle = song.title;
     if (!confirm(`Remove ${songTitle} from favorites?`)) return;
 
