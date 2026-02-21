@@ -194673,14 +194673,12 @@
 					},
 					"regions": {
 						"jp": true,
-						"intl": true,
-						"usa": true,
+						"intl": false,
+						"usa": false,
 						"cn": false
 					},
 					"regionOverrides": {
-						"intl": {
-							"version": "CiRCLE"
-						}
+						"intl": {}
 					},
 					"isSpecial": false
 				},
@@ -194702,14 +194700,12 @@
 					},
 					"regions": {
 						"jp": true,
-						"intl": true,
-						"usa": true,
+						"intl": false,
+						"usa": false,
 						"cn": false
 					},
 					"regionOverrides": {
-						"intl": {
-							"version": "CiRCLE"
-						}
+						"intl": {}
 					},
 					"isSpecial": false
 				},
@@ -194731,14 +194727,12 @@
 					},
 					"regions": {
 						"jp": true,
-						"intl": true,
-						"usa": true,
+						"intl": false,
+						"usa": false,
 						"cn": false
 					},
 					"regionOverrides": {
-						"intl": {
-							"version": "CiRCLE"
-						}
+						"intl": {}
 					},
 					"isSpecial": false
 				},
@@ -194760,14 +194754,12 @@
 					},
 					"regions": {
 						"jp": true,
-						"intl": true,
-						"usa": true,
+						"intl": false,
+						"usa": false,
 						"cn": false
 					},
 					"regionOverrides": {
-						"intl": {
-							"version": "CiRCLE"
-						}
+						"intl": {}
 					},
 					"isSpecial": false
 				}
@@ -199410,14 +199402,12 @@
 					},
 					"regions": {
 						"jp": true,
-						"intl": true,
-						"usa": true,
+						"intl": false,
+						"usa": false,
 						"cn": false
 					},
 					"regionOverrides": {
-						"intl": {
-							"version": "CiRCLE"
-						}
+						"intl": {}
 					},
 					"isSpecial": false
 				},
@@ -199439,14 +199429,12 @@
 					},
 					"regions": {
 						"jp": true,
-						"intl": true,
-						"usa": true,
+						"intl": false,
+						"usa": false,
 						"cn": false
 					},
 					"regionOverrides": {
-						"intl": {
-							"version": "CiRCLE"
-						}
+						"intl": {}
 					},
 					"isSpecial": false
 				},
@@ -199468,14 +199456,12 @@
 					},
 					"regions": {
 						"jp": true,
-						"intl": true,
-						"usa": true,
+						"intl": false,
+						"usa": false,
 						"cn": false
 					},
 					"regionOverrides": {
-						"intl": {
-							"version": "CiRCLE"
-						}
+						"intl": {}
 					},
 					"isSpecial": false
 				},
@@ -199484,8 +199470,8 @@
 					"difficulty": "master",
 					"level": "12+",
 					"levelValue": 12.6,
-					"internalLevel": "12.9",
-					"internalLevelValue": 12.9,
+					"internalLevel": null,
+					"internalLevelValue": 12.6,
 					"noteDesigner": "はっぴー",
 					"noteCounts": {
 						"tap": 488,
@@ -199497,14 +199483,12 @@
 					},
 					"regions": {
 						"jp": true,
-						"intl": true,
-						"usa": true,
+						"intl": false,
+						"usa": false,
 						"cn": false
 					},
 					"regionOverrides": {
-						"intl": {
-							"version": "CiRCLE"
-						}
+						"intl": {}
 					},
 					"isSpecial": false
 				}
@@ -199732,5 +199716,5 @@
 			"name": "中国版 (舞萌DX)"
 		}
 	],
-	"updateTime": "2026-02-19T22:14:22.323Z"
+	"updateTime": "2026-02-19T17:00:03.700Z"
 }

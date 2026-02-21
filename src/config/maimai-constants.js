@@ -15,6 +15,24 @@ export const DIFFICULTY_COLORS = {
   'Re:Master': 'rgb(186, 103, 248)',
 };
 
+/**
+ * Normalizes difficulty strings to the canonical "Re:Master" format
+ * @param {string} diff The difficulty string to normalize
+ * @returns {string} The canonical difficulty name
+ */
+export const normalizeDifficulty = (diff) => {
+  if (!diff) return diff;
+  const map = {
+    'basic': 'Basic',
+    'advanced': 'Advanced',
+    'expert': 'Expert',
+    'master': 'Master',
+    'remaster': 'Re:Master',
+    're:master': 'Re:Master'
+  };
+  return map[diff.toLowerCase()] || diff;
+};
+
 // Letter grade thresholds based on achievement percentage
 export const GRADE_THRESHOLDS = [
   { min: 100.5, grade: 'SSS+' },

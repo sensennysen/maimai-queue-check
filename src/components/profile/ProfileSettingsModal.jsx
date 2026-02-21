@@ -13,6 +13,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
   const [privacySettings, setPrivacySettings] = useState({
     show_dx_rating: true,
     show_best_50: true,
+    show_most_played: true,
     show_favorite_songs: true,
     show_playlists: true,
     show_main_branch: true,
@@ -47,10 +48,10 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
     try {
       setIsSaving(true);
       await userService.updatePreferences(userId, {
-        displayName: displayName.trim(),
-        branchIds: selectedBranches.map(Number),
-        mainBranch: selectedMainBranch ? parseInt(selectedMainBranch, 10) : null,
-        isPublic: isPublic
+        display_name: displayName.trim(),
+        branch_ids: selectedBranches.map(Number),
+        main_branch: selectedMainBranch ? parseInt(selectedMainBranch, 10) : null,
+        is_public: isPublic
       });
 
       notifications.show({
@@ -179,6 +180,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
                     placeholder="my-cool-profile"
                     value={slug}
                     onChange={(e) => setSlug(e.currentTarget.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    maxLength={20}
                     leftSection={<IconLink size={16} />}
                     style={{ flex: 1 }}
                     disabled={!!initialData?.slug_updated_at}
@@ -209,6 +211,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
                 <Switch label="Maimai Name" checked={privacySettings.show_maimai_name} onChange={(e) => handleUpdatePrivacy('show_maimai_name', e.currentTarget.checked)} />
                 <Switch label="DX Rating" checked={privacySettings.show_dx_rating} onChange={(e) => handleUpdatePrivacy('show_dx_rating', e.currentTarget.checked)} />
                 <Switch label="Best 50" checked={privacySettings.show_best_50} onChange={(e) => handleUpdatePrivacy('show_best_50', e.currentTarget.checked)} />
+                <Switch label="Most Played" checked={privacySettings.show_most_played !== false} onChange={(e) => handleUpdatePrivacy('show_most_played', e.currentTarget.checked)} />
               </Stack>
               <Stack gap="xs">
                 <Text size="sm" fw={600}>Collections</Text>

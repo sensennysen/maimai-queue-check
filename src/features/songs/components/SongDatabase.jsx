@@ -1,6 +1,6 @@
 import { Container, Title, Box, Group, ActionIcon, Stack, Paper, Avatar, Button, Text } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import { IconArrowLeft, IconMusic } from '@tabler/icons-react';
+import { IconArrowLeft, IconMusic, IconBrandGithub, IconBrandTwitter } from '@tabler/icons-react';
 import ThemeToggle from '../../../components/layout/ThemeToggle';
 import SongFilters from './SongFilters';
 import SongList from './SongList';
@@ -17,7 +17,6 @@ function SongDatabase() {
     levels,
     internalLevels,
     error,
-    songs
   } = useSongDatabase();
 
   return (
@@ -56,6 +55,30 @@ function SongDatabase() {
                 <Text size="sm" c="dimmed" fw={500}>
                   Explore and filter all available songs in the database
                 </Text>
+                <Group gap="xs" mt={4}>
+                  <Text size="xs" c="dimmed">Attribution:</Text>
+                  <Text
+                    component="a"
+                    href="https://github.com/zetaraku"
+                    target="_blank"
+                    size="xs"
+                    c="dimmed"
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
+                  >
+                    <IconBrandGithub size={12} /> Chart Metadata
+                  </Text>
+                  <Text size="xs" c="dimmed">•</Text>
+                  <Text
+                    component="a"
+                    href="https://x.com/maiLv_Chihooooo"
+                    target="_blank"
+                    size="xs"
+                    c="dimmed"
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
+                  >
+                    <IconBrandTwitter size={12} /> Internal Levels
+                  </Text>
+                </Group>
               </Stack>
             </Group>
             <Box hiddenFrom="sm">

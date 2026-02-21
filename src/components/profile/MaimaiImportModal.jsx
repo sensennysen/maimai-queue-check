@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Modal, Stack, Text, Textarea, Divider, Alert, Group, Button } from '@mantine/core';
 import { IconCheck, IconAlertCircle, IconUpload } from '@tabler/icons-react';
 import { BookmarkletInstructions } from '../BookmarkletInstructions';
-import { userService } from '../../services/supabase';
+import { userService, mostPlayedService } from '../../services/supabase';
 import { fetchSongConstants, calculateBest50 } from '../../utils/maimai-calc';
 
 const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
@@ -31,20 +31,49 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
       }
 
       const songs = await fetchSongConstants();
-      const result = await calculateBest50(data.scores, songs);
+      const result = await calculateBest50(data.scores, songs, data.best_fifty);
 
-      if (!result || (result.new.songs.length === 0 && result.old.songs.length === 0)) {
+      if (!result || (result.best_new.songs.length === 0 && result.best_old.songs.length === 0)) {
         throw new Error("No valid scores could be calculated. Please check your score data.");
       }
 
-      await userService.updateMaimaiBestScores(userId, result);
+      // Include play counts and most played in the result object for display persistence
+      result.current_version_play_count = data.profile?.current_version_play_count || "0";
+      result.total_play_count = data.profile?.total_play_count || "0";
 
-      const importName = data.profile?.name || data.name || data.user_data?.name;
-      const importIconUrl = data.profile?.iconUrl || data.iconUrl;
+      // Enrich most_played with image names and filter to Top 20
+      const enrichedMostPlayed = (data.most_played || [])
+        .map(item => {
+          const matchingSong = songs.find(s => s.title === item.title);
+          return {
+            ...item,
+            imageName: matchingSong?.imageName || null,
+            imageUrl: matchingSong?.imageUrl || null
+          };
+        })
+        .sort((a, b) => b.play_count - a.play_count)
+        .slice(0, 20);
+
+      result.most_played = enrichedMostPlayed;
+
+      // Save most played data to its own table
+      if (enrichedMostPlayed.length > 0) {
+        await mostPlayedService.upsertMostPlayed(userId, enrichedMostPlayed);
+      }
+
+      // Save the rest to user profile, excluding most_played from the JSON structure
+      const dbScores = { ...result };
+      delete dbScores.most_played;
+
+      await userService.updateMaimaiBestScores(userId, dbScores);
+      await userService.saveUserAllScores(userId, data);
+
+      const import_name = data.profile?.name || data.name || data.user_data?.name;
+      const import_icon_url = data.profile?.icon_url || data.icon_url;
 
       const updates = {};
-      if (importName && typeof importName === 'string') updates.maimaiDxName = importName;
-      if (importIconUrl && typeof importIconUrl === 'string') updates.displayPhotoUrl = importIconUrl;
+      if (import_name && typeof import_name === 'string') updates.maimai_dx_name = import_name;
+      if (import_icon_url && typeof import_icon_url === 'string') updates.display_photo_url = import_icon_url;
 
       if (Object.keys(updates).length > 0) {
         try {
@@ -56,7 +85,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
 
       setValidationResult({
         success: true,
-        message: `Import Successful! Calculated Rating: ${result.totalRating}`
+        message: `Import Successful! Calculated Rating: ${result.total_rating}`
       });
 
       if (onSuccess) onSuccess(result);

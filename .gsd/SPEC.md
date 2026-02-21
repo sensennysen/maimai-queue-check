@@ -1,22 +1,28 @@
-# SPEC-001: Fix Infinite Queries/Mutations
+# Feature Specification: Most Played Refactor
+
+## 1. Goal
+Modify the "Most Played" scraping strategy to fetch Top played songs per difficulty (0-4) instead of digging into individual song details. The scraper will combine these results, and the application will store the Top 20 overall records in the `most_played` table.
+
+## 2. Requirements
+1. **Bookmarklet Scraper Update**:
+   - Iterate through difficulties 0 to 4 (Basic to Re:Master).
+   - Fetch URL: `https://maimaidx-eng.com/maimai-mobile/record/musicMybest/search/?diff=[0-4]`
+   - Collect all songs and their play counts from each page.
+   - Output JSON payload with the new `most_played` structure: `[{ title, difficulty, play_count, type, ... }]`.
+   - Keep bookmarklet within 2048 characters minified constraint.
+
+2. **Storage Logic Update**:
+   - In `MaimaiImportModal.jsx`, sort the incoming `most_played` list by `play_count` descending.
+   - Retain only the Top 20 items for database storage. 
+   - Store results in the `most_played` table.
+
+2. **Database Migration**:
+   - Create a new table `most_played`.
+   - Columns: `id` (uuid, primary key), `user_id` (uuid, FK to auth.users), `data` (jsonb, stores the array of most played songs), `created_at` (timestamptz), `updated_at` (timestamptz).
+   - Data cleanup: Remove the `most_played` key from the existing `maimai_best_scores` JSONB column in the `user_profiles` table, leaving only the "best scores" (best_new, best_old, total_play_count, etc.) there. Backfill existing `most_played` data into the new table.
+
+3. **Frontend Changes**:
+   - Update `PublicProfilePage.jsx` and other relevant components to read the most played data from the new `most_played` table rather than `user_profiles.maimai_best_scores`.
+   - Since `most_played` will now include specific difficulties, update the UI cards to display the difficulty styling (maybe border or badge) and the specific play count.
 
 ## Status: FINALIZED
-
-## Problem Statement
-Users have reported (or internal monitoring shows) that the application is performing redundant or infinite network requests (queries/mutations). This causes performance degradation, unnecessary load on Supabase, and potential UI freezes.
-
-## Requirements
-1.  **Identify and eliminate infinite loops** in React `useEffect` hooks.
-2.  **Optimize data fetching** to avoid redundant calls on every render.
-3.  **Ensure state stability** by providing correct dependency arrays to hooks.
-4.  **Verify** that network activity settles after initial load and only triggers on intentional events (user action or real-time updates).
-
-## Identified Issues
-- **Major**: `BranchContext.jsx` has a `useEffect` hook without a dependency array that calls `loadBranches()`. This causes an infinite re-render loop as `loadBranches` updates state (`loading`, `branches`, `selectedBranch`).
-- **Potential**: `AuthContext.jsx` has complex real-time subscription logic that triggers `getUserRoles`. While likely intended, it should be audited for efficiency.
-- **Audit**: Review `useQueueData` and `useMonitorData` to ensure real-time updates don't trigger recursive fetches unnecessarily.
-
-## Success Criteria
-- The application performs a stable number of requests on page load.
-- No "infinite loop" console errors or rapidly incrementing network requests in DevTools.
-- `BranchContext` initialization runs exactly once (or when explicitly reloaded).

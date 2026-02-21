@@ -1,5 +1,43 @@
 export const changelogData = [
   {
+    version: 'v1.7.2',
+    date: 'February 20, 2026',
+    changes: [
+      {
+        type: 'feature',
+        title: 'Most Played & Total Play Count',
+        description: 'Added Most Played section and Total Play Count to user profiles.',
+      },
+      {
+        type: 'fix',
+        title: 'Best 50 Calculation',
+        description: 'Fixed Best 50 calculation logic.',
+      }
+    ]
+  },
+  {
+    version: 'v1.7.1',
+    date: 'February 20, 2026',
+    changes: [
+      {
+        type: 'bugfix',
+        title: 'Best 50 Discrepancies',
+        description: 'Fixed an issue where the Best 50 songs are in incorrect order and does not match maimai DX International versioning.',
+      },
+      {
+        type: 'bugfix',
+        title: 'Custom URL not updating',
+        description: 'Fixed an issue where the custom URL is not updating on the profile menu when the slug is changed.',
+      },
+      {
+        type: 'refactor',
+        title: 'Custom URL Character limit',
+        description: 'Added a character limit of 20 to custom URLs.',
+        footnote: 'Thanks to Tear, really.'
+      }
+    ]
+  },
+  {
     version: 'v1.7.0',
     date: 'February 19, 2026',
     changes: [
@@ -9,12 +47,16 @@ export const changelogData = [
         description: 'Showcase your favorite songs, build a playlist, and import your best 50 songs for everyone to see!',
         footnote: 'You can share your profile via the link button beside your display name. You can also set privacy settings. Big thanks to albinokoi for this idea!'
       },
-
       {
         type: 'feature',
         title: 'Queue Rules',
         description: 'Added a way for branch admins to display their queue rules',
         footnote: 'Thanks to the UPTC maimai community for this one!'
+      },
+      {
+        type: 'feature',
+        title: 'Best 50 render',
+        description: 'Allows the user to render their Best 50 in an image.',
       },
       {
         type: 'visual',

@@ -115,8 +115,8 @@ const ExportBest50Page = () => {
   }, [isLoading, bestScores, handleDownload]);
 
   const maimaiName = profileData?.maimai_dx_name;
-  const hasScores = bestScores && (bestScores.new?.songs?.length > 0 || bestScores.old?.songs?.length > 0);
-  const totalRating = hasScores ? (bestScores.new.totalRating + bestScores.old.totalRating) : 0;
+  const hasScores = bestScores && (bestScores.best_new?.songs?.length > 0 || bestScores.best_old?.songs?.length > 0);
+  const totalRating = bestScores?.total_rating || 0;
 
   // Show loading while auth is restoring or data is fetching
   if (authLoading || isLoading) {
@@ -219,15 +219,15 @@ const ExportBest50Page = () => {
                   <Title order={3}>Best 15 (New)</Title>
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                     <Text size="sm" c="secondary" fw={500}>
-                      Avg: {bestScores.new.songs.length > 0 ? Math.round(bestScores.new.totalRating / bestScores.new.songs.length) : 0}
+                      Avg: {bestScores.best_new.songs.length > 0 ? Math.round(bestScores.best_new.total_rating / bestScores.best_new.songs.length) : 0}
                     </Text>
                     <Text size="sm" fw={700} style={{ color: isDark ? '#fff' : '#000' }}>
-                      Total: {bestScores.new.totalRating ?? 0}
+                      Total: {bestScores.best_new.total_rating ?? 0}
                     </Text>
                   </div>
                 </div>
                 <SimpleGrid cols={5} spacing="sm">
-                  {bestScores.new.songs.map((score, index) => (
+                  {bestScores.best_new.songs.map((score, index) => (
                     <ScoreCard key={`export-new-${index}`} score={score} />
                   ))}
                 </SimpleGrid>
@@ -241,15 +241,15 @@ const ExportBest50Page = () => {
                   <Title order={3}>Best 35 (Old)</Title>
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                     <Text size="sm" c="secondary" fw={500}>
-                      Avg: {bestScores.old.songs.length > 0 ? Math.round(bestScores.old.totalRating / bestScores.old.songs.length) : 0}
+                      Avg: {bestScores.best_old.songs.length > 0 ? Math.round(bestScores.best_old.total_rating / bestScores.best_old.songs.length) : 0}
                     </Text>
                     <Text size="sm" fw={700} style={{ color: isDark ? '#fff' : '#000' }}>
-                      Total: {bestScores.old.totalRating ?? 0}
+                      Total: {bestScores.best_old.total_rating ?? 0}
                     </Text>
                   </div>
                 </div>
                 <SimpleGrid cols={5} spacing="sm">
-                  {bestScores.old.songs.map((score, index) => (
+                  {bestScores.best_old.songs.map((score, index) => (
                     <ScoreCard key={`export-old-${index}`} score={score} />
                   ))}
                 </SimpleGrid>

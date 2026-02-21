@@ -6,7 +6,7 @@ import { favoritesService } from '../../services/supabase';
 import { TextInput, Modal as MantineModal } from '@mantine/core';
 import FavoriteSongCard from './FavoriteSongCard';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
-import FavoriteSongDetailModal from './FavoriteSongDetailModal';
+import MaimaiSongDetailModal from './MaimaiSongDetailModal';
 import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
 import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 
@@ -187,7 +187,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
             : "This user hasn't added any favorite songs yet."}
         </Alert>
       ) : (
-        <ScrollArea viewportRef={scrollRef} type="never" offsetScrollbars={false} pb="lg">
+        <ScrollArea viewportRef={scrollRef} type="never" offsetScrollbars={false} classNames={{ viewport: 'hide-scrollbar' }}>
           <div style={{ display: 'flex', gap: '12px', paddingBottom: '4px' }}>
             {favoriteSongs.map((song) => {
               const favData = favorites.find(f => f.song_id === song.songId);
@@ -244,7 +244,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
         </Stack>
       </MantineModal>
 
-      <FavoriteSongDetailModal
+      <MaimaiSongDetailModal
         song={selectedSongDetails}
         opened={!!selectedSongDetails}
         onClose={() => {
@@ -252,6 +252,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
           setSelectedSongComment(null);
         }}
         comment={selectedSongComment}
+        title="Favorite Song Details"
       />
     </Paper>
   );

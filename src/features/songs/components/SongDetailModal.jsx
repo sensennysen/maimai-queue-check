@@ -1,7 +1,7 @@
 import { Modal, Image, Text, Group, Stack, Badge, Table, ScrollArea, Tooltip, SimpleGrid } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconCheck } from '@tabler/icons-react';
-import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION } from '../../../config/maimai-constants';
+import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty } from '../../../config/maimai-constants';
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
 
@@ -27,21 +27,13 @@ function SongDetailModal({ song, opened, onClose }) {
 
   // Sort sheets
   const sortedSheets = [...(song.sheets || [])].sort((a, b) => {
-    const normalizeDiffForSort = (d) => {
-      const map = { 'basic': 'Basic', 'advanced': 'Advanced', 'expert': 'Expert', 'master': 'Master', 'remaster': 'Re:Master' };
-      return map[d.toLowerCase()] || d;
-    };
-    const diffA = DIFFICULTY_ORDER.indexOf(normalizeDiffForSort(a.difficulty));
-    const diffB = DIFFICULTY_ORDER.indexOf(normalizeDiffForSort(b.difficulty));
+    const diffA = DIFFICULTY_ORDER.indexOf(normalizeDifficulty(a.difficulty));
+    const diffB = DIFFICULTY_ORDER.indexOf(normalizeDifficulty(b.difficulty));
     return diffA - diffB;
   });
 
   const rows = sortedSheets.map((sheet) => {
-    const normalizeDiff = (d) => {
-      const map = { 'basic': 'Basic', 'advanced': 'Advanced', 'expert': 'Expert', 'master': 'Master', 'remaster': 'Re:Master' };
-      return map[d.toLowerCase()] || d;
-    };
-    const difficultyKey = normalizeDiff(sheet.difficulty);
+    const difficultyKey = normalizeDifficulty(sheet.difficulty);
     const color = DIFFICULTY_COLORS[difficultyKey] || 'gray';
 
     return (

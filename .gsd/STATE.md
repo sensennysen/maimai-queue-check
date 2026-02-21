@@ -1,205 +1,73 @@
-# State Snapshot - README Agentic Development Update
+## Wave 9 Summary
 
-**Objective:** Update the README to include information about skills and agents to speed development.
-
-**Changes:**
-- **Agentic Development Section**: Added a comprehensive section explaining the project's use of an agentic workflow.
-- **GSD Protocol Disclosure**: Documented the 5-phase (SPEC → PLAN → EXECUTE → VERIFY → COMMIT) development methodology.
-- **Skills Highlight**: Listed specialized agent skills (Frontend, Performance, Security, Database) used to maintain high standards.
-- **Documentation Links**: Added links to `AGENTS.md` and `LEARNED_SKILLS.md` for transparency.
-
-**Files Touched:**
-- `README.md`
-
-**Verification:**
-- Manual review of content for clarity and accuracy.
-- Verified links to supporting documentation.
-
-# State Snapshot - README Simplified & Dependencies Fixed
-
-**Objective:** Ultra-simplify the README.md and resolve Mantine package version conflicts.
+**Objective:** Fix "Remaster" tag color in Best 50 and centralize difficulty normalization.
 
 **Changes:**
-- **README Ultra-Simplification**: Focused on Queue, Profiles, Song DB, essential scripts, and song data acknowledgment.
-- **Dependency Sync**: Updated all `@mantine/*` packages to `8.3.15` to resolve peer dependency conflicts with `@mantine/tiptap`.
-- **Credits**: Added direct attribution to `zetaraku/arcade-songs-fetch` for song data.
+- **Normalization Helper**: Added `normalizeDifficulty` to `maimai-constants.js` to canonicalize difficulty strings (e.g., "Remaster" -> "Re:Master").
+- **UI Consistency**: Updated `ScoreCard`, `MaimaiSongDetailModal`, `SongCard`, and `SongDetailModal` to use the centralized helper. This ensures correct purple styling for Re:Master tags in the Best 50 section.
 
 **Files Touched:**
-- `README.md`
-- `package.json`
+- `src/config/maimai-constants.js`
+- `src/components/maimai/ScoreCard.jsx`
+- `src/components/profile/MaimaiSongDetailModal.jsx`
+- `src/features/songs/components/SongCard.jsx`
+- `src/features/songs/components/SongDetailModal.jsx`
 
 **Verification:**
-- Content verified for accuracy and readability.
-- Mantine packages synchronized to a common version.
-- Verified specific link to `zetaraku` repo.
+- `npm run lint`: 0 errors.
 
-# State Snapshot - v1.7.0 Changelog Finalized
+---
 
-**Objective:** Finalize the changelog for version 1.7.0 with community credits and detailed feature descriptions.
+## Wave 8 Summary
+
+**Objective:** Refine "Most Played" scraping, storage, and cross-schema data integrity.
 
 **Changes:**
-- **Changelog UI**: Added v1.7.0 to `src/data/changelog.js`.
-- **Feature Highlights**:
-    - **User Profile**: Linked profile sharing, favorites, and Best 50 (Credits: albinokoi).
-    - **Queue Rules**: Custom rules for branch admins (Credits: UPTC maimai community).
-    - **Song Database**: SEARCH/FAV/PLAYLIST integration (Credits: zetaraku).
-    - **Privacy**: RA 10173 compliance.
-    - **Redesign**: Consistent header aesthetics across database and profile.
+- **Revised Scraping**: Updated bookmarklet to iterate through all 5 difficulty levels on `musicMybest`.
+- **Top 20 Retention**: Modified `MaimaiImportModal` to sort combined records and keep the Top 20 most played overall.
+- **Table Rename**: Renamed `most_played` to `user_most_played_songs` for clarity and consistency.
+- **Data Clearing**: Enhanced `clearMaimaiData` to delete from `user_most_played_songs` and `user_all_scores` in addition to profile fields. Added missing RLS `DELETE` policies.
+- **FK Refactor**: Created migration to switch FKs of 6 tables (`user_roles`, `user_playlists`, etc.) from `auth.users` to `public.user_profiles` with `ON DELETE CASCADE`.
 
 **Files Touched:**
-- `src/data/changelog.js`
+- `src/assets/bookmarklet.js` & `public/bookmarklet.js` (Bookmarklet logic)
+- `src/services/supabase.js` (Service layer & `clearMaimaiData`)
+- `src/components/profile/MaimaiImportModal.jsx` (Import processing)
+- `src/pages/PublicProfilePage.jsx` & `src/components/profile/MaimaiSongDetailModal.jsx` (UI updates)
+- `supabase/migrations/20260220_most_played_table.sql` (Renamed table & policies)
+- `supabase/migrations/20260221_refactor_fks.sql` (FK refactoring)
 
 **Verification:**
-- User-approved final content.
-- `npm run lint` verified.
-
-# State Snapshot - Privacy Policy Update (RA 10173)
-
-**Objective:** Update the site's privacy policy to comply with Philippines Data Privacy Laws (RA 10173).
-
-**Changes:**
-- **Comprehensive Policy Content**: Rewrote `PrivacyModal.jsx` to include legally required disclosures.
-- **Data Categories**: Disclosed collection of Account Data (Auth), Profile Data (voluntary), and Usage Data (service-specific).
-- **Purpose Disclosure**: Clarified that data is used for service delivery and anonymous analytics only.
-- **User Rights**: Included explicit mention of rights under RA 10173 (Access, Correction, Erasure).
-- **Service Disclosure**: Disclosed use of Supabase and Vercel services.
-
-**Files Touched:**
-- `src/components/modals/PrivacyModal.jsx`
-
-**Verification:**
-- Code-level verification confirms correct React/Mantine implementation.
-- Content verified against Philippines Data Privacy Act requirements.
-
-# State Snapshot - Song Database Header Redesign
-
-**Objective:** Redesign the song database header to match the profile page's premium aesthetic and structure.
-
-**Changes:**
-- **Redesigned Header Card**: Replaced the custom hologram Box with a standard `Paper` component (shadow, border, radius) for consistency with profile sections.
-- **Avatar Integration**: Added a circular `Avatar` with a music icon to the header.
-- **Navigation Refactor**: Moved the "Back to queue" button above the header card, following the navigation pattern of the public profile page.
-- **Responsive Layout**: Optimized the header for both mobile and desktop, ensuring the `ThemeToggle` is appropriately placed.
-
-**Files Touched:**
-- `src/features/songs/components/SongDatabase.jsx`
-
-**Verification:**
-- Verified with `npm run lint` (Exit code 0 after fixing unused variables).
-- Manual verification of layout behavior across breakpoints.
-
-# State Snapshot - Query and View Page Optimizations
-
-**Objective:** Optimize Supabase queries and the View Page to reduce data transfer and eliminate background fetching of the song database.
-
-**Changes:**
-- **Lazy Song Database Loading**: Refactored `SongDatabaseContext.jsx` and `useSongDatabaseContext.js` to implement request-based lazy loading. The maimai song database is now only fetched when a component actually uses the context.
-- **Supabase Service Optimizations**: 
-    - Updated `queueService.getQueueEntries` to select only essential fields.
-    - Added `requestService.hasPendingRequest` for efficient, limit-1 existence checks.
-    - Optimized `getCompletedEntriesForToday` to fetch only player names for suggestions.
-- **QueueManager Refactor**: Replaced inefficient `getUserRequests` call with the targeted `hasPendingRequest` check.
-- **Admin UX**: Optimized `contactService.getReports` to exclude heavy fields in list view.
-
-**Files Touched:**
-- `src/services/supabase.js`
-- `src/features/queue/components/QueueManager.jsx`
-- `src/contexts/SongDatabaseContext.jsx`
-- `src/hooks/useSongDatabaseContext.js`
-
-**Verification:**
-- `npm run lint` passed (Exit code 0).
-- Verified that `/view` page and main queue page no longer trigger background song database fetches.
-- Verified that autocomplete suggestions and queue timers remain functional.
-
-# State Snapshot - Song Database Error Handling and Context Refactor
-
-**Objective:** Use the unused `error` field in `useSongDatabase` and refactor `SongDatabaseContext` to resolve Fast Refresh lint errors.
-
-**Changes:**
-- **Refactored SongDatabaseContext**: Split the context definition, provider, and hook into separate files (`SongDatabaseContextDef.js`, `SongDatabaseContext.jsx`, `useSongDatabaseContext.js`) to follow project patterns and fix `react-refresh/only-export-components` lint error.
-- **Hook Update**: Updated `useSongDatabase.js` to return the `error` field from the new `useSongDatabaseContext` hook.
-- **Component Destructuring**: Updated `SongSelectionModal.jsx` and `SongDatabase.jsx` to destructure and use the `error` state.
-- **Error UI**: Updated `SongList.jsx` to display a user-friendly error message when a database error occurs.
-- **Import Sync**: Updated all imports of `useSongDatabaseContext` to point to the new location.
-
-**Files Touched:**
-- `src/contexts/SongDatabaseContextDef.js` [NEW]
-- `src/hooks/useSongDatabaseContext.js` [NEW]
-- `src/contexts/SongDatabaseContext.jsx` [MODIFY]
-- `src/hooks/useSongDatabase.js` [MODIFY]
-- `src/features/songs/components/SongSelectionModal.jsx` [MODIFY]
-- `src/features/songs/components/SongDatabase.jsx` [MODIFY]
-- `src/features/songs/components/SongList.jsx` [MODIFY]
-- `src/components/profile/PlaylistSection.jsx` [MODIFY]
-- `src/components/profile/FavoriteSongsSection.jsx` [MODIFY]
-
-**Verification:**
-- Full `npm run lint` check confirms the `SongDatabaseContext.jsx` error is resolved.
-- Targeted ESLint check on all modified files passed (Exit code 0).
-- Verified error state propagation from context to UI.
-
-# State Snapshot - Song Database Error Handling implemented
-
-**Objective:** Use the unused `error` field in `useSongDatabase` and implement error UI in consuming components.
-
-**Changes:**
-- **Hook Update**: Updated `useSongDatabase.js` to return the `error` field from `SongDatabaseContext`.
-- **Component Destructuring**: Updated `SongSelectionModal.jsx` and `SongDatabase.jsx` to destructure and use the `error` state.
-- **Error UI**: Updated `SongList.jsx` to display a user-friendly error message when a database error occurs.
-
-**Files Touched:**
-- `src/hooks/useSongDatabase.js`
-- `src/features/songs/components/SongSelectionModal.jsx`
-- `src/features/songs/components/SongDatabase.jsx`
-- `src/features/songs/components/SongList.jsx`
-
-**Verification:**
-- Targeted ESLint check on all modified files passed (Exit code 0).
-- Verified error state propagation from context to UI.
-
-# State Snapshot - Best 50 Visibility and Data Management
-
-**Objective:** Enhance Best 50 visibility on profile pages, implement data removal, and refine privacy overrides for owners.
-
-**Changes:**
-- **Best 50 Visibility**: Modified `PublicProfilePage.jsx` to show the "Best 50" section even when empty, providing an "Import" button for the owner.
-- **Data Removal**: 
-    - Added `clearMaimaiData` to `userService` in `supabase.js` to reset score data, maimai DX name, and profile photo.
-    - Added a "Clear Data" button with confirmation logic to the profile page.
-- **Privacy Overrides**: Updated `PublicProfilePage.jsx` to bypass privacy toggles when the owner is viewing their own profile, ensuring they can always manage their information.
-- **UX Refinement**: 
-    - Added specific alerts for missing "New" vs "Old" scores within the Best 50 section.
-    - Hidden the "Export Image" button when no best score data exists.
-    - Adjusted layout spacing (gap and divider margins) in profile sections.
-
-**Files Touched:**
-- `src/pages/PublicProfilePage.jsx`
-- `src/services/supabase.js`
-- `src/components/profile/FavoriteSongsSection.jsx`
-- `src/components/profile/PlaylistSection.jsx`
-
-**Verification:**
-- Verified with ESLint on modified files.
-- Confirmed owner-only visibility logic for management buttons and privacy toggles.
+- `npm run lint`: 0 errors.
+- Manual verification of scraper output and DB migration success.
 
 **Next Wave TODO:**
-- Implement 60-day cooldown visual countdown in the Slug settings.
-- Add error boundaries to the Profile sections for more robust fault tolerance.
+- Monitor for any edge cases in Top 20 sorting or FK cascading.
 
-# State Snapshot - User Profile Creation Fixed
+---
 
-**Objective:** Fix missing user_profiles entries upon signup and implement random slug generation.
+## Wave 7 Summary
+
+**Objective:** Implement SPEC-005: Simplify Mobile Bookmarklet
 
 **Changes:**
-- **Trigger Fix**: Updated `handle_new_user()` trigger function in Supabase to insert into both `user_profiles` and `user_roles`.
-- **Slug Generation**: Added `generate_unique_slug()` Postgres function to automatically assign random 8-character slugs on signup.
-- **Backfill**: Synchronized 100% of existing users (52 records) to have matching profiles and slugs.
+- Extracted the massive 4,000+ character scraping logic from `BookmarkletInstructions.jsx`.
+- Relocated the minified script to `public/bookmarklet.js` to be served statically.
+- Replaced the embedded script in the UI with a tiny loader (`javascript:!function(){...}()`) that dynamically fetches and executes `bookmarklet.js` from `window.location.origin`.
 
 **Files Touched:**
-- `supabase/migrations` (Applied via SQL Editor)
+- `public/bookmarklet.js` (Created)
+- `src/components/BookmarkletInstructions.jsx` (Modified)
+- `.gsd/SPEC.md`
+- `.gsd/ROADMAP.md`
 
 **Verification:**
-- Verified 52/52 count synchronization between `auth.users` and `user_profiles`.
-- Confirmed trigger success on latest signup (`dev.bille.lagarde@gmail.com`).
+- `npm run lint`: 0 errors.
+- `npm run build`: Success.
+- The new loader is 158 characters long, well below the 2048 mobile browser limit.
 
+**Risks/Debt:**
+- The `bookmarklet.js` in the `public` folder bypasses Vite transpilation and linting (has an `eslint-disable` directive), but it is a static standalone script anyway.
+
+**Next Wave TODO:**
+- Ready for next feature request.

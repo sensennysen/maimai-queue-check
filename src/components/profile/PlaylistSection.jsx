@@ -126,10 +126,17 @@ export function PlaylistSection({ userId, isOwnProfile }) {
             : "This user hasn't created any playlists yet."}
         </Alert>
       ) : (
-        <ScrollArea viewportRef={scrollRef} type="never" offsetScrollbars={false} pb={0}>
-          <Group wrap="nowrap" gap="xs" pb="xs">
+        <ScrollArea
+          viewportRef={scrollRef}
+          type="never"
+          offsetScrollbars={false}
+          viewportProps={{
+            style: { padding: '32px 10px 0px 10px' }
+          }}
+        >
+          <Group wrap="nowrap" gap="xs" style={{ overflow: 'visible' }}>
             {playlists.map((pl) => (
-              <Box key={pl.id} style={{ minWidth: '200px', width: '220px' }}>
+              <Box key={pl.id} style={{ minWidth: '200px', width: '220px', overflow: 'visible' }}>
                 <PlaylistStack
                   playlist={pl}
                   songs={getPlaylistSongs(pl)}
@@ -139,20 +146,23 @@ export function PlaylistSection({ userId, isOwnProfile }) {
             ))}
           </Group>
         </ScrollArea>
-      )}
+      )
+      }
 
-      {isOwnProfile && (
-        <PlaylistEditModal
-          opened={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          userId={userId}
-          initialPlaylist={selectedPlaylist ? {
-            ...selectedPlaylist,
-            fullSongs: getPlaylistSongs(selectedPlaylist)
-          } : null}
-          onSave={handleSavePlaylist}
-        />
-      )}
+      {
+        isOwnProfile && (
+          <PlaylistEditModal
+            opened={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            userId={userId}
+            initialPlaylist={selectedPlaylist ? {
+              ...selectedPlaylist,
+              fullSongs: getPlaylistSongs(selectedPlaylist)
+            } : null}
+            onSave={handleSavePlaylist}
+          />
+        )
+      }
 
       <PlaylistDetailModal
         playlist={selectedPlaylist}
@@ -163,6 +173,6 @@ export function PlaylistSection({ userId, isOwnProfile }) {
         onEdit={handleEditFromDetail}
         onDelete={handleDeletePlaylist}
       />
-    </Paper>
+    </Paper >
   );
 }

@@ -30,7 +30,6 @@ export function useMouseDragScroll() {
     if (Math.abs(walkX) > 3) {
       setIsDragging(true);
     }
-    // eslint-disable-next-line
     node.scrollLeft = startScrollLeft.current - walkX;
   }, [node]);
 

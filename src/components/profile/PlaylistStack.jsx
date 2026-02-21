@@ -20,13 +20,27 @@ export function PlaylistStack({ playlist, songs = [], onClick }) {
             className={`stack-card bg-card bg-card-${stackImages.length - idx - 1}`}
             shadow="md"
           >
-            <Image src={img} fallbackSrc="https://placehold.co/400x400?text=?" alt="" style={{ pointerEvents: 'none' }} />
+            <Image
+              src={img}
+              fallbackSrc="https://placehold.co/400x400?text=?"
+              alt=""
+              style={{ pointerEvents: 'none' }}
+              fit="cover"
+              h="100%"
+            />
           </Paper>
         ))}
 
         {/* Render the top card (main info) */}
         <Paper className="stack-card top-card" shadow="xl">
-          <Image src={stackImages[0]} fallbackSrc="https://placehold.co/400x400?text=?" alt={playlist.title} style={{ pointerEvents: 'none' }} />
+          <Image
+            src={stackImages[0]}
+            fallbackSrc="https://placehold.co/400x400?text=?"
+            alt={playlist.title}
+            style={{ pointerEvents: 'none' }}
+            fit="cover"
+            h="100%"
+          />
           <Box className="stack-overlay">
             <Stack gap={2}>
               <Text fw={800} size="sm" c="white" lineClamp={1} style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>

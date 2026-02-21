@@ -165,18 +165,18 @@ export const rolesService = {
 // User service functions
 export const userService = {
   // Update user preferences
-  async updatePreferences(userId, { branchIds, displayName, mainBranch, isPublic }) {
+  async updatePreferences(userId, { branch_ids, display_name, main_branch, is_public }) {
     const updateData = {};
-    if (branchIds !== undefined) updateData.preferred_branches = branchIds;
-    if (displayName !== undefined) updateData.display_name = displayName;
-    if (mainBranch !== undefined) updateData.main_branch = mainBranch;
-    if (isPublic !== undefined) updateData.is_public = isPublic;
+    if (branch_ids !== undefined) updateData.preferred_branches = branch_ids;
+    if (display_name !== undefined) updateData.display_name = display_name;
+    if (main_branch !== undefined) updateData.main_branch = main_branch;
+    if (is_public !== undefined) updateData.is_public = is_public;
     // displayPhotoUrl is not usually updated here but could be if we wanted to
 
     
     // VALIDATION
-    if (displayName) {
-        const validation = validateData(userProfileSchema.pick({ displayName: true }), { displayName });
+    if (display_name) {
+        const validation = validateData(userProfileSchema.pick({ display_name: true }), { display_name });
         if (!validation.success) throw new Error(validation.error);
     }
     
@@ -210,14 +210,14 @@ export const userService = {
   
   // Update maimai profile specifically
 
-  async updateMaimaiProfile(userId, { maimaiDxName, displayPhotoUrl }) {
+  async updateMaimaiProfile(userId, { maimai_dx_name, display_photo_url }) {
     const updates = {
       id: userId,
       updated_at: new Date().toISOString()
     };
 
-    if (maimaiDxName !== undefined) updates.maimai_dx_name = maimaiDxName;
-    if (displayPhotoUrl !== undefined) updates.display_photo_url = displayPhotoUrl;
+    if (maimai_dx_name !== undefined) updates.maimai_dx_name = maimai_dx_name;
+    if (display_photo_url !== undefined) updates.display_photo_url = display_photo_url;
 
     const { data, error } = await supabase
       .from('user_profiles')
@@ -230,15 +230,31 @@ export const userService = {
   },
 
   // Update maimai best scores (Calculated Top 50)
-  async updateMaimaiBestScores(userId, bestScores) {
+  async updateMaimaiBestScores(userId, best_scores) {
     const { data, error } = await supabase
       .from('user_profiles')
       .upsert({
         id: userId,
-        maimai_best_scores: bestScores,
+        maimai_best_scores: best_scores,
         maimai_scores_updated_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Save all raw scores from import
+  async saveUserAllScores(userId, allScores) {
+    const { data, error } = await supabase
+      .from('user_all_scores')
+      .upsert({
+        user_id: userId,
+        all_scores: allScores,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' })
       .select()
       .single();
 
@@ -364,7 +380,8 @@ export const userService = {
   async clearMaimaiData(userId) {
     if (!userId) throw new Error('User ID is required');
 
-    const { data, error } = await supabase
+    // 1. Clear profile fields
+    const { error: profileError } = await supabase
       .from('user_profiles')
       .update({
         maimai_best_scores: null,
@@ -373,12 +390,31 @@ export const userService = {
         maimai_dx_name: null,
         updated_at: new Date().toISOString()
       })
-      .eq('id', userId)
-      .select()
-      .single();
+      .eq('id', userId);
 
-    if (error) throw error;
-    return data;
+    if (profileError) throw profileError;
+
+    // 2. Delete from user_most_played_songs
+    const { error: mostPlayedError } = await supabase
+      .from('user_most_played_songs')
+      .delete()
+      .eq('user_id', userId);
+
+    if (mostPlayedError) {
+      console.error('Failed to clear most played songs:', mostPlayedError);
+    }
+
+    // 3. Delete from user_all_scores
+    const { error: allScoresError } = await supabase
+      .from('user_all_scores')
+      .delete()
+      .eq('user_id', userId);
+
+    if (allScoresError) {
+      console.error('Failed to clear all scores:', allScoresError);
+    }
+
+    return { success: true };
   }
 };
 
@@ -564,9 +600,9 @@ export const queueService = {
     const validation = validateData(queueEntrySchema, { 
       player1, 
       player2, 
-      orderPosition, 
-      branchId, 
-      cabinetNum 
+      order_position: orderPosition, 
+      branch_id: branchId, 
+      cabinet_num: cabinetNum 
     });
     
     if (!validation.success) throw new Error(validation.error);
@@ -1440,6 +1476,41 @@ export const rulesService = {
       .select()
       .single();
     
+    if (error) throw error;
+    return data;
+  }
+};
+
+// Most Played service functions
+export const mostPlayedService = {
+  // Get most played for a user
+  async getMostPlayed(userId) {
+    if (!userId) return [];
+
+    const { data, error } = await supabase
+      .from('user_most_played_songs')
+      .select('data, updated_at')
+      .eq('user_id', userId)
+      .maybeSingle();
+      
+    if (error) throw error;
+    return data?.data || [];
+  },
+
+  // Update most played for a user
+  async upsertMostPlayed(userId, mostPlayedData) {
+    if (!userId) throw new Error('user_id is required');
+
+    const { data, error } = await supabase
+      .from('user_most_played_songs')
+      .upsert({
+        user_id: userId,
+        data: mostPlayedData,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' })
+      .select()
+      .single();
+
     if (error) throw error;
     return data;
   }

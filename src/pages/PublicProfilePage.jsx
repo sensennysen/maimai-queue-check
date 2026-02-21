@@ -4,7 +4,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import {
   Container, Paper, Stack, Group, Title, Text, Avatar,
   Badge, SimpleGrid, Loader, Button, Alert,
-  Divider, ThemeIcon, Box, ActionIcon
+  Divider, ThemeIcon, Box, ActionIcon, Image
 } from '@mantine/core';
 import {
   IconUser, IconTrophy, IconMapPin, IconAlertCircle,
@@ -13,11 +13,15 @@ import {
 } from '@tabler/icons-react';
 import MaimaiImportModal from '../components/profile/MaimaiImportModal';
 import ProfileSettingsModal from '../components/profile/ProfileSettingsModal';
+import MaimaiSongDetailModal from '../components/profile/MaimaiSongDetailModal';
 import { useAuth } from '../hooks/useAuth';
-import { userService, branchService } from '../services/supabase';
+import { userService, branchService, mostPlayedService } from '../services/supabase';
 import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection';
 import { PlaylistSection } from '../components/profile/PlaylistSection';
 import { ScoreCard } from '../components/maimai/ScoreCard';
+import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
+import { useMouseDragScroll } from '../hooks/useMouseDragScroll';
+import { DIFFICULTY_COLORS, BASE_JACKET_URL } from '../config/maimai-constants';
 import Footer from '../components/layout/Footer';
 
 const PublicProfilePage = () => {
@@ -27,12 +31,22 @@ const PublicProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isRestricted, setIsRestricted] = useState(false);
-  const { user } = useAuth();
+  const { user, refreshUserRoles } = useAuth();
   const isMobile = useMediaQuery('(max-width: 640px)');
   const navigate = useNavigate();
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [selectedMostPlayedSong, setSelectedMostPlayedSong] = useState(null);
+
+  const { songs: allSongs, requestFetch } = useSongDatabaseContext();
+  const { scrollRef, isDragging } = useMouseDragScroll();
+
+  useEffect(() => {
+    if (profile) {
+      requestFetch();
+    }
+  }, [profile, requestFetch]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -46,6 +60,13 @@ const PublicProfilePage = () => {
       } else if (!profileData.is_public && profileData.id !== user?.id) {
         setIsRestricted(true);
       } else {
+        const mostPlayedData = await mostPlayedService.getMostPlayed(profileData.id);
+        if (profileData.maimai_best_scores) {
+          profileData.maimai_best_scores.most_played = mostPlayedData || [];
+        } else if (mostPlayedData && mostPlayedData.length > 0) {
+          profileData.maimai_best_scores = { most_played: mostPlayedData };
+        }
+
         setProfile(profileData);
         setBranches(branchesData);
       }
@@ -185,6 +206,15 @@ const PublicProfilePage = () => {
   const mainBranchName = profile.main_branch ? getBranchName(profile.main_branch) : null;
   const preferredBranchNames = profile.preferred_branches?.map(id => getBranchName(id, true)) || [];
 
+  const isMalformedBest50 = profile?.maimai_best_scores && (
+    !profile.maimai_best_scores.best_new ||
+    !profile.maimai_best_scores.best_old ||
+    !Array.isArray(profile.maimai_best_scores.best_new?.songs) ||
+    !Array.isArray(profile.maimai_best_scores.best_old?.songs) ||
+    !profile.maimai_best_scores.most_played ||
+    typeof profile.maimai_best_scores.total_play_count === 'undefined'
+  );
+
   return (
     <Container size="lg" py="xl">
       <Stack gap="lg">
@@ -259,10 +289,10 @@ const PublicProfilePage = () => {
                       <Text size="sm">{profile.maimai_dx_name}</Text>
                     </Group>
                   )}
-                  {(privacy.show_dx_rating || isOwner) && profile.maimai_best_scores?.totalRating && (
+                  {(privacy.show_dx_rating || isOwner) && profile.maimai_best_scores?.total_rating && (
                     <Group gap={4} align="center">
                       <Text size="sm" fw={600}>Rating:</Text>
-                      <Text size="sm" fw={700} c="primary">{profile.maimai_best_scores.totalRating}</Text>
+                      <Text size="sm" fw={700} c="primary">{profile.maimai_best_scores.total_rating}</Text>
                     </Group>
                   )}
                 </Stack>
@@ -276,11 +306,11 @@ const PublicProfilePage = () => {
                   <Text size="sm" fw={600}>{profile.maimai_dx_name}</Text>
                 </Group>
               )}
-              {(privacy.show_dx_rating || isOwner) && profile.maimai_best_scores?.totalRating && (
+              {(privacy.show_dx_rating || isOwner) && profile.maimai_best_scores?.total_rating && (
                 <Stack gap={0} align="flex-end" mt={4}>
                   <Text size="xs" fw={700} c="secondary" tt="uppercase" lts={1}>Rating</Text>
                   <Text size="xl" fw={900} c="primary" style={{ fontSize: '2.5rem', lineHeight: 1 }}>
-                    {profile.maimai_best_scores.totalRating}
+                    {profile.maimai_best_scores.total_rating}
                   </Text>
                 </Stack>
               )}
@@ -302,14 +332,161 @@ const PublicProfilePage = () => {
           </div>
         )}
 
+        {/* Most Played Songs Section */}
+        {(privacy.show_most_played !== false || isOwner) && profile.maimai_best_scores?.most_played?.length > 0 && (
+          <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-350">
+            <Group gap="xs" mb="md">
+              <IconStar size={24} style={{ color: 'var(--mantine-color-pink-5)' }} />
+              <Title order={2}>Most Played Songs</Title>
+            </Group>
+            <div
+              className="hide-scrollbar"
+              ref={scrollRef}
+              style={{
+                overflowX: 'auto',
+                display: 'flex',
+                gap: '12px',
+                paddingBottom: '2px',
+                cursor: 'grab'
+              }}
+            >
+              {profile.maimai_best_scores.most_played.map((song, index) => {
+                const matchedSong = allSongs.find(s => s.title === song.title);
+                return (
+                  <Paper
+                    key={index}
+                    p={0}
+                    radius="lg"
+                    className="hologram-card favorite-song-card"
+                    style={{
+                      minWidth: 160,
+                      width: 160,
+                      flexShrink: 0,
+                      height: 160,
+                      overflow: 'hidden',
+                      position: 'relative',
+                      cursor: 'pointer',
+                      transition: 'transform 0.1s ease',
+                      border: `2px solid ${DIFFICULTY_COLORS[song.difficulty] || 'transparent'}`
+                    }}
+                    onClick={() => {
+                      if (!isDragging) {
+                        setSelectedMostPlayedSong({
+                          ...matchedSong,
+                          play_count: song.play_count,
+                          title: song.title,
+                          difficulty: song.difficulty
+                        });
+                      }
+                    }}
+                  >
+                    <Box style={{ position: 'relative', width: '100%', height: '100%' }}>
+                      {/* Difficulty Badge */}
+                      {song.difficulty && (
+                        <Box
+                          style={{
+                            position: 'absolute',
+                            top: 6,
+                            right: 6,
+                            zIndex: 10,
+                            background: DIFFICULTY_COLORS[song.difficulty] || 'gray',
+                            color: 'white',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontSize: '9px',
+                            fontWeight: 900,
+                            textTransform: 'uppercase',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                            textShadow: 'none'
+                          }}
+                        >
+                          {song.difficulty}
+                        </Box>
+                      )}
+
+                      <Image
+                        src={matchedSong?.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
+                        alt={song.title}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                        fallbackSrc="https://placehold.co/160x160?text=No+Image"
+                      />
+
+                      {/* Dark Overlay */}
+                      <Box
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%)',
+                          zIndex: 1
+                        }}
+                      />
+
+                      {/* Content */}
+                      <Box
+                        p="xs"
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          zIndex: 5
+                        }}
+                      >
+                        <Text size="xs" c="white" fw={700} lineClamp={1} mb={2} style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                          {song.title}
+                        </Text>
+                        <Group gap={4} align="baseline">
+                          <Text size="lg" fw={900} c="white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)', lineHeight: 1 }}>
+                            {song.play_count}
+                          </Text>
+                          <Text size="xs" fw={700} c="white" style={{ opacity: 0.8, textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                            plays
+                          </Text>
+                        </Group>
+                      </Box>
+                    </Box>
+                  </Paper>
+                );
+              })}
+            </div>
+          </Paper>
+        )}
+
         {/* Best 50 Section */}
         {(privacy.show_best_50 || isOwner) && (
           <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-400">
+            {isOwner && isMalformedBest50 && (
+              <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light" mb="md" title="Action Required">
+                Data and Bookmark is out of date. Please create a new bookmark from the Import message and reimport
+              </Alert>
+            )}
             <Group justify="space-between" mb="xl">
-              <Group gap="xs">
-                <IconTrophy size={24} style={{ color: 'var(--mantine-color-yellow-6)' }} />
-                <Title order={2}>Best 50</Title>
-              </Group>
+              <Stack gap={0}>
+                <Group gap="xs">
+                  <IconTrophy size={24} style={{ color: 'var(--mantine-color-yellow-6)' }} />
+                  <Title order={2}>Best 50</Title>
+                </Group>
+                {profile.maimai_best_scores?.total_play_count && (
+                  <Group gap="xs" mt={4}>
+                    <Badge variant="subtle" color="pink" size="lg">
+                      Version: {profile.maimai_best_scores.current_version_play_count || 0} plays
+                    </Badge>
+                    <Badge variant="subtle" color="cyan" size="lg">
+                      Total: {profile.maimai_best_scores.total_play_count} plays
+                    </Badge>
+                  </Group>
+                )}
+              </Stack>
               {isOwner && (
                 <Group gap="xs" wrap="nowrap">
                   <Button
@@ -350,9 +527,9 @@ const PublicProfilePage = () => {
               <Stack gap="md">
                 <div>
                   <Title order={3} mb="md">Best 15 (New)</Title>
-                  {profile.maimai_best_scores.new?.songs?.length > 0 ? (
+                  {profile.maimai_best_scores.best_new?.songs?.length > 0 ? (
                     <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                      {profile.maimai_best_scores.new.songs.map((score, index) => (
+                      {profile.maimai_best_scores.best_new.songs.map((score, index) => (
                         <ScoreCard key={`new-${index}`} score={score} />
                       ))}
                     </SimpleGrid>
@@ -366,9 +543,9 @@ const PublicProfilePage = () => {
                 <div>
                   <Divider my="md" />
                   <Title order={3} mb="md">Best 35 (Old)</Title>
-                  {profile.maimai_best_scores.old?.songs?.length > 0 ? (
+                  {profile.maimai_best_scores.best_old?.songs?.length > 0 ? (
                     <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                      {profile.maimai_best_scores.old.songs.map((score, index) => (
+                      {profile.maimai_best_scores.best_old.songs.map((score, index) => (
                         <ScoreCard key={`old-${index}`} score={score} />
                       ))}
                     </SimpleGrid>
@@ -393,32 +570,40 @@ const PublicProfilePage = () => {
       </Stack>
 
       {/* Modals for Owner */}
-      {
-        isOwner && (
-          <>
-            <MaimaiImportModal
-              opened={isImportModalOpen}
-              onClose={() => setIsImportModalOpen(false)}
-              userId={user.id}
-              onSuccess={fetchData}
-            />
-            <ProfileSettingsModal
-              opened={isSettingsModalOpen}
-              onClose={() => setIsSettingsModalOpen(false)}
-              userId={user.id}
-              initialData={profile}
-              allBranches={branches}
-              onSuccess={(newSlug) => {
-                if (newSlug && newSlug !== slug) {
-                  navigate(`/p/${newSlug}`, { replace: true });
-                } else {
-                  fetchData();
-                }
-              }}
-            />
-          </>
-        )
-      }
+      {isOwner && (
+        <>
+          <MaimaiImportModal
+            opened={isImportModalOpen}
+            onClose={() => setIsImportModalOpen(false)}
+            userId={user.id}
+            onSuccess={fetchData}
+          />
+          <ProfileSettingsModal
+            opened={isSettingsModalOpen}
+            onClose={() => setIsSettingsModalOpen(false)}
+            userId={user.id}
+            initialData={profile}
+            allBranches={branches}
+            onSuccess={async (newSlug) => {
+              if (newSlug && newSlug !== slug) {
+                await refreshUserRoles();
+                navigate(`/p/${newSlug}`, { replace: true });
+              } else {
+                await refreshUserRoles();
+                fetchData();
+              }
+            }}
+          />
+          <MaimaiSongDetailModal
+            song={selectedMostPlayedSong}
+            opened={!!selectedMostPlayedSong}
+            onClose={() => setSelectedMostPlayedSong(null)}
+            playCount={selectedMostPlayedSong?.play_count}
+            difficulty={selectedMostPlayedSong?.difficulty}
+            title="Most Played Details"
+          />
+        </>
+      )}
     </Container >
   );
 };
