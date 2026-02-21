@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Modal, Stack, Text, Textarea, Button, Group, ActionIcon, Paper, Image, Box, Divider, Loader, TextInput } from '@mantine/core';
+import { Modal, Stack, Text, Textarea, Button, Group, ActionIcon, Paper, Image, Box, Divider, Loader, TextInput, Badge } from '@mantine/core';
 import { IconPlus, IconTrash, IconArrowUp, IconArrowDown, IconPlaylistAdd, IconDeviceFloppy } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
 import { playlistService } from '../../services/supabase';
+import { DIFFICULTY_COLORS } from '../../config/maimai-constants';
 
 export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, onSave }) {
   const [title, setTitle] = useState('');
@@ -56,11 +57,11 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
 
     setIsSaving(true);
     try {
-      const songIds = selectedSongs.map(s => s.cardId || s.songId);
+      const songs = selectedSongs.map(s => ({ id: s.cardId || s.songId, level: s.level }));
       const updatedPlaylist = await playlistService.upsertPlaylist(userId, initialPlaylist?.id, {
         title: title.trim(),
         comment: comment.trim(),
-        songIds
+        songs
       });
 
       notifications.show({
@@ -141,7 +142,14 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
 
               <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
                 <Text size="sm" fw={700} truncate>{song.title}</Text>
-                <Text size="xs" c="dimmed" truncate>{song.artist}</Text>
+                <Group gap={4}>
+                  <Text size="xs" c="dimmed" truncate style={{ flexShrink: 1 }}>{song.artist}</Text>
+                  {song.level && (
+                    <Badge size="xs" color={DIFFICULTY_COLORS[song.level] || 'gray'} variant="filled" style={{ textTransform: 'none' }}>
+                      {song.level}
+                    </Badge>
+                  )}
+                </Group>
               </Stack>
 
               <Group gap={4}>

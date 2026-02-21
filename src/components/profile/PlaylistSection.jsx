@@ -71,7 +71,11 @@ export function PlaylistSection({ userId, isOwnProfile }) {
   const getPlaylistSongs = useCallback((playlist) => {
     if (!playlist || !playlist.songs) return [];
     return playlist.songs
-      .map(entry => songMapById?.get(entry.song_id))
+      .map(entry => {
+        const fullSong = songMapById?.get(entry.song_id);
+        if (!fullSong) return null;
+        return { ...fullSong, level: entry.level }; // Inject level from DB
+      })
       .filter(Boolean);
   }, [songMapById]);
 

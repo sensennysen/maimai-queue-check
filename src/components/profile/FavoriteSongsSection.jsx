@@ -238,8 +238,8 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
             scrollBehavior: 'smooth'
           }}
         >
-          {favoriteSongsMap.map(({ song, comment: favComment }) => (
-            <Box key={song.songId} style={{ minWidth: '160px', width: '180px', flexShrink: 0 }}>
+          {favoriteSongsMap.map(({ song, comment: favComment }, index) => (
+            <Box key={`${song.songId}-${index}`} style={{ minWidth: '160px', width: '180px', flexShrink: 0 }}>
               <FavoriteSongCard
                 song={song}
                 comment={favComment}

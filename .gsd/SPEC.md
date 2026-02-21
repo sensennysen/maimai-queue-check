@@ -1,18 +1,14 @@
-# Feature Specification: Profile Page Performance Improvements
+# Feature Specification: Playlist Song Level Selection
 
 ## 1. Goal
-Address reports of stuttering and slow scrolling on the profile page, particularly on mid-tier mobile devices and low-end PCs, to ensure the best user experience.
+Revamp the song selection for playlists to allow users to select the specific level of the chart they want to add. When viewing the playlist, the selected level must be shown. Previous playlist data must remain renderable.
 
 ## 2. Requirements
-1. **O(1) Data Lookups**:
-   - Eliminate O(N*M) song lookups during render cycles for Most Played, Favorites, and Playlists.
-   - Utilize a mapped context containing `songMapById` and `songMapByTitle`.
-   
-2. **Prevent Unnecessary Re-renders**:
-   - React components like `ScoreCard`, `FavoriteSongCard`, and `PlaylistStack` must be wrapped in `React.memo` to prevent re-rendering when parent state (like dragging states) change.
-   - Separate heavy computations from hot paths (e.g., inside component `render`).
-
-3. **Performance Best Practices**:
-   - Follow Vercel React Best Practices, especially regarding memoization, dependency lifting, and minimizing effects.
+1. **Level Selection in Modal**:
+   - The song selection modal should provide a way for users to choose the specific level (e.g., Basic, Advanced, Expert, Master, Re:Master) when adding a song to a playlist.
+2. **Playlist Display Update**:
+   - When viewing the playlist, the selected level should be visible alongside the song information.
+3. **Backward Compatibility**:
+   - Previous playlist data (which may not have a selected level) must still be rendered correctly without errors or unrendering the playlist.
 
 ## Status: FINALIZED
