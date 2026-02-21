@@ -1,14 +1,23 @@
-# Feature Specification: Playlist Song Level Selection
+# Feature Specification: User Attributions
 
 ## 1. Goal
-Revamp the song selection for playlists to allow users to select the specific level of the chart they want to add. When viewing the playlist, the selected level must be shown. Previous playlist data must remain renderable.
+Create an attribution table showcased on user profiles to display badges/icons for DEVELOPER, CONTRIBUTOR, and TESTER roles.
 
 ## 2. Requirements
-1. **Level Selection in Modal**:
-   - The song selection modal should provide a way for users to choose the specific level (e.g., Basic, Advanced, Expert, Master, Re:Master) when adding a song to a playlist.
-2. **Playlist Display Update**:
-   - When viewing the playlist, the selected level should be visible alongside the song information.
-3. **Backward Compatibility**:
-   - Previous playlist data (which may not have a selected level) must still be rendered correctly without errors or unrendering the playlist.
+1. **Database Schema**:
+   - Create an enum `user_attribution_type` with values: `'DEVELOPER'`, `'CONTRIBUTOR'`, `'TESTER'`.
+   - Create a table `user_attributions`:
+     - `id`: FK to `user_profiles.id` (Primary Key).
+     - `attributions`: Array of `user_attribution_type` (e.g., `user_attribution_type[]`), defaulting to empty array.
+   - Row Level Security (RLS) on `user_attributions`:
+     - Provide `SELECT` access for all users, enabling the profile to fetch attributions publically.
+     - Insert/Update restricted to service roles or admins.
 
-## Status: FINALIZED
+2. **Frontend Profile UI**:
+   - Fetch a user's attributions alongside their `user_profiles` data when viewing a profile.
+   - Display a visual badge/icon area for attributions.
+   - For `DEVELOPER`, display a specific icon (e.g., Wrench/Code).
+   - For `CONTRIBUTOR`, display a specific icon (e.g., Star/Heart).
+   - For `TESTER`, display a specific icon (e.g., Bug/Shield).
+
+3. **Status**: FINALIZED
