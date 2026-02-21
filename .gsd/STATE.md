@@ -1,3 +1,56 @@
+## Wave 11 Summary
+
+**Objective:** Enhance Profile Features: Favorite Song Comment Editing, Playlist Multi-select, and UI/UX Refinements.
+
+**Changes:**
+- **Favorite Songs**: Added `updateFavoriteComment` to `favoritesService`. Updated `MaimaiSongDetailModal` with edit mode and `FavoriteSongsSection` with optimistic updates.
+- **Playlist Multi-select**: Implemented unified selection where already-added songs are part of the active picker set, allowing them to be unselected centrally.
+- **Clear Actions**: Added "Clear Selection" in the song picker (resets all) and "Clear All" in the playlist editor.
+- **UI/UX Refinements**: Moved hover animations in `SongCard` to Mantine styles to prevent clobbering selection states. Switched to `outline` with negative `-3px` offset for highlights to ensure visibility and prevent clipping.
+- **State Management**: Used React `key` prop on the selection modal to ensure automatic state reset (filters/pagination) on every open. Fixes horizontal stretching on mobile via stricter CSS width constraints.
+
+**Files Touched:**
+- `src/services/supabase.js`
+- `src/components/profile/MaimaiSongDetailModal.jsx`
+- `src/components/profile/FavoriteSongsSection.jsx`
+- `src/features/songs/components/SongList.jsx`
+- `src/features/songs/components/SongSelectionModal.jsx`
+- `src/components/profile/PlaylistEditModal.jsx`
+- `src/pages/PublicProfilePage.jsx`
+- `src/features/songs/components/SongCard.jsx`
+- `src/features/songs/components/SongFilters.jsx`
+
+**Verification:**
+- `npm run lint`: 0 errors.
+- Manual verification of highlights, animations, and "Clear" button functionality.
+
+---
+
+## Wave 10 Summary
+
+**Objective:** Implement Profile Picture Feature with custom uploads, cropping, and fallback logic.
+
+**Changes:**
+- **Database Migration**: Renamed `display_photo_url` to `dx_display_photo_url` and added a new `display_photo_url` for custom uploads in `user_profiles`.
+- **Storage & Cleanup**: Created `profile-pictures` bucket with RLS. Implemented automatic file deletion in `userService` during removal or replacement to prevent storage bloat.
+- **Service Layer**: Added `uploadProfilePicture`, `deleteProfilePictureFile`, and `extractStoragePath` to `userService`.
+- **Cropping UI**: Integrated `react-easy-crop` with a 20MB limit and no resolution restriction, allowing users to reposition and zoom their icons.
+- **UI Integration**: Updated `PublicProfilePage`, `LoginForm`, and `MaimaiImportModal` to prioritize custom photos over game-imported icons.
+
+**Files Touched:**
+- `src/services/supabase.js`
+- `src/components/profile/ProfilePictureUploadModal.jsx` (NEW)
+- `src/pages/PublicProfilePage.jsx`
+- `src/components/LoginForm.jsx`
+- `src/components/profile/MaimaiImportModal.jsx`
+- `package.json`
+
+**Verification:**
+- `npm run dev`: Verified UI, upload, and cropping functionality.
+- Manual storage verification: confirmed files are deleted from bucket on removal.
+
+---
+
 ## Wave 9 Summary
 
 **Objective:** Fix "Remaster" tag color in Best 50 and centralize difficulty normalization.

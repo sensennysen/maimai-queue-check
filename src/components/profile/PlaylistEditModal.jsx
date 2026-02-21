@@ -25,18 +25,9 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
     }
   }, [opened, initialPlaylist]);
 
-  const handleAddSong = (song) => {
-
-    if (selectedSongs.some(s => s.songId === song.songId)) {
-      notifications.show({
-        title: 'Already Added',
-        message: `${song.title} is already in your playlist`,
-        color: 'blue'
-      });
-      return;
-    }
-
-    setSelectedSongs([...selectedSongs, song]);
+  const handleAddSong = (songOrSongs) => {
+    const newSelection = Array.isArray(songOrSongs) ? songOrSongs : [songOrSongs];
+    setSelectedSongs(newSelection);
     setIsSongPickerOpen(false);
   };
 
@@ -95,9 +86,22 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
       opened={opened}
       onClose={onClose}
       title={
-        <Group gap="xs">
-          <IconPlaylistAdd size={20} />
-          <Text fw={700}>{initialPlaylist ? 'Edit Playlist' : 'New Playlist'}</Text>
+        <Group justify="space-between" w="100%">
+          <Group gap="xs">
+            <IconPlaylistAdd size={20} />
+            <Text fw={700}>{initialPlaylist ? 'Edit Playlist' : 'New Playlist'}</Text>
+          </Group>
+          {selectedSongs.length > 0 && (
+            <Button
+              size="xs"
+              variant="subtle"
+              color="red"
+              leftSection={<IconTrash size={14} />}
+              onClick={() => setSelectedSongs([])}
+            >
+              Clear All
+            </Button>
+          )}
         </Group>
       }
       size="lg"
@@ -192,7 +196,14 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
         </Group>
       </Stack>
 
-      <SongSelectionModal opened={isSongPickerOpen} onClose={() => setIsSongPickerOpen(false)} onSelect={handleAddSong} />
+      <SongSelectionModal
+        key={isSongPickerOpen ? 'open' : 'closed'}
+        opened={isSongPickerOpen}
+        onClose={() => setIsSongPickerOpen(false)}
+        onSelect={handleAddSong}
+        multiple={true}
+        initialSelectedSongs={selectedSongs}
+      />
     </Modal>
   );
 }

@@ -24,7 +24,22 @@
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/p/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "User-Agent",
+          "value": "(?i)facebookexternalhit|twitterbot|discordbot|whatsapp|telegrambot|slackbot|linkedinbot"
+        }
+      ],
+      "destination": "/api/profile-meta?slug=:slug"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]

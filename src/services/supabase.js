@@ -74,7 +74,7 @@ export const rolesService = {
         
         supabase
           .from('user_profiles')
-          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, slug, slug_updated_at, privacy_settings, is_public')
+          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, slug, slug_updated_at, privacy_settings, is_public')
           .eq('id', userId)
           .maybeSingle()
       ]);
@@ -127,8 +127,9 @@ export const rolesService = {
 
         maimai_scores_updated_at: profileData?.maimai_scores_updated_at || null,
         
-        // Display Photo
+        // Display Photos
         display_photo_url: profileData?.display_photo_url || null,
+        dx_display_photo_url: profileData?.dx_display_photo_url || null,
 
         // Main Branch
         main_branch: profileData?.main_branch ?? null,
@@ -210,14 +211,14 @@ export const userService = {
   
   // Update maimai profile specifically
 
-  async updateMaimaiProfile(userId, { maimai_dx_name, display_photo_url }) {
+  async updateMaimaiProfile(userId, { maimai_dx_name, dx_display_photo_url }) {
     const updates = {
       id: userId,
       updated_at: new Date().toISOString()
     };
 
     if (maimai_dx_name !== undefined) updates.maimai_dx_name = maimai_dx_name;
-    if (display_photo_url !== undefined) updates.display_photo_url = display_photo_url;
+    if (dx_display_photo_url !== undefined) updates.dx_display_photo_url = dx_display_photo_url;
 
     const { data, error } = await supabase
       .from('user_profiles')
@@ -291,7 +292,7 @@ export const userService = {
 
     const { data, error: profileError } = await supabase
       .from('user_profiles')
-      .select('id, display_name, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at')
+      .select('id, display_name, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at')
       .eq('slug', slug.toLowerCase())
       .maybeSingle();
 
@@ -386,6 +387,7 @@ export const userService = {
       .update({
         maimai_best_scores: null,
         maimai_scores_updated_at: null,
+        dx_display_photo_url: null,
         display_photo_url: null,
         maimai_dx_name: null,
         updated_at: new Date().toISOString()
@@ -415,6 +417,73 @@ export const userService = {
     }
 
     return { success: true };
+  },
+
+  // Update custom profile picture
+  async updateProfilePicture(userId, photoUrl) {
+    if (!userId) throw new Error('User ID is required');
+
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update({
+        display_photo_url: photoUrl,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Upload file to profile-pictures bucket
+  async uploadProfilePicture(userId, file) {
+    if (!userId) throw new Error('User ID is required');
+    
+    // Create unique file name
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}/${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error } = await supabase.storage
+      .from('profile-pictures')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (error) throw error;
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('profile-pictures')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  },
+
+  // Extract storage path from public URL
+  extractStoragePath(url) {
+    if (!url) return null;
+    const bucketName = 'profile-pictures';
+    const marker = `/public/${bucketName}/`;
+    if (url.includes(marker)) {
+      return url.split(marker).pop().split('?')[0]; // Split '?' to handle potential query params
+    }
+    return null;
+  },
+
+  // Delete file from profile-pictures bucket
+  async deleteProfilePictureFile(path) {
+    if (!path) return;
+    const { error } = await supabase.storage
+      .from('profile-pictures')
+      .remove([path]);
+    
+    if (error) {
+      console.error('Error deleting profile picture file:', error);
+    }
   }
 };
 
@@ -457,6 +526,20 @@ export const favoritesService = {
       .eq('song_id', songId);
     
     if (error) throw error;
+  },
+
+  // Update a favorite song comment
+  async updateFavoriteComment(userId, songId, comment) {
+    const { data, error } = await supabase
+      .from('user_favorite_songs')
+      .update({ comment })
+      .eq('user_id', userId)
+      .eq('song_id', songId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
   }
 };
 

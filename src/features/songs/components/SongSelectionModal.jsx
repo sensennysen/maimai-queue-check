@@ -1,9 +1,12 @@
-import { Modal, Box, LoadingOverlay } from '@mantine/core';
+import { Modal, Box, LoadingOverlay, Button, Group, Text } from '@mantine/core';
+import { IconCheck } from '@tabler/icons-react';
+import { useState } from 'react';
 import { useSongDatabase } from '../../../hooks/useSongDatabase';
 import SongFilters from './SongFilters';
 import SongList from './SongList';
 
-function SongSelectionModal({ opened, onClose, onSelect }) {
+function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initialSelectedSongs = [] }) {
+  const [selectedSongs, setSelectedSongs] = useState(initialSelectedSongs);
   const {
     loading,
     filters,
@@ -20,11 +23,42 @@ function SongSelectionModal({ opened, onClose, onSelect }) {
     <Modal
       opened={opened}
       onClose={onClose}
-      title="Select a Song"
+      title={
+        <Group justify="space-between" w="100%" pr="xl">
+          <Text fw={700}>{multiple ? `Select Songs (${selectedSongs.length} selected)` : 'Select a Song'}</Text>
+          {multiple && (
+            <Group gap="xs">
+              {selectedSongs.length > 0 && (
+                <Button
+                  size="xs"
+                  variant="subtle"
+                  color="red"
+                  onClick={() => setSelectedSongs([])}
+                >
+                  Clear Selection
+                </Button>
+              )}
+              <Button
+                size="xs"
+                leftSection={<IconCheck size={16} />}
+                onClick={() => {
+                  onSelect(selectedSongs);
+                  setSelectedSongs([]);
+                  onClose();
+                }}
+                disabled={selectedSongs.length === 0}
+              >
+                Confirm Selection
+              </Button>
+            </Group>
+          )}
+        </Group>
+      }
       size="90%"
       padding="xl"
       styles={{
-        body: { minHeight: '60vh' }
+        body: { minHeight: '60vh', overflowX: 'hidden' }, // Prevent horizontal stretch
+        content: { maxWidth: '100vw' } // Ensure it doesn't exceed viewport
       }}
     >
       <Box pos="relative">
@@ -49,12 +83,13 @@ function SongSelectionModal({ opened, onClose, onSelect }) {
 
           <div className="song-modal-grid" style={{
             display: 'grid',
-            gridTemplateColumns: '1fr',
+            gridTemplateColumns: 'minmax(0, 1fr)', // Use minmax to prevent overflow
             gap: '2rem',
             alignItems: 'start',
-            width: '100%'
+            width: '100%',
+            maxWidth: '100%'
           }}>
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
               <SongFilters
                 filters={filters}
                 onFilterChange={setFilters}
@@ -65,16 +100,23 @@ function SongSelectionModal({ opened, onClose, onSelect }) {
               />
             </div>
 
-            <div style={{ minWidth: 0 }}>
+            <div style={{ minWidth: 0, maxWidth: '100%' }}>
               <SongList
                 key={JSON.stringify(filters)}
                 songs={filteredSongs}
                 loading={loading}
                 error={error}
                 onSongSelect={(song) => {
-                  onSelect(song);
-                  onClose();
+                  if (multiple) {
+                    // Handled via onSelectionChange
+                  } else {
+                    onSelect(song);
+                    onClose();
+                  }
                 }}
+                multiple={multiple}
+                selectedSongs={selectedSongs}
+                onSelectionChange={setSelectedSongs}
               />
             </div>
           </div>
