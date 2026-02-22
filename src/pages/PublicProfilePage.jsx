@@ -61,7 +61,7 @@ const PublicProfilePage = () => {
 
       if (!profileData) {
         setError('Profile not found');
-      } else if (!profileData.is_public && profileData.id !== user?.id) {
+      } else if (!profileData.is_public && !user) {
         setIsRestricted(true);
       } else {
         const mostPlayedData = await mostPlayedService.getMostPlayed(profileData.id);
@@ -132,7 +132,7 @@ const PublicProfilePage = () => {
             </ThemeIcon>
             <Title order={2} mb="sm" fw={800}>Profile is Private</Title>
             <Text size="lg" c="dimmed" mb="xl" style={{ lineHeight: 1.6 }}>
-              The user restricts viewing it in public so that they need to be logged in.
+              The user has restricted viewing it in public. Please log in to view the profile.
             </Text>
 
             <Stack gap="sm">
