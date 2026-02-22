@@ -12,6 +12,11 @@ export const changelogData = [
         type: 'refactor',
         title: 'Preferred Branches',
         description: 'Refactored the preferred branches to only use 1 column',
+      },
+      {
+        type: 'bugfix',
+        title: 'Error on editing comments on favorite songs',
+        description: 'Fixed an issue where users cannot edit the comment on their favorite songs.',
       }
     ]
   },
