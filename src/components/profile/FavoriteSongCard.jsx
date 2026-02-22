@@ -1,7 +1,15 @@
-import { Paper, Text, Box, Image, ActionIcon, Tooltip } from '@mantine/core';
+import React from 'react';
+import { Paper, Text, Box, Image, ActionIcon, Tooltip, Badge } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
+import dxImage from '../../assets/music_dx.png';
+import standardImage from '../../assets/music_standard.png';
+import { DIFFICULTY_COLORS, normalizeDifficulty, VERSION_MAPPING } from '../../config/maimai-constants';
 
-function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
+const FavoriteSongCard = React.memo(function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
+  const selectedSheet = React.useMemo(() => {
+    if (!song.level || !song.sheets) return null;
+    return song.sheets.find(s => normalizeDifficulty(s.difficulty) === song.level || s.difficulty === song.level);
+  }, [song.level, song.sheets]);
   return (
     <Paper
       p={0}
@@ -12,7 +20,9 @@ function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
         overflow: 'hidden',
         position: 'relative',
         transition: 'transform 0.1s ease, box-shadow 0.2s ease',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        contentVisibility: 'auto',
+        containIntrinsicSize: 'auto 160px'
       }}
       styles={{
         root: {
@@ -58,6 +68,7 @@ function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
               pointerEvents: 'none'
             }}
             fallbackSrc="https://placehold.co/300x300?text=No+Image"
+            loading="lazy"
           />
 
           {/* Dark Overlay for Text Readability */}
@@ -100,6 +111,23 @@ function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
             </ActionIcon>
           )}
 
+          {/* DX/Standard Type Badge */}
+          {song.cardType && (
+            <img
+              src={song.cardType === 'dx' ? dxImage : standardImage}
+              alt={song.cardType === 'dx' ? 'DX' : 'Standard'}
+              loading="lazy"
+              style={{
+                position: 'absolute',
+                top: 8,
+                left: 8,
+                height: 16,
+                zIndex: 10,
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))'
+              }}
+            />
+          )}
+
           {/* Content Overlay */}
           <Box
             p="md"
@@ -114,6 +142,23 @@ function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
               justifyContent: 'flex-end'
             }}
           >
+            {/* Level Badge */}
+            {song.level && (
+              <Badge
+                size="sm"
+                color={DIFFICULTY_COLORS[song.level] || 'gray'}
+                variant="filled"
+                mb={4}
+                style={{
+                  alignSelf: 'flex-start',
+                  textTransform: 'none',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                }}
+              >
+                {song.level}{selectedSheet ? ` Lv. ${selectedSheet.level}` : ''}
+              </Badge>
+            )}
+
             {/* Title */}
             <Text
               fw={700}
@@ -134,6 +179,6 @@ function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
       </div>
     </Paper>
   );
-}
+});
 
 export default FavoriteSongCard;

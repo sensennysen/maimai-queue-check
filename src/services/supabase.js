@@ -74,7 +74,7 @@ export const rolesService = {
         
         supabase
           .from('user_profiles')
-          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, slug, slug_updated_at, privacy_settings, is_public')
+          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, slug, slug_updated_at, privacy_settings, is_public, user_attributions(attributions)')
           .eq('id', userId)
           .maybeSingle()
       ]);
@@ -292,7 +292,7 @@ export const userService = {
 
     const { data, error: profileError } = await supabase
       .from('user_profiles')
-      .select('id, display_name, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at')
+      .select('id, display_name, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, user_attributions(attributions)')
       .eq('slug', slug.toLowerCase())
       .maybeSingle();
 
@@ -553,6 +553,7 @@ export const playlistService = {
         *,
         songs:playlist_songs(
           song_id,
+          level,
           order_index
         )
       `)
@@ -572,7 +573,7 @@ export const playlistService = {
   },
 
   // Update or create a playlist
-  async upsertPlaylist(userId, playlistId, { title, comment, songIds }) {
+  async upsertPlaylist(userId, playlistId, { title, comment, songIds, songs }) {
     let finalPlaylistId = playlistId;
 
     if (!finalPlaylistId) {
@@ -608,10 +609,24 @@ export const playlistService = {
 
     if (deleteError) throw deleteError;
 
-    if (songIds && songIds.length > 0) {
+    if (songs && songs.length > 0) {
+      const songEntries = songs.map((song, index) => ({
+        playlist_id: finalPlaylistId,
+        song_id: song.id,
+        level: song.level || null,
+        order_index: index
+      }));
+
+      const { error: insertError } = await supabase
+        .from('playlist_songs')
+        .insert(songEntries);
+
+      if (insertError) throw insertError;
+    } else if (songIds && songIds.length > 0) {
       const songEntries = songIds.map((songId, index) => ({
         playlist_id: finalPlaylistId,
         song_id: songId,
+        level: null,
         order_index: index
       }));
 

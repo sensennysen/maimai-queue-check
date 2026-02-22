@@ -109,7 +109,7 @@ function SongDatabase() {
             gridTemplateColumns: '1fr',
             gap: '2rem',
             alignItems: 'start',
-            width: '100%'
+            marginTop: '2rem'
           }}>
             <div style={{ position: 'relative', height: '100%' }}>
               {/* This container ensures sticky works if parent has height */}

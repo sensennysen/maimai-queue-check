@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Card, Image, Text, Group, Badge, Stack, Box, Flex } from '@mantine/core';
 import dxImage from '../../assets/music_dx.png';
 import standardImage from '../../assets/music_standard.png';
@@ -6,7 +7,7 @@ import standardImage from '../../assets/music_standard.png';
 import { getGrade } from '../../utils/maimai-calc';
 import { BASE_JACKET_URL, DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
 
-export function ScoreCard({ score }) {
+export const ScoreCard = React.memo(function ScoreCard({ score }) {
   // Use imageName from score object (populated from otoge-db)
   const jacketUrl = score.imageName
     ? `${BASE_JACKET_URL}${score.imageName}`
@@ -21,7 +22,16 @@ export function ScoreCard({ score }) {
   const typeImage = score.type === 'DX' ? dxImage : standardImage;
 
   return (
-    <Card shadow="sm" padding="xs" radius="md" withBorder>
+    <Card
+      shadow="sm"
+      padding="xs"
+      radius="md"
+      withBorder
+      style={{
+        contentVisibility: 'auto',
+        containIntrinsicSize: 'auto 118px'
+      }}
+    >
       <Flex gap="sm" align="center">
         {/* Jacket Image */}
         <Box w={90} h={90} style={{ flexShrink: 0, position: 'relative' }}>
@@ -32,6 +42,7 @@ export function ScoreCard({ score }) {
             radius="md"
             fallbackSrc="https://placehold.co/90x90?text=No+Image"
             alt={score.title}
+            loading="lazy"
           />
         </Box>
 
@@ -48,6 +59,7 @@ export function ScoreCard({ score }) {
               h={20}
               fit="contain"
               alt={score.type}
+              loading="lazy"
             />
           </Group>
 
@@ -92,4 +104,4 @@ export function ScoreCard({ score }) {
       </Flex>
     </Card>
   );
-}
+});

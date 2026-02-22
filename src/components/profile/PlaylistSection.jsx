@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Paper, Title, Button, Text, Group, LoadingOverlay, Box, Alert, ScrollArea } from '@mantine/core';
+import { Paper, Title, Button, Text, Group, LoadingOverlay, Box, Alert } from '@mantine/core';
 import { IconPlaylist, IconPlaylistAdd, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { playlistService } from '../../services/supabase';
@@ -11,7 +11,7 @@ import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 import './PlaylistStack.css';
 
 export function PlaylistSection({ userId, isOwnProfile }) {
-  const { songs: allSongs, loading: songsLoading } = useSongDatabaseContext();
+  const { loading: songsLoading, songMapById } = useSongDatabaseContext();
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(true); // Loading for playlists data
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -68,12 +68,16 @@ export function PlaylistSection({ userId, isOwnProfile }) {
     }
   };
 
-  const getPlaylistSongs = (playlist) => {
+  const getPlaylistSongs = useCallback((playlist) => {
     if (!playlist || !playlist.songs) return [];
     return playlist.songs
-      .map(entry => allSongs.find(s => s.songId === entry.song_id))
+      .map(entry => {
+        const fullSong = songMapById?.get(entry.song_id);
+        if (!fullSong) return null;
+        return { ...fullSong, level: entry.level }; // Inject level from DB
+      })
       .filter(Boolean);
-  };
+  }, [songMapById]);
 
   const handleCreateNew = () => {
     setSelectedPlaylist(null);
@@ -126,12 +130,14 @@ export function PlaylistSection({ userId, isOwnProfile }) {
             : "This user hasn't created any playlists yet."}
         </Alert>
       ) : (
-        <ScrollArea
-          viewportRef={scrollRef}
-          type="never"
-          offsetScrollbars={false}
-          viewportProps={{
-            style: { padding: '32px 10px 0px 10px' }
+        <div
+          ref={scrollRef}
+          className="hide-scrollbar"
+          style={{
+            display: 'flex',
+            padding: '32px 10px 0px 10px',
+            overflowX: 'auto',
+            scrollBehavior: 'smooth'
           }}
         >
           <Group wrap="nowrap" gap="xs" style={{ overflow: 'visible' }}>
@@ -145,7 +151,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
               </Box>
             ))}
           </Group>
-        </ScrollArea>
+        </div>
       )
       }
 

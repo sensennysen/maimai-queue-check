@@ -4,13 +4,13 @@ import { useMediaQuery } from '@mantine/hooks';
 import {
   Container, Paper, Stack, Group, Title, Text, Avatar,
   Badge, SimpleGrid, Loader, Button, Alert,
-  Divider, ThemeIcon, Box, ActionIcon, Image
+  Divider, ThemeIcon, Box, ActionIcon, Image, Tooltip
 } from '@mantine/core';
 import {
   IconUser, IconTrophy, IconMapPin, IconAlertCircle,
   IconArrowLeft, IconStar, IconLock, IconLogin,
   IconSettings, IconUpload, IconCamera, IconTrash,
-  IconShare
+  IconShare, IconCode, IconBug, IconGitPullRequest
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import MaimaiImportModal from '../components/profile/MaimaiImportModal';
@@ -43,7 +43,7 @@ const PublicProfilePage = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedMostPlayedSong, setSelectedMostPlayedSong] = useState(null);
 
-  const { songs: allSongs, requestFetch } = useSongDatabaseContext();
+  const { requestFetch, songMapByTitle } = useSongDatabaseContext();
   const { scrollRef, isDragging } = useMouseDragScroll();
 
   useEffect(() => {
@@ -234,24 +234,39 @@ const PublicProfilePage = () => {
             Back to queue
           </Button>
 
-          {/* Share Button for everyone */}
-          <Button
-            variant="light"
-            color="blue"
-            leftSection={<IconShare size={18} />}
-            onClick={() => {
-              const url = window.location.href;
-              navigator.clipboard.writeText(url);
-              notifications.show({
-                title: 'Link Copied',
-                message: 'Profile link copied to clipboard!',
-                color: 'blue',
-              });
-            }}
-            className="animate-fade-in"
-          >
-            Share Profile
-          </Button>
+          {/* Action Buttons only for owner */}
+          {isOwner && (
+            <Group gap="xs">
+              <ActionIcon
+                variant="light"
+                color="gray"
+                size="lg" // To roughly match the height of the Button
+                style={{ height: 36, width: 36 }}
+                onClick={() => setIsSettingsModalOpen(true)}
+                title="Profile Settings"
+                className="animate-fade-in"
+              >
+                <IconSettings size={20} />
+              </ActionIcon>
+              <Button
+                variant="light"
+                color="blue"
+                leftSection={<IconShare size={18} />}
+                onClick={() => {
+                  const url = window.location.href;
+                  navigator.clipboard.writeText(url);
+                  notifications.show({
+                    title: 'Link Copied',
+                    message: 'Profile link copied to clipboard!',
+                    color: 'blue',
+                  });
+                }}
+                className="animate-fade-in"
+              >
+                Share Profile
+              </Button>
+            </Group>
+          )}
         </Group>
 
         {/* Profile Header Card */}
@@ -303,17 +318,34 @@ const PublicProfilePage = () => {
                   <Title order={1} style={{ fontSize: '1.75rem', lineHeight: 1.2 }}>
                     {profile.display_name || 'Anonymous Player'}
                   </Title>
-                  {isOwner && (
-                    <ActionIcon
-                      variant="subtle"
-                      color="gray"
-                      onClick={() => setIsSettingsModalOpen(true)}
-                      title="Profile Settings"
-                      size="md"
-                    >
-                      <IconSettings size={20} />
-                    </ActionIcon>
+
+                  {profile.user_attributions?.attributions?.length > 0 && (
+                    <Group gap={6} align="center" mt={4}>
+                      {profile.user_attributions.attributions.includes('DEVELOPER') && (
+                        <Tooltip label="Developer" withArrow position="top">
+                          <ThemeIcon size={24} radius="xl" variant="light" color="blue">
+                            <IconCode size={14} />
+                          </ThemeIcon>
+                        </Tooltip>
+                      )}
+                      {profile.user_attributions.attributions.includes('CONTRIBUTOR') && (
+                        <Tooltip label="Contributor" withArrow position="top">
+                          <ThemeIcon size={24} radius="xl" variant="light" color="pink">
+                            <IconGitPullRequest size={14} />
+                          </ThemeIcon>
+                        </Tooltip>
+                      )}
+                      {profile.user_attributions.attributions.includes('TESTER') && (
+                        <Tooltip label="Tester" withArrow position="top">
+                          <ThemeIcon size={24} radius="xl" variant="light" color="green">
+                            <IconBug size={14} />
+                          </ThemeIcon>
+                        </Tooltip>
+                      )}
+                    </Group>
                   )}
+
+                  {/* Old Settings button was here */}
                 </Group>
 
                 {(privacy.show_main_branch || isOwner) && mainBranchName && (
@@ -404,7 +436,7 @@ const PublicProfilePage = () => {
               }}
             >
               {profile.maimai_best_scores.most_played.map((song, index) => {
-                const matchedSong = allSongs.find(s => s.title === song.title);
+                const matchedSong = songMapByTitle?.get(song.title);
                 return (
                   <Paper
                     key={index}
@@ -420,7 +452,9 @@ const PublicProfilePage = () => {
                       position: 'relative',
                       cursor: 'pointer',
                       transition: 'transform 0.1s ease, box-shadow 0.2s ease', // Added box-shadow transition
-                      border: `2px solid ${DIFFICULTY_COLORS[song.difficulty] || 'transparent'}`
+                      border: `2px solid ${DIFFICULTY_COLORS[song.difficulty] || 'transparent'}`,
+                      contentVisibility: 'auto',
+                      containIntrinsicSize: 'auto 160px'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-4px)';
