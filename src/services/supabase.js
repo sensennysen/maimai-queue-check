@@ -1174,10 +1174,15 @@ export const adminService = {
     if (error) throw error;
 
     // Map embedded user_profiles data back to root preferred_branches for UI component
-    const mappedUsers = (data || []).map(u => ({
-      ...u,
-      preferred_branches: u.user_profiles?.preferred_branches || []
-    }));
+    const mappedUsers = (data || []).map(u => {
+      const branches = u.user_profiles?.preferred_branches || [];
+      return {
+        ...u,
+        preferred_branches: Array.isArray(branches) 
+          ? branches.map(id => typeof id === 'string' ? parseInt(id, 10) : id).filter(id => !isNaN(id))
+          : []
+      };
+    });
 
     return {
       users: mappedUsers,
@@ -1226,11 +1231,12 @@ export const adminService = {
       .from('user_profiles')
       .update(sanitizedUpdates)
       .eq('id', userId)
-      .select()
-      .single();
+      .select();
 
+    // In a scenario where the user profile doesn't exist or RLS blocked update,
+    // .update().select() will return an empty array [] without throwing, which is safe.
     if (error) throw error;
-    return data;
+    return data && data.length > 0 ? data[0] : null;
   }
 };
 
