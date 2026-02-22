@@ -1,23 +1,15 @@
-# Feature Specification: User Attributions
+# Feature Specification: Profile Visibility for Logged-In Users
 
 ## 1. Goal
-Create an attribution table showcased on user profiles to display badges/icons for DEVELOPER, CONTRIBUTOR, and TESTER roles.
+Fix the bug where authenticated users are restricted from viewing non-public profiles unless they are the owner of the profile.
 
 ## 2. Requirements
-1. **Database Schema**:
-   - Create an enum `user_attribution_type` with values: `'DEVELOPER'`, `'CONTRIBUTOR'`, `'TESTER'`.
-   - Create a table `user_attributions`:
-     - `id`: FK to `user_profiles.id` (Primary Key).
-     - `attributions`: Array of `user_attribution_type` (e.g., `user_attribution_type[]`), defaulting to empty array.
-   - Row Level Security (RLS) on `user_attributions`:
-     - Provide `SELECT` access for all users, enabling the profile to fetch attributions publically.
-     - Insert/Update restricted to service roles or admins.
-
-2. **Frontend Profile UI**:
-   - Fetch a user's attributions alongside their `user_profiles` data when viewing a profile.
-   - Display a visual badge/icon area for attributions.
-   - For `DEVELOPER`, display a specific icon (e.g., Wrench/Code).
-   - For `CONTRIBUTOR`, display a specific icon (e.g., Star/Heart).
-   - For `TESTER`, display a specific icon (e.g., Bug/Shield).
+1. **Frontend Logic Change**:
+   - When a user navigates to `/p/:slug`, the app fetches the profile using `userService.getProfileBySlug`.
+   - If `!profileData.is_public`, the restriction should *only* trigger if there is NO authenticated user session (i.e. `!user`).
+   - If an authenticated `user` session exists, they should bypass the restriction and view the profile as intended.
+   
+2. **Current Bug**:
+   - Currently, `!profileData.is_public && profileData.id !== user?.id` prevents logged-in users from viewing other people's non-public profiles. The intended behavior is that simply logging in acts as the gateway to view them.
 
 3. **Status**: FINALIZED

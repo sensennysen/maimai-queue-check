@@ -32,3 +32,13 @@
 - None.
 **Next Wave TODO:**
 - Provide clear confirmation and merge.
+
+## Wave 5 Summary
+**Objective:** Fix Profile Visibility Logic
+**Changes:**
+- Updated `PublicProfilePage.jsx` so that logged-in users can view profiles even if `is_public` is false, aligning with the intended behavior of restricted profiles requiring authentication.
+**Files Touched:**
+- `src/pages/PublicProfilePage.jsx`
+**Verification:**
+- Verified frontend logic change `!profileData.is_public && !user` accurately maps to authentication status and correctly blocks completely anonymous users while unblocking valid site users.
+- Lint checks passed cleanly.
