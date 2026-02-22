@@ -299,7 +299,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
         comment={selectedSongComment}
         title="Favorite Song Details"
         isOwnProfile={isOwnProfile}
-        onCommentSave={(newComment) => handleUpdateComment(selectedSongDetails.songId, newComment)}
+        onCommentSave={(newComment) => handleUpdateComment(selectedSongDetails.cardId || selectedSongDetails.songId, newComment)}
       />
     </Paper>
   );
