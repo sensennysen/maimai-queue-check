@@ -1,20 +1,18 @@
-# ROADMAP: Profile Page Performance Improvements
+# ROADMAP: Fix Profile Visibility for Logged-In Users
 
-## Phase 1: Planning & Setup
-- Draft SPEC, ROADMAP, Implementation Plan
-- Identify performance bottlenecks in Profile Page and related components (Status: Done)
+## Phase 1: SPEC & PLAN
+- Document bug in `SPEC.md`. (Status: Done)
+- Draft `implementation_plan.md` outlining the frontend fix. (Status: Done)
+- Await user approval.
 
-## Phase 2: Context Optimization
-- Update `SongDatabaseContext` to provide O(1) Map lookups for songs by Title and ID.
+## Phase 2: EXECUTION
+- Modify `PublicProfilePage.jsx` to alter the `isRestricted` trigger condition.
+- Ensure the fix passes ESLint checks.
 
-## Phase 3: Component Re-render Optimization
-- Wrap `ScoreCard`, `FavoriteSongCard`, and `PlaylistStack` in `React.memo`.
+## Phase 3: VERIFICATION
+- Confirm that the `user` context variable is correctly structured.
+- Confirm logic effectively unblocks authenticated non-owners.
 
-## Phase 4: Data Fetching Optimization
-- Update `PublicProfilePage.jsx` to use O(1) lookup for Most Played.
-- Update `FavoriteSongsSection.jsx` to use O(1) lookup for Favorites.
-- Update `PlaylistSection.jsx` to memoize the mapped playlist songs array.
-
-## Phase 5: Verification
-- Verify build completeness.
-- Check React DevTools Profiler or perform manual scrolled testing to ensure smooth experience.
+## Phase 4: COMMIT
+- Commit the changes explicitly following standard GSD conventions.
+- Update `STATE.md`.
