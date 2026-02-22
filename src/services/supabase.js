@@ -524,7 +524,7 @@ export const favoritesService = {
       .eq('user_id', userId)
       .eq('song_id', songId)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data;
