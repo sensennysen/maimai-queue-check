@@ -1,18 +1,21 @@
-# ROADMAP: Fix Profile Visibility for Logged-In Users
+# Roadmap: Preferred Branches Unification
 
-## Phase 1: SPEC & PLAN
-- Document bug in `SPEC.md`. (Status: Done)
-- Draft `implementation_plan.md` outlining the frontend fix. (Status: Done)
-- Await user approval.
+## Phase 1: Planning and Specification
+- [x] Analyze `preferred_branches` column in `user_roles` and `user_profiles`.
+- [x] Create `.gsd/SPEC.md`
+- [x] Create `.gsd/IMPLEMENTATION_PLAN.md`
 
-## Phase 2: EXECUTION
-- Modify `PublicProfilePage.jsx` to alter the `isRestricted` trigger condition.
-- Ensure the fix passes ESLint checks.
+## Phase 2: Execution (Database Migration)
+- [ ] Get user approval for the proposed SQL migration.
+- [ ] Connect to `maipaqueuecheckph-prod` Supabase database.
+- [ ] Pre-flight check: Query existing mismatched data for observation.
+- [ ] Execute `UPDATE user_profiles` SQL statement.
+- [ ] Execute `UPDATE user_roles` SQL statement.
 
-## Phase 3: VERIFICATION
-- Confirm that the `user` context variable is correctly structured.
-- Confirm logic effectively unblocks authenticated non-owners.
+## Phase 3: Verification
+- [ ] Post-flight check: Query the same subset of users to verify the records are synchronized, unionized, and deduped.
+- [ ] Update documentation / state.
 
-## Phase 4: COMMIT
-- Commit the changes explicitly following standard GSD conventions.
-- Update `STATE.md`.
+## Phase 4: Commit
+- [ ] Mark `.gsd/STATE.md` as completed.
+- [ ] User final confirmation.
