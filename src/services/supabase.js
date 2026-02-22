@@ -495,7 +495,7 @@ export const favoritesService = {
       .from('user_favorite_songs')
       .insert([{ user_id: userId, song_id: songId, comment }])
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) {
       // Ignore duplicate key error (code 23505)
