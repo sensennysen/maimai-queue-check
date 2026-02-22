@@ -63,11 +63,10 @@ export const rolesService = {
   // Fetch user roles/permissions and profile data
   async getUserRoles(userId) {
     try {
-      // Fetch role and profile data in parallel
       const [roleResult, profileResult] = await Promise.all([
         supabase
           .from('user_roles')
-          .select('user_id, can_edit, can_edit_on, is_admin, is_super_admin, admin_branch, display_name, preferred_branches')
+          .select('user_id, can_edit, can_edit_on, is_admin, is_super_admin, admin_branch, display_name')
           .eq('user_id', userId)
           .limit(1)
           .maybeSingle(),
@@ -108,18 +107,10 @@ export const rolesService = {
         // Profile fields - prefer profileData, fallback to roleData
         display_name: profileData?.display_name || roleData?.display_name,
         
-        // UNION of preferred_branches from both tables to ensure no data is lost
-        preferred_branches: (() => {
-          const profileBranches = Array.isArray(profileData?.preferred_branches) 
-            ? profileData.preferred_branches.map(id => typeof id === 'string' ? parseInt(id, 10) : id)
-            : [];
-          const roleBranches = Array.isArray(roleData?.preferred_branches) 
-            ? roleData.preferred_branches.map(id => typeof id === 'string' ? parseInt(id, 10) : id)
-            : [];
-          
-          // Return unique union of both arrays
-          return [...new Set([...profileBranches, ...roleBranches])].filter(id => !isNaN(id));
-        })(),
+        // Get preferred_branches directly from user_profiles
+        preferred_branches: Array.isArray(profileData?.preferred_branches) 
+          ? profileData.preferred_branches.map(id => typeof id === 'string' ? parseInt(id, 10) : id).filter(id => !isNaN(id))
+          : [],
           
         // Maimai fields (only in profileData)
         maimai_dx_name: profileData?.maimai_dx_name || null,
@@ -198,10 +189,15 @@ export const userService = {
     // We do this to ensure existing code relying on user_roles for display names still works
     // until fully migrated. Non-blocking/fire-and-forget style or sequential.
     try {
-      await supabase
-        .from('user_roles')
-        .update(updateData)
-        .eq('user_id', userId);
+      const roleUpdateData = { ...updateData };
+      delete roleUpdateData.preferred_branches; // user_roles.preferred_branches is deprecated
+
+      if (Object.keys(roleUpdateData).length > 0) {
+        await supabase
+          .from('user_roles')
+          .update(roleUpdateData)
+          .eq('user_id', userId);
+      }
     } catch (e) {
       console.warn('Failed to sync preferences to user_roles legacy table', e);
     }
@@ -264,26 +260,18 @@ export const userService = {
   },
 
   // Get users who have a specific branch in their preferred_branches
-  // Updated to check user_profiles (or fallback to roles)
+  // Updated to check user_profiles exclusively
   async getUsersPrefersBranch(branchId) {
     if (!branchId) return [];
 
-    // Try profiles first
+    // Always use user_profiles
     const { data: profiles, error } = await supabase
         .from('user_profiles')
         .select('display_name')
         .contains('preferred_branches', [branchId]);
     
-    if (!error && profiles && profiles.length > 0) return profiles;
-    
-    // Fallback to roles if empty/error
-    const { data: roles, error: roleError } = await supabase
-        .from('user_roles')
-        .select('display_name')
-        .contains('preferred_branches', [branchId]);
-
-    if (roleError) throw roleError;
-    return roles || [];
+    if (error) throw error;
+    return profiles || [];
   },
 
   // Get profile by slug
@@ -1160,7 +1148,7 @@ export const adminService = {
 
     let query = supabase
       .from('user_roles')
-      .select('user_id, email, display_name, can_edit, can_edit_on, is_admin, is_super_admin, preferred_branches', { count: 'exact' });
+      .select('user_id, email, display_name, can_edit, can_edit_on, is_admin, is_super_admin, user_profiles!inner(preferred_branches)', { count: 'exact' });
 
     // Server-side filtering (search)
     if (searchQuery.trim()) {
@@ -1170,7 +1158,7 @@ export const adminService = {
 
     // Branch filtering for regular admins
     if (adminBranch) {
-      query = query.contains('preferred_branches', [adminBranch]);
+      query = query.contains('user_profiles.preferred_branches', [adminBranch]);
     }
 
     // Server-side sorting
@@ -1184,8 +1172,15 @@ export const adminService = {
     const { data, error, count } = await query;
 
     if (error) throw error;
+
+    // Map embedded user_profiles data back to root preferred_branches for UI component
+    const mappedUsers = (data || []).map(u => ({
+      ...u,
+      preferred_branches: u.user_profiles?.preferred_branches || []
+    }));
+
     return {
-      users: data || [],
+      users: mappedUsers,
       totalCount: count || 0
     };
   },
@@ -1193,7 +1188,7 @@ export const adminService = {
   // Update a user's role
   async updateUserRole(userId, updates) {
     // Only allow updating specific fields
-    const allowedFields = ['display_name', 'can_edit', 'can_edit_on', 'is_admin', 'preferred_branches'];
+    const allowedFields = ['display_name', 'can_edit', 'can_edit_on', 'is_admin'];
     const sanitizedUpdates = {};
     
     for (const key of allowedFields) {
@@ -1206,6 +1201,31 @@ export const adminService = {
       .from('user_roles')
       .update(sanitizedUpdates)
       .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Update a user's profile from admin
+  async updateUserProfileAdmin(userId, updates) {
+    const allowedFields = ['preferred_branches'];
+    const sanitizedUpdates = {};
+    
+    for (const key of allowedFields) {
+      if (Object.hasOwn(updates, key)) {
+        sanitizedUpdates[key] = updates[key];
+      }
+    }
+
+    // Only update if there are fields to update
+    if (Object.keys(sanitizedUpdates).length === 0) return null;
+
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update(sanitizedUpdates)
+      .eq('id', userId)
       .select()
       .single();
 
