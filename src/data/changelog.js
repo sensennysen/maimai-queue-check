@@ -1,5 +1,21 @@
 export const changelogData = [
   {
+    version: 'v1.7.5',
+    date: 'February 22, 2026',
+    changes: [
+      {
+        type: 'bugfix',
+        title: 'Profile Page Visibility',
+        description: 'Fixed an issue where profile pages were not visible to logged-in users.',
+      },
+      {
+        type: 'refactor',
+        title: 'Preferred Branches',
+        description: 'Refactored the preferred branches to only use 1 column',
+      }
+    ]
+  },
+  {
     version: 'v1.7.4',
     date: 'February 21, 2026',
     changes: [
