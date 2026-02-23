@@ -57,15 +57,9 @@ export const contactReportSchema = z.object({
     .max(1000, 'Description must be 1000 characters or less')
     .trim(),
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
-  file: z.any()
-    .refine((file) => {
-      if (!file) return true; // Optional
-      return file.size <= MAX_FILE_SIZE;
-    }, `File size must be less than 5MB`)
-    .refine((file) => {
-      if (!file) return true; // Optional
-      return ALLOWED_IMAGE_TYPES.includes(file.type);
-    }, 'Only .jpg, .png, .gif, and .webp formats are supported')
+  file: z.instanceof(File)
+    .refine((file) => file.size <= MAX_FILE_SIZE, `File size must be less than 5MB`)
+    .refine((file) => ALLOWED_IMAGE_TYPES.includes(file.type), 'Only .jpg, .png, .gif, and .webp formats are supported')
     .optional()
 });
 
