@@ -62,15 +62,14 @@ function BranchSelector() {
   const getBranchDistance = (branch) => {
     if (!userLocation) return null;
 
+    if (!userLocation) return null;
+
     const distance = getDistance(userLocation, {
       latitude: branch.latitude,
       longitude: branch.longitude,
     });
 
-    return Math.round(distance);
-  };
-
-  return (
+    return Math.round(distance)
     <Menu
       opened={menuOpened}
       onChange={handleMenuChange}
