@@ -37,7 +37,20 @@ export const BranchProvider = ({ children }) => {
       }
 
       // Logic to select branch
-      // 1. Check for saved branch
+      // 1. Select nearest branch if location available
+      if (userLocation && allBranches.length > 0) {
+        const sorted = [...allBranches].sort((a, b) => {
+          const distA = getDistance(userLocation, { latitude: a.latitude, longitude: a.longitude });
+          const distB = getDistance(userLocation, { latitude: b.latitude, longitude: b.longitude });
+          return distA - distB;
+        });
+        setSelectedBranchState(sorted[0]);
+        localStorage.setItem(STORAGE_KEY, String(sorted[0].id));
+        setLoading(false);
+        return;
+      }
+
+      // 2. Check for saved branch
       const savedBranchId = localStorage.getItem(STORAGE_KEY);
       if (savedBranchId) {
         const parsedBranchId = Number(savedBranchId);
@@ -49,21 +62,9 @@ export const BranchProvider = ({ children }) => {
         }
       }
 
-      // 2. Select nearest branch if location available (unlikely on first load now), otherwise first
-      // We keep the logic in case location is set elsewhere before this runs, though unlikely.
-      if (userLocation && allBranches.length > 0) {
-        const sorted = [...allBranches].sort((a, b) => {
-          const distA = getDistance(userLocation, { latitude: a.latitude, longitude: a.longitude });
-          const distB = getDistance(userLocation, { latitude: b.latitude, longitude: b.longitude });
-          return distA - distB;
-        });
-        setSelectedBranchState(sorted[0]);
-        localStorage.setItem(STORAGE_KEY, String(sorted[0].id));
-      } else {
-        // Default to first branch alphabetically (as sorted by DB or service)
-        setSelectedBranchState(allBranches[0]);
-        localStorage.setItem(STORAGE_KEY, String(allBranches[0].id));
-      }
+      // 3. Default to first branch alphabetically (as sorted by DB or service)
+      setSelectedBranchState(allBranches[0]);
+      localStorage.setItem(STORAGE_KEY, String(allBranches[0].id));
 
     } catch (err) {
       setError(err.message);
