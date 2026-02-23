@@ -1,4 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
+/* The hook and provider are co-located intentionally (standard React context pattern).
+   Splitting into separate files would add indirection without benefit. */
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { branchService, supabase } from '../services/supabase';
 import { requestUserLocation, getDistance } from '../services/geolocation';

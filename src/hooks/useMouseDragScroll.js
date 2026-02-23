@@ -1,4 +1,8 @@
-/* eslint-disable react-hooks/immutability */
+// eslint-disable react-hooks/immutability
+// Note: 'react-hooks/immutability' is not a standard rule — this is a no-op disable.
+// Direct mutation of node.scrollLeft and isDown.current is intentional:
+// assigning refs synchronously in event handlers avoids stale closures during
+// high-frequency scroll events. Do not replace with setState here.
 import { useRef, useState, useCallback, useEffect } from 'react';
 
 /**

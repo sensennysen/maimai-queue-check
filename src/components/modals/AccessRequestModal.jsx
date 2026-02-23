@@ -60,6 +60,9 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Intentionally depends only on `opened`: user, userRoles, and form are excluded
+    // to prevent re-fetching on every auth state change while the modal is open.
+    // The effect must only run when the modal is opened/closed.
   }, [opened]);
 
   const handleSubmit = async (values) => {
