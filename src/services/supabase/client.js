@@ -8,11 +8,18 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables. Please check your .env file.');
 }
 
+// Migrate old auth session key to the new 'auth' key
+const oldAuth = window.localStorage.getItem('smf-queue-auth');
+if (oldAuth) {
+  window.localStorage.setItem('auth', oldAuth);
+  window.localStorage.removeItem('smf-queue-auth');
+}
+
 // Create Supabase client with explicit session persistence configuration
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
-    storageKey: 'smf-queue-auth',
+    storageKey: 'auth',
     storage: window.localStorage,
     autoRefreshToken: true,
     detectSessionInUrl: true
