@@ -3,6 +3,8 @@ import { themes } from '../config/theme';
 
 const ThemeContext = createContext();
 
+// The hook and provider are co-located intentionally (standard React context pattern).
+// Splitting into separate files would add indirection without benefit.
 // eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = () => {
   const context = useContext(ThemeContext);

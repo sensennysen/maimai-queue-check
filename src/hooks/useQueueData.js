@@ -68,7 +68,9 @@ export const useQueueData = (selectedCabinet = 1) => {
       if (isRelevantBranch && isRelevantCabinet) {
         queueService.getQueueEntries(selectedBranch.id, selectedCabinet)
           .then(data => setQueue(data))
-          .catch(() => {});
+          .catch(err => {
+            console.error('[useQueueData] Failed to refresh queue on subscription event:', err);
+          });
       }
     };
 

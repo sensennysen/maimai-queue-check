@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { authService, rolesService, supabase } from '../services/supabase';
 import { useBranch } from '../hooks/useBranch';
+import { notifications } from '@mantine/notifications';
 import { AuthContext } from './AuthContextProvider';
 
 export const AuthProvider = ({ children }) => {
@@ -13,7 +14,11 @@ export const AuthProvider = ({ children }) => {
   // Helper to manage local storage cache
   const getCachedRoles = (uid) => {
     try {
-      const cached = localStorage.getItem(`smf_user_roles_${uid}`);
+      // SEC-04: Try new key first, fall back to old key for backward compatibility
+      let cached = localStorage.getItem(`user_roles_${uid}`);
+      if (!cached) {
+        cached = localStorage.getItem(`smf_user_roles_${uid}`);
+      }
       return cached ? JSON.parse(cached) : null;
     } catch {
       return null;
@@ -22,7 +27,8 @@ export const AuthProvider = ({ children }) => {
 
   const cacheRoles = (uid, roles) => {
     try {
-      localStorage.setItem(`smf_user_roles_${uid}`, JSON.stringify(roles));
+      // SEC-04: write using new key
+      localStorage.setItem(`user_roles_${uid}`, JSON.stringify(roles));
     } catch (e) {
       console.warn('Failed to cache user roles', e);
     }
@@ -55,6 +61,15 @@ export const AuthProvider = ({ children }) => {
           is_super_admin: false
         }
       );
+
+      // Surface UI notification per FRAG-03 requirement
+      notifications.show({
+        title: 'Roles could not be loaded',
+        message: 'There was a problem loading your permissions. Some actions may be temporarily unavailable.',
+        color: 'yellow',
+        autoClose: 5000,
+      });
+
       return null;
     }
   }, [user, selectedBranch?.id]);
@@ -184,6 +199,22 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     setLoading(true);
     try {
+      // SEC-01: Clear role cache before signing out
+      if (user?.id) {
+        localStorage.removeItem(`user_roles_${user.id}`);
+        localStorage.removeItem(`smf_user_roles_${user.id}`);
+      }
+
+      // Safety fallback: clear any lingering role caches from previous sessions
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('smf_user_roles_') || key.startsWith('user_roles_'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+
       await authService.signOut();
       setUser(null);
       setUserRoles(null);

@@ -26,6 +26,8 @@ function BranchSelector() {
     };
 
     initializeLocation();
+    // Intentionally run once on mount: refreshLocation and locationRequested state
+    // are excluded to prevent re-running on every render after the initial permission check.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

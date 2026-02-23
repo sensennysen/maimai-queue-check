@@ -55,5 +55,10 @@ Systematically reduce risk and improve maintainability by fixing known concerns 
 | Group related items per phase | Fewer, clearer phases; related changes land together | — Pending |
 | Do not introduce missing pieces (e.g. tests) | Keep this project bounded to remediation only | — Pending |
 
+## Security Policy
+
+- **DOM Sanitization (SEC-02):** No new `dangerouslySetInnerHTML` assignments may be added without sanitization (e.g., using `DOMPurify`). Existing usages have been verified as safe: `QueueRulesModal` utilizes `DOMPurify`, and `SongSelectionModal`/`SongDatabase` utilize hardcoded static CSS strings.
+- **Environment Variables & Secrets (SEC-03):** Application security is strictly enforced by Supabase Row Level Security (RLS). Therefore, no secrets should ever be stored in `VITE_*` environment variables, as these are bundled and exposed to the client. The codebase is configured to throw an error if required Supabase public environment variables are missing.
+
 ---
-*Last updated: 2025-02-23 after initialization*
+*Last updated: 2025-02-23 after phase 3 execution*

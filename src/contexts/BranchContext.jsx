@@ -1,4 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
+/* The hook and provider are co-located intentionally (standard React context pattern).
+   Splitting into separate files would add indirection without benefit. */
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { branchService, supabase } from '../services/supabase';
 import { requestUserLocation, getDistance } from '../services/geolocation';
@@ -14,6 +16,11 @@ export const BranchProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
+  /**
+   * Load branches from Supabase, then determine the initial selected branch.
+   * Requirement FRAG-02: By awaiting getAllBranches BEFORE reading storage or defaulting,
+   * we ensure the selected branch is actually in the available branch list.
+   */
   const loadBranches = useCallback(async () => {
     try {
       setLoading(true);
@@ -30,19 +37,7 @@ export const BranchProvider = ({ children }) => {
       }
 
       // Logic to select branch
-      // 1. Check for saved branch
-      const savedBranchId = localStorage.getItem(STORAGE_KEY);
-      if (savedBranchId) {
-        const savedBranch = allBranches.find(b => b.id == savedBranchId);
-        if (savedBranch) {
-          setSelectedBranchState(savedBranch);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // 2. Select nearest branch if location available (unlikely on first load now), otherwise first
-      // We keep the logic in case location is set elsewhere before this runs, though unlikely.
+      // 1. Select nearest branch if location available
       if (userLocation && allBranches.length > 0) {
         const sorted = [...allBranches].sort((a, b) => {
           const distA = getDistance(userLocation, { latitude: a.latitude, longitude: a.longitude });
@@ -50,12 +45,26 @@ export const BranchProvider = ({ children }) => {
           return distA - distB;
         });
         setSelectedBranchState(sorted[0]);
-        localStorage.setItem(STORAGE_KEY, sorted[0].id);
-      } else {
-        // Default to first branch alphabetically (as sorted by DB or service)
-        setSelectedBranchState(allBranches[0]);
-        localStorage.setItem(STORAGE_KEY, allBranches[0].id);
+        localStorage.setItem(STORAGE_KEY, String(sorted[0].id));
+        setLoading(false);
+        return;
       }
+
+      // 2. Check for saved branch
+      const savedBranchId = localStorage.getItem(STORAGE_KEY);
+      if (savedBranchId) {
+        const parsedBranchId = Number(savedBranchId);
+        const savedBranch = allBranches.find(b => b.id === parsedBranchId);
+        if (savedBranch) {
+          setSelectedBranchState(savedBranch);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 3. Default to first branch alphabetically (as sorted by DB or service)
+      setSelectedBranchState(allBranches[0]);
+      localStorage.setItem(STORAGE_KEY, String(allBranches[0].id));
 
     } catch (err) {
       setError(err.message);
@@ -66,7 +75,7 @@ export const BranchProvider = ({ children }) => {
 
   const setSelectedBranch = useCallback((branch) => {
     setSelectedBranchState(branch);
-    localStorage.setItem(STORAGE_KEY, branch.id);
+    localStorage.setItem(STORAGE_KEY, String(branch.id));
   }, []);
 
   const handleBranchChange = useCallback((payload) => {

@@ -1,89 +1,96 @@
-# External Integrations
+# INTEGRATIONS.md — External Services & APIs
 
-**Analysis Date:** 2025-02-23
+## Supabase
 
-## APIs & External Services
+**Client init:** `src/services/supabase/client.js`
 
-**Backend-as-a-Service:**
-- Supabase - Database, auth, storage, realtime
-  - SDK/Client: `@supabase/supabase-js`
-  - Auth: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (client and serverless API both use these env vars)
+```js
+export const supabase = createClient(url, key, {
+  auth: {
+    persistSession: true,
+    storageKey: 'auth',          // renamed from 'smf-queue-auth' (migration in client.js)
+    storage: window.localStorage,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
+  realtime: {
+    params: { eventsPerSecond: 10 }  // PERF-01 tuned constraint
+  }
+});
+```
 
-**Analytics & Observability:**
-- Vercel Analytics - Usage analytics; component in `src/App.jsx`
-- Vercel Speed Insights - Performance; component in `src/main.jsx`
+### Auth (OAuth only)
 
-**Assets:**
-- Song jacket images - Base URL from `VITE_SONG_JACKETS_URL`; used in `src/config/maimai-constants.js` (e.g. CloudFront or CDN).
-- Google Fonts - Outfit, Space Grotesk; loaded in `index.html` and `api/profile-meta.js` template.
+| Provider | Uses |
+|----------|------|
+| Google (via Supabase Auth) | `authService.signInWithProvider('google')` |
+| Discord (likely configured) | `authService.signInWithProvider('discord')` |
 
-## Data Storage
+OAuth redirect: `window.location.origin`
 
-**Databases:**
-- Supabase (PostgreSQL)
-  - Connection: configured via `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
-  - Client: `@supabase/supabase-js`; single client in `src/services/supabase.js`, ad-hoc client in `api/profile-meta.js`
-  - Tables referenced in code: `user_roles`, `user_profiles`, `user_all_scores`, `user_most_played_songs`, `user_favorite_songs`, `user_playlists`, `playlist_songs`, `queue_entries`, `allowed_places`, `mall_schedule`, `access_requests`, `notifications`, `user_notification_reads`, `contact_reports`, `queue_rules`, `game_sessions`, `user_attributions`
+**Session cache:** Role data cached in `localStorage` under `user_roles_<uid>` (SEC-04 rename from `smf_user_roles_<uid>`). Cache cleared on sign-out (SEC-01).
 
-**File Storage:**
-- Supabase Storage
-  - Bucket `profile-pictures`: user profile photos; upload/delete in `src/services/supabase.js` (`userService`)
-  - Bucket `contact_uploads`: contact form attachments; upload/signed URL/delete in `contactService` in `src/services/supabase.js`
+### Database Tables
 
-**Caching:**
-- None (no Redis or dedicated cache layer; session in `localStorage` via Supabase auth)
+| Table | Service Module | Key Operations |
+|-------|---------------|----------------|
+| `queue_entries` | `src/services/supabase/queue.js` | CRUD for queue; filtered by `branch_id`, `cabinet_num`, `status`, `created_at >= today` |
+| `game_sessions` | `src/services/supabase/queue.js` | Realtime-only subscription (`subscribeToSessionChanges`) |
+| `user_roles` | `src/services/supabase/auth.js`, `admin.js` | Permissions: `can_edit`, `can_edit_on[]`, `is_admin`, `is_super_admin`, `admin_branch`. `preferred_branches` column **deprecated** (set to NULL via migration) |
+| `user_profiles` | `src/services/supabase/auth.js`, `profile.js` | Primary user data: `display_name`, `preferred_branches` (authoritative), `slug`, `maimai_dx_name`, `maimai_best_scores`, `privacy_settings`, `is_public` |
+| `user_all_scores` | `src/services/supabase/profile.js` | Raw maimai score import, keyed by `user_id` |
+| `user_most_played_songs` | `src/services/supabase/profile.js` | Aggregated most-played data, keyed by `user_id` |
+| `user_favorite_songs` | `src/services/supabase/profile.js` | PK is `(user_id, song_id)` composite; unique constraint handles dedup |
+| `user_playlists` | `src/services/supabase/profile.js` | User-created playlists; child table `playlist_songs` with `(playlist_id, song_id, level, order_index)` |
+| `user_attributions` | `src/services/supabase/auth.js` | Joined into profile selects; stores attribution metadata |
+| `user_notification_reads` | `src/services/supabase/contact.js` | PK `(user_id, notification_id)`, upsert with `ignoreDuplicates: true` |
+| `notifications` | `src/services/supabase/contact.js` | Global notifications, fetched for past 7 days |
+| `allowed_places` | `src/services/supabase/admin.js` | Arcade branches: `arcade_name`, `short_name`, `acronym`, `longitude`, `latitude`, `cab_count`, `enabled` |
+| `mall_schedule` | `src/services/supabase/admin.js` | Per-branch mall hours: `day`, `time_open`, `time_close` |
+| `access_requests` | `src/services/supabase/admin.js` | Edit-access request workflow: `status` enum (`pending`, `approved`, `rejected`) |
+| `contact_reports` | `src/services/supabase/contact.js` | Bug/feature/security reports: `attachment_path`, `attachment_name`, `status` enum (`open`) |
+| `queue_rules` | `src/services/supabase/admin.js` | Per-branch queue rules blob, upserted on `branch_id` |
 
-## Authentication & Identity
+### Realtime Channels
 
-**Auth Provider:**
-- Supabase Auth (OAuth + session)
-  - Implementation: `authService` in `src/services/supabase.js`; `signInWithOAuth`, `signOut`, `getUser`, `onAuthStateChange`
-  - Session: persisted in `localStorage` under key `smf-queue-auth`; `persistSession: true`, `autoRefreshToken: true`, `detectSessionInUrl: true`
-  - UI: `src/contexts/AuthContext.jsx`, `src/hooks/useAuth.js`, `src/components/LoginForm.jsx`; Google OAuth button calls `signInWithProvider('google')`. Other providers (e.g. Discord) are supported by Supabase but only Google is wired in the LoginForm UI.
-  - Privacy copy in `src/components/modals/PrivacyModal.jsx` references "Google, Discord, etc." as login providers.
+| Channel ID Pattern | Table | Trigger |
+|-------------------|-------|---------|
+| `queue_realtime:<branchId>:<ts>:<rand>` | `queue_entries` | Branch-filtered CDC; hook `useQueueData` re-fetches on change |
+| `session_realtime` | `game_sessions` | Global; static channel name |
+| `user_roles_realtime` | `user_roles` | Global; exported `subscribeToUserRoleChanges` |
+| `user-roles-<uid>` | `user_roles` | Per-user, row-filtered; in `AuthContext` |
+| `user-profiles-<uid>` | `user_profiles` | Per-user, row-filtered; in `AuthContext` triggers `refreshUserRoles` |
 
-## Monitoring & Observability
+**Note:** Queue channel uses unique ID per subscription instance to support multiple concurrent subscribers without channel collision.
 
-**Error Tracking:**
-- None (no Sentry or similar)
+### Storage Buckets
 
-**Logs:**
-- `console.error` / `console.warn` in app and API (e.g. `src/services/supabase.js`, `api/profile-meta.js`)
-
-## CI/CD & Deployment
-
-**Hosting:**
-- Vercel - Static + serverless; `vercel.json` defines headers (CSP, X-Frame-Options, etc.), rewrites for SPA and `/p/:slug` → `/api/profile-meta`, and API routing.
-
-**CI Pipeline:**
-- Not detected in repo (no GitHub Actions or other CI config in explored paths).
-
-## Environment Configuration
-
-**Required env vars:**
-- `VITE_SUPABASE_URL` - Supabase project URL (client and API)
-- `VITE_SUPABASE_ANON_KEY` - Supabase anon key (client and API)
-- `VITE_SONG_JACKETS_URL` - Base URL for maimai song jacket images (optional for runtime if guarded; used in `src/config/maimai-constants.js`)
-
-**Secrets location:**
-- Vercel: project env vars for production/preview. Local: `.env` in project root (existence only; never read or committed).
-
-## Webhooks & Callbacks
-
-**Incoming:**
-- None (no webhook endpoints defined in app or `vercel.json`)
-
-**Outgoing:**
-- OAuth redirect: Supabase Auth redirects to `window.location.origin` after sign-in (see `src/services/supabase.js` auth options).
-
-## Realtime
-
-- Supabase Realtime used for:
-  - `queue_entries` - `subscribeToQueueChanges` in `src/services/supabase.js`; consumed by queue UI hooks (e.g. `src/hooks/useQueueData.js`, `src/hooks/useMonitorData.js`)
-  - `game_sessions` - `subscribeToSessionChanges`
-  - `user_roles` - `subscribeToUserRoleChanges` (e.g. `src/features/admin/components/UserTable.jsx`)
-- Realtime config: `eventsPerSecond: 10` in client options in `src/services/supabase.js`.
+| Bucket | Used By | Notes |
+|--------|---------|-------|
+| `profile-pictures` | `userService.uploadProfilePicture` | Public URLs, `cacheControl: '3600'`, upsert allowed |
+| `contact_uploads` | `contactService.submitReport` | Private — access via signed URLs (1 hr expiry) |
 
 ---
 
-*Integration audit: 2025-02-23*
+## Vercel
+
+- Deployed to Vercel (SPA mode)
+- `vercel.json` defines rewrites: all `/api/*` routes → `api/` serverless functions, all other routes → `index.html`
+- `api/` directory contains serverless function(s) for server-side operations
+- `@vercel/analytics` + `@vercel/speed-insights` auto-instrument page views and CWVs
+
+---
+
+## Geolocation API
+
+- `src/services/geolocation.js` — browser `navigator.geolocation` used for location-based branch verification
+- `src/hooks/useLocationVerification.js` + `useLocationGuard.js` drive geofencing logic (used to restrict queue edits to local users)
+
+---
+
+## Song Data (Local / Static)
+
+- `src/services/songs.js` — local song database utility (reads from `src/data/`)
+- `src/data/` — static JSON/JS song data files
+- `SongDatabaseContext` + `useSongDatabase` hook provide app-wide access to song data
+- No external API call for song data; data is bundled

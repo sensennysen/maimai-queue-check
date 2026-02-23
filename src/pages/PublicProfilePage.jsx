@@ -90,8 +90,7 @@ const PublicProfilePage = () => {
       }
       fetchData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, fetchData]); // Removed profile dependency to prevent infinite loop
+  }, [slug, fetchData]); // fetchData is memoized on [slug, user?.id] — no infinite loop
 
   const handleClearData = async () => {
     if (!window.confirm('Are you sure you want to clear your Best 50 scores, maimai DX name, and profile photo? This action cannot be undone.')) {
