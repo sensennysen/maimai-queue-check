@@ -53,32 +53,25 @@ export default defineConfig(({ mode }) => ({
           }
           return 'assets/[name]-[hash][extname]';
         },
+        // manualChunks is intentionally commented out — causes issues with Vercel's
+        // output bundling (chunk splitting interferes with Vercel's file serving).
         // manualChunks: (id) => {
         //   if (id.includes('node_modules')) {
-        //     // Core React - Strictly match react package names
         //     if (id.includes('/node_modules/react/') || id.includes('/node_modules/react-dom/') || id.includes('/node_modules/scheduler/')) {
         //       return 'vendor-react';
         //     }
-        //    
-        //     // Router
         //     if (id.includes('react-router') || id.includes('@remix-run')) {
         //       return 'vendor-router';
         //     }
-        //    
-        //     // UI Libraries (Mantine, Tabler) - Split them out
         //     if (id.includes('@mantine')) {
         //       return 'vendor-mantine';
         //     }
         //     if (id.includes('@tabler')) {
         //       return 'vendor-icons';
         //     }
-        //    
-        //     // Supabase
         //     if (id.includes('@supabase')) {
         //       return 'vendor-supabase';
         //     }
-        //    
-        //     // Utils
         //     if (id.includes('lodash') || id.includes('date-fns') || id.includes('dayjs')) {
         //       return 'vendor-utils';
         //     }
