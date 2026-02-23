@@ -28,3 +28,6 @@ dist-ssr
 *.sln
 *.sw?
 
+# Planning (local-only when commit_docs is false)
+.planning/
+.agent/
