@@ -8,6 +8,7 @@ export const changelogData = [
         title: 'Code Optimization',
         description: 'General code optimization.',
       },
+    ]
   },
   {
     version: 'v1.7.5',
