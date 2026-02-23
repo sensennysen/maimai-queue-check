@@ -24,7 +24,7 @@ function BranchSelector() {
         }
       }
     };
-    
+
     initializeLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -32,7 +32,7 @@ function BranchSelector() {
   // Also request location when dropdown is opened for the first time
   const handleMenuChange = async (opened) => {
     setMenuOpened(opened);
-    
+
     if (opened && !userLocation && !locationRequested) {
       setLocationRequested(true);
       await refreshLocation();
@@ -62,14 +62,15 @@ function BranchSelector() {
   const getBranchDistance = (branch) => {
     if (!userLocation) return null;
 
-    if (!userLocation) return null;
-
     const distance = getDistance(userLocation, {
       latitude: branch.latitude,
       longitude: branch.longitude,
     });
 
-    return Math.round(distance)
+    return Math.round(distance);
+  };
+
+  return (
     <Menu
       opened={menuOpened}
       onChange={handleMenuChange}
