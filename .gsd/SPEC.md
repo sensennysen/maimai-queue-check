@@ -1,23 +1,14 @@
-# Feature Specification: User Attributions
+# Feature Specification: Deprecate user_roles.preferred_branches
 
 ## 1. Goal
-Create an attribution table showcased on user profiles to display badges/icons for DEVELOPER, CONTRIBUTOR, and TESTER roles.
+Set all `preferred_branches` on the `user_roles` table to `null` and update the application code to exclusively read from and write to the `user_profiles` table for this column.
 
 ## 2. Requirements
-1. **Database Schema**:
-   - Create an enum `user_attribution_type` with values: `'DEVELOPER'`, `'CONTRIBUTOR'`, `'TESTER'`.
-   - Create a table `user_attributions`:
-     - `id`: FK to `user_profiles.id` (Primary Key).
-     - `attributions`: Array of `user_attribution_type` (e.g., `user_attribution_type[]`), defaulting to empty array.
-   - Row Level Security (RLS) on `user_attributions`:
-     - Provide `SELECT` access for all users, enabling the profile to fetch attributions publically.
-     - Insert/Update restricted to service roles or admins.
+1. **Data Migration**:
+   - Execute a SQL command on `maipaqueuecheckph-prod` to set `user_roles.preferred_branches = NULL` for all rows.
+2. **Codebase Updates**:
+   - `src/services/supabase.js`: Remove all logic related to reading, checking, combining, sinking, or saving `preferred_branches` on the `user_roles` table. Rely solely on `user_profiles`.
+   - `src/features/admin/components/UserTable.jsx`: Ensure it reads and updates permissions via the Profile instead of the Role.
+   - Any other instances (modals, login forms) should be verified.
 
-2. **Frontend Profile UI**:
-   - Fetch a user's attributions alongside their `user_profiles` data when viewing a profile.
-   - Display a visual badge/icon area for attributions.
-   - For `DEVELOPER`, display a specific icon (e.g., Wrench/Code).
-   - For `CONTRIBUTOR`, display a specific icon (e.g., Star/Heart).
-   - For `TESTER`, display a specific icon (e.g., Bug/Shield).
-
-3. **Status**: FINALIZED
+3. **Status**: PENDING

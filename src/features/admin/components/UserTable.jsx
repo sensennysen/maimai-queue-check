@@ -153,11 +153,12 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
 
     try {
       const updates = {};
+      const profileUpdates = {};
 
       if (isSuperAdmin) {
         updates.display_name = editForm.display_name;
         updates.is_admin = editForm.is_admin;
-        updates.preferred_branches = editForm.preferred_branches.map(Number);
+        profileUpdates.preferred_branches = editForm.preferred_branches.map(String);
         updates.can_edit = editForm.can_edit;
         updates.can_edit_on = editForm.can_edit_on.map(Number);
       } else {
@@ -181,6 +182,10 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
       }
 
       await adminService.updateUserRole(userToEdit.user_id, updates);
+
+      if (isSuperAdmin) {
+        await adminService.updateUserProfileAdmin(userToEdit.user_id, profileUpdates);
+      }
 
       notifications.show({
         title: 'Success',

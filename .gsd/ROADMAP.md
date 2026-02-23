@@ -1,20 +1,21 @@
-# ROADMAP: Profile Page Performance Improvements
+# Roadmap: Preferred Branches Unification
 
-## Phase 1: Planning & Setup
-- Draft SPEC, ROADMAP, Implementation Plan
-- Identify performance bottlenecks in Profile Page and related components (Status: Done)
+## Phase 1: Planning and Specification
+- [x] Analyze `preferred_branches` column in `user_roles` and `user_profiles`.
+- [x] Create `.gsd/SPEC.md`
+- [x] Create `.gsd/IMPLEMENTATION_PLAN.md`
 
-## Phase 2: Context Optimization
-- Update `SongDatabaseContext` to provide O(1) Map lookups for songs by Title and ID.
+## Phase 2: Execution (Database Migration)
+- [ ] Get user approval for the proposed SQL migration.
+- [ ] Connect to `maipaqueuecheckph-prod` Supabase database.
+- [ ] Pre-flight check: Query existing mismatched data for observation.
+- [ ] Execute `UPDATE user_profiles` SQL statement.
+- [ ] Execute `UPDATE user_roles` SQL statement.
 
-## Phase 3: Component Re-render Optimization
-- Wrap `ScoreCard`, `FavoriteSongCard`, and `PlaylistStack` in `React.memo`.
+## Phase 3: Verification
+- [ ] Post-flight check: Query the same subset of users to verify the records are synchronized, unionized, and deduped.
+- [ ] Update documentation / state.
 
-## Phase 4: Data Fetching Optimization
-- Update `PublicProfilePage.jsx` to use O(1) lookup for Most Played.
-- Update `FavoriteSongsSection.jsx` to use O(1) lookup for Favorites.
-- Update `PlaylistSection.jsx` to memoize the mapped playlist songs array.
-
-## Phase 5: Verification
-- Verify build completeness.
-- Check React DevTools Profiler or perform manual scrolled testing to ensure smooth experience.
+## Phase 4: Commit
+- [ ] Mark `.gsd/STATE.md` as completed.
+- [ ] User final confirmation.

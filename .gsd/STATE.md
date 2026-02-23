@@ -32,3 +32,23 @@
 - None.
 **Next Wave TODO:**
 - Provide clear confirmation and merge.
+
+## Wave 5 Summary
+**Objective:** Fix Profile Visibility Logic
+**Changes:**
+- Updated `PublicProfilePage.jsx` so that logged-in users can view profiles even if `is_public` is false, aligning with the intended behavior of restricted profiles requiring authentication.
+**Files Touched:**
+- `src/pages/PublicProfilePage.jsx`
+**Verification:**
+- Verified frontend logic change `!profileData.is_public && !user` accurately maps to authentication status and correctly blocks completely anonymous users while unblocking valid site users.
+- Lint checks passed cleanly.
+
+## Wave 6 Summary
+**Objective:** Update Execute Workflow with Supabase MCP Rule
+**Changes:**
+- Added a mandatory rule to the `/execute` workflow requiring user approval before executing Supabase MCP migrations or SQL.
+- Fixed step numbering inconsistency in `execute.md`.
+**Files Touched:**
+- `.agent/workflows/execute.md`
+**Verification:**
+- Manually verified file content and numbering.

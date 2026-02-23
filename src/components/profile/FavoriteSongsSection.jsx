@@ -62,7 +62,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
         const songData = songMapById?.get(fav.song_id);
         if (!songData) return null;
         return {
-          song: songData,
+          song: { ...songData, favoriteId: fav.song_id }, // Inject original DB ID (handles cardId or old songId)
           comment: fav.comment
         };
       })
@@ -162,7 +162,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
   };
 
   const handleRemoveFavorite = async (song) => {
-    const songId = song.cardId || song.songId;
+    const songId = song.favoriteId || song.cardId || song.songId;
     const songTitle = song.title;
     if (!confirm(`Remove ${songTitle} from favorites?`)) return;
 
@@ -299,7 +299,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
         comment={selectedSongComment}
         title="Favorite Song Details"
         isOwnProfile={isOwnProfile}
-        onCommentSave={(newComment) => handleUpdateComment(selectedSongDetails.songId, newComment)}
+        onCommentSave={(newComment) => handleUpdateComment(selectedSongDetails.favoriteId || selectedSongDetails.cardId || selectedSongDetails.songId, newComment)}
       />
     </Paper>
   );
