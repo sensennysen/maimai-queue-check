@@ -61,7 +61,7 @@ export const authService = {
 // User roles service functions
 export const rolesService = {
   // Fetch user roles/permissions and profile data
-  async getUserRoles(userId) {
+  async getUserRoles(userId, branchIdOptional) {
     try {
       const [roleResult, profileResult] = await Promise.all([
         supabase
@@ -86,6 +86,7 @@ export const rolesService = {
         return {
           user_id: userId,
           can_edit: false,
+          can_edit_on: [],
           is_admin: false,
           is_super_admin: false,
           preferred_branches: [],
@@ -93,13 +94,17 @@ export const rolesService = {
         };
       }
 
+      const normalizedCanEditOn = Array.isArray(roleData?.can_edit_on)
+        ? roleData.can_edit_on.map(id => typeof id === 'string' ? parseInt(id, 10) : id).filter(n => !isNaN(n))
+        : [];
+
       // Merge data, preferring profileData for profile fields
       // Default to roleData if profileData missing (backward compat)
       const mergedData = {
         user_id: userId,
         // Permissions from roleData
         can_edit: !!roleData?.can_edit,
-        can_edit_on: Array.isArray(roleData?.can_edit_on) ? roleData.can_edit_on : [],
+        can_edit_on: normalizedCanEditOn,
         is_admin: !!roleData?.is_admin,
         is_super_admin: !!roleData?.is_super_admin,
         admin_branch: roleData?.admin_branch || null,
@@ -139,6 +144,10 @@ export const rolesService = {
         },
         is_public: !!profileData?.is_public
       };
+
+      if (branchIdOptional !== undefined && branchIdOptional !== null) {
+        mergedData.canEditInBranch = mergedData.can_edit || mergedData.can_edit_on.some(id => String(id) === String(branchIdOptional));
+      }
       
       return mergedData;
 
@@ -147,6 +156,7 @@ export const rolesService = {
       return {
         user_id: userId,
         can_edit: false,
+        can_edit_on: [],
         is_admin: false,
         is_super_admin: false
       };
