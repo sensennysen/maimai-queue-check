@@ -14,6 +14,11 @@ export const BranchProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
+  /**
+   * Load branches from Supabase, then determine the initial selected branch.
+   * Requirement FRAG-02: By awaiting getAllBranches BEFORE reading storage or defaulting,
+   * we ensure the selected branch is actually in the available branch list.
+   */
   const loadBranches = useCallback(async () => {
     try {
       setLoading(true);
@@ -33,7 +38,8 @@ export const BranchProvider = ({ children }) => {
       // 1. Check for saved branch
       const savedBranchId = localStorage.getItem(STORAGE_KEY);
       if (savedBranchId) {
-        const savedBranch = allBranches.find(b => b.id == savedBranchId);
+        const parsedBranchId = Number(savedBranchId);
+        const savedBranch = allBranches.find(b => b.id === parsedBranchId);
         if (savedBranch) {
           setSelectedBranchState(savedBranch);
           setLoading(false);
@@ -50,11 +56,11 @@ export const BranchProvider = ({ children }) => {
           return distA - distB;
         });
         setSelectedBranchState(sorted[0]);
-        localStorage.setItem(STORAGE_KEY, sorted[0].id);
+        localStorage.setItem(STORAGE_KEY, String(sorted[0].id));
       } else {
         // Default to first branch alphabetically (as sorted by DB or service)
         setSelectedBranchState(allBranches[0]);
-        localStorage.setItem(STORAGE_KEY, allBranches[0].id);
+        localStorage.setItem(STORAGE_KEY, String(allBranches[0].id));
       }
 
     } catch (err) {
@@ -66,7 +72,7 @@ export const BranchProvider = ({ children }) => {
 
   const setSelectedBranch = useCallback((branch) => {
     setSelectedBranchState(branch);
-    localStorage.setItem(STORAGE_KEY, branch.id);
+    localStorage.setItem(STORAGE_KEY, String(branch.id));
   }, []);
 
   const handleBranchChange = useCallback((payload) => {

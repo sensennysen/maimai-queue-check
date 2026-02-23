@@ -127,7 +127,11 @@ export const findNearestBranch = async (userLocation) => {
 };
 
 /**
- * Check if user is within allowed distance of any allowed place
+ * Check if user is within allowed distance of any allowed place.
+ * Requirement FRAG-04 Guard: Handles empty places gracefully and always returns
+ * a valid structure {isAllowed: boolean, nearestPlace: Object|null, distance: number|null, error?: string}.
+ * Callers rely on this structure.
+ *
  * @param {Object} userLocation - User's location {latitude, longitude}
  * @param {number} maxDistance - Maximum allowed distance in meters (default: 100)
  * @param {string} branchId - Optional: Check proximity to specific branch only
@@ -219,7 +223,17 @@ export const checkEditPermissions = async (userId) => {
 };
 
 /**
- * Verify user location and permissions
+ * Verify user location and permissions.
+ * Requirement FRAG-05: Preserve existing geolocation error handling and user-facing messages.
+ * Note: Any permission/timeout changes must be thoroughly tested in browsers
+ * that deny or lack geolocation.
+ * 
+ * Requirement FRAG-04 Context: This function returns a consistent structured object:
+ * { allowed: boolean, reason: string, location: Object|null, proximity: Object|null, error?: string }
+ * Callers (like useQueueActions and queue components) rely on this exact structure
+ * to generate user-facing modals/messages. Null returns or empty objects will break
+ * the UI guards. Always return the full structure.
+ *
  * @param {string} userId - User's ID
  * @param {string} branchId - Optional: Verify proximity to specific branch
  * @param {boolean} isAdmin - Optional: If true, always allow

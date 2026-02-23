@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { authService, rolesService, supabase } from '../services/supabase';
 import { useBranch } from '../hooks/useBranch';
+import { notifications } from '@mantine/notifications';
 import { AuthContext } from './AuthContextProvider';
 
 export const AuthProvider = ({ children }) => {
@@ -50,7 +51,7 @@ export const AuthProvider = ({ children }) => {
       setUserRoles(roles);
       cacheRoles(user.id, roles);
       return roles;
-    } catch {
+    } catch (error) {
       // Set default permissions on error (keep existing permissions if available)
       setUserRoles(prevRoles =>
         prevRoles || {
@@ -60,6 +61,15 @@ export const AuthProvider = ({ children }) => {
           is_super_admin: false
         }
       );
+
+      // Surface UI notification per FRAG-03 requirement
+      notifications.show({
+        title: 'Roles could not be loaded',
+        message: 'There was a problem loading your permissions. Some actions may be temporarily unavailable.',
+        color: 'yellow',
+        autoClose: 5000,
+      });
+
       return null;
     }
   }, [user, selectedBranch?.id]);
