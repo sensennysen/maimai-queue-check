@@ -1,70 +1,60 @@
-# Testing Patterns
+# TESTING.md — Test Structure & Practices
 
-**Analysis Date:** 2025-02-23
+## Current State
 
-## Test Framework
+> [!IMPORTANT]
+> **This project has no automated test suite.** There are no test files, no testing framework configured, and no test scripts in `package.json`.
 
-**Runner:** Not detected. No Jest, Vitest, or other test runner is configured.
+## What Exists Instead
 
-**Assertion library:** Not applicable.
+### ESLint (Static Analysis)
+- `eslint` v9 with flat config (`eslint.config.js`)
+- `eslint-plugin-react-hooks` — catches hook rule violations at lint time
+- `eslint-plugin-react-refresh` — flags HMR-unsafe patterns
+- Run via: `npm run lint` or `npm run lint:fix`
+- Pre-commit hook enforces lint via `husky` + `lint-staged`
 
-**Run commands:** None. `package.json` has no `test` or `test:watch` scripts.
+### Manual Verification
+All features are validated manually via the running dev server (`npm run dev`). The project has relied on:
+- Live browser testing with `vite` HMR
+- Supabase dashboard inspection for DB changes
+- `npm run build:analyze` (rollup-plugin-visualizer) for bundle size inspection
 
-**Config:** No `jest.config.*`, `vitest.config.*`, or `setupTests.*` files present.
+### Type Safety
+- No TypeScript
+- Zod schemas in `src/utils/validation.js` provide runtime input validation on user-submitted data (queue entries, profiles, contact reports)
+- No compile-time type checking
 
-## Test File Organization
+## Verification Methods Used in Planning Docs
 
-**Location:** Not applicable — no test files found.
+The `.planning/` directory documents "verification plans" for each phase using these methods:
 
-**Naming:** Not applicable. When adding tests, common patterns would be `*.test.js` / `*.spec.js` or co-located `*.test.jsx` beside components.
+| Method | Tooling |
+|--------|---------|
+| Dev server smoke test | `npm run dev` → manual browser check |
+| Build check | `npm run build` → no errors |
+| Lint check | `npm run lint` → zero errors |
+| Supabase query verification | Manual Supabase dashboard or MCP `execute_sql` |
 
-**Structure:** No test directory layout exists (e.g. no `src/__tests__/`, no `*.test.js` next to source).
+## Recommendations (Not Yet Implemented)
 
-## Test Structure
+If a test suite is added in the future, the following would be good starting points:
 
-**Suite organization:** N/A. When introducing tests, use a single runner (e.g. Vitest) and standard `describe` / `it` (or `test`) blocks.
+| Area | Suggested Tool |
+|------|---------------|
+| Unit tests (utils, services) | Vitest (co-located with Vite) |
+| Component tests | @testing-library/react |
+| Zod schema tests | Vitest + raw schema calls |
+| E2E | Playwright |
 
-**Patterns:** N/A. No existing setup/teardown or assertion patterns in the repo.
+The service layer (`src/services/supabase/*.js`) is well-isolated and would be easy to test with mocked Supabase clients.
 
-## Mocking
+## Build Validation
 
-**Framework:** Not used. No test runner implies no mocking setup.
+```bash
+npm run build        # Full production build (catches import errors, missing modules)
+npm run build:analyze  # Bundle size analysis (opens stats.html)
+npm run lint         # ESLint (zero-error requirement)
+```
 
-**What to mock when tests are added:**
-- `src/services/supabase.js` and Supabase client (network and auth).
-- `import.meta.env` (e.g. `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) in any module that reads env at load time.
-- Browser APIs used in hooks (e.g. `localStorage`, `navigator.geolocation`) and in components (e.g. `window.confirm` in `QueueItem.jsx`).
-
-**What NOT to mock:**
-- Pure utils with no I/O (e.g. `src/utils/validation.js` schemas and `validateData`, `src/utils/maimai-calc.js` calculation helpers) — test with real inputs.
-
-## Fixtures and Factories
-
-**Test data:** None. No fixture files or factories in the repo.
-
-**Recommendation:** When adding tests, add minimal fixtures (e.g. valid/invalid payloads for Zod schemas, mock queue entries) under `src/__tests__/fixtures/` or next to the test file, and reuse for validation and service-unit tests.
-
-## Coverage
-
-**Requirements:** None. No coverage script or threshold configuration.
-
-**View coverage:** N/A. With Vitest, typical commands would be `npx vitest run --coverage` and configure in `vite.config.js` or `vitest.config.js`.
-
-## Test Types
-
-**Unit tests:** Not present. Good first targets when adding tests: `src/utils/validation.js` (`validateData`, schemas), `src/utils/maimai-calc.js` (rating/grade and score processing), and pure helpers in `src/config/maimai-constants.js`.
-
-**Integration tests:** Not present. Services in `src/services/supabase.js` would require a test Supabase client or mocks.
-
-**E2E tests:** Not used. No Playwright, Cypress, or similar.
-
-## Recommended Setup (When Adding Tests)
-
-- **Runner:** Vitest — aligns with Vite (`vite.config.js`), ESM, and `import.meta.env`. Add `vitest` as dev dependency and a `test` script (e.g. `vitest run`, `vitest` for watch).
-- **Location:** Co-located `*.test.js` / `*.test.jsx` next to source, or a top-level `src/__tests__/` for shared fixtures and integration-style tests.
-- **Mocking:** Use `vi.mock()` for `../services/supabase` and env; use `vi.stubEnv()` or a test env file for `import.meta.env` if needed.
-- **Async:** Use `async`/`await` in tests; Vitest supports promises in `it()` and `beforeEach`/`afterEach`.
-
----
-
-*Testing analysis: 2025-02-23*
+The CI/CD pipeline (`.github/` workflows) runs on push — check `.github/` for exact steps.
