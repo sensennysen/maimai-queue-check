@@ -41,6 +41,8 @@ const NotificationCenter = () => {
       fetchRequests();
 
       // Real-time subscription for new requests
+      // Note: RLS handles security natively. The client-side filter here ensures this admin only sees
+      // requests relevant to their branch (unless they are super admin).
       const channel = supabase
         .channel('admin-notifications')
         .on(
@@ -92,7 +94,12 @@ const NotificationCenter = () => {
       .channel('general_notifications')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`
+        },
         () => {
           fetchGeneralNotifications();
         }

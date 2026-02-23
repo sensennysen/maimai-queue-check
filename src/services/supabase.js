@@ -21,6 +21,8 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   },
   realtime: {
     params: {
+      // Intentionally limited to 10 events per second globally to constrain
+      // client/server load. (PERF-01 tuned constraint)
       eventsPerSecond: 10,
     },
   },
