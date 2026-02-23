@@ -27,4 +27,10 @@ export default defineConfig([
       'semi': ['error', 'always'],
     },
   },
+  {
+    files: ['api/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ]);
