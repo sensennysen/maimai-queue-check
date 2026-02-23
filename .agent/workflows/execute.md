@@ -7,7 +7,7 @@ description: Standard execution workflow for implementing features and fixes
 Follow these steps when implementing any code change.
 
 1. Make the code edit(s) to the relevant file(s).
-   - **Crucial**: When working with Supabase MCP, always ask for explicit approval from the user before execution of any migrations or SQL.
+   - **Crucial**: When working with Supabase MCP, always ask for explicit approval from the user before execution of any actions or command.
 
 // turbo
 2. Run lint after every edit to catch syntax and logic errors early. **NEVER** proceed if there are errors:
