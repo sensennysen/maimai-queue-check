@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
       setUserRoles(roles);
       cacheRoles(user.id, roles);
       return roles;
-    } catch (error) {
+    } catch {
       // Set default permissions on error (keep existing permissions if available)
       setUserRoles(prevRoles =>
         prevRoles || {
