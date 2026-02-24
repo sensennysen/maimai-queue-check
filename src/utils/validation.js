@@ -34,7 +34,7 @@ export const userProfileSchema = z.object({
     .optional()
     .or(z.literal('')),
   introduction: z.string()
-    .max(2000, 'Introduction is too long')
+    .max(4000, 'Introduction is too long')
     .trim()
     .nullable()
     .optional()

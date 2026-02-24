@@ -16,14 +16,21 @@ function sanitize(html) {
 }
 
 function IntroductionEditor({ initialContent, onSave, onCancel }) {
+  const [characterCount, setCharacterCount] = useState(0);
+
   const editor = useEditor({
     extensions: [StarterKit, Link],
     content: initialContent || '',
+    onUpdate: ({ editor }) => {
+      setCharacterCount(editor.getText().trim().length);
+    },
+    onCreate: ({ editor }) => {
+      setCharacterCount(editor.getText().trim().length);
+    },
   });
 
   const [isSaving, setIsSaving] = useState(false);
-  const characterCount = editor?.getText().length || 0;
-  const isOverLimit = characterCount > 500;
+  const isOverLimit = characterCount > 1000;
 
   const handleSave = async () => {
     if (!editor || isOverLimit) return;
@@ -70,7 +77,7 @@ function IntroductionEditor({ initialContent, onSave, onCancel }) {
 
       <Group gap="xs" justify="space-between">
         <Text size="xs" c={isOverLimit ? 'red' : 'dimmed'} fw={isOverLimit ? 700 : 400}>
-          {characterCount} / 500 characters
+          {characterCount} / 1000 characters
         </Text>
         <Group gap="xs">
           <Button
