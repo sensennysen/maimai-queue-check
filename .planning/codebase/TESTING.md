@@ -1,60 +1,31 @@
-# TESTING.md — Test Structure & Practices
+# Testing
+
+**Last mapped:** 2026-02-24
 
 ## Current State
 
-> [!IMPORTANT]
-> **This project has no automated test suite.** There are no test files, no testing framework configured, and no test scripts in `package.json`.
+- **No test framework** in the project. `package.json` has no Jest, Vitest, React Testing Library, or similar.
+- **No test scripts** (e.g. `test`, `test:watch`, `coverage`).
+- **No dedicated test directory** (e.g. `__tests__/`, `src/**/*.test.js`, `e2e/`).
+- **No CI test step** implied by repo (only lint-staged and ESLint in scripts).
 
-## What Exists Instead
+## What Exists
 
-### ESLint (Static Analysis)
-- `eslint` v9 with flat config (`eslint.config.js`)
-- `eslint-plugin-react-hooks` — catches hook rule violations at lint time
-- `eslint-plugin-react-refresh` — flags HMR-unsafe patterns
-- Run via: `npm run lint` or `npm run lint:fix`
-- Pre-commit hook enforces lint via `husky` + `lint-staged`
+- **Lint:** `npm run lint` / `lint:fix` run ESLint on `*.{js,jsx}`; pre-commit runs fix + lint via lint-staged. Catches many syntax and React-hooks issues; not a substitute for unit/integration tests.
+- **Manual/QA:** Features are validated manually; no automated E2E or component tests in repo.
+- **Validation logic:** `src/utils/validation.js` and `src/utils/maimai-calc.js` are good candidates for future unit tests (pure schemas and calculations).
 
-### Manual Verification
-All features are validated manually via the running dev server (`npm run dev`). The project has relied on:
-- Live browser testing with `vite` HMR
-- Supabase dashboard inspection for DB changes
-- `npm run build:analyze` (rollup-plugin-visualizer) for bundle size inspection
+## Gaps
 
-### Type Safety
-- No TypeScript
-- Zod schemas in `src/utils/validation.js` provide runtime input validation on user-submitted data (queue entries, profiles, contact reports)
-- No compile-time type checking
+- No unit tests for services, hooks, or utils.
+- No component tests for UI behavior.
+- No E2E tests for critical flows (queue, admin, profile).
+- No coverage reporting or thresholds.
+- Remediation (see `.planning/PROJECT.md` and STATE.md) explicitly left tests out of scope; a separate initiative is expected for adding a test harness (e.g. Vitest + React Testing Library) and core tests.
 
-## Verification Methods Used in Planning Docs
+## Recommendations (Future)
 
-The `.planning/` directory documents "verification plans" for each phase using these methods:
-
-| Method | Tooling |
-|--------|---------|
-| Dev server smoke test | `npm run dev` → manual browser check |
-| Build check | `npm run build` → no errors |
-| Lint check | `npm run lint` → zero errors |
-| Supabase query verification | Manual Supabase dashboard or MCP `execute_sql` |
-
-## Recommendations (Not Yet Implemented)
-
-If a test suite is added in the future, the following would be good starting points:
-
-| Area | Suggested Tool |
-|------|---------------|
-| Unit tests (utils, services) | Vitest (co-located with Vite) |
-| Component tests | @testing-library/react |
-| Zod schema tests | Vitest + raw schema calls |
-| E2E | Playwright |
-
-The service layer (`src/services/supabase/*.js`) is well-isolated and would be easy to test with mocked Supabase clients.
-
-## Build Validation
-
-```bash
-npm run build        # Full production build (catches import errors, missing modules)
-npm run build:analyze  # Bundle size analysis (opens stats.html)
-npm run lint         # ESLint (zero-error requirement)
-```
-
-The CI/CD pipeline (`.github/` workflows) runs on push — check `.github/` for exact steps.
+- Add Vitest (or Jest) + React Testing Library when introducing tests; align with Vite (Vitest fits well).
+- Prioritize: validation schemas, maimai-calc, then critical service functions and hooks.
+- E2E: consider Playwright or Cypress in a later phase if needed.
+- Keep tests out of the main bundle; run in CI via `npm run test` when added.

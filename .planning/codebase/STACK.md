@@ -1,106 +1,90 @@
-# STACK.md — Technology Stack
+# Technology Stack
 
-## Runtime & Language
+**Analysis Date:** 2025-02-24
 
-| Item | Version | Notes |
-|------|---------|-------|
-| Language | JavaScript (ESM) | No TypeScript; `"type": "module"` in package.json |
-| React | ^19.2.0 | Concurrent mode, lazy/Suspense used for pages |
-| Node (dev only) | Any LTS | Only needed for build/lint tooling |
+## Languages
 
-## Build Tooling
+**Primary:**
+- JavaScript (ES modules) - Application and API code in `src/` and `api/`
+- JSX - React components (`.jsx` in `src/`)
 
-| Tool | Version | Config |
-|------|---------|--------|
-| Vite | ^7.2.4 | `vite.config.js` — target `esnext`, minify via Terser |
-| @vitejs/plugin-react | ^5.1.1 | Babel-based JSX transform |
-| vite-plugin-compression | ^0.5.1 | Dual gzip + brotli output, threshold 1 KB |
-| rollup-plugin-visualizer | ^5.12.0 | `build:analyze` mode only, outputs `dist/stats.html` |
-| terser | ^5.46.0 | `drop_console` in production, `drop_debugger` always |
+**Secondary:**
+- Not applicable (no TypeScript; no other languages in app code)
 
-**Key Vite settings:**
-- `chunkSizeWarningLimit: 800` KB
-- Hashed asset filenames under `assets/js/`, `assets/css/`, `assets/images/`, `assets/fonts/`
-- Manual chunk splitting **commented out** (PERF-01 investigation artifact) — single bundle currently
+## Runtime
 
-## UI Framework
+**Environment:**
+- Browser (client app)
+- Node.js (Vercel serverless API in `api/`)
 
-| Package | Version | Notes |
-|---------|---------|-------|
-| @mantine/core | ^8.3.15 | Primary component library (Container, Paper, Stack, Group, Title, Button, etc.) |
-| @mantine/hooks | ^8.3.15 | `useClickOutside`, `useDisclosure`, etc. |
-| @mantine/notifications | ^8.3.15 | Toast notifications, positioned `top-right` |
-| @mantine/form | ^8.3.15 | Form state management |
-| @mantine/dropzone | ^8.3.15 | File upload zones |
-| @mantine/tiptap | ^8.3.15 | Rich-text editor integration |
-| @tabler/icons-react | ^3.36.1 | SVG icon set |
+**Package Manager:**
+- npm
+- Lockfile: present (`package-lock.json`)
 
-**Theme:** Multi-theme system in `src/config/theme.js`. `createTheme()` merges `primary`, `secondary`, `accent` color arrays (10-shade format). Themes: `circle` (default), others. Selected theme stored in `ThemeContext`.
+## Frameworks
 
-## Backend / Database
+**Core:**
+- React ^19.2.0 - UI
+- Vite ^7.2.4 - Build and dev server
+- React Router DOM ^7.13.0 - Routing
+- Mantine ^8.3.15 - UI components, forms, notifications, rich text, dropzone, hooks
 
-| Package | Version | Notes |
-|---------|---------|-------|
-| @supabase/supabase-js | ^2.90.1 | Client-side Supabase SDK |
-| Supabase Realtime | (bundled) | Postgres CDC via WebSocket channels |
-| Supabase Storage | (bundled) | `profile-pictures` and `contact_uploads` buckets |
+**Testing:**
+- Not detected (no Jest, Vitest, or test runner in `package.json` or config)
 
-## Rich Text / Content
+**Build/Dev:**
+- Vite ^7.2.4 - Bundler and dev server
+- @vitejs/plugin-react ^5.1.1 - React fast refresh
+- terser ^5.46.0 - Production minification
+- vite-plugin-compression ^0.5.1 - gzip/brotli assets
+- rollup-plugin-visualizer ^5.12.0 - Bundle analysis (`npm run build:analyze`)
+- ESLint ^9.39.1 - Linting (`eslint.config.js`)
+- Husky ^9.1.7, lint-staged ^16.2.7 - Pre-commit hooks
 
-| Package | Version |
-|---------|---------|
-| @tiptap/react | ^3.20.0 |
-| @tiptap/starter-kit | ^3.20.0 |
-| @tiptap/extension-link | ^3.20.0 |
+## Key Dependencies
 
-## Validation
+**Critical:**
+- @supabase/supabase-js ^2.90.1 - Backend, auth, storage, realtime; client in `src/services/supabase/client.js`
+- react ^19.2.0 / react-dom ^19.2.0 - Core UI
+- @mantine/core, @mantine/hooks, @mantine/form, @mantine/notifications, @mantine/dropzone, @mantine/tiptap - UI and forms
+- react-router-dom ^7.13.0 - Routing
+- zod ^4.3.6 - Schema validation (e.g. `src/utils/validation.js`)
 
-| Package | Version | Notes |
-|---------|---------|-------|
-| zod | ^4.3.6 | Runtime schema validation for queue entries, user profiles, contact reports |
-| dompurify | ^3.3.1 | HTML sanitisation (used in rich-text contexts) |
+**Infrastructure:**
+- dotenv ^17.2.3 - Env loading (optional at build time)
+- @vercel/analytics ^1.6.1 - Analytics (`src/App.jsx`)
+- @vercel/speed-insights ^1.3.1 - Performance (`src/main.jsx`)
 
-## Routing
+**Rich content & media:**
+- @tiptap/react, @tiptap/starter-kit, @tiptap/extension-link, @mantine/tiptap - Rich text (e.g. queue rules)
+- dompurify ^3.3.1 - Sanitization
+- html-to-image ^1.11.13 - Export/screenshot
+- react-easy-crop ^5.5.6 - Image cropping (profile)
+- @tabler/icons-react ^3.36.1 - Icons
 
-| Package | Version | Notes |
-|---------|---------|-------|
-| react-router-dom | ^7.13.0 | `BrowserRouter`, `Routes`, `Route`, `Navigate`, `useParams` |
+## Configuration
 
-## Image Processing
+**Environment:**
+- Vite env: `import.meta.env` in client; variables must be prefixed with `VITE_`
+- Serverless API: `process.env` in `api/` (Vercel injects env)
+- `.env` file present at project root (do not read or commit contents)
+- Required for app: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_SONG_JACKETS_URL`
 
-| Package | Version |
-|---------|---------|
-| react-easy-crop | ^5.5.6 |
-| html-to-image | ^1.11.13 |
+**Build:**
+- `vite.config.js` - Vite config, compression, analyze mode, Rollup output (assets/js, assets/images, etc.)
+- `eslint.config.js` - ESLint flat config; browser globals for `src/`, Node globals for `api/`
+- `vercel.json` - Headers (CSP, X-Frame-Options, etc.), rewrites (profile meta, SPA fallback), API routing
 
-## Analytics & Monitoring
+## Platform Requirements
 
-| Package | Version | Notes |
-|---------|---------|-------|
-| @vercel/analytics | ^1.6.1 | Page view tracking via `<Analytics />` in `App.jsx` |
-| @vercel/speed-insights | ^1.3.1 | Core Web Vitals reporting |
+**Development:**
+- Node.js (version not pinned in repo; lockfile defines resolved versions)
+- npm
 
-## Code Quality
+**Production:**
+- Vercel (implied by `api/`, `vercel.json`, Vercel Analytics/Speed Insights)
+- Static assets + serverless functions under `api/`
 
-| Tool | Version | Config |
-|------|---------|--------|
-| eslint | ^9.39.1 | `eslint.config.js` (flat config) |
-| eslint-plugin-react-hooks | ^7.0.1 | Rules of hooks enforcement |
-| eslint-plugin-react-refresh | ^0.4.24 | HMR safety |
-| globals | ^16.5.0 | Browser globals preset |
-| husky | ^9.1.7 | Git hooks (.husky/) |
-| lint-staged | ^16.2.7 | Run `eslint --fix` + `eslint` on staged `*.{js,jsx}` |
+---
 
-## Environment Variables
-
-| Key | Purpose |
-|-----|---------|
-| `VITE_SUPABASE_URL` | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous/public key |
-| Any others | Defined in `.env` (710 bytes), not committed |
-
-## Deployment
-
-- **Host:** Vercel (`vercel.json` present)
-- **SPR:** All routes fallback to `index.html` (SPA routing)
-- **Build output:** `dist/` directory
+*Stack analysis: 2025-02-24*

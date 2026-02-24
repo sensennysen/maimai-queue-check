@@ -1,142 +1,53 @@
-# CONVENTIONS.md — Code Style & Patterns
+# Conventions
 
-## Language & Module System
+**Last mapped:** 2026-02-24
 
-- **JavaScript only** — no TypeScript (JSDoc comments used sparingly)
-- **ES Modules** (`import`/`export`), `"type": "module"` in package.json
-- **No default parameter objects** — services use named parameters or destructuring
+## Code Style
 
-## File Organization
+- **Semicolons:** Required (`eslint.config.js`: `semi: ['error', 'always']`).
+- **JS/JSX:** No TypeScript; JSDoc and `src/types/` used where shapes are documented.
+- **Unused vars:** Error except names matching `^[A-Z_]` (constants).
+- **Modules:** ESM only; default and named exports; no CommonJS.
 
-| File type | Extension | Location |
-|-----------|-----------|----------|
-| React components | `.jsx` | `src/components/`, `src/features/`, `src/pages/` |
-| Hooks | `.js` | `src/hooks/` |
-| Services | `.js` | `src/services/` |
-| Utilities | `.js` | `src/utils/` |
-| Context defs (to avoid circular imports) | `.js` | `src/contexts/*Def.js` pair pattern |
+## Naming
 
-## Naming Conventions
+- **Components:** PascalCase (`QueueManager.jsx`, `BranchSelector.jsx`).
+- **Hooks:** `use` prefix (`useQueueData.js`, `useAuth.js`).
+- **Services:** camelCase exports (`authService`, `queueService`); file names match domain (`auth.js`, `queue.js`).
+- **Contexts:** `*Context.jsx` or `*ContextProvider.js`; providers as `*Provider`.
+- **Constants:** UPPER_SNAKE or `^[A-Z_]` where ignored by no-unused-vars.
 
-| Thing | Convention | Example |
-|-------|-----------|---------|
-| React components | PascalCase | `QueueManager`, `BranchSelector` |
-| Custom hooks | `use` prefix, camelCase | `useQueueData`, `useAuth` |
-| Service objects | camelCase + `Service` suffix | `queueService`, `authService` |
-| Context objects | PascalCase + `Context` | `AuthContext`, `BranchContext` |
-| Constants (enum values) | SCREAMING_SNAKE_CASE | `QUEUE_STATUS.PLAYING` |
-| Zod schemas | camelCase + `Schema` | `queueEntrySchema`, `userProfileSchema` |
-| Database fields | snake_case (Postgres naming) | `branch_id`, `created_at` |
+## Validation
 
-## Service Pattern
-
-Services are plain JS objects with async methods — no classes, no singletons beyond the Supabase client.
-
-```js
-// ✅ Correct service pattern
-export const queueService = {
-  async getQueueEntries(branchId, cabinetNum = null) {
-    const { data, error } = await supabase.from('queue_entries')...;
-    if (error) throw error;
-    return data || [];
-  }
-};
-
-// ✅ Correct subscription pattern
-export const subscribeToQueueChanges = (callback, branchId) => {
-  const channel = supabase.channel(uniqueId)
-    .on('postgres_changes', config, callback)
-    .subscribe();
-  return channel;
-};
-```
+- **Zod:** Schemas in `src/utils/validation.js` (e.g. `userProfileSchema`, `queueEntrySchema`, `contactReportSchema`). File fields use `z.instanceof(File)` with `.refine()` for size/type; contact report uses optional file.
+- **Usage:** `validateData(schema, data)` returns `{ success, data? }` or `{ success: false, error }`; callers throw or surface error to user.
+- **API boundaries:** Validate before Supabase insert/update where applicable (e.g. contact submit, queue entries).
 
 ## Error Handling
 
-- Services: `if (error) throw error;` — let callers handle
-- Some services return safe defaults on partial failures (e.g., `auth.js` `getUserRoles` returns `{ can_edit: false, is_admin: false }` on any error)
-- Hooks use `setError(err.message)` + surface to UI
-- `AuthContext` uses `notifications.show(...)` (Mantine) to surface role-fetch failures to user (FRAG-03 fix)
-- `console.error` used for non-critical partial failures (e.g., clearing most-played songs during data wipe)
+- **Services:** Try/catch in async functions; log (`console.error`) and rethrow or return safe default (e.g. `getUserRoles` returns minimal permissions on error). No silent empty `.catch(() => {})` in critical paths; post-remediation async paths log at minimum.
+- **UI:** Notifications (Mantine) for user-facing errors (e.g. "Roles could not be loaded"); error states in hooks/context for loading failures.
+- **Auth/roles:** Timeout (e.g. 5s) for role fetch with fallback to safe defaults and non-blocking notification.
 
-> [!WARNING]
-> **DEBT-04:** `useQueueData` does not set error state when real-time queue refresh fails — errors are only logged via `console.error`, not surfaced to the user.
+## ESLint
 
-## Validation Pattern
-
-All user-submitted data is validated via Zod before reaching the database:
-
-```js
-// Inside service method:
-const validation = validateData(queueEntrySchema, { player1, player2, ... });
-if (!validation.success) throw new Error(validation.error);
-// proceed with DB call...
-```
-
-`validateData` returns `{ success, data?, error? }` and only surfaces the first error. Schemas live in `src/utils/validation.js`.
-
-> [!WARNING]
-> **DEBT-03:** `contactReportSchema` uses `z.instanceof(File)` for file validation, which doesn't work in server-side/SSR/test environments. The allowed MIME types (`image/*` only) are not exhaustive for general file attachments.
+- **Config:** Flat config in `eslint.config.js`; react-hooks and react-refresh recommended.
+- **Disables:** Intentional disables have short comments (e.g. ref identity, run-once effect). Examples: `react-refresh/only-export-components` for context files; `react-hooks/exhaustive-deps` or `react-hooks/immutability` where justified and documented.
+- **Scope:** No global disable of exhaustive-deps; file/line only.
 
 ## React Patterns
 
-### Context / Hooks
-- Context split: one Provider file + one thin context def file (e.g., `AuthContext.jsx` + `AuthContextProvider.js`) to prevent circular imports
-- Each context has a corresponding `use<Name>` hook for consumption
+- **Context:** Provider order: Theme → Branch → Auth → SongDatabase → FeatureFlag. Loading state owned by provider; consumers use hooks and handle loading/empty.
+- **Lazy loading:** Heavy pages lazy-loaded (`lazy(() => import(...))`) with single `Suspense` and shared fallback (loader) in `App.jsx`.
+- **Hooks:** Compose services and context; avoid raw Supabase in UI components.
 
-### Component Structure
-```jsx
-// Functional components only — no class components
-export default function ComponentName({ prop1, prop2 }) {
-  // hooks first
-  // derived state
-  // handlers
-  // return JSX
-}
-```
+## Security
 
-### Lazy Loading
-Pages are lazy-loaded with `React.lazy()` + `<Suspense>`. Fallback: full-page Mantine `<Loader>`.
+- **User/DB HTML:** DOMPurify before any `dangerouslySetInnerHTML` for user or DB-sourced content.
+- **Env:** Only `VITE_*` in client; no secrets; Supabase anon key only.
+- **Storage:** Role cache in localStorage under `user_roles_${uid}`; cleared on logout.
 
-### Performance
-- `useCallback` used for stable handlers (e.g., `refreshUserRoles`, `loadInitialData`)
-- `useMemo` used for expensive derived values (e.g., dynamic Mantine theme in `AppProviders`)
+## File / Upload
 
-## CSS Conventions
-
-- **Vanilla CSS** — no Tailwind, no CSS Modules
-- Global CSS tokens in `src/index.css`, component-level overrides in co-located `.css` files
-- Animation classes: `animate-fade-in`, `delay-100`, `delay-200`, `delay-300` (utility classes in `index.css`)
-- Mantine's `theme.colors` extended with `primary`, `secondary`, `accent` (10-shade arrays)
-
-> [!NOTE]
-> `background-attachment: fixed` and `backdrop-filter` were removed from global CSS (Phase 02 PERF work) due to GPU layer promotion causing scroll jank on mobile.
-
-## Comments & Documentation
-
-- JSDoc used on some hooks and utilities
-- Inline comments used for non-obvious logic, security decisions (tagged `SEC-XX`), and performance decisions (tagged `PERF-XX`)
-- `TODO` / `FIXME` comments exist in some files but are not tracked systematically
-
-## Import Order (Informal)
-
-1. React core imports
-2. Third-party packages (Mantine, Supabase, etc.)
-3. Internal services
-4. Internal contexts / hooks
-5. Local components
-6. CSS imports
-
-## ESLint Rules (Enforced)
-
-| Rule | Setting |
-|------|---------|
-| `no-unused-vars` | error; ignores `^[A-Z_]` pattern (capitalized constants) |
-| `semi` | error; always required |
-| react-hooks rules | recommended (exhaustive-deps) |
-| react-refresh rules | vite preset |
-
-**Pre-commit:** `lint-staged` runs `eslint --fix` then `eslint` on staged `*.{js,jsx}` via Husky.
-
-> [!WARNING]
-> **DEBT-02:** Several files contain `// eslint-disable` comments to suppress specific rules rather than fixing the underlying issue. These should be resolved as part of the tech debt phase.
+- **Validation:** Zod with `z.instanceof(File)` and refines for size and MIME; client-side only (server-side MIME not in app code; signed URLs mitigate risk).
+- **Contact report:** Optional file; text and file validated separately in `contact.js`.
