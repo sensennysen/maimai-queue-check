@@ -223,7 +223,6 @@ export const userService = {
         maimai_best_scores: null,
         maimai_scores_updated_at: null,
         dx_display_photo_url: null,
-        display_photo_url: null,
         maimai_dx_name: null,
         updated_at: new Date().toISOString()
       })

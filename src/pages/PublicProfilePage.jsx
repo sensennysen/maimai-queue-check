@@ -103,7 +103,7 @@ const PublicProfilePage = () => {
   }, [slug, fetchData]);
 
   const handleClearData = async () => {
-    if (!window.confirm('Are you sure you want to clear your Best 50 scores, maimai DX name, and profile photo? This action cannot be undone.')) {
+    if (!window.confirm('Are you sure you want to clear your Best 50 scores, maimai DX name, and maimai profile photo? This will NOT remove your custom profile picture. This action cannot be undone.')) {
       return;
     }
 
