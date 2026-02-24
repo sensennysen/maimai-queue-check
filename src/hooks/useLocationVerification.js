@@ -10,7 +10,7 @@ import { ERRORS } from '../constants/queue';
  */
 export const useLocationVerification = () => {
   const { user, userRoles } = useAuth();
-  const { selectedBranch, setSelectedBranch, branches, refreshLocation } = useBranch();
+  const { selectedBranch, setSelectedBranch, branches, refreshLocation, hasManuallySelected } = useBranch();
 
   const [locationVerified, setLocationVerified] = useState(false);
   const [locationError, setLocationError] = useState(null);
@@ -161,8 +161,8 @@ export const useLocationVerification = () => {
       // Success - mark as granted
       setGeolocationConsent('granted');
       
-      // Try to find nearest branch and auto-select it
-      if (location && branches.length > 0) {
+      // Try to find nearest branch and auto-select it ONLY if no manual selection this session
+      if (location && branches.length > 0 && !hasManuallySelected) {
         try {
           const { nearestBranch } = await findNearestBranch(location);
           if (nearestBranch) {
