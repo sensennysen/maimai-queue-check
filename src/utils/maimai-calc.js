@@ -141,10 +141,27 @@ export const calculateBest50 = async (rawScores, songs, rawBestFifty = null) => 
         }, songMap);
 
         if (processed) {
+          const comboAchievementRaw = item.comboAchievement ?? item.comboAchivement ?? null;
+          const syncRaw = item.syncType ?? item.syncAchievement ?? item.syncAchivement ?? null;
+          const dxScore = item.dxScore ?? null;
+          const totalDxScore = item.totalDxScore ?? null;
+          const dxStar = item.dxStar ?? null;
+
           return {
             ...processed,
             last_played: item.last_played,
-            play_count: item.play_count
+            play_count: item.play_count,
+            // Combo achievement (bookmarklet + DB aliases)
+            comboAchievement: comboAchievementRaw,
+            comboAchivement: comboAchievementRaw,
+            // Sync achievement / type aliases
+            syncType: syncRaw,
+            syncAchievement: syncRaw,
+            syncAchivement: syncRaw,
+            // DX score details
+            dxScore,
+            totalDxScore,
+            dxStar
           };
         }
         return null;

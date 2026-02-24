@@ -18,6 +18,7 @@ The service layer lives under `src/services/`. The Supabase integration was spli
 | `queue.js` | `queueService`, `subscribeToQueueChanges`, `subscribeToSessionChanges` | Queue CRUD, realtime queue/session changes |
 | `profile.js` | `userService`, `favoritesService`, `playlistService` | User profiles, favorite songs, playlists |
 | `contact.js` | `contactService` | Contact/report form submissions |
+| `import.js` | `createImportSession`, `getImportSession`, `deleteImportSession` | Maimai score import: create session (token), poll for payload from bookmarklet → Edge Function; delete session after success or when expired |
 
 ### Facade (`src/services/supabase.js`)
 
@@ -74,3 +75,13 @@ This caps realtime throughput across all channels for all connected clients.
 ### Summary
 
 No high-volume unscoped subscriptions exist. The two global channels (`session_realtime`, `user_roles_realtime`) operate on low-volume tables where global broadcast is intentional and acceptable. The `eventsPerSecond: 10` constraint provides a global safety ceiling.
+
+---
+
+## Import sessions (bookmarklet flow)
+
+The maimai bookmarklet sends scraped JSON to a Supabase Edge Function instead of the clipboard. The app creates a row in `import_sessions` (token, `user_id`, `status: 'pending'`, `expires_at`), the user enters that token in the bookmarklet overlay, and the Edge Function updates the row with `payload` and `status: 'complete'`. The app polls until complete then processes the payload and **deletes the row** (to avoid retaining sensitive payloads).
+
+- **RLS:** Table `import_sessions` must allow INSERT, SELECT, and DELETE for `user_id = auth.uid()` only. The Edge Function uses the service role to update by `id`.
+- **CORS:** The Edge Function (see `sampleEdgeFunction.ts`) allows origins for maimai DX NET and the app so the bookmarklet can POST from the maimai site.
+- **Build:** Run `npm run build:bookmarklet` (or rely on `prebuild`) so `public/bookmarklet.js` is generated with the correct Edge Function URL from `VITE_SUPABASE_URL`. The default function name is `receive-import` (override with `VITE_IMPORT_FUNCTION_NAME`).
