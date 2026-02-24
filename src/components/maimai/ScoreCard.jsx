@@ -31,7 +31,7 @@ const formatSyncType = (value) => {
   return v;
 };
 
-export const ScoreCard = React.memo(function ScoreCard({ score, onClick }) {
+export const ScoreCard = React.memo(function ScoreCard({ score, onClick, isExport }) {
   // Use imageName from score object (populated from otoge-db)
   const jacketUrl = score.imageName
     ? `${BASE_JACKET_URL}${score.imageName}`
@@ -77,13 +77,13 @@ export const ScoreCard = React.memo(function ScoreCard({ score, onClick }) {
     >
       <Flex gap="sm" align="center">
         {/* Jacket Image */}
-        <Box w={90} h={90} style={{ flexShrink: 0, position: 'relative' }}>
+        <Box w={isExport ? 120 : 90} h={isExport ? 120 : 90} style={{ flexShrink: 0, position: 'relative' }}>
           <Image
             src={jacketUrl}
-            w={90}
-            h={90}
+            w={isExport ? 120 : 90}
+            h={isExport ? 120 : 90}
             radius="md"
-            fallbackSrc="https://placehold.co/90x90?text=No+Image"
+            fallbackSrc={isExport ? "https://placehold.co/120x120?text=No+Image" : "https://placehold.co/90x90?text=No+Image"}
             alt={score.title}
             loading="lazy"
           />
@@ -93,13 +93,13 @@ export const ScoreCard = React.memo(function ScoreCard({ score, onClick }) {
         <Stack gap={2} style={{ flexGrow: 1, minWidth: 0 }}>
           {/* Top Row: Title + Type Image */}
           <Group wrap="nowrap" justify="space-between" align="flex-start">
-            <Text size="sm" truncate="end" fw={700} title={score.title} style={{ lineHeight: 1.2 }}>
+            <Text size={isExport ? "lg" : "sm"} truncate="end" fw={isExport ? 900 : 700} title={score.title} style={{ lineHeight: 1.2 }}>
               {score.title}
             </Text>
             <Image
               src={typeImage}
               w="auto"
-              h={20}
+              h={isExport ? 28 : 20}
               fit="contain"
               alt={score.type}
               loading="lazy"
@@ -112,14 +112,14 @@ export const ScoreCard = React.memo(function ScoreCard({ score, onClick }) {
               <Badge
                 color={difficultyColor}
                 variant="filled"
-                size="sm"
+                size={isExport ? "lg" : "sm"}
                 radius="sm"
                 styles={{ root: { backgroundColor: difficultyColor, color: 'white' } }}
               >
                 {difficultyLabel}
               </Badge>
               {score.level && (
-                <Text size="xs" c="secondary" fw={600}>
+                <Text size={isExport ? "lg" : "xs"} c="secondary" fw={isExport ? 800 : 600}>
                   {score.level.toFixed(1)}
                 </Text>
               )}
@@ -127,12 +127,12 @@ export const ScoreCard = React.memo(function ScoreCard({ score, onClick }) {
             {hasTags && (
               <Group gap={4} wrap="nowrap">
                 {comboTag && (
-                  <Badge size="xs" variant="light" color="orange">
+                  <Badge size={isExport ? "lg" : "xs"} variant="light" color="orange">
                     {comboTag}
                   </Badge>
                 )}
                 {syncTag && (
-                  <Badge size="xs" variant="light" color="cyan">
+                  <Badge size={isExport ? "lg" : "xs"} variant="light" color="cyan">
                     {syncTag}
                   </Badge>
                 )}
@@ -143,18 +143,21 @@ export const ScoreCard = React.memo(function ScoreCard({ score, onClick }) {
           {/* Stats Row */}
           <Group gap="xs" align="flex-end" justify="space-between" style={{ width: '100%' }}>
             <Box>
-              <Text size="lg" fw={800} style={{ lineHeight: 1 }}>
+              <Text size={isExport ? "xl" : "lg"} fw={isExport ? 900 : 800} style={{ lineHeight: 1, fontSize: isExport ? '1.8rem' : undefined }}>
                 {parseFloat(score.achievement).toFixed(4)}%
               </Text>
-              <Text size="md" fw={700}>
+              <Text size={isExport ? "lg" : "md"} fw={700} style={{ marginTop: isExport ? 4 : 0 }}>
                 {scoreGrade}
               </Text>
             </Box>
             <Badge
               variant="gradient"
               gradient={{ from: 'var(--theme-primary)', to: 'var(--theme-secondary)', deg: 90 }}
-              size="xl"
+              size={isExport ? "2.5rem" : "xl"}
               radius="md"
+              styles={{
+                root: isExport ? { height: '3rem', fontSize: '1.5rem', padding: '0 1rem' } : {}
+              }}
             >
               {score.rating}
             </Badge>
