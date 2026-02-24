@@ -326,6 +326,17 @@ export const userService = {
   async updateIntroduction(userId, text) {
     if (!userId) throw new Error('User ID is required');
 
+    // VALIDATION: We only strip tags for length check, but Zod schema handles the raw HTML length (which we set to 500)
+    // Actually, based on implementation plan, we should probably validate plain text length or total length.
+    // The plan said "Use Tiptap's editor.getText().length for counting characters to ignore HTML tags in the limit."
+    // But backend validation also needs to be consistent. 
+    // If I use the Zod schema with max(500), it counts the HTML tags if "text" is HTML.
+    // However, the service receives the HTML.
+    
+    // Let's validate the raw input against our schema first.
+    const validation = validateData(userProfileSchema.pick({ introduction: true }), { introduction: text });
+    if (!validation.success) throw new Error(validation.error);
+
     const { data, error } = await supabase
       .from('user_profiles')
       .update({

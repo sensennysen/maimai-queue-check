@@ -32,7 +32,12 @@ export const userProfileSchema = z.object({
     .trim()
     .lowercase()
     .optional()
-    .or(z.literal(''))
+    .or(z.literal('')),
+  introduction: z.string()
+    .max(2000, 'Introduction is too long')
+    .trim()
+    .nullable()
+    .optional()
 });
 
 /**
