@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, Alert, Loader, Modal, Skeleton, Tabs } from '@mantine/core';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Box, Alert, Loader, Modal, Skeleton, Tabs, LoadingOverlay } from '@mantine/core';
 import { useOs } from '@mantine/hooks';
 import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
@@ -123,6 +123,8 @@ function QueueManager() {
   const { isMallOpen, filterQueueByOperatingHours: filterQueue, loading: scheduleLoading } = useMallSchedule(selectedBranch?.id);
 
   const previousMallStateRef = useRef(isMallOpen);
+
+  const isQueueDataLoading = queueLoading || isMutating;
 
   useEffect(() => {
     if (previousMallStateRef.current && !isMallOpen) {
@@ -256,14 +258,19 @@ function QueueManager() {
     <Stack
       gap="md"
       style={{ position: 'relative' }}
-      aria-busy={isMutating}
+      aria-busy={isQueueDataLoading}
       onKeyDownCapture={(e) => {
-        if (isMutating) {
+        if (isQueueDataLoading) {
           e.preventDefault();
           e.stopPropagation();
         }
       }}
     >
+      <LoadingOverlay
+        visible={isQueueDataLoading}
+        zIndex={190}
+        overlayProps={{ blur: 2 }}
+      />
       {/* Location Permission Modal - shown based on consent flow */}
       <LocationPermissionModal
         opened={showConsentModal}
@@ -278,14 +285,6 @@ function QueueManager() {
         opened={showLocationHelp}
         onClose={() => setShowLocationHelp(false)}
       />
-
-      {/* Busy overlay */}
-      {isMutating && (
-        <Box className="busy-overlay-message">
-          <Loader size="sm" mr={8} />
-          <Text size="sm" c="secondary" fw={500}>Saving…</Text>
-        </Box>
-      )}
 
       {/* Error alert */}
       {error && (
@@ -427,7 +426,7 @@ function QueueManager() {
                   leftSection={<IconPlus size={16} />}
                   onClick={() => setShowForm(true)}
                   variant="filled"
-                  disabled={isMutating}
+                  disabled={isQueueDataLoading}
                 >
                   Add Queue
                 </Button>
@@ -452,7 +451,7 @@ function QueueManager() {
                   color="red"
                   leftSection={<IconTrash size={16} />}
                   onClick={clearQueue}
-                  loading={isMutating}
+                  disabled={isQueueDataLoading}
                 >
                   Clear All
                 </Button>
@@ -470,7 +469,7 @@ function QueueManager() {
           <NowPlayingCard
             nowPlaying={nowPlaying}
             canActuallyEdit={canActuallyEdit}
-            isBusy={isMutating}
+            isBusy={isQueueDataLoading}
             onFinishGame={finishGame}
             isLoggedIn={!!user}
             justUpdated={nowPlayingUpdated}
@@ -505,7 +504,7 @@ function QueueManager() {
             onMoveDown={handleMoveDownWithAnimation}
             onStartGame={startGame}
             isMallOpen={isMallOpen}
-            isBusy={isMutating}
+              isBusy={isQueueDataLoading}
             loadingRoles={!actionsLoaded}
             cabinetNum={selectedCabinet}
             hasMultipleCabinets={hasMultipleCabinets}

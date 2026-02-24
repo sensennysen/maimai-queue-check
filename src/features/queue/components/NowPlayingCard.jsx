@@ -50,7 +50,7 @@ function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isL
             className="finish-game-btn"
             color="orange"
             onClick={onFinishGame}
-            loading={isBusy}
+            disabled={isBusy}
             leftSection={<IconPlayerStop size={16} />}
           >
             Finish Game
