@@ -108,6 +108,8 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
       size="lg"
       radius="md"
       centered
+      transitionProps={{ transition: 'fade', duration: 0 }}
+      classNames={{ content: 'profile-modal-pop' }}
     >
       <Stack gap="md" pt="md">
         <TextInput
