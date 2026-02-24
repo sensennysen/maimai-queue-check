@@ -94,7 +94,7 @@ const AccessRequests = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
                 <Table.Tr key={r.id}>
                   <Table.Td>
                     <Stack gap={0}>
-                      <Text size="sm">{r.user_roles?.display_name || 'Unknown'}</Text>
+                      <Text size="sm">{r.user_roles?.queue_name || 'Unknown'}</Text>
                       <Text size="xs" c="secondary">{r.user_roles?.email}</Text>
                     </Stack>
                   </Table.Td>

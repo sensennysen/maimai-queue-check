@@ -24,6 +24,7 @@ import IconSearch from '@tabler/icons-react/dist/esm/icons/IconSearch.mjs';
 import IconSortAscending from '@tabler/icons-react/dist/esm/icons/IconSortAscending.mjs';
 import IconSortDescending from '@tabler/icons-react/dist/esm/icons/IconSortDescending.mjs';
 import { notifications } from '@mantine/notifications';
+import { Link } from 'react-router-dom';
 import { adminService, subscribeToUserRoleChanges, supabase } from '../../../services/supabase';
 import { useBranch } from '../../../contexts/BranchContext';
 import './UserManager.css';
@@ -47,7 +48,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
   const [editForm, setEditForm] = useState({
-    display_name: '',
+    queue_name: '',
     can_edit: false,
     can_edit_on: [],
     is_admin: false,
@@ -123,7 +124,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
   const handleEditClick = (user) => {
     setUserToEdit(user);
     setEditForm({
-      display_name: user.display_name || '',
+      queue_name: user.queue_name || '',
       can_edit: user.can_edit || false,
       can_edit_on: Array.isArray(user.can_edit_on) ? user.can_edit_on.map(String) : [],
       is_admin: user.is_admin || false,
@@ -156,7 +157,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
       const profileUpdates = {};
 
       if (isSuperAdmin) {
-        updates.display_name = editForm.display_name;
+        updates.queue_name = editForm.queue_name;
         updates.is_admin = editForm.is_admin;
         profileUpdates.preferred_branches = editForm.preferred_branches.map(String);
         updates.can_edit = editForm.can_edit;
@@ -305,7 +306,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
     <>
       <Group justify="space-between">
         <TextInput
-          placeholder="Search by email or display name..."
+          placeholder="Search by email or queue name..."
           leftSection={<IconSearch size={16} />}
           value={searchQuery}
           onChange={handleSearchChange}
@@ -344,11 +345,11 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
                     </Table.Th>
                     <Table.Th
                       style={{ cursor: 'pointer', width: '20%' }}
-                      onClick={() => handleSort('display_name')}
+                      onClick={() => handleSort('queue_name')}
                     >
                       <Group gap="xs">
-                        Display Name
-                        <SortIcon field="display_name" />
+                        Queue Name
+                        <SortIcon field="queue_name" />
                       </Group>
                     </Table.Th>
                     {isSuperAdmin && <Table.Th style={{ width: '30%' }}>Preferred Branches</Table.Th>}
@@ -382,9 +383,25 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
                         <Text size="sm" lineClamp={1} title={user.email}>{user.email}</Text>
                       </Table.Td>
                       <Table.Td>
-                        <Text size="sm" c={user.display_name ? 'inherit' : 'secondary'} lineClamp={1} title={user.display_name}>
-                          {user.display_name || '-'}
-                        </Text>
+                        {user.slug ? (
+                          <Text
+                            size="sm"
+                            component={Link}
+                            to={`/p/${user.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            c="blue"
+                            style={{ textDecoration: 'none', cursor: 'pointer' }}
+                            lineClamp={1}
+                            title={`View profile: ${user.queue_name || '-'}`}
+                          >
+                            {user.queue_name || '-'}
+                          </Text>
+                        ) : (
+                          <Text size="sm" c={user.queue_name ? 'inherit' : 'secondary'} lineClamp={1} title={user.queue_name}>
+                            {user.queue_name || '-'}
+                          </Text>
+                        )}
                       </Table.Td>
                       {isSuperAdmin && (
                         <Table.Td>
@@ -502,13 +519,13 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
           </Text>
 
           <TextInput
-            label="Display Name"
-            placeholder="Enter display name"
-            value={editForm.display_name}
+            label="Queue Name"
+            placeholder="Enter queue name"
+            value={editForm.queue_name}
             onChange={(e) => {
               const val = e.target.value;
               const filtered = val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '');
-              setEditForm({ ...editForm, display_name: filtered });
+              setEditForm({ ...editForm, queue_name: filtered });
             }}
             disabled={!isSuperAdmin}
             maxLength={10}

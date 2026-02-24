@@ -196,11 +196,11 @@ export const adminService = {
 
     let query = supabase
       .from('user_roles')
-      .select('user_id, email, display_name, can_edit, can_edit_on, is_admin, is_super_admin, user_profiles!inner(preferred_branches)', { count: 'exact' });
+      .select('user_id, email, queue_name, can_edit, can_edit_on, is_admin, is_super_admin, user_profiles!inner(preferred_branches, slug)', { count: 'exact' });
 
     if (searchQuery.trim()) {
       const queryStr = `%${searchQuery.trim()}%`;
-      query = query.or(`email.ilike.${queryStr},display_name.ilike.${queryStr}`);
+      query = query.or(`email.ilike.${queryStr},queue_name.ilike.${queryStr}`);
     }
 
     if (adminBranch) {
@@ -220,6 +220,7 @@ export const adminService = {
       const branches = u.user_profiles?.preferred_branches || [];
       return {
         ...u,
+        slug: u.user_profiles?.slug || null,
         preferred_branches: Array.isArray(branches) 
           ? branches.map(id => typeof id === 'string' ? parseInt(id, 10) : id).filter(id => !isNaN(id))
           : []
@@ -234,7 +235,7 @@ export const adminService = {
 
   // Update a user's role
   async updateUserRole(userId, updates) {
-    const allowedFields = ['display_name', 'can_edit', 'can_edit_on', 'is_admin'];
+    const allowedFields = ['queue_name', 'can_edit', 'can_edit_on', 'is_admin'];
     const sanitizedUpdates = {};
     
     for (const key of allowedFields) {
@@ -341,7 +342,7 @@ export const requestService = {
       const userIds = [...new Set(requests.map(r => r.user_id))];
       const { data: users, error: userError } = await supabase
           .from('user_roles')
-          .select('user_id, email, display_name')
+          .select('user_id, email, queue_name')
           .in('user_id', userIds);
       
       if (userError) {
