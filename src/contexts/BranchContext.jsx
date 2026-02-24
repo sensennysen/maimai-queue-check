@@ -15,12 +15,8 @@ export const BranchProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+  const [hasManuallySelected, setHasManuallySelected] = useState(false);
 
-  /**
-   * Load branches from Supabase, then determine the initial selected branch.
-   * Requirement FRAG-02: By awaiting getAllBranches BEFORE reading storage or defaulting,
-   * we ensure the selected branch is actually in the available branch list.
-   */
   const loadBranches = useCallback(async () => {
     try {
       setLoading(true);
@@ -36,21 +32,8 @@ export const BranchProvider = ({ children }) => {
         return;
       }
 
-      // Logic to select branch
-      // 1. Select nearest branch if location available
-      if (userLocation && allBranches.length > 0) {
-        const sorted = [...allBranches].sort((a, b) => {
-          const distA = getDistance(userLocation, { latitude: a.latitude, longitude: a.longitude });
-          const distB = getDistance(userLocation, { latitude: b.latitude, longitude: b.longitude });
-          return distA - distB;
-        });
-        setSelectedBranchState(sorted[0]);
-        localStorage.setItem(STORAGE_KEY, String(sorted[0].id));
-        setLoading(false);
-        return;
-      }
-
-      // 2. Check for saved branch
+      // Logic to select initial branch on load
+      // 1. Check for saved branch first (respect manual user selection)
       const savedBranchId = localStorage.getItem(STORAGE_KEY);
       if (savedBranchId) {
         const parsedBranchId = Number(savedBranchId);
@@ -62,19 +45,19 @@ export const BranchProvider = ({ children }) => {
         }
       }
 
-      // 3. Default to first branch alphabetically (as sorted by DB or service)
+      // 2. Absolute default to first branch alphabetically if no saved branch
       setSelectedBranchState(allBranches[0]);
-      localStorage.setItem(STORAGE_KEY, String(allBranches[0].id));
 
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [userLocation]); // Re-run if userLocation changes
+  }, []); // Static loader
 
   const setSelectedBranch = useCallback((branch) => {
     setSelectedBranchState(branch);
+    setHasManuallySelected(true);
     localStorage.setItem(STORAGE_KEY, String(branch.id));
   }, []);
 
@@ -155,10 +138,32 @@ export const BranchProvider = ({ children }) => {
     }
   }, [selectedBranch, setSelectedBranch]);
 
-  // Load branches and detect nearest on mount
+  // Load branches on mount
   useEffect(() => {
     loadBranches();
-  }, [loadBranches]); // Added loadBranches to dependency array
+  }, [loadBranches]);
+
+  /**
+   * Auto-detect nearest branch when location becomes available.
+   * ONLY auto-selects if there is NO saved preference in localStorage.
+   */
+  useEffect(() => {
+    if (userLocation && branches.length > 0 && !hasManuallySelected) {
+      const sorted = [...branches].sort((a, b) => {
+        const distA = getDistance(userLocation, { latitude: a.latitude, longitude: a.longitude });
+        const distB = getDistance(userLocation, { latitude: b.latitude, longitude: b.longitude });
+        return distA - distB;
+      });
+
+      const nearest = sorted[0];
+
+      // Only update if it's different to minimize re-renders
+      if (selectedBranch?.id !== nearest.id) {
+        setSelectedBranchState(nearest);
+        localStorage.setItem(STORAGE_KEY, String(nearest.id));
+      }
+    }
+  }, [userLocation, branches, hasManuallySelected, selectedBranch?.id]);
 
   // Set up real-time subscription for branch changes
   useEffect(() => {
@@ -203,6 +208,7 @@ export const BranchProvider = ({ children }) => {
     error,
     userLocation,
     refreshLocation,
+    hasManuallySelected, // Expose for other hooks to know if they should auto-override
     reloadBranches: loadBranches, // Expose reload function
   };
 
