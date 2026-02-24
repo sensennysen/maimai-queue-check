@@ -15,10 +15,7 @@ export const PlaylistStack = React.memo(function PlaylistStack({ playlist, songs
     <Box
       className="playlist-stack-container"
       onClick={onClick}
-      style={{
-        contentVisibility: 'auto',
-        containIntrinsicSize: 'auto 200px'
-      }}
+      style={{ overflow: 'visible' }}
     >
       <Box className="playlist-stack">
         {/* Render background cards (offsets) */}

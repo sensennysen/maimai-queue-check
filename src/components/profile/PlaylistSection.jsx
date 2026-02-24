@@ -135,8 +135,11 @@ export function PlaylistSection({ userId, isOwnProfile }) {
           className="hide-scrollbar"
           style={{
             display: 'flex',
-            padding: '32px 10px 0px 10px',
+            /* Extra padding gives animated/rotated cards room to breathe without being clipped */
+            padding: '40px 40px 16px 10px',
+            margin: '-40px -40px -16px -10px',
             overflowX: 'auto',
+            overflowY: 'visible',
             scrollBehavior: 'smooth'
           }}
         >
