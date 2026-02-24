@@ -107,7 +107,7 @@ const ExportBest50Page = () => {
           if (node.tagName === 'LINK' && node.rel === 'stylesheet') {
             try {
               return !node.href.includes('fonts.googleapis.com');
-            } catch (e) {
+            } catch {
               return false;
             }
           }

@@ -21,6 +21,8 @@ const PreferencesModal = ({ opened, onClose }) => {
         setOriginalQueueName(name);
       }).catch(console.error);
     }
+    // user?.id is the correct dep — no need to re-run when user object ref changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened, user?.id]);
 
   const handleSaveQueueName = async () => {

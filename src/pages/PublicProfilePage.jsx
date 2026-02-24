@@ -85,6 +85,8 @@ const PublicProfilePage = () => {
     } finally {
       setLoading(false);
     }
+    // user?.id is the correct dep — avoids re-creating fetchData on every user object re-render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, user?.id]);
 
   useEffect(() => {
@@ -95,7 +97,10 @@ const PublicProfilePage = () => {
       }
       fetchData();
     }
-  }, [slug, fetchData]); // fetchData is memoized on [slug, user?.id] — no infinite loop
+    // profile is intentionally excluded: including it would cause an infinite loop
+    // (fetch sets profile → profile change triggers fetch again)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, fetchData]);
 
   const handleClearData = async () => {
     if (!window.confirm('Are you sure you want to clear your Best 50 scores, maimai DX name, and profile photo? This action cannot be undone.')) {

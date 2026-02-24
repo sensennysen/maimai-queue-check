@@ -184,7 +184,7 @@ export const useLocationVerification = () => {
       setLocationCheckInProgress(false);
       setHasAttemptedVerification(true);
     }
-  }, [branches, setSelectedBranch, verifyLocation, refreshLocation]);
+  }, [branches, hasManuallySelected, setSelectedBranch, verifyLocation, refreshLocation]);
 
   // Handle when user declines consent modal
   const handleConsentDeclined = useCallback(() => {

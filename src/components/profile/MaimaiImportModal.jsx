@@ -88,6 +88,8 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
   useEffect(() => {
     if (!opened || !userId) return;
     let cancelled = false;
+    // Reset state immediately so UI doesn't flash stale content while loading
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setValidationResult(null);
     setStep('loading');
     (async () => {
@@ -114,7 +116,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
     const check = async () => {
       if (sessionExpiresAt && new Date(sessionExpiresAt) < new Date()) {
         if (pollRef.current) clearInterval(pollRef.current);
-        deleteImportSession(sessionToken).catch(() => {});
+        deleteImportSession(sessionToken).catch(() => { });
         setValidationResult({ success: false, message: 'Session expired. Click Get new code to try again.' });
         setStep('idle');
         setSessionToken(null);
@@ -127,7 +129,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
         setStep('processing');
         try {
           const result = await processPayload(row.payload);
-          deleteImportSession(sessionToken).catch(() => {});
+          deleteImportSession(sessionToken).catch(() => { });
           setValidationResult({
             success: true,
             message: `Import successful! Calculated Rating: ${result.total_rating}`
