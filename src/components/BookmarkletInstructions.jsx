@@ -22,9 +22,8 @@ export const BookmarkletInstructions = () => {
 
   return (
     <Stack>
-      <Alert icon={<IconInfoCircle size={16} />} title="How it works" color="blue">
-        This tool needs to run on the <strong>maimai DX NET</strong> website to read your scores.
-        It does not send any data to external servers; it only copies your data to your clipboard for you to paste here.
+        <Alert icon={<IconInfoCircle size={16} />} title="How it works" color="blue">
+        A one-time code appears below. On <strong>maimai DX NET</strong>, run the bookmarklet, enter that code in the overlay, and tap &quot;Fetch &amp; Send to App&quot;.
       </Alert>
 
       <Tabs defaultValue="desktop">
@@ -59,10 +58,7 @@ export const BookmarkletInstructions = () => {
               <strong>An overlay will appear on the page.</strong>
             </List.Item>
             <List.Item>
-              Click <strong>"Fetch Scores"</strong> in the overlay to start copying.
-            </List.Item>
-            <List.Item>
-              When the button says "Copied!", come back here and paste the data.
+              Enter the code from this app in the overlay and tap <strong>&quot;Fetch &amp; Send to App&quot;</strong>. Return here when it says &quot;Scores sent!&quot;
             </List.Item>
           </List>
         </Tabs.Panel>
@@ -101,10 +97,7 @@ export const BookmarkletInstructions = () => {
               </Text>
             </List.Item>
             <List.Item>
-              Tap <strong>"Fetch Scores"</strong> in the overlay that appears.
-            </List.Item>
-            <List.Item>
-              Wait for the "Copied!" message, then come back here and paste.
+              Enter the code from this app in the overlay and tap <strong>&quot;Fetch &amp; Send to App&quot;</strong>. Return here when it says &quot;Scores sent!&quot;
             </List.Item>
           </List>
         </Tabs.Panel>

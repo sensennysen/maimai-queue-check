@@ -1,11 +1,46 @@
-import { Modal, Image, Text, Group, Stack, Tooltip, SimpleGrid, TextInput, ActionIcon, Button, Loader } from '@mantine/core';
+import { Modal, Image, Text, Group, Stack, Tooltip, SimpleGrid, TextInput, ActionIcon, Divider } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconCheck, IconEdit, IconCheck as IconSave, IconX } from '@tabler/icons-react';
+import { IconCheck, IconEdit, IconCheck as IconSave, IconX, IconStarFilled } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
 import { Badge } from '@mantine/core';
 
-function MaimaiSongDetailModal({ song, opened, onClose, comment: initialComment, playCount, difficulty, title = "Song Details", isOwnProfile, onCommentSave }) {
+const formatComboAchievement = (value) => {
+  if (!value) return null;
+  const v = String(value).trim();
+  const lower = v.toLowerCase();
+  if (lower === 'fc') return 'FC';
+  if (lower === 'fcp') return 'FC+';
+  if (lower === 'ap') return 'AP';
+  if (lower === 'app') return 'AP+';
+  if (v === 'FC' || v === 'FC+' || v === 'AP' || v === 'AP+') return v;
+  return v;
+};
+
+const formatSyncType = (value) => {
+  if (!value) return null;
+  const v = String(value).trim();
+  const lower = v.toLowerCase();
+  if (lower === 'fs') return 'FS';
+  if (lower === 'fsp') return 'FS+';
+  if (lower === 'fdx') return 'FDX';
+  if (lower === 'fdxp') return 'FDX+';
+  if (v === 'FS' || v === 'FS+' || v === 'FDX' || v === 'FDX+') return v;
+  return v;
+};
+
+function MaimaiSongDetailModal({
+  song,
+  opened,
+  onClose,
+  comment: initialComment,
+  playCount,
+  difficulty,
+  title = "Song Details",
+  isOwnProfile,
+  onCommentSave,
+  best50Score
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [comment, setComment] = useState(initialComment || '');
   const [isSaving, setIsSaving] = useState(false);
@@ -48,6 +83,19 @@ function MaimaiSongDetailModal({ song, opened, onClose, comment: initialComment,
     : new URL('../../assets/music_standard.png', import.meta.url).href;
 
   const normalizedDifficulty = normalizeDifficulty(difficulty);
+  const effectiveBest50Score = best50Score || null;
+  const b50ComboTag = formatComboAchievement(
+    effectiveBest50Score?.comboAchievement ?? effectiveBest50Score?.comboAchivement
+  );
+  const b50SyncTag = formatSyncType(
+    effectiveBest50Score?.syncType ?? effectiveBest50Score?.syncAchievement ?? effectiveBest50Score?.syncAchivement
+  );
+  const b50DxScore = effectiveBest50Score?.dxScore;
+  const b50TotalDxScore = effectiveBest50Score?.totalDxScore;
+  const b50DxStar = effectiveBest50Score?.dxStar;
+  const b50Achievement = effectiveBest50Score?.achievement;
+  const b50Rating = effectiveBest50Score?.rating;
+  const b50LastPlayed = effectiveBest50Score?.lastPlayed ?? effectiveBest50Score?.last_played;
 
   return (
     <Modal
@@ -57,6 +105,8 @@ function MaimaiSongDetailModal({ song, opened, onClose, comment: initialComment,
       size="lg"
       radius="md"
       centered
+      transitionProps={{ transition: 'fade', duration: 0 }}
+      classNames={{ content: 'profile-modal-pop' }}
       overlayProps={{
         backgroundOpacity: 0.55,
         blur: 3,
@@ -147,6 +197,74 @@ function MaimaiSongDetailModal({ song, opened, onClose, comment: initialComment,
                     </Badge>
                   )}
                 </Group>
+              </Stack>
+            )}
+
+            {effectiveBest50Score && (
+              <Stack gap="xs" mt="md">
+                <Divider />
+                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Best 50 Details</Text>
+
+                {(b50ComboTag || b50SyncTag) && (
+                  <Group gap={6} wrap="wrap">
+                    {b50ComboTag && (
+                      <Badge size="sm" variant="light" color="orange">
+                        {b50ComboTag}
+                      </Badge>
+                    )}
+                    {b50SyncTag && (
+                      <Badge size="sm" variant="light" color="cyan">
+                        {b50SyncTag}
+                      </Badge>
+                    )}
+                  </Group>
+                )}
+
+                <SimpleGrid cols={2} spacing="sm" verticalSpacing="xs">
+                  {b50Achievement !== undefined && b50Achievement !== null && (
+                    <Stack gap={2}>
+                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">Achievement</Text>
+                      <Text size="sm" fw={700}>{parseFloat(b50Achievement).toFixed(4)}%</Text>
+                    </Stack>
+                  )}
+
+                  {b50Rating !== undefined && b50Rating !== null && (
+                    <Stack gap={2}>
+                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">Rating</Text>
+                      <Text size="sm" fw={800}>{b50Rating}</Text>
+                    </Stack>
+                  )}
+
+                  {(b50DxScore !== undefined && b50DxScore !== null) && (
+                    <Stack gap={2}>
+                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">DX Score</Text>
+                      <Text size="sm" fw={700}>
+                        {b50DxScore}
+                        {b50TotalDxScore ? `/${b50TotalDxScore}` : ''}
+                      </Text>
+                    </Stack>
+                  )}
+
+                  {(b50DxStar !== undefined && b50DxStar !== null) && (
+                    <Stack gap={2}>
+                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">DX Stars</Text>
+                      <Group gap={6} align="center">
+                        <Group gap={2}>
+                          {Array.from({ length: Math.max(0, Math.min(5, Number(b50DxStar) || 0)) }).map((_, i) => (
+                            <IconStarFilled key={i} size={16} style={{ color: 'var(--mantine-color-yellow-6)' }} />
+                          ))}
+                        </Group>
+                      </Group>
+                    </Stack>
+                  )}
+
+                  {b50LastPlayed && (
+                    <Stack gap={2} style={{ gridColumn: '1 / -1' }}>
+                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">Last Played</Text>
+                      <Text size="sm">{b50LastPlayed}</Text>
+                    </Stack>
+                  )}
+                </SimpleGrid>
               </Stack>
             )}
 

@@ -57,6 +57,8 @@ function SongDetailModal({ song, opened, onClose }) {
       size="lg"
       radius="md"
       centered
+      transitionProps={{ transition: 'fade', duration: 0 }}
+      classNames={{ content: 'profile-modal-pop' }}
       overlayProps={{
         backgroundOpacity: 0.55,
         blur: 3,

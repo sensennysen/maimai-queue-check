@@ -21,6 +21,7 @@ import { useAuth } from '../hooks/useAuth';
 import { userService, branchService, mostPlayedService } from '../services/supabase';
 import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection';
 import { PlaylistSection } from '../components/profile/PlaylistSection';
+import { IntroductionCard } from '../components/profile/IntroductionCard';
 import { ScoreCard } from '../components/maimai/ScoreCard';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { useMouseDragScroll } from '../hooks/useMouseDragScroll';
@@ -42,6 +43,9 @@ const PublicProfilePage = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedMostPlayedSong, setSelectedMostPlayedSong] = useState(null);
+  const [selectedBest50Song, setSelectedBest50Song] = useState(null);
+  const [selectedBest50Score, setSelectedBest50Score] = useState(null);
+  const [introduction, setIntroduction] = useState(null);
 
   const { requestFetch, songMapByTitle } = useSongDatabaseContext();
   const { scrollRef, isDragging } = useMouseDragScroll();
@@ -73,6 +77,7 @@ const PublicProfilePage = () => {
 
         setProfile(profileData);
         setBranches(branchesData);
+        setIntroduction(profileData.introduction || null);
       }
     } catch (err) {
       console.error('Error fetching public profile:', err);
@@ -401,6 +406,18 @@ const PublicProfilePage = () => {
           </Group>
         </Paper>
 
+        {/* Introduction Card */}
+        {(privacy.show_introduction !== false || isOwner) && (
+          <div className="animate-fade-in delay-200">
+            <IntroductionCard
+              introduction={introduction}
+              isOwnProfile={isOwner}
+              userId={profile.id}
+              onUpdate={setIntroduction}
+            />
+          </div>
+        )}
+
         {/* Favorite Songs Section */}
         {(privacy.show_favorite_songs || isOwner) && (
           <div className="animate-fade-in delay-300">
@@ -624,7 +641,15 @@ const PublicProfilePage = () => {
                   {profile.maimai_best_scores.best_new?.songs?.length > 0 ? (
                     <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
                       {profile.maimai_best_scores.best_new.songs.map((score, index) => (
-                        <ScoreCard key={`new-${index}`} score={score} />
+                        <ScoreCard
+                          key={`new-${index}`}
+                          score={score}
+                          onClick={() => {
+                            const matchedSong = songMapByTitle?.get(score.title);
+                            setSelectedBest50Song(matchedSong || { title: score.title });
+                            setSelectedBest50Score(score);
+                          }}
+                        />
                       ))}
                     </SimpleGrid>
                   ) : (
@@ -640,7 +665,15 @@ const PublicProfilePage = () => {
                   {profile.maimai_best_scores.best_old?.songs?.length > 0 ? (
                     <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
                       {profile.maimai_best_scores.best_old.songs.map((score, index) => (
-                        <ScoreCard key={`old-${index}`} score={score} />
+                        <ScoreCard
+                          key={`old-${index}`}
+                          score={score}
+                          onClick={() => {
+                            const matchedSong = songMapByTitle?.get(score.title);
+                            setSelectedBest50Song(matchedSong || { title: score.title });
+                            setSelectedBest50Score(score);
+                          }}
+                        />
                       ))}
                     </SimpleGrid>
                   ) : (
@@ -702,6 +735,18 @@ const PublicProfilePage = () => {
             playCount={selectedMostPlayedSong?.play_count}
             difficulty={selectedMostPlayedSong?.difficulty}
             title="Most Played Details"
+          />
+          <MaimaiSongDetailModal
+            song={selectedBest50Song}
+            opened={!!selectedBest50Song}
+            onClose={() => {
+              setSelectedBest50Song(null);
+              setSelectedBest50Score(null);
+            }}
+            playCount={selectedBest50Score?.playCount ?? selectedBest50Score?.play_count}
+            difficulty={selectedBest50Score?.difficulty}
+            title="Best 50 Details"
+            best50Score={selectedBest50Score}
           />
         </>
       )}
