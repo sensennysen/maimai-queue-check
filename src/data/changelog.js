@@ -1,5 +1,52 @@
 export const changelogData = [
   {
+    version: 'v1.8.0',
+    date: 'February 24, 2026',
+    changes: [
+      {
+        type: 'feature',
+        title: 'User Introductions',
+        description: 'Express yourself with a new introduction section on your profile.',
+      },
+      {
+        type: 'feature',
+        title: 'Decoupled Identity',
+        description: 'Queue names and Profile names are now independent, giving you more flexibility in how you are seen.',
+      },
+      {
+        type: 'feature',
+        title: 'Combo and Sync Achievements',
+        description: 'The bookmarklet now fetches your combo and sync achievements.',
+      },
+      {
+        type: 'feature',
+        title: 'Best 50 Rendering rework',
+        description: 'Reworked the Best 50 rendering to display the Combo and Sync achievements.',
+      },
+      {
+        type: 'optimization',
+        title: 'Streamlined Score Fetching',
+        description: 'Significantly simplified the process of fetching all user scores for better reliability.',
+        footnote: 'No need to update your bookmark. Just copy and paste the code, wait for the loading to finish, and you\'re good to go!'
+      },
+      {
+        type: 'visual',
+        title: 'UI Polish & Animations',
+        description: 'Standardized loading states across the app and refined modal transitions for a more premium feel.',
+      },
+      {
+        type: 'bugfix',
+        title: 'Profile Photo Persistence',
+        description: 'Fixed an issue where removing Best 50 data would unexpectedly delete custom profile pictures.',
+      },
+      {
+        type: 'bugfix',
+        title: 'Branch Selection Lock',
+        description: 'Fixed a bug that caused the nearest branch to be re-selected even after a manual choice was made.',
+      },
+    ]
+  },
+  {
     version: 'v1.7.6',
     date: 'February 24, 2026',
     changes: [
