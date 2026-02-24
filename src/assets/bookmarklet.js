@@ -29,12 +29,36 @@
   const codeLabel = document.createElement('label');
   codeLabel.innerText = 'Session code (from maiPaQueueCheck):';
   codeLabel.style.cssText = 'display:block;text-align:left;font-size:0.8rem;color:#aaa;margin-bottom:4px;';
+
+  const inputGroup = document.createElement('div');
+  inputGroup.style.cssText = 'display:flex;gap:8px;margin-bottom:1rem;';
+
   const tokenInput = document.createElement('input');
   tokenInput.type = 'text';
   tokenInput.placeholder = 'e.g. ABC12XYZ34';
   tokenInput.id = 'maimai-export-token';
-  tokenInput.style.cssText = 'width:100%;padding:8px;margin-bottom:1rem;border-radius:6px;border:1px solid #444;background:#333;color:#fff;font-size:1rem;box-sizing:border-box;';
+  tokenInput.style.cssText = 'flex:1;padding:8px;border-radius:6px;border:1px solid #444;background:#333;color:#fff;font-size:1rem;box-sizing:border-box;user-select:text;-webkit-user-select:text;';
   tokenInput.autocomplete = 'off';
+  tokenInput.setAttribute('inputmode', 'text');
+
+  const pasteBtn = document.createElement('button');
+  pasteBtn.innerText = 'Paste';
+  pasteBtn.style.cssText = 'background:#444;color:white;border:1px solid #555;padding:8px 12px;border-radius:6px;font-size:0.8rem;cursor:pointer;font-weight:bold;transition:background 0.2s;';
+  pasteBtn.onmouseover = () => pasteBtn.style.background = '#555';
+  pasteBtn.onmouseout = () => pasteBtn.style.background = '#444';
+  pasteBtn.onclick = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      tokenInput.value = text.trim();
+    } catch (err) {
+      console.error('Clipboard error:', err);
+      // Fallback: focus and let user try native paste if API fails
+      tokenInput.focus();
+    }
+  };
+
+  inputGroup.appendChild(tokenInput);
+  inputGroup.appendChild(pasteBtn);
 
   const fetchBtn = document.createElement('button');
   fetchBtn.innerText = 'Fetch & Send to App';
@@ -49,14 +73,14 @@
   container.appendChild(statusEl);
   container.appendChild(warnEl);
   container.appendChild(codeLabel);
-  container.appendChild(tokenInput);
+  container.appendChild(inputGroup);
   container.appendChild(fetchBtn);
   container.appendChild(document.createElement('br'));
   container.appendChild(closeBtn);
   overlay.appendChild(container);
   document.body.appendChild(overlay);
 
-  var IMPORT_EDGE_URL = 'https://rcpdjpsirnussiufirqe.supabase.co/functions/v1/receive-import';
+  var IMPORT_EDGE_URL = '__IMPORT_EDGE_FUNCTION_URL__';
 
   /* Helper to update status */
   const updateStatus = (msg, loading = false) => {
