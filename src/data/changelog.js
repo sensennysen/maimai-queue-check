@@ -1,5 +1,16 @@
 export const changelogData = [
   {
+    version: 'v1.7.6',
+    date: 'February 24, 2026',
+    changes: [
+      {
+        type: 'refactor',
+        title: 'Code Optimization',
+        description: 'General code optimization.',
+      },
+    ]
+  },
+  {
     version: 'v1.7.5',
     date: 'February 22, 2026',
     changes: [
