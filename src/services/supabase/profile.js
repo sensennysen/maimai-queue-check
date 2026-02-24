@@ -120,7 +120,7 @@ export const userService = {
 
     const { data, error: profileError } = await supabase
       .from('user_profiles')
-      .select('id, display_name, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction, user_attributions(attributions)')
+      .select('id, display_name, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, user_attributions(attributions)')
       .eq('slug', slug.toLowerCase())
       .maybeSingle();
 
@@ -300,24 +300,6 @@ export const userService = {
       return url.split(marker).pop().split('?')[0];
     }
     return null;
-  },
-
-  // Update introduction text
-  async updateIntroduction(userId, text) {
-    if (!userId) throw new Error('User ID is required');
-
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .update({
-        introduction: text || null,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', userId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
   },
 
   // Delete file from profile-pictures bucket

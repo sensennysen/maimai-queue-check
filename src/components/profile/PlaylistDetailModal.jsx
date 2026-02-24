@@ -25,8 +25,6 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
         size="xl"
         radius="md"
         centered
-        transitionProps={{ transition: 'fade', duration: 0 }}
-        classNames={{ content: 'profile-modal-pop' }}
       >
         <Stack gap="lg" pt="md">
           <Divider label={<Group gap={4}><IconMusic size={14} /> Songs ({songs.length})</Group>} labelPosition="center" />
@@ -98,8 +96,6 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
         centered
         size="sm"
         zIndex={250}
-        transitionProps={{ transition: 'fade', duration: 0 }}
-        classNames={{ content: 'profile-modal-pop' }}
       >
         {selectedSongDetails && (() => {
           const selectedSheet = selectedSongDetails.sheets?.find(

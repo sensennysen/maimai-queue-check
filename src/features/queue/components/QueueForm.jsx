@@ -191,7 +191,8 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               type="submit"
               leftSection={editingId ? <IconEdit size={16} /> : <IconPlus size={16} />}
               variant="filled"
-              disabled={isBusy || (!locationVerified && !isSuperAdmin)}
+              loading={isBusy}
+              disabled={!locationVerified && !isSuperAdmin}
             >
               {editingId ? 'Update Entry' : 'Add to Queue'}
             </Button>

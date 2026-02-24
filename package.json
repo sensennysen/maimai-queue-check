@@ -7,12 +7,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:bookmarklet": "node scripts/build-bookmarklet.js",
     "build:analyze": "vite build --mode analyze",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "preview": "vite preview",
-    "prebuild": "npm run build:bookmarklet"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@mantine/core": "^8.3.15",
