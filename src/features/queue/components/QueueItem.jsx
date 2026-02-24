@@ -73,7 +73,8 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
                   variant="default"
                   size="sm"
                   onClick={handleMoveUp}
-                  disabled={!canActuallyEdit || isFirst || isBusy}
+                  disabled={!canActuallyEdit || isFirst}
+                  loading={isBusy}
                 >
                   <IconChevronUp size={16} />
                 </ActionIcon>
@@ -83,7 +84,8 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
                   variant="default"
                   size="sm"
                   onClick={handleMoveDown}
-                  disabled={!canActuallyEdit || isLast || isBusy}
+                  disabled={!canActuallyEdit || isLast}
+                  loading={isBusy}
                 >
                   <IconChevronDown size={16} />
                 </ActionIcon>
@@ -95,7 +97,8 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
                   variant="filled"
                   color="blue"
                   onClick={handleEdit}
-                  disabled={!canActuallyEdit || isBusy}
+                  disabled={!canActuallyEdit}
+                  loading={isBusy}
                 >
                   <IconEdit size={16} />
                 </ActionIcon>
@@ -105,7 +108,8 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
                   variant="filled"
                   color="red"
                   onClick={handleRemove}
-                  disabled={!canActuallyEdit || isBusy}
+                  disabled={!canActuallyEdit}
+                  loading={isBusy}
                 >
                   <IconTrash size={16} />
                 </ActionIcon>

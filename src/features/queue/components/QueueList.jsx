@@ -43,7 +43,7 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
             onClick={() => onStartGame()}
             variant="filled"
             style={{ backgroundColor: 'var(--theme-success)', color: 'white' }}
-            disabled={isBusy}
+            loading={isBusy}
           >
             Start Game
           </Button>

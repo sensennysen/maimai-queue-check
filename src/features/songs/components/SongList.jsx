@@ -137,15 +137,7 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
         onClose={() => setSelectedSong(null)}
       />
 
-      <Modal
-        opened={!!songToSelectLevel}
-        onClose={() => setSongToSelectLevel(null)}
-        title="Select Chart Level"
-        centered
-        zIndex={250}
-        transitionProps={{ transition: 'fade', duration: 0 }}
-        classNames={{ content: 'profile-modal-pop' }}
-      >
+      <Modal opened={!!songToSelectLevel} onClose={() => setSongToSelectLevel(null)} title="Select Chart Level" centered zIndex={250}>
         {songToSelectLevel && (
           <Stack align="center">
             <Text fw={700} ta="center">{songToSelectLevel.title}</Text>

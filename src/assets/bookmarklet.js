@@ -24,22 +24,12 @@
 
   const warnEl = document.createElement('p');
   warnEl.innerText = 'Please do not close or leave this page while the process is ongoing.';
-  warnEl.style.cssText = 'margin-bottom:0.75rem;color:#ffcc00;font-size:0.8rem;font-weight:bold;';
-
-  const codeLabel = document.createElement('label');
-  codeLabel.innerText = 'Session code (from maiPaQueueCheck):';
-  codeLabel.style.cssText = 'display:block;text-align:left;font-size:0.8rem;color:#aaa;margin-bottom:4px;';
-  const tokenInput = document.createElement('input');
-  tokenInput.type = 'text';
-  tokenInput.placeholder = 'e.g. ABC12XYZ34';
-  tokenInput.id = 'maimai-export-token';
-  tokenInput.style.cssText = 'width:100%;padding:8px;margin-bottom:1rem;border-radius:6px;border:1px solid #444;background:#333;color:#fff;font-size:1rem;box-sizing:border-box;';
-  tokenInput.autocomplete = 'off';
+  warnEl.style.cssText = 'margin-bottom:1.5rem;color:#ffcc00;font-size:0.8rem;font-weight:bold;';
 
   const fetchBtn = document.createElement('button');
-  fetchBtn.innerText = 'Fetch & Send to App';
+  fetchBtn.innerText = 'Fetch Scores';
   fetchBtn.style.cssText = 'background:#007bff;color:white;border:none;padding:10px 20px;border-radius:6px;font-size:1rem;cursor:pointer;width:100%;font-weight:bold;transition:background 0.2s;';
-
+  
   const closeBtn = document.createElement('button');
   closeBtn.innerText = 'Close';
   closeBtn.style.cssText = 'background:transparent;color:#888;border:none;margin-top:1rem;cursor:pointer;text-decoration:underline;font-size:0.8rem;';
@@ -48,15 +38,11 @@
   container.appendChild(titleEl);
   container.appendChild(statusEl);
   container.appendChild(warnEl);
-  container.appendChild(codeLabel);
-  container.appendChild(tokenInput);
   container.appendChild(fetchBtn);
   container.appendChild(document.createElement('br'));
   container.appendChild(closeBtn);
   overlay.appendChild(container);
   document.body.appendChild(overlay);
-
-  var IMPORT_EDGE_URL = '__IMPORT_EDGE_FUNCTION_URL__';
 
   /* Helper to update status */
   const updateStatus = (msg, loading = false) => {
@@ -226,35 +212,13 @@
         await new Promise(res => setTimeout(res, 100));
       }
 
-      // Send to app via Edge Function
-      const token = (tokenInput.value || '').trim();
-      if (!token) {
-        updateStatus('Enter the session code from maiPaQueueCheck first.', false);
-        return;
-      }
-      if (!IMPORT_EDGE_URL || IMPORT_EDGE_URL.indexOf('__') >= 0) {
-        updateStatus('App endpoint not configured. Use the latest bookmarklet from the app.', false);
-        return;
-      }
-      updateStatus('Sending to app...', true);
-      const res = await fetch(IMPORT_EDGE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: token, payload: output })
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        updateStatus('Error: ' + (json.error || res.statusText || 'Send failed'));
-        fetchBtn.disabled = false;
-        fetchBtn.innerText = 'Retry';
-        fetchBtn.style.background = '#dc3545';
-        return;
-      }
-      updateStatus('Scores sent! Return to maiPaQueueCheck to finish.');
-      fetchBtn.innerText = 'Sent!';
+      // Success
+      const finalJson = JSON.stringify(output);
+      await navigator.clipboard.writeText(finalJson);
+      updateStatus(`Success! ${output.scores.length} scores copied.`);
+      fetchBtn.innerText = 'Copied!';
       fetchBtn.style.background = '#28a745';
-      fetchBtn.disabled = true;
-      setTimeout(() => overlay.remove(), 4000);
+      setTimeout(() => overlay.remove(), 3000);
 
     } catch (err) {
       console.error(err);
