@@ -14,3 +14,4 @@ export * from './supabase/profile';
 export * from './supabase/queue';
 export * from './supabase/admin';
 export * from './supabase/contact';
+export * from './supabase/import';
