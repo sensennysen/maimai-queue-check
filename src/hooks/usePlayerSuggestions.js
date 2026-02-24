@@ -44,11 +44,11 @@ export const usePlayerSuggestions = (branchId) => {
         ]);
 
         if (mountedRef.current) {
-            // Filter users to only include those with display names
-            const usersWithDisplayNames = (users || []).filter(user => 
-              user.display_name && user.display_name.trim().length > 0
+            // Filter users to only include those with a queue name
+            const usersWithQueueNames = (users || []).filter(user => 
+              user.queue_name && user.queue_name.trim().length > 0
             );
-            setPreferredUsers(usersWithDisplayNames);
+            setPreferredUsers(usersWithQueueNames);
             setCompletedEntries(completed || []);
         }
       } catch (err) {
@@ -75,11 +75,12 @@ export const usePlayerSuggestions = (branchId) => {
         });
     }
 
-    // 2. Add preferred users with display names
+    // 2. Add preferred users with queue names
     const userNames = new Set();
     if (preferredUsers && Array.isArray(preferredUsers)) {
         preferredUsers.forEach(user => {
-            if (user.display_name) userNames.add(user.display_name);
+            const name = user.queue_name;
+            if (name) userNames.add(name);
         });
     }
 

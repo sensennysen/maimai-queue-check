@@ -13,6 +13,12 @@ export const userProfileSchema = z.object({
     .max(20, 'Display name must be 20 characters or less')
     .trim()
     .optional(),
+  queue_name: z.string()
+    .min(1, 'Queue name is required')
+    .max(10, 'Queue name must be 10 characters or less')
+    .trim()
+    .optional()
+    .or(z.literal('')),
   branch_ids: z.array(z.number().int()).optional(),
   maimai_dx_name: z.string()
     .max(20, 'Maimai DX name must be 20 characters or less')
