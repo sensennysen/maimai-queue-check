@@ -1,0 +1,157 @@
+import { useState } from 'react';
+import { Paper, Group, Title, Text, ActionIcon, Button, Stack } from '@mantine/core';
+import { IconQuote, IconPencil, IconX, IconCheck } from '@tabler/icons-react';
+import { RichTextEditor, Link } from '@mantine/tiptap';
+import { useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import DOMPurify from 'dompurify';
+import { notifications } from '@mantine/notifications';
+import { userService } from '../../services/supabase';
+
+const ALLOWED_TAGS = ['p', 'strong', 'em', 's', 'ul', 'ol', 'li', 'a', 'br', 'blockquote'];
+const ALLOWED_ATTR = ['href', 'target', 'rel'];
+
+function sanitize(html) {
+  return DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR });
+}
+
+function IntroductionEditor({ initialContent, onSave, onCancel }) {
+  const editor = useEditor({
+    extensions: [StarterKit, Link],
+    content: initialContent || '',
+  });
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!editor) return;
+    setIsSaving(true);
+    try {
+      const html = editor.getHTML();
+      // Treat an empty paragraph as null
+      const value = html === '<p></p>' ? null : html;
+      await onSave(value);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Stack gap="sm">
+      <RichTextEditor editor={editor} style={{ minHeight: 140 }}>
+        <RichTextEditor.Toolbar>
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Bold />
+            <RichTextEditor.Italic />
+            <RichTextEditor.Strikethrough />
+            <RichTextEditor.ClearFormatting />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.BulletList />
+            <RichTextEditor.OrderedList />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Link />
+            <RichTextEditor.Unlink />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Undo />
+            <RichTextEditor.Redo />
+          </RichTextEditor.ControlsGroup>
+        </RichTextEditor.Toolbar>
+
+        <RichTextEditor.Content />
+      </RichTextEditor>
+
+      <Group gap="xs" justify="flex-end">
+        <Button
+          variant="default"
+          leftSection={<IconX size={16} />}
+          onClick={onCancel}
+          disabled={isSaving}
+          size="sm"
+        >
+          Cancel
+        </Button>
+        <Button
+          leftSection={<IconCheck size={16} />}
+          onClick={handleSave}
+          loading={isSaving}
+          size="sm"
+        >
+          Save
+        </Button>
+      </Group>
+    </Stack>
+  );
+}
+
+export function IntroductionCard({ introduction, isOwnProfile, userId, onUpdate }) {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const hasContent = introduction && introduction !== '<p></p>';
+
+  // Viewers: hide entirely if no content
+  if (!isOwnProfile && !hasContent) return null;
+
+  const handleSave = async (html) => {
+    try {
+      await userService.updateIntroduction(userId, html);
+      onUpdate(html);
+      setIsEditing(false);
+      notifications.show({ title: 'Saved', message: 'Introduction updated', color: 'green' });
+    } catch (e) {
+      notifications.show({ title: 'Error', message: e.message || 'Failed to save', color: 'red' });
+      throw e; // re-throw so editor keeps isSaving in sync
+    }
+  };
+
+  return (
+    <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-200">
+      <Group justify="space-between" mb={isEditing || hasContent ? 'md' : 0}>
+        <Group gap="xs">
+          <IconQuote size={24} style={{ color: 'var(--mantine-color-pink-5)' }} />
+          <Title order={2}>Introduction</Title>
+        </Group>
+
+        {isOwnProfile && !isEditing && (
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            onClick={() => setIsEditing(true)}
+            title="Edit introduction"
+          >
+            <IconPencil size={18} />
+          </ActionIcon>
+        )}
+      </Group>
+
+      {isEditing ? (
+        <IntroductionEditor
+          initialContent={introduction}
+          onSave={handleSave}
+          onCancel={() => setIsEditing(false)}
+        />
+      ) : hasContent ? (
+        <div
+          className="mantine-RichTextEditor-content"
+          dangerouslySetInnerHTML={{ __html: sanitize(introduction) }}
+          style={{ lineHeight: 1.7 }}
+        />
+      ) : (
+        // Owner, no content yet
+        <Text
+          c="dimmed"
+          fs="italic"
+          style={{ cursor: 'pointer' }}
+          onClick={() => setIsEditing(true)}
+        >
+          Click the pencil icon to add an introduction…
+        </Text>
+      )}
+    </Paper>
+  );
+}

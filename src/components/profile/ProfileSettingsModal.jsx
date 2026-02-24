@@ -17,7 +17,8 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
     show_favorite_songs: true,
     show_playlists: true,
     show_main_branch: true,
-    show_preferred_branches: true
+    show_preferred_branches: true,
+    show_introduction: true
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingSlug, setIsSavingSlug] = useState(false);
@@ -205,6 +206,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
                 <Text size="sm" fw={600}>Basics</Text>
                 <Switch label="Home Branch" checked={privacySettings.show_main_branch} onChange={(e) => handleUpdatePrivacy('show_main_branch', e.currentTarget.checked)} />
                 <Switch label="Preferred Branches" checked={privacySettings.show_preferred_branches} onChange={(e) => handleUpdatePrivacy('show_preferred_branches', e.currentTarget.checked)} />
+                <Switch label="Introduction" checked={privacySettings.show_introduction !== false} onChange={(e) => handleUpdatePrivacy('show_introduction', e.currentTarget.checked)} />
               </Stack>
               <Stack gap="xs">
                 <Text size="sm" fw={600}>Score Data</Text>

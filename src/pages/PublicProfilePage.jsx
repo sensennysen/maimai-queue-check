@@ -21,6 +21,7 @@ import { useAuth } from '../hooks/useAuth';
 import { userService, branchService, mostPlayedService } from '../services/supabase';
 import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection';
 import { PlaylistSection } from '../components/profile/PlaylistSection';
+import { IntroductionCard } from '../components/profile/IntroductionCard';
 import { ScoreCard } from '../components/maimai/ScoreCard';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { useMouseDragScroll } from '../hooks/useMouseDragScroll';
@@ -44,6 +45,7 @@ const PublicProfilePage = () => {
   const [selectedMostPlayedSong, setSelectedMostPlayedSong] = useState(null);
   const [selectedBest50Song, setSelectedBest50Song] = useState(null);
   const [selectedBest50Score, setSelectedBest50Score] = useState(null);
+  const [introduction, setIntroduction] = useState(null);
 
   const { requestFetch, songMapByTitle } = useSongDatabaseContext();
   const { scrollRef, isDragging } = useMouseDragScroll();
@@ -75,6 +77,7 @@ const PublicProfilePage = () => {
 
         setProfile(profileData);
         setBranches(branchesData);
+        setIntroduction(profileData.introduction || null);
       }
     } catch (err) {
       console.error('Error fetching public profile:', err);
@@ -402,6 +405,18 @@ const PublicProfilePage = () => {
             </Stack>
           </Group>
         </Paper>
+
+        {/* Introduction Card */}
+        {(privacy.show_introduction !== false || isOwner) && (
+          <div className="animate-fade-in delay-200">
+            <IntroductionCard
+              introduction={introduction}
+              isOwnProfile={isOwner}
+              userId={profile.id}
+              onUpdate={setIntroduction}
+            />
+          </div>
+        )}
 
         {/* Favorite Songs Section */}
         {(privacy.show_favorite_songs || isOwner) && (
