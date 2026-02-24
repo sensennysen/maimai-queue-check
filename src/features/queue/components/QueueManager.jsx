@@ -115,7 +115,7 @@ function QueueManager() {
       }
     };
     checkPendingRequest();
-  }, [user, selectedBranch, showRequestModal]); // Re-check when modal closes (implicit via showRequestModal if needed, or trigger reload)
+  }, [user, selectedBranch, showRequestModal]);
 
   // Derived permissions
   const { canActuallyEdit, canEdit, isAdmin, isSuperAdmin } = usePermissions();
@@ -421,6 +421,7 @@ function QueueManager() {
                   View Mode
                 </Button>
               )}
+
               {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
                 <Button
                   leftSection={<IconPlus size={16} />}
@@ -504,7 +505,7 @@ function QueueManager() {
             onMoveDown={handleMoveDownWithAnimation}
             onStartGame={startGame}
             isMallOpen={isMallOpen}
-              isBusy={isQueueDataLoading}
+            isBusy={isQueueDataLoading}
             loadingRoles={!actionsLoaded}
             cabinetNum={selectedCabinet}
             hasMultipleCabinets={hasMultipleCabinets}

@@ -4,7 +4,7 @@ import { validateData, userProfileSchema } from '../../utils/validation';
 // User service functions
 export const userService = {
   // Update user preferences
-  async updatePreferences(userId, { branch_ids, display_name, main_branch, is_public }) {
+  async updatePreferences(userId, { branch_ids, display_name, queue_name, main_branch, is_public }) {
     const updateData = {};
     if (branch_ids !== undefined) updateData.preferred_branches = branch_ids;
     if (display_name !== undefined) updateData.display_name = display_name;
@@ -16,33 +16,39 @@ export const userService = {
         const validation = validateData(userProfileSchema.pick({ display_name: true }), { display_name });
         if (!validation.success) throw new Error(validation.error);
     }
+    if (queue_name !== undefined) {
+        if (queue_name) {
+          const validation = validateData(userProfileSchema.pick({ queue_name: true }), { queue_name });
+          if (!validation.success) throw new Error(validation.error);
+        }
+    }
+    
+    const profileUpdateData = { ...updateData };
+    // queue_name is stored in user_roles, not user_profiles
+    delete profileUpdateData.queue_name;
     
     // Update user_profiles (Primary)
-    const { data: profileData, error: profileError } = await supabase
-      .from('user_profiles')
-      .upsert({ 
-        id: userId,
-        ...updateData, 
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+    let profileData = null;
+    if (Object.keys(profileUpdateData).length > 0) {
+      const { data, error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert({ 
+          id: userId,
+          ...profileUpdateData, 
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+      if (profileError) throw profileError;
+      profileData = data;
+    }
 
-    if (profileError) throw profileError;
-
-    // Sync to user_roles (Legacy/Compatibility)
-    try {
-      const roleUpdateData = { ...updateData };
-      delete roleUpdateData.preferred_branches; // user_roles.preferred_branches is deprecated
-
-      if (Object.keys(roleUpdateData).length > 0) {
-        await supabase
-          .from('user_roles')
-          .update(roleUpdateData)
-          .eq('user_id', userId);
-      }
-    } catch (e) {
-      console.warn('Failed to sync preferences to user_roles legacy table', e);
+    // Save queue_name directly to user_roles
+    if (queue_name !== undefined) {
+      await supabase
+        .from('user_roles')
+        .update({ queue_name: queue_name || null })
+        .eq('user_id', userId);
     }
 
     return profileData;
@@ -107,11 +113,12 @@ export const userService = {
 
     const { data: profiles, error } = await supabase
         .from('user_profiles')
-        .select('display_name')
+        .select('id, user_roles(queue_name)')
         .contains('preferred_branches', [branchId]);
     
     if (error) throw error;
-    return profiles || [];
+    // Flatten for easy access: [{ queue_name: '...' }, ...]
+    return (profiles || []).map(p => ({ queue_name: p.user_roles?.queue_name || null }));
   },
 
   // Get profile by slug
@@ -120,7 +127,7 @@ export const userService = {
 
     const { data, error: profileError } = await supabase
       .from('user_profiles')
-      .select('id, display_name, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction, user_attributions(attributions)')
+      .select('id, display_name, user_roles(queue_name), maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction, user_attributions(attributions)')
       .eq('slug', slug.toLowerCase())
       .maybeSingle();
 
@@ -245,6 +252,20 @@ export const userService = {
     }
 
     return { success: true };
+  },
+
+  // Get own profile by userId
+  async getOwnProfile(userId) {
+    if (!userId) return null;
+
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('id, display_name, user_roles(queue_name), maimai_dx_name, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
   },
 
   // Update custom profile picture

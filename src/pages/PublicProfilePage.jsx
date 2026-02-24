@@ -10,7 +10,7 @@ import {
   IconUser, IconTrophy, IconMapPin, IconAlertCircle,
   IconArrowLeft, IconStar, IconLock, IconLogin,
   IconSettings, IconUpload, IconCamera, IconTrash,
-  IconShare, IconCode, IconBug, IconGitPullRequest
+  IconShare, IconCode, IconBug, IconGitPullRequest, IconListDetails
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import MaimaiImportModal from '../components/profile/MaimaiImportModal';
@@ -366,6 +366,13 @@ const PublicProfilePage = () => {
                     {preferredBranchNames.map((name, i) => (
                       <Badge key={i} size="sm" variant="light" color="secondary">{name}</Badge>
                     ))}
+                  </Group>
+                )}
+
+                {profile.user_roles?.queue_name && (
+                  <Group gap={4} align="center">
+                    <IconListDetails size={14} style={{ color: 'var(--mantine-color-blue-5)' }} />
+                    <Text size="sm">Queue Name: <Text component="span" fw={600}>{profile.user_roles.queue_name}</Text></Text>
                   </Group>
                 )}
 
