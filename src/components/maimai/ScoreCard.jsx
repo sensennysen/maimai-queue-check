@@ -112,14 +112,14 @@ export const ScoreCard = React.memo(function ScoreCard({ score, onClick, isExpor
               <Badge
                 color={difficultyColor}
                 variant="filled"
-                size={isExport ? "md" : "sm"}
+                size={isExport ? "lg" : "sm"}
                 radius="sm"
                 styles={{ root: { backgroundColor: difficultyColor, color: 'white' } }}
               >
                 {difficultyLabel}
               </Badge>
               {score.level && (
-                <Text size={isExport ? "md" : "xs"} c="secondary" fw={isExport ? 800 : 600}>
+                <Text size={isExport ? "lg" : "xs"} c="secondary" fw={isExport ? 800 : 600}>
                   {score.level.toFixed(1)}
                 </Text>
               )}
@@ -127,12 +127,12 @@ export const ScoreCard = React.memo(function ScoreCard({ score, onClick, isExpor
             {hasTags && (
               <Group gap={4} wrap="nowrap">
                 {comboTag && (
-                  <Badge size={isExport ? "md" : "xs"} variant="light" color="orange">
+                  <Badge size={isExport ? "lg" : "xs"} variant="light" color="orange">
                     {comboTag}
                   </Badge>
                 )}
                 {syncTag && (
-                  <Badge size={isExport ? "md" : "xs"} variant="light" color="cyan">
+                  <Badge size={isExport ? "lg" : "xs"} variant="light" color="cyan">
                     {syncTag}
                   </Badge>
                 )}

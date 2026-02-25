@@ -40,7 +40,7 @@ export const rolesService = {
       const [roleResult, profileResult] = await Promise.all([
         supabase
           .from('user_roles')
-          .select('user_id, can_edit, can_edit_on, is_admin, is_super_admin, admin_branch, display_name')
+          .select('user_id, can_edit, can_edit_on, is_admin, is_super_admin, admin_branch, queue_name')
           .eq('user_id', userId)
           .limit(1)
           .maybeSingle(),
@@ -64,7 +64,8 @@ export const rolesService = {
           is_admin: false,
           is_super_admin: false,
           preferred_branches: [],
-          display_name: null
+          display_name: null,
+          queue_name: null
         };
       }
 
@@ -83,8 +84,9 @@ export const rolesService = {
         is_super_admin: !!roleData?.is_super_admin,
         admin_branch: roleData?.admin_branch || null,
         
-        // Profile fields - prefer profileData, fallback to roleData
-        display_name: profileData?.display_name || roleData?.display_name,
+        // Profile fields - prefer profileData only (user_roles no longer stores display_name)
+        display_name: profileData?.display_name || null,
+        queue_name: roleData?.queue_name || null,
         
         // Get preferred_branches directly from user_profiles
         preferred_branches: Array.isArray(profileData?.preferred_branches) 

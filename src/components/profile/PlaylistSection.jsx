@@ -105,7 +105,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
   }
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder pos="relative" className="playlist-section">
+    <Paper shadow="sm" p="lg" radius="md" withBorder pos="relative" className="playlist-section" style={{ overflow: 'hidden' }}>
       <Group justify="space-between" mb="lg">
         <Group gap="xs">
           <IconPlaylist size={24} style={{ color: 'var(--theme-primary)' }} />
@@ -135,9 +135,15 @@ export function PlaylistSection({ userId, isOwnProfile }) {
           className="hide-scrollbar"
           style={{
             display: 'flex',
-            padding: '32px 10px 0px 10px',
+            /* Top padding gives cards room to rotate/hover without clipping */
+            /* Horizontal margin matches parent Paper padding to keep it contained */
+            /* Top margin 0 prevents the container from bleeding above the Title/Header area */
+            padding: '24px 20px 20px 20px',
+            margin: '0 -20px -20px -20px',
             overflowX: 'auto',
-            scrollBehavior: 'smooth'
+            overflowY: 'visible',
+            scrollBehavior: 'smooth',
+            maxWidth: 'calc(100% + 40px)'
           }}
         >
           <Group wrap="nowrap" gap="xs" style={{ overflow: 'visible' }}>

@@ -29,12 +29,36 @@
   const codeLabel = document.createElement('label');
   codeLabel.innerText = 'Session code (from maiPaQueueCheck):';
   codeLabel.style.cssText = 'display:block;text-align:left;font-size:0.8rem;color:#aaa;margin-bottom:4px;';
+
+  const inputGroup = document.createElement('div');
+  inputGroup.style.cssText = 'display:flex;gap:8px;margin-bottom:1rem;';
+
   const tokenInput = document.createElement('input');
   tokenInput.type = 'text';
   tokenInput.placeholder = 'e.g. ABC12XYZ34';
   tokenInput.id = 'maimai-export-token';
-  tokenInput.style.cssText = 'width:100%;padding:8px;margin-bottom:1rem;border-radius:6px;border:1px solid #444;background:#333;color:#fff;font-size:1rem;box-sizing:border-box;';
+  tokenInput.style.cssText = 'flex:1;padding:8px;border-radius:6px;border:1px solid #444;background:#333;color:#fff;font-size:1rem;box-sizing:border-box;user-select:text;-webkit-user-select:text;';
   tokenInput.autocomplete = 'off';
+  tokenInput.setAttribute('inputmode', 'text');
+
+  const pasteBtn = document.createElement('button');
+  pasteBtn.innerText = 'Paste';
+  pasteBtn.style.cssText = 'background:#444;color:white;border:1px solid #555;padding:8px 12px;border-radius:6px;font-size:0.8rem;cursor:pointer;font-weight:bold;transition:background 0.2s;';
+  pasteBtn.onmouseover = () => pasteBtn.style.background = '#555';
+  pasteBtn.onmouseout = () => pasteBtn.style.background = '#444';
+  pasteBtn.onclick = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      tokenInput.value = text.trim();
+    } catch (err) {
+      console.error('Clipboard error:', err);
+      // Fallback: focus and let user try native paste if API fails
+      tokenInput.focus();
+    }
+  };
+
+  inputGroup.appendChild(tokenInput);
+  inputGroup.appendChild(pasteBtn);
 
   const fetchBtn = document.createElement('button');
   fetchBtn.innerText = 'Fetch & Send to App';
@@ -49,7 +73,7 @@
   container.appendChild(statusEl);
   container.appendChild(warnEl);
   container.appendChild(codeLabel);
-  container.appendChild(tokenInput);
+  container.appendChild(inputGroup);
   container.appendChild(fetchBtn);
   container.appendChild(document.createElement('br'));
   container.appendChild(closeBtn);
@@ -77,6 +101,23 @@
     try {
       updateStatus('Initializing...', true);
       const parser = new DOMParser();
+      const parseFraction = (txt) => {
+        if (!txt) return { left: null, right: null };
+        const m = String(txt).trim().match(/^\s*([\d,]+)\s*\/\s*([\d,]+)\s*$/);
+        if (!m) return { left: null, right: null };
+        return {
+          left: parseInt(m[1].replace(/,/g, ''), 10),
+          right: parseInt(m[2].replace(/,/g, ''), 10)
+        };
+      };
+      const extractIconValue = (imgSrc, candidates) => {
+        if (!imgSrc) return null;
+        const src = String(imgSrc);
+        for (const c of candidates) {
+          if (src.includes(`_${c}`)) return c;
+        }
+        return null;
+      };
       const output = { 
         profile: {}, 
         scores: [], 
@@ -136,13 +177,26 @@
           const title = row.querySelector('.music_name_block')?.innerText.trim();
           const achievement = row.querySelector('.music_score_block')?.innerText.trim();
           const kindImg = row.querySelector('.music_kind_icon')?.src;
+          const dxScoreTxt = row.querySelector('div.music_score_block.w_190.t_r.f_l.f_12')?.innerText?.trim();
+          const dxScoreFrac = parseFraction(dxScoreTxt);
+          const iconImgs = Array.from(row.querySelectorAll('img.h_30.f_r'));
+          const comboAchievement = iconImgs
+            .map(img => extractIconValue(img.getAttribute('src') || img.src, ['app', 'ap', 'fcp', 'fc']))
+            .find(v => v) || null;
+          const syncAchievement = iconImgs
+            .map(img => extractIconValue(img.getAttribute('src') || img.src, ['fdxp', 'fdx', 'fsp', 'fs']))
+            .find(v => v) || null;
           if (title && achievement) {
             output.scores.push({
               title: title,
               score: parseFloat(achievement.replace('%', '')),
               difficulty: diffObj.name,
               difficulty_id: diffObj.id,
-              type: kindImg && kindImg.includes('dx.png') ? 'DX' : 'Standard'
+              type: kindImg && kindImg.includes('dx.png') ? 'DX' : 'Standard',
+              dxScore: dxScoreFrac.left,
+              totalDxScore: dxScoreFrac.right,
+              comboAchievement,
+              syncAchievement
             });
           }
         });
@@ -208,7 +262,24 @@
             const lp = infoRows?.[0]?.cells[1]?.innerText.trim();
             const pc = infoRows?.[1]?.cells[1]?.innerText.trim();
             const kImg = detDoc.querySelector('.music_kind_icon')?.src;
-            const fullSync = !!levelDiv.querySelector('img[src*="music_icon_ap.png"], img[src*="music_icon_app.png"]');
+            const syncType = extractIconValue(
+              levelDiv.querySelector('img.h_45.m_r_10.v_t')?.getAttribute('src') ||
+                levelDiv.querySelector('img.h_45.m_r_10.v_t')?.src,
+              ['fdxp', 'fdx', 'fsp', 'fs']
+            );
+            const comboAchievement = extractIconValue(
+              levelDiv.querySelector('img.h_45.v_t')?.getAttribute('src') ||
+                levelDiv.querySelector('img.h_45.v_t')?.src,
+              ['fc', 'fcp', 'ap', 'app']
+            );
+            const dxScoreTxt = levelDiv.querySelector('div.music_score_block.w_310.m_r_0.d_ib.t_r.f_12')?.innerText?.trim();
+            const dxScoreFrac = parseFraction(dxScoreTxt);
+            const dxStarSrc =
+              levelDiv.querySelector('img.w_80.p_l_10.f_r')?.getAttribute('src') ||
+              levelDiv.querySelector('img.w_80.p_l_10.f_r')?.src ||
+              '';
+            const dxStarMatch = String(dxStarSrc).match(/music_icon_dxstar_detail_(\d)/i);
+            const dxStar = dxStarMatch ? Math.max(0, Math.min(5, parseInt(dxStarMatch[1], 10))) : 0;
 
             const finalScore = {
                 title: job.title,
@@ -217,7 +288,12 @@
                 last_played: lp,
                 play_count: pc,
                 type: kImg && kImg.includes('dx.png') ? 'DX' : 'Standard',
-                isAP: fullSync
+                syncType: syncType || null,
+                comboAchievement: comboAchievement || null,
+                dxScore: dxScoreFrac.left,
+                totalDxScore: dxScoreFrac.right,
+                dxStar,
+                isAP: comboAchievement === 'ap' || comboAchievement === 'app'
             };
 
             if (job.is_new) output.best_fifty.best_new.push(finalScore);

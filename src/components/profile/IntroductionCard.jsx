@@ -16,15 +16,24 @@ function sanitize(html) {
 }
 
 function IntroductionEditor({ initialContent, onSave, onCancel }) {
+  const [characterCount, setCharacterCount] = useState(0);
+
   const editor = useEditor({
     extensions: [StarterKit, Link],
     content: initialContent || '',
+    onUpdate: ({ editor }) => {
+      setCharacterCount(editor.getText().trim().length);
+    },
+    onCreate: ({ editor }) => {
+      setCharacterCount(editor.getText().trim().length);
+    },
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const isOverLimit = characterCount > 1000;
 
   const handleSave = async () => {
-    if (!editor) return;
+    if (!editor || isOverLimit) return;
     setIsSaving(true);
     try {
       const html = editor.getHTML();
@@ -38,7 +47,7 @@ function IntroductionEditor({ initialContent, onSave, onCancel }) {
 
   return (
     <Stack gap="sm">
-      <RichTextEditor editor={editor} style={{ minHeight: 140 }}>
+      <RichTextEditor editor={editor} style={{ minHeight: 140, borderColor: isOverLimit ? 'var(--mantine-color-red-filled)' : undefined }}>
         <RichTextEditor.Toolbar>
           <RichTextEditor.ControlsGroup>
             <RichTextEditor.Bold />
@@ -66,24 +75,31 @@ function IntroductionEditor({ initialContent, onSave, onCancel }) {
         <RichTextEditor.Content />
       </RichTextEditor>
 
-      <Group gap="xs" justify="flex-end">
-        <Button
-          variant="default"
-          leftSection={<IconX size={16} />}
-          onClick={onCancel}
-          disabled={isSaving}
-          size="sm"
-        >
-          Cancel
-        </Button>
-        <Button
-          leftSection={<IconCheck size={16} />}
-          onClick={handleSave}
-          loading={isSaving}
-          size="sm"
-        >
-          Save
-        </Button>
+      <Group gap="xs" justify="space-between">
+        <Text size="xs" c={isOverLimit ? 'red' : 'dimmed'} fw={isOverLimit ? 700 : 400}>
+          {characterCount} / 1000 characters
+        </Text>
+        <Group gap="xs">
+          <Button
+            variant="default"
+            leftSection={<IconX size={16} />}
+            onClick={onCancel}
+            disabled={isSaving}
+            size="sm"
+          >
+            Cancel
+          </Button>
+          <Button
+            leftSection={<IconCheck size={16} />}
+            onClick={handleSave}
+            loading={isSaving}
+            disabled={isOverLimit}
+            size="sm"
+            color={isOverLimit ? 'red' : 'blue'}
+          >
+            Save
+          </Button>
+        </Group>
       </Group>
     </Stack>
   );
