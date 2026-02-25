@@ -789,7 +789,6 @@ const PublicProfilePage = () => {
         difficulty={selectedBest50Score?.difficulty}
         title="Best 50 Details"
         best50Score={selectedBest50Score}
-        isOwnProfile={isOwner}
       />
     </Container >
   );
