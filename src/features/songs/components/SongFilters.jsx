@@ -52,7 +52,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
   };
 
   const hasActiveFilters = filters.categories.length > 0 || filters.versions.length > 0 ||
-    filters.levelMin !== '' || filters.levelMax !== '' || filters.region !== '';
+    filters.levelMin !== '' || filters.levelMax !== '' || filters.region !== '' || filters.type !== '';
 
   const resetFilters = () => {
     onFilterChange({
@@ -62,7 +62,8 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
       levelMin: '',
       levelMax: '',
       showInternalLevels: false,
-      region: ''
+      region: 'intl',
+      type: ''
     });
   };
 
@@ -132,18 +133,37 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
       />
 
       <Select
-        label="Region Availability"
-        placeholder="All regions"
+        label="Chart Type"
+        placeholder="All types"
         data={[
-          { label: 'Japan', value: 'jp' },
-          { label: 'International', value: 'intl' },
-          { label: 'USA', value: 'usa' },
+          { label: 'DX', value: 'dx' },
+          { label: 'Standard', value: 'standard' },
         ]}
-        value={filters.region || null}
-        onChange={(val) => updateFilter('region', val || '')}
+        value={filters.type || null}
+        onChange={(val) => updateFilter('type', val || '')}
         variant="filled"
         radius="md"
         clearable
+      />
+
+      <Select
+        label="Region"
+        placeholder="Select region"
+        data={[
+          { label: 'Japanese Version', value: 'jp' },
+          { label: 'International', value: 'intl' },
+          { label: 'USA International', value: 'usa' },
+          { label: 'Chinese International', value: 'cn' },
+          { label: 'Unavailable to Japanese', value: 'unav_jp' },
+          { label: 'Unavailable to International', value: 'unav_intl' },
+          { label: 'Unavailable to USA', value: 'unav_usa' },
+          { label: 'Unavailable to Chinese', value: 'unav_cn' },
+        ]}
+        value={filters.region || null}
+        onChange={(val) => updateFilter('region', val || 'intl')}
+        variant="filled"
+        radius="md"
+        allowDeselect={false}
       />
 
       <Stack gap="xs">
