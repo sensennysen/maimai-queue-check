@@ -1,5 +1,21 @@
 export const changelogData = [
   {
+    version: 'v1.8.1',
+    date: 'February 25, 2026',
+    changes: [
+      {
+        type: 'revamp',
+        title: 'Songs DB Rework and Patch',
+        description: 'Reworked the songs DB for a faster, smoother experience. Patched missing song jackets',
+      },
+      {
+        type: 'feature',
+        title: 'Favorite Songs and Best 50 details toggle',
+        description: 'Added a toggle to hide/show the details of the songs in the Favorite Songs and Best 50 sections.',
+      },
+    ]
+  },
+  {
     version: 'v1.8.0',
     date: 'February 24, 2026',
     changes: [
