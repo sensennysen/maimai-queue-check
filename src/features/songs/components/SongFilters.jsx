@@ -135,9 +135,9 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         label="Region Availability"
         placeholder="All regions"
         data={[
-          { label: '🇯🇵 JP only', value: 'jp' },
-          { label: '🌏 Intl only', value: 'intl' },
-          { label: '🇺🇸 USA only', value: 'usa' },
+          { label: 'Japan', value: 'jp' },
+          { label: 'International', value: 'intl' },
+          { label: 'USA', value: 'usa' },
         ]}
         value={filters.region || null}
         onChange={(val) => updateFilter('region', val || '')}
