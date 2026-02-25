@@ -1,5 +1,21 @@
 export const changelogData = [
   {
+    version: 'v1.8.2',
+    date: 'February 26, 2026',
+    changes: [
+      {
+        type: 'feature',
+        title: 'DX/STD and Region Filters on Songs DB',
+        description: 'Added filters to the songs DB to filter by DX/STD and Region.',
+      },
+      {
+        type: 'bugfix',
+        title: 'Miscellaneous Bugfixes',
+        description: 'Fixes on mobile modals, pages failing to load, and B50 export sizes',
+      },
+    ]
+  },
+  {
     version: 'v1.8.1',
     date: 'February 25, 2026',
     changes: [
