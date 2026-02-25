@@ -52,7 +52,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
   };
 
   const hasActiveFilters = filters.categories.length > 0 || filters.versions.length > 0 ||
-    filters.levelMin !== '' || filters.levelMax !== '';
+    filters.levelMin !== '' || filters.levelMax !== '' || filters.region !== '';
 
   const resetFilters = () => {
     onFilterChange({
@@ -61,7 +61,8 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
       versions: [],
       levelMin: '',
       levelMax: '',
-      showInternalLevels: false
+      showInternalLevels: false,
+      region: ''
     });
   };
 
@@ -130,6 +131,21 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         radius="md"
       />
 
+      <Select
+        label="Region Availability"
+        placeholder="All regions"
+        data={[
+          { label: '🇯🇵 JP only', value: 'jp' },
+          { label: '🌏 Intl only', value: 'intl' },
+          { label: '🇺🇸 USA only', value: 'usa' },
+        ]}
+        value={filters.region || null}
+        onChange={(val) => updateFilter('region', val || '')}
+        variant="filled"
+        radius="md"
+        clearable
+      />
+
       <Stack gap="xs">
         <Group justify="space-between">
           <Text size="sm" fw={500}>{isInternal ? 'Internal Level Range' : 'Level Range'}</Text>
@@ -180,6 +196,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
       )}
     </Stack>
   );
+
 
   return (
     <Stack gap="md" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
