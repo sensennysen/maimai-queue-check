@@ -20,7 +20,8 @@ export function useSongDatabase() {
     versions: [],
     levelMin: '',
     levelMax: '',
-    showInternalLevels: false
+    showInternalLevels: false,
+    region: ''
   });
 
   // Extract unique categories, versions, and levels for filter dropdowns
@@ -79,6 +80,12 @@ export function useSongDatabase() {
       const hasLevelFilter = filters.levelMin !== '' || filters.levelMax !== '';
       // 0. Skip Unknown/Missing Metadata songs
       if (song.isMissingMetadata || song.category === 'Unknown') return false;
+
+      // 0.5. Region Availability
+      if (filters.region) {
+        const hasRegion = song.sheets?.some(s => s.regions?.[filters.region] === true);
+        if (!hasRegion) return false;
+      }
 
       // 1. Search Query (Title/Artist)
       if (filters.query) {
