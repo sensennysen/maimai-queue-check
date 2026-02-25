@@ -478,7 +478,7 @@ const PublicProfilePage = () => {
                       height: 160,
                       overflow: 'hidden',
                       position: 'relative',
-                      cursor: 'pointer',
+                      cursor: (isOwner || privacy.show_most_played_details === true) ? 'pointer' : 'default',
                       transition: 'transform 0.1s ease, box-shadow 0.2s ease', // Added box-shadow transition
                       border: `2px solid ${DIFFICULTY_COLORS[song.difficulty] || 'transparent'}`,
                       contentVisibility: 'auto',
@@ -494,6 +494,16 @@ const PublicProfilePage = () => {
                     }}
                     onClick={() => {
                       if (!isDragging) {
+                        const canViewDetails = isOwner || privacy.show_most_played_details === true;
+                        if (!canViewDetails) return;
+                        if (!matchedSong) {
+                          notifications.show({
+                            title: 'Song not found',
+                            message: 'This song could not be found in the database.',
+                            color: 'red',
+                          });
+                          return;
+                        }
                         setSelectedMostPlayedSong({
                           ...matchedSong,
                           play_count: song.play_count,
@@ -656,11 +666,19 @@ const PublicProfilePage = () => {
                         <ScoreCard
                           key={`new-${index}`}
                           score={score}
-                          onClick={() => {
+                          onClick={(isOwner || privacy.show_best_50_details === true) ? () => {
                             const matchedSong = songMapByTitle?.get(score.title);
-                            setSelectedBest50Song(matchedSong || { title: score.title });
+                            if (!matchedSong) {
+                              notifications.show({
+                                title: 'Song not found',
+                                message: 'This song could not be found in the database.',
+                                color: 'red',
+                              });
+                              return;
+                            }
+                            setSelectedBest50Song(matchedSong);
                             setSelectedBest50Score(score);
-                          }}
+                          } : undefined}
                         />
                       ))}
                     </SimpleGrid>
@@ -680,11 +698,19 @@ const PublicProfilePage = () => {
                         <ScoreCard
                           key={`old-${index}`}
                           score={score}
-                          onClick={() => {
+                          onClick={(isOwner || privacy.show_best_50_details === true) ? () => {
                             const matchedSong = songMapByTitle?.get(score.title);
-                            setSelectedBest50Song(matchedSong || { title: score.title });
+                            if (!matchedSong) {
+                              notifications.show({
+                                title: 'Song not found',
+                                message: 'This song could not be found in the database.',
+                                color: 'red',
+                              });
+                              return;
+                            }
+                            setSelectedBest50Song(matchedSong);
                             setSelectedBest50Score(score);
-                          }}
+                          } : undefined}
                         />
                       ))}
                     </SimpleGrid>
@@ -740,28 +766,31 @@ const PublicProfilePage = () => {
               }
             }}
           />
-          <MaimaiSongDetailModal
-            song={selectedMostPlayedSong}
-            opened={!!selectedMostPlayedSong}
-            onClose={() => setSelectedMostPlayedSong(null)}
-            playCount={selectedMostPlayedSong?.play_count}
-            difficulty={selectedMostPlayedSong?.difficulty}
-            title="Most Played Details"
-          />
-          <MaimaiSongDetailModal
-            song={selectedBest50Song}
-            opened={!!selectedBest50Song}
-            onClose={() => {
-              setSelectedBest50Song(null);
-              setSelectedBest50Score(null);
-            }}
-            playCount={selectedBest50Score?.playCount ?? selectedBest50Score?.play_count}
-            difficulty={selectedBest50Score?.difficulty}
-            title="Best 50 Details"
-            best50Score={selectedBest50Score}
-          />
         </>
       )}
+
+      {/* Song detail modals — available to visitors when owner enables details */}
+      <MaimaiSongDetailModal
+        song={selectedMostPlayedSong}
+        opened={!!selectedMostPlayedSong}
+        onClose={() => setSelectedMostPlayedSong(null)}
+        playCount={selectedMostPlayedSong?.play_count}
+        difficulty={selectedMostPlayedSong?.difficulty}
+        title="Most Played Details"
+      />
+      <MaimaiSongDetailModal
+        song={selectedBest50Song}
+        opened={!!selectedBest50Song}
+        onClose={() => {
+          setSelectedBest50Song(null);
+          setSelectedBest50Score(null);
+        }}
+        playCount={selectedBest50Score?.playCount ?? selectedBest50Score?.play_count}
+        difficulty={selectedBest50Score?.difficulty}
+        title="Best 50 Details"
+        best50Score={selectedBest50Score}
+        isOwnProfile={isOwner}
+      />
     </Container >
   );
 };
