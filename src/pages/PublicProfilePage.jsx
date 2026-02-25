@@ -740,28 +740,31 @@ const PublicProfilePage = () => {
               }
             }}
           />
-          <MaimaiSongDetailModal
-            song={selectedMostPlayedSong}
-            opened={!!selectedMostPlayedSong}
-            onClose={() => setSelectedMostPlayedSong(null)}
-            playCount={selectedMostPlayedSong?.play_count}
-            difficulty={selectedMostPlayedSong?.difficulty}
-            title="Most Played Details"
-          />
-          <MaimaiSongDetailModal
-            song={selectedBest50Song}
-            opened={!!selectedBest50Song}
-            onClose={() => {
-              setSelectedBest50Song(null);
-              setSelectedBest50Score(null);
-            }}
-            playCount={selectedBest50Score?.playCount ?? selectedBest50Score?.play_count}
-            difficulty={selectedBest50Score?.difficulty}
-            title="Best 50 Details"
-            best50Score={selectedBest50Score}
-          />
         </>
       )}
+
+      {/* Song detail modals — available to all visitors */}
+      <MaimaiSongDetailModal
+        song={selectedMostPlayedSong}
+        opened={!!selectedMostPlayedSong}
+        onClose={() => setSelectedMostPlayedSong(null)}
+        playCount={selectedMostPlayedSong?.play_count}
+        difficulty={selectedMostPlayedSong?.difficulty}
+        title="Most Played Details"
+      />
+      <MaimaiSongDetailModal
+        song={selectedBest50Song}
+        opened={!!selectedBest50Song}
+        onClose={() => {
+          setSelectedBest50Song(null);
+          setSelectedBest50Score(null);
+        }}
+        playCount={selectedBest50Score?.playCount ?? selectedBest50Score?.play_count}
+        difficulty={selectedBest50Score?.difficulty}
+        title="Best 50 Details"
+        best50Score={selectedBest50Score}
+        isOwnProfile={isOwner}
+      />
     </Container >
   );
 };
