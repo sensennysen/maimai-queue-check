@@ -52,7 +52,8 @@ body {
     radial-gradient(at 100% 0%, rgba(0, 210, 255, 0.15) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(255, 210, 0, 0.1) 0px, transparent 50%),
     radial-gradient(at 0% 100%, rgba(255, 40, 169, 0.1) 0px, transparent 50%);
-  background-attachment: scroll; /* Changed from fixed for mobile performance */
+  background-attachment: scroll;
+  /* Changed from fixed for mobile performance */
   background-size: 100% 100%;
 
   /* Noise overlay */
@@ -73,7 +74,8 @@ body::before {
   background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.15; /* Adjusted opacity to compensate for missing mix-blend */
+  opacity: 0.15;
+  /* Adjusted opacity to compensate for missing mix-blend */
   /* mix-blend-mode: overlay; -> Disabled for GPU composite speed */
 }
 
@@ -110,6 +112,7 @@ body::before {
 
 /* Mobile glassmorphism fallback (Disable backdrop blur to fix scroll lag) */
 @media (max-width: 768px) {
+
   .hologram-card,
   .mantine-Paper-root,
   .mantine-Modal-content,
@@ -139,6 +142,32 @@ body::before {
     flex: 1 !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* Force Desktop Rendering during Export */
+.rendering-export .hologram-card,
+.rendering-export .mantine-Paper-root,
+.rendering-export .mantine-Modal-content,
+.rendering-export .mantine-Card-root,
+.rendering-export .mantine-Menu-dropdown,
+.rendering-export .mantine-Card-root {
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.4)) !important;
+}
+
+[data-mantine-color-scheme="dark"] .rendering-export .hologram-card,
+[data-mantine-color-scheme="dark"] .rendering-export .mantine-Paper-root,
+[data-mantine-color-scheme="dark"] .rendering-export .mantine-Modal-content,
+[data-mantine-color-scheme="dark"] .rendering-export .mantine-Card-root,
+[data-mantine-color-scheme="dark"] .rendering-export .mantine-Menu-dropdown {
+  background: linear-gradient(135deg, rgba(20, 20, 30, 0.6), rgba(20, 20, 30, 0.4)) !important;
+}
+
+@media (max-width: 768px) {
+  .rendering-export #root {
+    padding: 0 !important;
   }
 }
 
@@ -381,12 +410,15 @@ html {
 
 /* Scrollbar Utilities */
 .hide-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .hide-scrollbar::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+  display: none;
+  /* Chrome, Safari and Opera */
 }
 
 .delay-100 {
