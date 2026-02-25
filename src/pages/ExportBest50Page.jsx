@@ -50,9 +50,13 @@ const ExportBest50Page = () => {
   const handleDownload = useCallback(async () => {
     if (!exportRef.current) return;
     const objectUrls = [];
+    const originalRootFontSize = document.documentElement.style.fontSize;
 
     try {
       setIsExporting(true);
+
+      // Force root font size to 16px during export to ensure consistent rem-based scaling
+      document.documentElement.style.setProperty('font-size', '16px', 'important');
 
       // --- CORS Bypass: Image Localizer ---
       // Find all images in the exportable area
@@ -101,7 +105,7 @@ const ExportBest50Page = () => {
         pixelRatio: 2,
         quality: 1,
         width: EXPORT_WIDTH,
-        height: EXPORT_HEIGHT,
+        // height: EXPORT_HEIGHT, // Remove fixed height to allow dynamic content height
         cacheBust: false,
         // Filter out cross-origin stylesheets that cause SecurityError
         filter: (node) => {
@@ -136,6 +140,7 @@ const ExportBest50Page = () => {
       });
     } finally {
       // --- Cleanup ---
+      document.documentElement.style.fontSize = originalRootFontSize;
       objectUrls.forEach(({ img, originalSrc, localUrl }) => {
         img.src = originalSrc;
         URL.revokeObjectURL(localUrl);
@@ -274,7 +279,7 @@ const ExportBest50Page = () => {
             ref={exportRef}
             style={{
               width: `${EXPORT_WIDTH}px`,
-              height: `${EXPORT_HEIGHT}px`,
+              minHeight: `${EXPORT_HEIGHT}px`,
               backgroundColor: isDark ? '#1a1b1e' : '#ffffff',
               borderRadius: '16px',
               border: `1px solid ${isDark ? '#333' : '#ddd'}`,
@@ -282,7 +287,6 @@ const ExportBest50Page = () => {
               display: 'flex',
               flexDirection: 'column',
               padding: '60px',
-              paddingBottom: '80px',
             }}
           >
             <Stack gap="xl" style={{ flexGrow: 1 }}>
