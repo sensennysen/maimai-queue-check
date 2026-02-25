@@ -121,12 +121,24 @@ body::before {
     /* Maintain border and shadow but replace blur with solid/semi-solid background */
   }
 
-  [data-mantine-color-scheme="dark"] .hologram-card,
-  [data-mantine-color-scheme="dark"] .mantine-Paper-root,
   [data-mantine-color-scheme="dark"] .mantine-Modal-content,
   [data-mantine-color-scheme="dark"] .mantine-Card-root,
   [data-mantine-color-scheme="dark"] .mantine-Menu-dropdown {
     background: var(--theme-background) !important;
+  }
+
+  /* Fix for overly long modals on mobile */
+  .mantine-Modal-content {
+    max-height: 85vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  .mantine-Modal-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 }
 
