@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, SimpleGrid, Alert, Rating, Autocomplete, ActionIcon } from '@mantine/core';
-import { IconArrowLeft, IconAlertCircle, IconPlus } from '@tabler/icons-react';
+import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, SimpleGrid, Alert, Rating, Autocomplete, ActionIcon, Textarea } from '@mantine/core';
+import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
@@ -18,6 +18,8 @@ export default function SongDiscussionPage() {
   const [isRatingLoading, setIsRatingLoading] = useState(false);
   const [isTaggingLoading, setIsTaggingLoading] = useState(false);
   const [newTagValue, setNewTagValue] = useState('');
+  const [newCommentValue, setNewCommentValue] = useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const { user } = useAuth();
 
   const song = songMapById?.get(id);
@@ -310,12 +312,168 @@ export default function SongDiscussionPage() {
 
           {/* Comments Column */}
           <Paper p="md" radius="md" withBorder style={{ gridColumn: 'span 2' }}>
-            <Title order={4} mb="sm">Comments</Title>
-            {discussionLoading ? <Loader size="sm" /> : (
-              <Text size="xs" c="dimmed" style={{ wordBreak: 'break-all' }}>
-                {JSON.stringify(discussionData.comments)}
-              </Text>
-            )}
+            <Stack gap="md">
+              <Title order={4}>Comments ({discussionData.comments.length})</Title>
+
+              {user ? (
+                <Stack gap="xs">
+                  <Textarea
+                    placeholder="Leave a comment..."
+                    value={newCommentValue}
+                    onChange={(e) => setNewCommentValue(e.currentTarget.value)}
+                    disabled={isSubmittingComment}
+                    minRows={2}
+                    autosize
+                  />
+                  <Group justify="flex-end">
+                    <Button
+                      size="sm"
+                      loading={isSubmittingComment}
+                      disabled={!newCommentValue.trim()}
+                      onClick={async () => {
+                        const content = newCommentValue.trim();
+                        if (!content) return;
+                        setIsSubmittingComment(true);
+                        try {
+                          const newComment = await discussionService.addComment(id, user.id, content);
+                          setDiscussionData(prev => ({
+                            ...prev,
+                            comments: [{ ...newComment, song_comment_votes: [] }, ...prev.comments]
+                          }));
+                          setNewCommentValue('');
+                          notifications.show({
+                            title: 'Comment Added', message: 'Your comment has been posted.', color: 'green'
+                          });
+                        } catch (err) {
+                          console.error('Failed to post comment', err);
+                          notifications.show({
+                            title: 'Error', message: 'Failed to post comment.', color: 'red'
+                          });
+                        } finally {
+                          setIsSubmittingComment(false);
+                        }
+                      }}
+                    >
+                      Post Comment
+                    </Button>
+                  </Group>
+                </Stack>
+              ) : (
+                <Text size="sm" c="dimmed" fs="italic">Log in to post a comment.</Text>
+              )}
+
+              {discussionLoading ? <Loader size="sm" /> : (
+                <Stack gap="md" mt="sm">
+                  {discussionData.comments.length > 0 ? discussionData.comments.map(comment => {
+                    const upvotes = comment.song_comment_votes?.filter(v => v.vote_type === 1).length || 0;
+                    const downvotes = comment.song_comment_votes?.filter(v => v.vote_type === -1).length || 0;
+                    const myVote = comment.song_comment_votes?.find(v => v.user_id === user?.id)?.vote_type || 0;
+
+                    return (
+                      <Paper key={comment.id} p="sm" radius="md" withBorder bg="var(--mantine-color-default-hover)">
+                        <Group justify="space-between" align="flex-start" mb="xs">
+                          <Group gap="xs">
+                            <Text fw={500} size="sm">{comment.user_profiles?.display_name || 'Unknown User'}</Text>
+                            <Text c="dimmed" size="xs">{new Date(comment.created_at).toLocaleString()}</Text>
+                          </Group>
+                          {user && user.id === comment.user_id && (
+                            <ActionIcon
+                              color="red"
+                              variant="subtle"
+                              size="sm"
+                              title="Delete comment"
+                              onClick={async () => {
+                                if (window.confirm("Are you sure you want to delete this comment?")) {
+                                  try {
+                                    await discussionService.deleteComment(comment.id, user.id);
+                                    setDiscussionData(prev => ({
+                                      ...prev,
+                                      comments: prev.comments.filter(c => c.id !== comment.id)
+                                    }));
+                                    notifications.show({ title: 'Comment Deleted', message: 'Comment has been removed.', color: 'green' });
+                                  } catch (err) {
+                                    console.error('Failed to delete comment', err);
+                                    notifications.show({ title: 'Error', message: 'Failed to delete comment.', color: 'red' });
+                                  }
+                                }
+                              }}
+                            >
+                              <IconTrash size={16} />
+                            </ActionIcon>
+                          )}
+                        </Group>
+                        <Text size="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                          {comment.content}
+                        </Text>
+
+                        <Group gap="xs" mt="sm">
+                          <Button
+                            variant={myVote === 1 ? 'light' : 'subtle'}
+                            color={myVote === 1 ? 'blue' : 'gray'}
+                            size="compact-xs"
+                            leftSection={<IconThumbUp size={14} />}
+                            disabled={!user}
+                            onClick={async () => {
+                              try {
+                                const nextVote = myVote === 1 ? 0 : 1;
+                                await discussionService.voteComment(comment.id, user.id, nextVote);
+                                setDiscussionData(prev => ({
+                                  ...prev,
+                                  comments: prev.comments.map(c => {
+                                    if (c.id !== comment.id) return c;
+                                    const filteredVotes = (c.song_comment_votes || []).filter(v => v.user_id !== user.id);
+                                    if (nextVote !== 0) {
+                                      filteredVotes.push({ user_id: user.id, vote_type: nextVote });
+                                    }
+                                    return { ...c, song_comment_votes: filteredVotes };
+                                  })
+                                }));
+                              } catch (err) {
+                                console.error('Failed to vote', err);
+                              }
+                            }}
+                          >
+                            {upvotes > 0 ? upvotes : ''}
+                          </Button>
+                          <Button
+                            variant={myVote === -1 ? 'light' : 'subtle'}
+                            color={myVote === -1 ? 'red' : 'gray'}
+                            size="compact-xs"
+                            leftSection={<IconThumbDown size={14} />}
+                            disabled={!user}
+                            onClick={async () => {
+                              try {
+                                const nextVote = myVote === -1 ? 0 : -1;
+                                await discussionService.voteComment(comment.id, user.id, nextVote);
+                                setDiscussionData(prev => ({
+                                  ...prev,
+                                  comments: prev.comments.map(c => {
+                                    if (c.id !== comment.id) return c;
+                                    const filteredVotes = (c.song_comment_votes || []).filter(v => v.user_id !== user.id);
+                                    if (nextVote !== 0) {
+                                      filteredVotes.push({ user_id: user.id, vote_type: nextVote });
+                                    }
+                                    return { ...c, song_comment_votes: filteredVotes };
+                                  })
+                                }));
+                              } catch (err) {
+                                console.error('Failed to vote', err);
+                              }
+                            }}
+                          >
+                            {downvotes > 0 ? downvotes : ''}
+                          </Button>
+                        </Group>
+                      </Paper>
+                    );
+                  }) : (
+                    <Text size="sm" c="dimmed" fs="italic" ta="center" py="md">
+                      No comments yet. Be the first to start the discussion!
+                    </Text>
+                  )}
+                </Stack>
+              )}
+            </Stack>
           </Paper>
         </SimpleGrid>
       </Stack>
