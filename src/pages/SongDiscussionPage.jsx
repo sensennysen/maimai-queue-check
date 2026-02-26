@@ -103,7 +103,7 @@ export default function SongDiscussionPage() {
   }
 
   return (
-    <Container size="md" py="xl" className="animate-fade-in">
+    <Container size="lg" py="xl" className="animate-fade-in">
       <Stack gap="xl">
         {/* Navigation */}
         <Group>
