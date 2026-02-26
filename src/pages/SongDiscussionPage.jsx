@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, SimpleGrid, Alert, Rating, Autocomplete, ActionIcon, Textarea, Center, Flex } from '@mantine/core';
 import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
@@ -10,6 +10,7 @@ import { VERSION_MAPPING, CATEGORY_TRANSLATION } from '../config/maimai-constant
 
 export default function SongDiscussionPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { songMapById, loading: songsLoading } = useSongDatabaseContext();
 
   // Helper for relative time formatting
@@ -93,8 +94,8 @@ export default function SongDiscussionPage() {
       <Container size="md" py="xl">
         <Stack align="center" gap="md">
           <Title order={2}>Song Not Found</Title>
-          <Button component={Link} to="/songs" leftSection={<IconArrowLeft size={16} />}>
-            Back to Songs
+          <Button onClick={() => navigate(-1)} leftSection={<IconArrowLeft size={16} />}>
+            Go Back
           </Button>
         </Stack>
       </Container>
@@ -106,8 +107,8 @@ export default function SongDiscussionPage() {
       <Stack gap="xl">
         {/* Navigation */}
         <Group>
-          <Button component={Link} to="/songs" variant="subtle" leftSection={<IconArrowLeft size={16} />}>
-            Back to Songs
+          <Button onClick={() => navigate(-1)} variant="subtle" leftSection={<IconArrowLeft size={16} />}>
+            Go Back
           </Button>
         </Group>
 
