@@ -14,7 +14,7 @@ export const discussionService = {
           .from('song_comments')
           .select(`
             id, user_id, content, created_at, updated_at,
-            user_profiles(display_name),
+            user_profiles:user_profiles!song_comments_user_id_fkey(display_name),
             song_comment_votes(vote_type, user_id)
           `)
           .eq('song_id', songId)
@@ -123,7 +123,7 @@ export const discussionService = {
       .insert({ song_id: songId, user_id: userId, content })
       .select(`
         id, user_id, content, created_at, updated_at,
-        user_profiles(display_name)
+        user_profiles:user_profiles!song_comments_user_id_fkey(display_name)
       `)
       .single();
       
