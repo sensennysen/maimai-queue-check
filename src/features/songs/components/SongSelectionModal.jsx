@@ -57,7 +57,7 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
       size="90%"
       padding="xl"
       styles={{
-        body: { minHeight: '60vh', overflowX: 'hidden' }, // Prevent horizontal stretch
+        body: { overflowX: 'hidden' }, // Prevent horizontal stretch
         content: { maxWidth: '100vw' } // Ensure it doesn't exceed viewport
       }}
     >

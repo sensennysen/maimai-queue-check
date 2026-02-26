@@ -21,8 +21,63 @@ export function useSongDatabase() {
     levelMin: '',
     levelMax: '',
     showInternalLevels: false,
-    region: ''
+    region: 'intl',
+    type: ''
   });
+
+  // Determine the effective region for overrides
+  // We prioritize the currently selected positive region filter, otherwise default to intl
+  const effectiveRegion = useMemo(() => {
+    const positiveRegions = ['jp', 'intl', 'usa', 'cn'];
+    if (positiveRegions.includes(filters.region)) return filters.region;
+    return 'intl'; // Default to international for metadata overrides
+  }, [filters.region]);
+  // Apply region overrides and visibility filtering to songs
+  const overriddenSongs = useMemo(() => {
+    const positiveRegions = ['jp', 'intl', 'usa', 'cn'];
+    const isPositiveFilter = positiveRegions.includes(filters.region);
+    const viewRegion = isPositiveFilter ? filters.region : 'intl';
+
+    return songs.map(song => {
+      // Find any sheet that has an override for the effective region
+      const hasOverrides = song.sheets?.some(s => s.regionOverrides?.[effectiveRegion]);
+      
+      const newSheets = song.sheets.map(sheet => {
+        const override = sheet.regionOverrides?.[effectiveRegion];
+        if (!override || Object.keys(override).length === 0) return sheet;
+
+        return {
+          ...sheet,
+          level: override.level || sheet.level,
+          levelValue: override.levelValue || sheet.levelValue,
+          internalLevel: override.internalLevel != null ? String(override.internalLevel) : (override.internalLevelValue != null ? String(override.internalLevelValue) : sheet.internalLevel),
+          internalLevelValue: override.internalLevelValue || sheet.internalLevelValue,
+          version: override.version || sheet.version
+        };
+      });
+
+      // Filter sheets based on visibility in the current region
+      // Only filter if it's a positive region selection or the default (intl)
+      // For "Unavailable to..." filters, we show all sheets to see what's missing
+      let visibleSheets = newSheets;
+      if (isPositiveFilter || !filters.region || (filters.region === 'intl')) {
+        visibleSheets = newSheets.filter(s => s.regions?.[viewRegion] === true);
+      }
+
+      // Also handle song-level version override if applicable
+      // We derive the version from the first visible sheet if there are any
+      const versionOverride = visibleSheets.length > 0
+        ? (visibleSheets.find(s => s.version !== song.version)?.version || visibleSheets[0].version)
+        : null;
+
+      return {
+        ...song,
+        sheets: visibleSheets,
+        version: versionOverride || song.version
+      };
+    }).filter(song => song.sheets.length > 0); // Remove songs that ended up with no sheets in this view
+  }, [songs, effectiveRegion, filters.region]);
+
 
   // Extract unique categories, versions, and levels for filter dropdowns
   const { categories, versions, levels, internalLevels } = useMemo(() => {
@@ -31,7 +86,7 @@ export function useSongDatabase() {
     const lvls = new Set();
     const intLvls = new Set();
 
-    songs.forEach(song => {
+    overriddenSongs.forEach(song => {
       if (song.category && song.category !== 'Unknown') cats.add(song.category);
       if (song.version) {
         // Apply version mapping if exists
@@ -73,18 +128,35 @@ export function useSongDatabase() {
       levels: sortedLevels,
       internalLevels: sortedInternalLevels
     };
-  }, [songs]);
+  }, [overriddenSongs]);
 
   const filteredSongs = useMemo(() => {
-    const filtered = songs.filter(song => {
+    const filtered = overriddenSongs.filter(song => {
       const hasLevelFilter = filters.levelMin !== '' || filters.levelMax !== '';
       // 0. Skip Unknown/Missing Metadata songs
       if (song.isMissingMetadata || song.category === 'Unknown') return false;
 
-      // 0.5. Region Availability
+      // 0.5. Region availability
       if (filters.region) {
-        const hasRegion = song.sheets?.some(s => s.regions?.[filters.region] === true);
-        if (!hasRegion) return false;
+        if (filters.region === 'unav_jp') {
+          const hasJp = song.sheets?.some(s => s.regions?.jp === true);
+          if (hasJp) return false;
+        } else if (filters.region === 'unav_intl') {
+          const hasIntl = song.sheets?.some(s => s.regions?.intl === true);
+          if (hasIntl) return false;
+        } else if (filters.region === 'unav_usa') {
+          const hasUsa = song.sheets?.some(s => s.regions?.usa === true);
+          if (hasUsa) return false;
+        } else if (filters.region === 'unav_cn') {
+          const hasCn = song.sheets?.some(s => s.regions?.cn === true);
+          if (hasCn) return false;
+        }
+        // Positive region checks (jp, intl, usa, cn) are already filtered in overriddenSongs
+      }
+
+      // 0.7. Chart Type (DX or Standard)
+      if (filters.type) {
+        if (song.cardType !== filters.type) return false;
       }
 
       // 1. Search Query (Title/Artist)
@@ -163,7 +235,7 @@ export function useSongDatabase() {
 
       return dateB - dateA;
     });
-  }, [songs, filters]);
+  }, [overriddenSongs, filters]);
 
   return {
     songs,
