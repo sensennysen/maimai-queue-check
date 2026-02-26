@@ -232,7 +232,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 **Objective**: Create the new route and basic page layout, fetching and displaying the overall details of the selected song.
 
 ### Phase 3: Tagging & Rating Systems
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Build the UI and integrate the logic for users to leave and view tags, as well as submitting and displaying 1-5 star ratings.
 
 ### Phase 4: Comment Section
