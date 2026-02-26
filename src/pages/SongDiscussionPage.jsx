@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, SimpleGrid, Alert, Rating, Autocomplete, ActionIcon, Textarea } from '@mantine/core';
-import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown } from '@tabler/icons-react';
+import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, SimpleGrid, Alert, Rating, Autocomplete, ActionIcon, Textarea, Center, Flex } from '@mantine/core';
+import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
@@ -11,6 +11,35 @@ import { VERSION_MAPPING, CATEGORY_TRANSLATION } from '../config/maimai-constant
 export default function SongDiscussionPage() {
   const { id } = useParams();
   const { songMapById, loading: songsLoading } = useSongDatabaseContext();
+
+  // Helper for relative time formatting
+  const getRelativeTime = useCallback((dateString) => {
+    const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = date - now;
+    const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (Math.abs(diffInDays) > 7) {
+      return date.toLocaleDateString();
+    }
+
+    const diffInHours = Math.round(diffInMs / (1000 * 60 * 60));
+    if (Math.abs(diffInHours) >= 24) {
+      return rtf.format(diffInDays, 'day');
+    }
+
+    const diffInMinutes = Math.round(diffInMs / (1000 * 60));
+    if (Math.abs(diffInMinutes) >= 60) {
+      return rtf.format(diffInHours, 'hour');
+    }
+
+    if (Math.abs(diffInMinutes) < 1) {
+      return 'just now';
+    }
+
+    return rtf.format(diffInMinutes, 'minute');
+  }, []);
   const [discussionData, setDiscussionData] = useState({ ratings: [], comments: [], tags: [] });
   const [availableTags, setAvailableTags] = useState([]);
   const [discussionLoading, setDiscussionLoading] = useState(true);
@@ -24,26 +53,28 @@ export default function SongDiscussionPage() {
 
   const song = songMapById?.get(id);
 
-  useEffect(() => {
-    async function loadDiscussion() {
-      if (!song) return; // Wait until song is resolved
-      try {
-        setDiscussionLoading(true);
-        const [data, tags] = await Promise.all([
-          discussionService.getSongDiscussionData(id),
-          discussionService.getAvailableTags()
-        ]);
-        setDiscussionData(data);
-        setAvailableTags(tags);
-      } catch (err) {
-        console.error('Failed to load discussion data', err);
-        setError(err);
-      } finally {
-        setDiscussionLoading(false);
-      }
+  const loadDiscussion = useCallback(async () => {
+    if (!song) return; // Wait until song is resolved
+    try {
+      setError(null);
+      setDiscussionLoading(true);
+      const [data, tags] = await Promise.all([
+        discussionService.getSongDiscussionData(id),
+        discussionService.getAvailableTags()
+      ]);
+      setDiscussionData(data);
+      setAvailableTags(tags);
+    } catch (err) {
+      console.error('Failed to load discussion data', err);
+      setError(err);
+    } finally {
+      setDiscussionLoading(false);
     }
-    loadDiscussion();
   }, [id, song]);
+
+  useEffect(() => {
+    loadDiscussion();
+  }, [loadDiscussion]);
 
   if (songsLoading) {
     return (
@@ -82,13 +113,18 @@ export default function SongDiscussionPage() {
 
         {error && (
           <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red">
-            Failed to load discussion data. Please try again later.
+            <Group justify="space-between" align="center">
+              <Text size="sm">Failed to load discussion data. Please try again.</Text>
+              <Button size="xs" color="red" variant="light" leftSection={<IconRefresh size={14} />} onClick={loadDiscussion}>
+                Retry
+              </Button>
+            </Group>
           </Alert>
         )}
 
         {/* Header containing Song Basic Info */}
         <Paper p="xl" radius="md" withBorder>
-          <Group wrap="nowrap" align="flex-start" gap="xl">
+          <Flex direction={{ base: 'column', sm: 'row' }} gap="xl" align={{ base: 'center', sm: 'flex-start' }}>
             <Image
               src={import.meta.env.VITE_SONG_JACKETS_URL + song.imageName}
               alt={song.title}
@@ -99,8 +135,8 @@ export default function SongDiscussionPage() {
               style={{ boxShadow: 'var(--mantine-shadow-md)', flexShrink: 0 }}
             />
 
-            <Stack gap="xs" style={{ flex: 1 }}>
-              <Title order={2} style={{ fontFamily: 'var(--font-heading)', lineHeight: 1.2 }}>
+            <Stack gap="xs" style={{ flex: 1 }} align={{ base: 'center', sm: 'flex-start' }} ta={{ base: 'center', sm: 'left' }}>
+              <Title order={2} style={{ fontFamily: 'var(--font-heading)', lineHeight: 1.2, wordBreak: 'break-word' }}>
                 {song.title}
               </Title>
               <Text size="sm" c="dimmed" fw={700} tt="uppercase">Artist</Text>
@@ -120,11 +156,11 @@ export default function SongDiscussionPage() {
                 )}
               </Group>
             </Stack>
-          </Group>
+          </Flex>
         </Paper>
 
         {/* Discussion Sections placeholders */}
-        <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="lg">
           {/* Tags and Ratings Column */}
           <Stack gap="lg">
             <Paper p="md" radius="md" withBorder>
@@ -150,7 +186,11 @@ export default function SongDiscussionPage() {
                         ))}
                     </Group>
                   ) : (
-                    <Text size="sm" c="dimmed" fs="italic">No tags yet. Be the first!</Text>
+                    <Paper p="sm" bg="var(--mantine-color-default-hover)" radius="md">
+                      <Center>
+                        <Text size="sm" c="dimmed" fs="italic">No tags yet. Be the first!</Text>
+                      </Center>
+                    </Paper>
                   )}
 
                   {user ? (
@@ -311,7 +351,7 @@ export default function SongDiscussionPage() {
           </Stack>
 
           {/* Comments Column */}
-          <Paper p="md" radius="md" withBorder style={{ gridColumn: 'span 2' }}>
+          <Paper p="md" radius="md" withBorder style={{ gridColumn: 'span 1', gridColumnEnd: 'min(-1, span 2)' }} className="comments-column">
             <Stack gap="md">
               <Title order={4}>Comments ({discussionData.comments.length})</Title>
 
@@ -374,7 +414,9 @@ export default function SongDiscussionPage() {
                         <Group justify="space-between" align="flex-start" mb="xs">
                           <Group gap="xs">
                             <Text fw={500} size="sm">{comment.user_profiles?.display_name || 'Unknown User'}</Text>
-                            <Text c="dimmed" size="xs">{new Date(comment.created_at).toLocaleString()}</Text>
+                            <Text c="dimmed" size="xs" title={new Date(comment.created_at).toLocaleString()}>
+                              {getRelativeTime(comment.created_at)}
+                            </Text>
                           </Group>
                           {user && user.id === comment.user_id && (
                             <ActionIcon
@@ -467,9 +509,16 @@ export default function SongDiscussionPage() {
                       </Paper>
                     );
                   }) : (
-                    <Text size="sm" c="dimmed" fs="italic" ta="center" py="md">
-                      No comments yet. Be the first to start the discussion!
-                    </Text>
+                    <Paper p="xl" bg="var(--mantine-color-default-hover)" radius="md" mt="sm">
+                      <Center>
+                        <Stack align="center" gap="xs">
+                          <IconAlertCircle size={32} opacity={0.3} />
+                          <Text size="sm" c="dimmed" fs="italic" ta="center">
+                            No comments yet. Be the first to start the discussion!
+                          </Text>
+                        </Stack>
+                      </Center>
+                    </Paper>
                   )}
                 </Stack>
               )}
