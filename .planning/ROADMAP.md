@@ -150,8 +150,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 4. Fragile Areas | 1/1 | Complete    | 2026-02-23 |
 | 5. Tech Debt | 4/4 | Complete    | 2026-02-23 |
 | 6. Direct Import | 3/3 | Complete | 2026-02-25 |
-| 7. SongDB Revamp | 0/0 | Pending | — |
-| 8. Visitor Song Details | 0/1 | Pending | — |
+| 7. SongDB Revamp | 1/1 | Complete | 2026-02-27 |
+| 8. Visitor Song Details | 1/1 | Complete | 2026-02-27 |
 
 ---
 
@@ -236,11 +236,11 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 **Objective**: Build the UI and integrate the logic for users to leave and view tags, as well as submitting and displaying 1-5 star ratings.
 
 ### Phase 4: Comment Section
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Build the UI for the comment section, allowing users to submit comments and view existing ones.
 
 ### Phase 5: Polish & Final Integration
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Refine styling, handle loading/error states, and ensure mobile responsiveness and cross-browser compatibility.
 
 

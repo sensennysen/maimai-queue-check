@@ -24,7 +24,7 @@ export const discussionService = {
           .select(`
             tag_id, user_id, created_at,
             user_profiles(display_name),
-            song_tags_dictionary(name, is_predefined)
+            song_tags_dictionary(tag_name:name, is_predefined)
           `)
           .eq('song_id', songId)
       ]);
@@ -48,7 +48,7 @@ export const discussionService = {
   async getAvailableTags() {
     const { data, error } = await supabase
       .from('song_tags_dictionary')
-      .select('id, name, is_predefined');
+      .select('id, tag_name:name, is_predefined');
       
     if (error) throw error;
     return data;
@@ -59,11 +59,11 @@ export const discussionService = {
     const { data, error } = await supabase
       .from('song_tags_dictionary')
       .insert({ name, is_predefined: false })
-      .select('id')
+      .select('id, tag_name:name, is_predefined')
       .single();
       
     if (error) throw error;
-    return data.id;
+    return data;
   },
 
   // Add a tag to a song
