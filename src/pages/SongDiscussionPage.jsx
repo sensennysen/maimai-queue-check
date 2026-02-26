@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link, Navigate } from 'react-router-dom';
-import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, SimpleGrid, Alert, Rating } from '@mantine/core';
-import { IconArrowLeft, IconAlertCircle } from '@tabler/icons-react';
+import { useParams, Link } from 'react-router-dom';
+import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, SimpleGrid, Alert, Rating, Autocomplete, ActionIcon } from '@mantine/core';
+import { IconArrowLeft, IconAlertCircle, IconPlus } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { discussionService } from '../services/supabase';
@@ -11,9 +12,12 @@ export default function SongDiscussionPage() {
   const { id } = useParams();
   const { songMapById, loading: songsLoading } = useSongDatabaseContext();
   const [discussionData, setDiscussionData] = useState({ ratings: [], comments: [], tags: [] });
+  const [availableTags, setAvailableTags] = useState([]);
   const [discussionLoading, setDiscussionLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isRatingLoading, setIsRatingLoading] = useState(false);
+  const [isTaggingLoading, setIsTaggingLoading] = useState(false);
+  const [newTagValue, setNewTagValue] = useState('');
   const { user } = useAuth();
 
   const song = songMapById?.get(id);
@@ -23,8 +27,12 @@ export default function SongDiscussionPage() {
       if (!song) return; // Wait until song is resolved
       try {
         setDiscussionLoading(true);
-        const data = await discussionService.getSongDiscussionData(id);
+        const [data, tags] = await Promise.all([
+          discussionService.getSongDiscussionData(id),
+          discussionService.getAvailableTags()
+        ]);
         setDiscussionData(data);
+        setAvailableTags(tags);
       } catch (err) {
         console.error('Failed to load discussion data', err);
         setError(err);
@@ -120,9 +128,115 @@ export default function SongDiscussionPage() {
             <Paper p="md" radius="md" withBorder>
               <Title order={4} mb="sm">Tags</Title>
               {discussionLoading ? <Loader size="sm" /> : (
-                <Text size="xs" c="dimmed" style={{ wordBreak: 'break-all' }}>
-                  {JSON.stringify(discussionData.tags)}
-                </Text>
+                <Stack gap="sm">
+                  {discussionData.tags.length > 0 ? (
+                    <Group gap="xs">
+                      {Object.entries(
+                        discussionData.tags.reduce((acc, currentInfo) => {
+                          const name = currentInfo.song_tags_dictionary?.tag_name;
+                          if (name) {
+                            acc[name] = (acc[name] || 0) + 1;
+                          }
+                          return acc;
+                        }, {})
+                      )
+                        .sort((a, b) => b[1] - a[1]) // Sort by count descending
+                        .map(([tagName, count]) => (
+                          <Badge key={tagName} variant="light" color="blue" size="lg">
+                            {tagName} <Text span size="xs" c="dimmed" ml={4}>({count})</Text>
+                          </Badge>
+                        ))}
+                    </Group>
+                  ) : (
+                    <Text size="sm" c="dimmed" fs="italic">No tags yet. Be the first!</Text>
+                  )}
+
+                  {user ? (
+                    <Group wrap="nowrap" mt="xs" align="flex-end">
+                      <Autocomplete
+                        label="Add Tag"
+                        placeholder="Select or type..."
+                        data={availableTags.map(t => t.tag_name)}
+                        value={newTagValue}
+                        onChange={setNewTagValue}
+                        style={{ flex: 1 }}
+                        disabled={isTaggingLoading}
+                        maxLength={30}
+                      />
+                      <ActionIcon
+                        variant="filled"
+                        color="blue"
+                        size="input-sm"
+                        loading={isTaggingLoading}
+                        onClick={async () => {
+                          const tagInput = newTagValue.trim();
+                          if (!tagInput) return;
+
+                          setIsTaggingLoading(true);
+                          try {
+                            // Find tag in dictionary, or create if missing
+                            let tagId;
+                            const existingTag = availableTags.find(t => t.tag_name.toLowerCase() === tagInput.toLowerCase());
+                            if (existingTag) {
+                              tagId = existingTag.id;
+                            } else {
+                              const newTag = await discussionService.addCustomTag(tagInput);
+                              tagId = newTag.id;
+                              setAvailableTags(prev => [...prev, newTag]);
+                            }
+
+                            // Link tag to song
+                            await discussionService.addSongTag(id, tagId, user.id);
+
+                            // Optimistically update the UI directly
+                            setDiscussionData(prev => ({
+                              ...prev,
+                              tags: [
+                                ...prev.tags,
+                                {
+                                  song_id: id,
+                                  tag_id: tagId,
+                                  user_id: user.id,
+                                  song_tags_dictionary: { tag_name: existingTag ? existingTag.tag_name : tagInput }
+                                }
+                              ]
+                            }));
+                            setNewTagValue('');
+                            notifications.show({
+                              title: 'Tag Added',
+                              message: `Added tag "${existingTag ? existingTag.tag_name : tagInput}" to song.`,
+                              color: 'green'
+                            });
+                          } catch (err) {
+                            console.error('Failed to add tag', err);
+                            const errMsg = err.message || '';
+                            if (errMsg.includes('unique_song_user_tag')) {
+                              notifications.show({
+                                title: 'Duplicate Tag',
+                                message: 'You have already added this tag to this song.',
+                                color: 'yellow'
+                              });
+                            } else {
+                              notifications.show({
+                                title: 'Error',
+                                message: 'Failed to add tag. Please try again.',
+                                color: 'red'
+                              });
+                            }
+                          } finally {
+                            setIsTaggingLoading(false);
+                          }
+                        }}
+                      >
+                        <IconPlus size={16} />
+                      </ActionIcon>
+                    </Group>
+                  ) : (
+                    <Text size="xs" c="dimmed" fs="italic" ta="center" mt="xs">
+                      Log in to add tags
+                    </Text>
+                  )}
+                </Stack>
               )}
             </Paper>
 
