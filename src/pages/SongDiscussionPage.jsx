@@ -1,17 +1,17 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, Alert, Rating, Autocomplete, ActionIcon, Textarea, Center, Flex, Grid } from '@mantine/core';
-import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh } from '@tabler/icons-react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, Alert, Rating, Autocomplete, ActionIcon, Textarea, Center, Flex, Grid, Table, ScrollArea, Box } from '@mantine/core';
+import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh, IconWorld } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { discussionService } from '../services/supabase';
-import { VERSION_MAPPING, CATEGORY_TRANSLATION } from '../config/maimai-constants';
+import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty } from '../config/maimai-constants';
 
 export default function SongDiscussionPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { songMapById, loading: songsLoading } = useSongDatabaseContext();
+  const { songs, songMapById, loading: songsLoading } = useSongDatabaseContext();
 
   // Helper for relative time formatting
   const getRelativeTime = useCallback((dateString) => {
@@ -51,8 +51,24 @@ export default function SongDiscussionPage() {
   const [newCommentValue, setNewCommentValue] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const { user } = useAuth();
+  const location = useLocation();
 
-  const song = songMapById?.get(id);
+  const baseSong = songMapById?.get(id);
+
+  // Derive active chart type from navigation state if available, otherwise default to base song's own cardType
+  const activeCardType = location.state?.cardType || baseSong?.cardType;
+
+  // Find the specific card object for this chart type (e.g. DX vs Standard). 
+  // songMapById.get(id) often returns the first card (Standard) if mapped by songId instead of cardId.
+  const song = useMemo(() => {
+    if (!songs || !baseSong) return null;
+    if (activeCardType && baseSong.cardType !== activeCardType) {
+      return songs.find(s => s.songId === baseSong.songId && s.cardType === activeCardType) || baseSong;
+    }
+    return baseSong;
+  }, [songs, baseSong, activeCardType]);
+
+  const currentSheets = song?.sheets || [];
 
   const loadDiscussion = useCallback(async () => {
     if (!song) return; // Wait until song is resolved
@@ -126,39 +142,142 @@ export default function SongDiscussionPage() {
         {/* Header containing Song Basic Info */}
         <Paper p="xl" radius="md" withBorder>
           <Flex direction={{ base: 'column', sm: 'row' }} gap="xl" align={{ base: 'center', sm: 'flex-start' }}>
-            <Image
-              src={import.meta.env.VITE_SONG_JACKETS_URL + song.imageName}
-              alt={song.title}
-              radius="md"
-              w={{ base: 120, sm: 160 }}
-              h={{ base: 120, sm: 160 }}
-              fallbackSrc="https://placehold.co/240x240?text=No+Image"
-              style={{ boxShadow: 'var(--mantine-shadow-md)', flexShrink: 0 }}
-            />
+            <Box style={{ flexShrink: 0, width: '100%', maxWidth: 200 }}>
+              <Image
+                src={import.meta.env.VITE_SONG_JACKETS_URL + song.imageName}
+                alt={song.title}
+                radius="md"
+                w="100%"
+                fallbackSrc="https://placehold.co/240x240?text=No+Image"
+                style={{ boxShadow: 'var(--mantine-shadow-md)', aspectRatio: '1/1', objectFit: 'cover' }}
+              />
+            </Box>
 
-            <Stack gap="xs" style={{ flex: 1 }} align={{ base: 'center', sm: 'flex-start' }} ta={{ base: 'center', sm: 'left' }}>
-              <Title order={2} style={{ fontFamily: 'var(--font-heading)', lineHeight: 1.2, wordBreak: 'break-word' }}>
-                {song.title}
-              </Title>
-              <Text size="sm" c="dimmed" fw={700} tt="uppercase">Artist</Text>
-              <Text size="md">{song.artist}</Text>
+            <Stack gap="xs" style={{ flex: 1, height: '100%' }} align={{ base: 'center', sm: 'flex-start' }} ta={{ base: 'center', sm: 'left' }}>
+              <Group align="flex-start" justify="space-between" w="100%">
+                <Title order={1} style={{ fontFamily: 'var(--font-heading)', lineHeight: 1.2, wordBreak: 'break-word', maxWidth: '80%' }}>
+                  {song.title}
+                </Title>
+                <Box>
+                  {activeCardType === 'dx' || activeCardType === 'dx_plus' ? (
+                    <img src={new URL('../assets/music_dx.png', import.meta.url).href} alt="DX" style={{ height: 30, objectFit: 'contain' }} />
+                  ) : (
+                    <img src={new URL('../assets/music_standard.png', import.meta.url).href} alt="Standard" style={{ height: 30, objectFit: 'contain' }} />
+                  )}
+                </Box>
+              </Group>
 
-              <Group gap="xs" mt="sm">
-                <Badge variant="light" color="blue">
+              <Text size="lg" mt="xs">Artist: <Text span fw={500}>{song.artist}</Text></Text>
+
+              <Group gap="xs" mt="sm" mb="sm">
+                <Badge variant="light" color="blue" size="lg">
                   {CATEGORY_TRANSLATION[song.category] || song.category}
                 </Badge>
-                <Badge variant="outline" color="gray">
-                  {VERSION_MAPPING[song.version] || song.version}
-                </Badge>
-                {song.bpm && (
-                  <Badge variant="dot" color="teal">
-                    BPM {song.bpm}
-                  </Badge>
-                )}
               </Group>
+
+              <Grid gutter="xl" w="100%">
+                <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
+                  <Text size="md" c="dimmed">Version</Text>
+                  <Text size="lg" fw={500}>{VERSION_MAPPING[song.version] || song.version || '-'}</Text>
+                </Grid.Col>
+                {song.bpm && (
+                  <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
+                    <Text size="md" c="dimmed">BPM</Text>
+                    <Text size="lg" fw={500}>{song.bpm}</Text>
+                  </Grid.Col>
+                )}
+                {song.releaseDate && (
+                  <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
+                    <Text size="md" c="dimmed">Release Date</Text>
+                    <Text size="lg" fw={500}>{song.releaseDate}</Text>
+                  </Grid.Col>
+                )}
+              </Grid>
             </Stack>
           </Flex>
         </Paper>
+
+        {/* Chart Details Section */}
+        {currentSheets && currentSheets.length > 0 && (
+          <Paper p="xl" radius="md" withBorder>
+            <Stack gap="md">
+              <Group justify="space-between" align="flex-end">
+                <Title order={3}>Chart Details</Title>
+              </Group>
+
+              <Group justify="space-between" align="center">
+                {/* Region Availability */}
+                <Group gap="xs" align="center">
+                  <Text size="sm" fw={700}>Regions:</Text>
+                  {(() => {
+                    const firstSheet = currentSheets[0];
+                    if (!firstSheet || !firstSheet.regions) return <Text size="sm" c="dimmed">Unknown</Text>;
+                    return Object.entries(firstSheet.regions)
+                      .map(([region, isAvailable]) => (
+                        <Badge
+                          key={region}
+                          size="sm"
+                          variant={isAvailable ? "light" : "outline"}
+                          color={isAvailable ? "blue" : "gray"}
+                          leftSection={<IconWorld size={10} />}
+                          opacity={isAvailable ? 1 : 0.4}
+                        >
+                          {region.toUpperCase()}
+                        </Badge>
+                      ));
+                  })()}
+                </Group>
+              </Group>
+
+              {/* Difficulty Table */}
+              <ScrollArea>
+                <Table striped highlightOnHover withTableBorder>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Difficulty</Table.Th>
+                      <Table.Th>Level</Table.Th>
+                      <Table.Th>Internal Level</Table.Th>
+                      <Table.Th>Designer</Table.Th>
+                      <Table.Th>Tap</Table.Th>
+                      <Table.Th>Hold</Table.Th>
+                      <Table.Th>Slide</Table.Th>
+                      <Table.Th>Touch</Table.Th>
+                      <Table.Th>Break</Table.Th>
+                      <Table.Th>Total</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {currentSheets.map((displaySheet, idx) => {
+                      const diffName = normalizeDifficulty(displaySheet.difficulty);
+                      const color = DIFFICULTY_COLORS[diffName] || 'gray';
+
+                      return (
+                        <Table.Tr key={`${displaySheet.type}-${displaySheet.difficulty}-${idx}`}>
+                          <Table.Td>
+                            <Badge color={color} variant="filled" w="100%">{diffName}</Badge>
+                          </Table.Td>
+                          <Table.Td fw={700}>{displaySheet.level}</Table.Td>
+                          <Table.Td>{displaySheet.internalLevel || displaySheet.internalLevelValue || '-'}</Table.Td>
+                          <Table.Td>
+                            <Text size="xs" truncate maw={150} title={displaySheet.noteDesigner}>
+                              {displaySheet.noteDesigner || '-'}
+                            </Text>
+                          </Table.Td>
+                          <Table.Td>{displaySheet.noteCounts?.tap ?? '-'}</Table.Td>
+                          <Table.Td>{displaySheet.noteCounts?.hold ?? '-'}</Table.Td>
+                          <Table.Td>{displaySheet.noteCounts?.slide ?? '-'}</Table.Td>
+                          <Table.Td>{displaySheet.noteCounts?.touch ?? '-'}</Table.Td>
+                          <Table.Td>{displaySheet.noteCounts?.break ?? '-'}</Table.Td>
+                          <Table.Td fw={700}>{displaySheet.noteCounts?.total ?? '-'}</Table.Td>
+                        </Table.Tr>
+                      );
+                    })}
+                  </Table.Tbody>
+                </Table>
+              </ScrollArea>
+            </Stack>
+          </Paper>
+        )}
 
         {/* Discussion Sections */}
         <Grid gutter="lg">

@@ -319,6 +319,7 @@ function MaimaiSongDetailModal({
             <Button
               component={Link}
               to={`/songs/${song.songId}`}
+              state={{ cardType: song.cardType }}
               variant="light"
               color="indigo"
               fullWidth

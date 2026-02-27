@@ -134,6 +134,7 @@ function SongDetailModal({ song, opened, onClose }) {
             <Button
               component={Link}
               to={`/songs/${song.songId}`}
+              state={{ cardType: song.cardType }}
               variant="light"
               color="indigo"
               fullWidth
