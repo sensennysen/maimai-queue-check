@@ -155,23 +155,23 @@ export default function SongDiscussionPage() {
               />
             </Box>
 
-            <Stack gap="xs" style={{ flex: 1, height: '100%', minWidth: 0 }} align={{ base: 'center', sm: 'flex-start' }} ta={{ base: 'center', sm: 'left' }}>
-              <Group align="flex-start" justify="space-between" w="100%" wrap="nowrap">
-                <Title order={1} className="mobile-song-title" style={{ fontFamily: 'var(--font-heading)', wordBreak: 'break-word', flex: 1 }}>
+            <Stack gap="xs" style={{ flex: 1, minWidth: 0, width: isMobile ? '100%' : 'auto' }} align={isMobile ? 'center' : 'flex-start'} ta={isMobile ? 'center' : 'left'}>
+              <Group align="center" justify={isMobile ? 'center' : 'space-between'} w="100%" wrap="nowrap">
+                <Title order={1} className="mobile-song-title" style={{ fontFamily: 'var(--font-heading)', wordBreak: 'break-word', flex: isMobile ? '0 1 auto' : 1 }}>
                   {song.title}
                 </Title>
-                <Box style={{ flexShrink: 0 }}>
+                <Box style={{ flexShrink: 0, display: isMobile ? 'none' : 'block' }}>
                   {activeCardType === 'dx' || activeCardType === 'dx_plus' ? (
-                    <img src={new URL('../assets/music_dx.png', import.meta.url).href} alt="DX" style={{ height: isMobile ? 24 : 30, objectFit: 'contain' }} />
+                    <img src={new URL('../assets/music_dx.png', import.meta.url).href} alt="DX" style={{ height: 30, objectFit: 'contain' }} />
                   ) : (
-                    <img src={new URL('../assets/music_standard.png', import.meta.url).href} alt="Standard" style={{ height: isMobile ? 24 : 30, objectFit: 'contain' }} />
+                    <img src={new URL('../assets/music_standard.png', import.meta.url).href} alt="Standard" style={{ height: 30, objectFit: 'contain' }} />
                   )}
                 </Box>
               </Group>
 
               <Text size={isMobile ? "sm" : "lg"} mt={isMobile ? 0 : "xs"}>Artist: <Text span fw={500}>{song.artist}</Text></Text>
 
-              <Group gap="xs" mt={isMobile ? 0 : "sm"} mb={isMobile ? 0 : "sm"}>
+              <Group gap="xs" mt={isMobile ? 0 : "sm"} mb={isMobile ? 0 : "sm"} justify={isMobile ? 'center' : 'flex-start'} w="100%">
                 <Badge variant="light" color="blue" size={isMobile ? "sm" : "lg"}>
                   {CATEGORY_TRANSLATION[song.category] || song.category}
                 </Badge>
