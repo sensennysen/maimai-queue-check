@@ -95,3 +95,38 @@
     font-size: 1rem !important;
   }
 }
+
+/* Sticky Column for Chart Tables */
+.sticky-col {
+  position: sticky !important;
+  left: 0;
+  z-index: 2;
+  background-color: var(--mantine-color-body) !important;
+}
+
+/* Dark mode adjustment for sticky column */
+[data-mantine-color-scheme='dark'] .sticky-col {
+  background-color: var(--mantine-color-dark-7) !important;
+}
+
+.sticky-col::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--mantine-color-default-border);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-song-title {
+  font-size: 1.5rem !important;
+  line-height: 1.2 !important;
+}
+
+@media (min-width: 768px) {
+  .mobile-song-title {
+    font-size: 2.25rem !important;
+  }
+}

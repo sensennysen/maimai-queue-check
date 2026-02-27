@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, Alert, Rating, Autocomplete, ActionIcon, Textarea, Center, Flex, Grid, Table, ScrollArea, Box } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh, IconWorld } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
@@ -52,6 +53,7 @@ export default function SongDiscussionPage() {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const baseSong = songMapById?.get(id);
 
@@ -140,9 +142,9 @@ export default function SongDiscussionPage() {
         )}
 
         {/* Header containing Song Basic Info */}
-        <Paper p="xl" radius="md" withBorder>
-          <Flex direction={{ base: 'column', sm: 'row' }} gap="xl" align={{ base: 'center', sm: 'flex-start' }}>
-            <Box style={{ flexShrink: 0, width: '100%', maxWidth: 200 }}>
+        <Paper p={{ base: 'md', sm: 'xl' }} radius="md" withBorder>
+          <Flex direction={{ base: 'column', sm: 'row' }} gap={{ base: 'md', sm: 'xl' }} align={{ base: 'center', sm: 'flex-start' }}>
+            <Box style={{ flexShrink: 0, width: isMobile ? 120 : 200 }}>
               <Image
                 src={import.meta.env.VITE_SONG_JACKETS_URL + song.imageName}
                 alt={song.title}
@@ -153,43 +155,43 @@ export default function SongDiscussionPage() {
               />
             </Box>
 
-            <Stack gap="xs" style={{ flex: 1, height: '100%' }} align={{ base: 'center', sm: 'flex-start' }} ta={{ base: 'center', sm: 'left' }}>
-              <Group align="flex-start" justify="space-between" w="100%">
-                <Title order={1} style={{ fontFamily: 'var(--font-heading)', lineHeight: 1.2, wordBreak: 'break-word', maxWidth: '80%' }}>
+            <Stack gap="xs" style={{ flex: 1, height: '100%', minWidth: 0 }} align={{ base: 'center', sm: 'flex-start' }} ta={{ base: 'center', sm: 'left' }}>
+              <Group align="flex-start" justify="space-between" w="100%" wrap="nowrap">
+                <Title order={1} className="mobile-song-title" style={{ fontFamily: 'var(--font-heading)', wordBreak: 'break-word', flex: 1 }}>
                   {song.title}
                 </Title>
-                <Box>
+                <Box style={{ flexShrink: 0 }}>
                   {activeCardType === 'dx' || activeCardType === 'dx_plus' ? (
-                    <img src={new URL('../assets/music_dx.png', import.meta.url).href} alt="DX" style={{ height: 30, objectFit: 'contain' }} />
+                    <img src={new URL('../assets/music_dx.png', import.meta.url).href} alt="DX" style={{ height: isMobile ? 24 : 30, objectFit: 'contain' }} />
                   ) : (
-                    <img src={new URL('../assets/music_standard.png', import.meta.url).href} alt="Standard" style={{ height: 30, objectFit: 'contain' }} />
+                    <img src={new URL('../assets/music_standard.png', import.meta.url).href} alt="Standard" style={{ height: isMobile ? 24 : 30, objectFit: 'contain' }} />
                   )}
                 </Box>
               </Group>
 
-              <Text size="lg" mt="xs">Artist: <Text span fw={500}>{song.artist}</Text></Text>
+              <Text size={isMobile ? "sm" : "lg"} mt={isMobile ? 0 : "xs"}>Artist: <Text span fw={500}>{song.artist}</Text></Text>
 
-              <Group gap="xs" mt="sm" mb="sm">
-                <Badge variant="light" color="blue" size="lg">
+              <Group gap="xs" mt={isMobile ? 0 : "sm"} mb={isMobile ? 0 : "sm"}>
+                <Badge variant="light" color="blue" size={isMobile ? "sm" : "lg"}>
                   {CATEGORY_TRANSLATION[song.category] || song.category}
                 </Badge>
               </Group>
 
-              <Grid gutter="xl" w="100%">
-                <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
-                  <Text size="md" c="dimmed">Version</Text>
-                  <Text size="lg" fw={500}>{VERSION_MAPPING[song.version] || song.version || '-'}</Text>
+              <Grid gutter={isMobile ? "xs" : "xl"} w="100%">
+                <Grid.Col span={{ base: 6, sm: 4 }}>
+                  <Text size="xs" c="dimmed">Version</Text>
+                  <Text size={isMobile ? "sm" : "lg"} fw={500}>{VERSION_MAPPING[song.version] || song.version || '-'}</Text>
                 </Grid.Col>
                 {song.bpm && (
-                  <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
-                    <Text size="md" c="dimmed">BPM</Text>
-                    <Text size="lg" fw={500}>{song.bpm}</Text>
+                  <Grid.Col span={{ base: 3, sm: 4 }}>
+                    <Text size="xs" c="dimmed">BPM</Text>
+                    <Text size={isMobile ? "sm" : "lg"} fw={500}>{song.bpm}</Text>
                   </Grid.Col>
                 )}
                 {song.releaseDate && (
-                  <Grid.Col span={{ base: 12, sm: 6, md: 4 }}>
-                    <Text size="md" c="dimmed">Release Date</Text>
-                    <Text size="lg" fw={500}>{song.releaseDate}</Text>
+                  <Grid.Col span={{ base: 3, sm: 4 }}>
+                    <Text size="xs" c="dimmed">Released</Text>
+                    <Text size={isMobile ? "sm" : "lg"} fw={500}>{isMobile ? song.releaseDate.split('-')[0] : song.releaseDate}</Text>
                   </Grid.Col>
                 )}
               </Grid>
@@ -234,10 +236,10 @@ export default function SongDiscussionPage() {
                 <Table striped highlightOnHover withTableBorder>
                   <Table.Thead>
                     <Table.Tr>
-                      <Table.Th>Difficulty</Table.Th>
+                      <Table.Th className="sticky-col">Difficulty</Table.Th>
                       <Table.Th>Level</Table.Th>
-                      <Table.Th>Internal Level</Table.Th>
-                      <Table.Th>Designer</Table.Th>
+                      <Table.Th>{isMobile ? 'Int. Lvl' : 'Internal Level'}</Table.Th>
+                      <Table.Th>{isMobile ? 'Des.' : 'Designer'}</Table.Th>
                       <Table.Th>Tap</Table.Th>
                       <Table.Th>Hold</Table.Th>
                       <Table.Th>Slide</Table.Th>
@@ -253,8 +255,10 @@ export default function SongDiscussionPage() {
 
                       return (
                         <Table.Tr key={`${displaySheet.type}-${displaySheet.difficulty}-${idx}`}>
-                          <Table.Td>
-                            <Badge color={color} variant="filled" w="100%">{diffName}</Badge>
+                          <Table.Td className="sticky-col">
+                            <Badge color={color} variant="filled" w="100%" size={isMobile ? "xs" : "sm"}>
+                              {isMobile ? diffName.substring(0, 3).toUpperCase() : diffName}
+                            </Badge>
                           </Table.Td>
                           <Table.Td fw={700}>{displaySheet.level}</Table.Td>
                           <Table.Td>{displaySheet.internalLevel || displaySheet.internalLevelValue || '-'}</Table.Td>
@@ -652,7 +656,7 @@ export default function SongDiscussionPage() {
             </Paper>
           </Grid.Col>
         </Grid>
-      </Stack>
-    </Container>
+      </Stack >
+    </Container >
   );
 }
