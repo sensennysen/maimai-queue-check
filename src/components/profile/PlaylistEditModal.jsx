@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Modal, Stack, Text, Textarea, Button, Group, ActionIcon, Paper, Image, Box, Divider, Loader, TextInput, Badge } from '@mantine/core';
+import { Modal, Stack, Text, Textarea, Button, Group, ActionIcon, Paper, Image, Box, Divider, Loader, TextInput, Badge, Switch } from '@mantine/core';
 import { IconPlus, IconTrash, IconArrowUp, IconArrowDown, IconPlaylistAdd, IconDeviceFloppy } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
 import { playlistService } from '../../services/supabase';
 import { DIFFICULTY_COLORS } from '../../config/maimai-constants';
 
-export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, onSave }) {
+export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, onSave, hidePublicToggle = false }) {
   const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
   const [selectedSongs, setSelectedSongs] = useState([]); // Array of full song objects
@@ -14,14 +14,18 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
   const [isSaving, setIsSaving] = useState(false);
 
 
+  const [isPublic, setIsPublic] = useState(false);
+
   useEffect(() => {
     if (opened && initialPlaylist) {
       setTitle(initialPlaylist.title || '');
       setComment(initialPlaylist.comment || '');
+      setIsPublic(initialPlaylist.is_public || false);
       setSelectedSongs(initialPlaylist.fullSongs || []);
     } else if (opened) {
       setTitle('');
       setComment('');
+      setIsPublic(false);
       setSelectedSongs([]);
     }
   }, [opened, initialPlaylist]);
@@ -61,6 +65,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
       const updatedPlaylist = await playlistService.upsertPlaylist(userId, initialPlaylist?.id, {
         title: title.trim(),
         comment: comment.trim(),
+        is_public: isPublic,
         songs
       });
 
@@ -196,7 +201,16 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
           mt="md"
         />
 
-        <Group justify="flex-end" mt="xl">
+        <Group justify={hidePublicToggle ? "flex-end" : "space-between"} mt="xl">
+          {!hidePublicToggle && (
+            <Switch
+              label="Make Playlist Public"
+              description="Allow others to view and share this playlist"
+              checked={isPublic}
+              onChange={(event) => setIsPublic(event.currentTarget.checked)}
+              color="teal"
+            />
+          )}
           <Group gap="sm">
             <Button variant="default" onClick={onClose} disabled={isSaving}>Cancel</Button>
             <Button leftSection={isSaving ? <Loader size={18} /> : <IconDeviceFloppy size={18} />} onClick={handleSave} loading={isSaving}>

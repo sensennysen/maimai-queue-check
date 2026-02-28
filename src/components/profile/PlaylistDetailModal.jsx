@@ -1,15 +1,22 @@
 import { useState } from 'react';
-import { Modal, Stack, Text, Group, SimpleGrid, Box, Divider, Button, Image, Badge } from '@mantine/core';
-import { IconPlaylist, IconEdit, IconMusic, IconTrash, IconMessageCircle } from '@tabler/icons-react';
+import { Modal, Stack, Text, Group, SimpleGrid, Box, Divider, Button, Image, Badge, Textarea } from '@mantine/core';
+import { IconPlaylist, IconEdit, IconMusic, IconTrash, IconMessageCircle, IconShare } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
+import { notifications } from '@mantine/notifications';
 import FavoriteSongCard from './FavoriteSongCard';
 import { DIFFICULTY_COLORS, normalizeDifficulty, VERSION_MAPPING } from '../../config/maimai-constants';
 import dxImage from '../../assets/music_dx.png';
 import standardImage from '../../assets/music_standard.png';
+import { playlistService } from '../../services/supabase';
+import { useAuth } from '../../hooks/useAuth';
 
-export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isOwnProfile, onEdit, onDelete }) {
+export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isOwnProfile, onEdit, onDelete, hideShareDelete = false }) {
   const [selectedSongDetails, setSelectedSongDetails] = useState(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareMessage, setShareMessage] = useState('');
+  const [isSubmittingShare, setIsSubmittingShare] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   if (!playlist) return null;
 
@@ -66,30 +73,94 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
 
           {isOwnProfile && (
             <Group justify="space-between" mt="md">
-              <Button
-                variant="subtle"
-                color="red"
-                leftSection={<IconTrash size={16} />}
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to delete this playlist?')) {
-                    onDelete(playlist.id);
-                  }
-                }}
-              >
-                Delete
-              </Button>
-              <Button
-                variant="light"
-                leftSection={<IconEdit size={16} />}
-                onClick={() => {
-                  onClose();
-                  onEdit(playlist);
-                }}
-              >
-                Edit Playlist
-              </Button>
+              {!hideShareDelete ? (
+                <Button
+                  variant="subtle"
+                  color="red"
+                  leftSection={<IconTrash size={16} />}
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to delete this playlist?')) {
+                      onDelete(playlist.id);
+                    }
+                  }}
+                >
+                  Delete
+                </Button>
+              ) : (
+                <Box /> /* Spacer to keep Edit button on the right */
+              )}
+              <Group gap="sm">
+                {playlist.is_public && !hideShareDelete && (
+                  <Button
+                    variant="light"
+                    color="teal"
+                    leftSection={<IconShare size={16} />}
+                    onClick={() => setIsSharing(true)}
+                  >
+                    Share
+                  </Button>
+                )}
+                <Button
+                  variant="light"
+                  leftSection={<IconEdit size={16} />}
+                  onClick={() => {
+                    onClose();
+                    onEdit(playlist);
+                  }}
+                >
+                  Edit Playlist
+                </Button>
+              </Group>
             </Group>
           )}
+        </Stack>
+      </Modal>
+
+      <Modal
+        opened={isSharing}
+        onClose={() => {
+          setIsSharing(false);
+          setShareMessage('');
+        }}
+        title={<Text fw={700}>Share Playlist</Text>}
+        centered
+        size="md"
+        zIndex={250}
+        classNames={{ content: 'profile-modal-pop' }}
+      >
+        <Stack gap="md">
+          <Text size="sm">Share "{playlist.title}" with the community!</Text>
+          <Textarea
+            placeholder="Add a message to your post... (optional)"
+            value={shareMessage}
+            onChange={(e) => setShareMessage(e.currentTarget.value)}
+            minRows={3}
+            autosize
+            maxLength={300}
+          />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setIsSharing(false)}>Cancel</Button>
+            <Button
+              loading={isSubmittingShare}
+              onClick={async () => {
+                if (!user) return;
+                setIsSubmittingShare(true);
+                try {
+                  await playlistService.sharePlaylist(user.id, playlist.id, shareMessage.trim());
+                  notifications.show({ title: 'Success', message: 'Playlist shared successfully!', color: 'green' });
+                  setIsSharing(false);
+                  setShareMessage('');
+                } catch (error) {
+                  console.error('Failed to share playlist', error);
+                  notifications.show({ title: 'Error', message: 'Failed to share playlist.', color: 'red' });
+                } finally {
+                  setIsSubmittingShare(false);
+                }
+              }}
+            >
+              Post
+            </Button>
+          </Group>
         </Stack>
       </Modal>
 

@@ -448,7 +448,7 @@ export const playlistService = {
   },
 
   // Update or create a playlist
-  async upsertPlaylist(userId, playlistId, { title, comment, songIds, songs }) {
+  async upsertPlaylist(userId, playlistId, { title, comment, is_public, songIds, songs }) {
     let finalPlaylistId = playlistId;
 
     if (!finalPlaylistId) {
@@ -458,6 +458,7 @@ export const playlistService = {
           user_id: userId,
           title: title || 'New Playlist',
           comment,
+          is_public: is_public || false,
           order_index: 0
         })
         .select()
@@ -466,9 +467,12 @@ export const playlistService = {
       if (error) throw error;
       finalPlaylistId = data.id;
     } else {
+      const updates = { title, comment };
+      if (is_public !== undefined) updates.is_public = is_public;
+      
       const { error } = await supabase
         .from('user_playlists')
-        .update({ title, comment })
+        .update(updates)
         .eq('id', finalPlaylistId);
 
       if (error) throw error;
@@ -525,6 +529,63 @@ export const playlistService = {
       throw error;
     }
     return true;
+  },
+
+  // Share a playlist
+  async sharePlaylist(userId, playlistId, content) {
+    const { data, error } = await supabase
+      .from('playlist_posts')
+      .insert({
+        user_id: userId,
+        playlist_id: playlistId,
+        content: content?.trim() || null
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error sharing playlist:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  // Get shared playlists (feed)
+  async getSharedPlaylists() {
+    const { data, error } = await supabase
+      .from('playlist_posts')
+      .select(`
+        id,
+        content,
+        created_at,
+        author:user_profiles!user_id(id, slug, display_name, display_photo_url),
+        playlist:user_playlists!playlist_id(
+          id,
+          title,
+          comment,
+          is_public,
+          updated_at,
+          songs:playlist_songs(
+            song_id,
+            level,
+            order_index
+          )
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching shared playlists:', error);
+      throw error;
+    }
+    
+    // Sort songs cleanly for each post
+    return data.map(post => {
+      if (post.playlist?.songs) {
+        post.playlist.songs = post.playlist.songs.sort((a, b) => a.order_index - b.order_index);
+      }
+      return post;
+    });
   }
 };
 
