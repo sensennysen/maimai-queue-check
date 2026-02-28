@@ -320,6 +320,77 @@ export default function SongDiscussionPage() {
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Stack gap="lg">
               <Paper p="md" radius="md" withBorder>
+                <Title order={4} mb="sm">Rating</Title>
+                {discussionLoading ? <Loader size="sm" /> : (
+                  <Stack gap="sm">
+                    <Group justify="space-between">
+                      <Text size="sm" fw={500}>Global Average</Text>
+                      <Group gap="xs">
+                        <Rating
+                          value={discussionData.ratings.length > 0
+                            ? discussionData.ratings.reduce((acc, r) => acc + r.rating, 0) / discussionData.ratings.length
+                            : 0}
+                          fractions={2}
+                          readOnly
+                        />
+                        <Text size="xs" c="dimmed">({discussionData.ratings.length})</Text>
+                      </Group>
+                    </Group>
+
+                    {user ? (
+                      <Stack gap={4} mt="xs">
+                        <Text size="sm" fw={700} c="blue">How do you like this song?</Text>
+                        <Group justify="space-between">
+                          <Text size="xs" fw={500} c="dimmed" tt="uppercase">Your Rating</Text>
+                          {isRatingLoading ? <Loader size="sm" /> : (
+                            <Rating
+                              size="lg"
+                              value={discussionData.ratings.find(r => r.user_id === user.id)?.rating || 0}
+                              onChange={async (val) => {
+                                setIsRatingLoading(true);
+                                try {
+                                  if (val === 0) {
+                                    await discussionService.removeSongRating(id, user.id);
+                                    setDiscussionData(prev => ({
+                                      ...prev,
+                                      ratings: prev.ratings.filter(r => r.user_id !== user.id)
+                                    }));
+                                  } else {
+                                    await discussionService.upsertSongRating(id, user.id, val);
+                                    setDiscussionData(prev => {
+                                      const existing = prev.ratings.find(r => r.user_id === user.id);
+                                      if (existing) {
+                                        return {
+                                          ...prev,
+                                          ratings: prev.ratings.map(r => r.user_id === user.id ? { ...r, rating: val } : r)
+                                        };
+                                      }
+                                      return {
+                                        ...prev,
+                                        ratings: [...prev.ratings, { user_id: user.id, rating: val }]
+                                      };
+                                    });
+                                  }
+                                } catch (err) {
+                                  console.error('Failed to update rating', err);
+                                } finally {
+                                  setIsRatingLoading(false);
+                                }
+                              }}
+                            />
+                          )}
+                        </Group>
+                      </Stack>
+                    ) : (
+                      <Text size="xs" c="dimmed" fs="italic" ta="center" mt="xs">
+                        Log in to rate this song
+                      </Text>
+                    )}
+                  </Stack>
+                )}
+              </Paper>
+
+              <Paper p="md" radius="md" withBorder>
                 <Title order={4} mb="sm">Tags</Title>
                 {discussionLoading ? <Loader size="sm" /> : (
                   <Stack gap="sm">
@@ -435,73 +506,6 @@ export default function SongDiscussionPage() {
                     ) : (
                       <Text size="xs" c="dimmed" fs="italic" ta="center" mt="xs">
                         Log in to add tags
-                      </Text>
-                    )}
-                  </Stack>
-                )}
-              </Paper>
-
-              <Paper p="md" radius="md" withBorder>
-                <Title order={4} mb="sm">Rating</Title>
-                {discussionLoading ? <Loader size="sm" /> : (
-                  <Stack gap="sm">
-                    <Group justify="space-between">
-                      <Text size="sm" fw={500}>Global Average</Text>
-                      <Group gap="xs">
-                        <Rating
-                          value={discussionData.ratings.length > 0
-                            ? discussionData.ratings.reduce((acc, r) => acc + r.rating, 0) / discussionData.ratings.length
-                            : 0}
-                          fractions={2}
-                          readOnly
-                        />
-                        <Text size="xs" c="dimmed">({discussionData.ratings.length})</Text>
-                      </Group>
-                    </Group>
-
-                    {user ? (
-                      <Group justify="space-between">
-                        <Text size="sm" fw={500}>Your Rating</Text>
-                        {isRatingLoading ? <Loader size="sm" /> : (
-                          <Rating
-                            value={discussionData.ratings.find(r => r.user_id === user.id)?.rating || 0}
-                            onChange={async (val) => {
-                              setIsRatingLoading(true);
-                              try {
-                                if (val === 0) {
-                                  await discussionService.removeSongRating(id, user.id);
-                                  setDiscussionData(prev => ({
-                                    ...prev,
-                                    ratings: prev.ratings.filter(r => r.user_id !== user.id)
-                                  }));
-                                } else {
-                                  await discussionService.upsertSongRating(id, user.id, val);
-                                  setDiscussionData(prev => {
-                                    const existing = prev.ratings.find(r => r.user_id === user.id);
-                                    if (existing) {
-                                      return {
-                                        ...prev,
-                                        ratings: prev.ratings.map(r => r.user_id === user.id ? { ...r, rating: val } : r)
-                                      };
-                                    }
-                                    return {
-                                      ...prev,
-                                      ratings: [...prev.ratings, { user_id: user.id, rating: val }]
-                                    };
-                                  });
-                                }
-                              } catch (err) {
-                                console.error('Failed to update rating', err);
-                              } finally {
-                                setIsRatingLoading(false);
-                              }
-                            }}
-                          />
-                        )}
-                      </Group>
-                    ) : (
-                      <Text size="xs" c="dimmed" fs="italic" ta="center" mt="xs">
-                        Log in to rate this song
                       </Text>
                     )}
                   </Stack>
