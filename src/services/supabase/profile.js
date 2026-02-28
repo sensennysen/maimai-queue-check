@@ -660,7 +660,7 @@ export const playlistService = {
   },
 
   // Delete a comment
-  async deletePostComment(commentId, userId) {
+  async deletePostComment(commentId) {
     // RLS handles permission
     const { error } = await supabase
       .from('playlist_comments')

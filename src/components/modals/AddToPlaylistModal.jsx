@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Modal, Stack, Button, Select, TextInput, Text, Group, LoadingOverlay, Box } from '@mantine/core';
 import { IconPlaylistAdd, IconPlus } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
@@ -29,9 +29,9 @@ export function AddToPlaylistModal({
       setIsCreatingNew(false);
       setNewPlaylistTitle('');
     }
-  }, [opened, user]);
+  }, [opened, user, loadPlaylists]);
 
-  const loadPlaylists = async () => {
+  const loadPlaylists = useCallback(async () => {
     try {
       setLoading(true);
       const data = await playlistService.getPlaylists(user.id);
@@ -49,7 +49,7 @@ export function AddToPlaylistModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, selectedPlaylistId, isCreatingNew]);
 
   const handleSave = async () => {
     if (!songData) return;

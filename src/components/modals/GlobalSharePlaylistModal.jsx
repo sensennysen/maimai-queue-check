@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Modal, Stack, Button, Select, Textarea, Text, Group, LoadingOverlay, Box, Alert } from '@mantine/core';
 import { IconShare, IconInfoCircle, IconPlaylist } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
@@ -25,9 +25,9 @@ export function GlobalSharePlaylistModal({
       setSelectedPlaylistId(null);
       setShareMessage('');
     }
-  }, [opened, user]);
+  }, [opened, user, loadPublicPlaylists]);
 
-  const loadPublicPlaylists = async () => {
+  const loadPublicPlaylists = useCallback(async () => {
     try {
       setLoading(true);
       const data = await playlistService.getPlaylists(user.id);
@@ -48,7 +48,7 @@ export function GlobalSharePlaylistModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, selectedPlaylistId]);
 
   const handleShare = async () => {
     if (!selectedPlaylistId) return;

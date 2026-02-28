@@ -11,7 +11,7 @@ import { playlistService } from '../../services/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { PlaylistProtectionModal } from '../modals/PlaylistProtectionModal';
 
-export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isOwnProfile, onEdit, onDelete, hideShareDelete = false, postId = null }) {
+export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isOwnProfile, onEdit, onDelete, hideShareDelete = false }) {
   const [selectedSongDetails, setSelectedSongDetails] = useState(null);
   const [isSharing, setIsSharing] = useState(false);
   const [shareMessage, setShareMessage] = useState('');

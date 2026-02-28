@@ -676,6 +676,17 @@ export default function SongDiscussionPage() {
           </Grid.Col>
         </Grid>
       </Stack >
+
+      <AddToPlaylistModal
+        opened={addToPlaylistOpened}
+        onClose={() => setAddToPlaylistOpened(false)}
+        songData={{
+          id: song.id,
+          songId: song.songId,
+          title: song.title,
+          imageUrl: import.meta.env.VITE_SONG_JACKETS_URL + song.imageName
+        }}
+      />
     </Container >
   );
 }
