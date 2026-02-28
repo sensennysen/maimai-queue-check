@@ -142,160 +142,167 @@ export default function SongDiscussionPage() {
         )}
 
         {/* Header containing Song Basic Info */}
-        <Paper p={{ base: 'md', sm: 'xl' }} radius="md" withBorder>
-          <Grid gutter={{ base: 'md', md: 'xl' }} align="flex-start">
-            {/* Column 1: Image, Title, Artist */}
-            <Grid.Col span={{ base: 12, md: 4, lg: 4 }}>
-              <Stack gap="sm" align={isMobile ? 'center' : 'flex-start'} ta={isMobile ? 'center' : 'left'}>
-                <Box style={{ width: isMobile ? 160 : 220, maxWidth: '100%' }}>
-                  <Image
-                    src={import.meta.env.VITE_SONG_JACKETS_URL + song.imageName}
-                    alt={song.title}
-                    radius="md"
-                    w="100%"
-                    fallbackSrc="https://placehold.co/240x240?text=No+Image"
-                    style={{ boxShadow: 'var(--mantine-shadow-md)', aspectRatio: '1/1', objectFit: 'cover' }}
-                  />
-                </Box>
-                <Title order={2} className="mobile-song-title" style={{ fontFamily: 'var(--font-heading)', wordBreak: 'break-word', marginTop: '4px' }}>
-                  {song.title}
-                </Title>
-                <Text size={isMobile ? "sm" : "md"} mt={-8}>Artist: <Text span fw={500}>{song.artist}</Text></Text>
-              </Stack>
-            </Grid.Col>
+        <Paper p="md" radius="md" withBorder>
+          <Flex direction={{ base: 'column', md: 'row' }} gap={{ base: 'md', lg: 'xl' }} align="center">
+            {/* Image */}
+            <Box style={{ flexShrink: 0, width: isMobile ? 120 : 160 }}>
+              <Image
+                src={import.meta.env.VITE_SONG_JACKETS_URL + song.imageName}
+                alt={song.title}
+                radius="md"
+                w="100%"
+                fallbackSrc="https://placehold.co/240x240?text=No+Image"
+                style={{ boxShadow: 'var(--mantine-shadow-md)', aspectRatio: '1/1', objectFit: 'cover' }}
+              />
+            </Box>
 
-            {/* Column 2: Category, Version */}
-            <Grid.Col span={{ base: 12, md: 4, lg: 4 }}>
-              <Stack gap="lg" align={isMobile ? 'center' : 'flex-start'} ta={isMobile ? 'center' : 'left'} h="100%" justify="center">
-                <Box>
-                  <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>Category</Text>
-                  <Badge variant="light" color="blue" size="xl" radius="sm">
-                    {CATEGORY_TRANSLATION[song.category] || song.category}
-                  </Badge>
-                </Box>
+            {/* Grid for the rest */}
+            <Grid gutter={{ base: 'md', md: 'xl' }} align="center" style={{ flex: 1, width: '100%' }}>
+              {/* Box 1: Title and Artist */}
+              <Grid.Col span={{ base: 12, md: 5, lg: 5 }}>
+                <Stack gap="sm" align={isMobile ? 'center' : 'flex-start'} ta={isMobile ? 'center' : 'left'}>
+                  <Title order={2} className="mobile-song-title" style={{ fontFamily: 'var(--font-heading)', wordBreak: 'break-word', marginTop: '4px' }}>
+                    {song.title}
+                  </Title>
+                  <Text size={isMobile ? "sm" : "md"} mt={-8}>Artist: <Text span fw={500}>{song.artist}</Text></Text>
+                </Stack>
+              </Grid.Col>
 
-                <Box>
-                  <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>Version</Text>
-                  <Text size="xl" fw={500}>{VERSION_MAPPING[song.version] || song.version || '-'}</Text>
-                </Box>
-              </Stack>
-            </Grid.Col>
+              {/* Box 2: Category and Version */}
+              <Grid.Col span={{ base: 12, md: 3, lg: 3 }}>
+                <Stack gap="md" align={isMobile ? 'center' : 'flex-start'} ta={isMobile ? 'center' : 'left'}>
+                  <Box>
+                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>CATEGORY</Text>
+                    <Badge variant="light" color="blue" size="md" radius="sm">
+                      {CATEGORY_TRANSLATION[song.category] || song.category}
+                    </Badge>
+                  </Box>
 
-            {/* Column 3: Type, BPM, Release Date */}
-            <Grid.Col span={{ base: 12, md: 4, lg: 4 }}>
-              <Stack gap="lg" align={isMobile ? 'center' : 'flex-start'} ta={isMobile ? 'center' : 'left'} h="100%" justify="center">
-                <Box>
-                  <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>Type</Text>
-                  {activeCardType === 'dx' || activeCardType === 'dx_plus' ? (
-                    <img src={new URL('../assets/music_dx.png', import.meta.url).href} alt="DX" style={{ height: 35, objectFit: 'contain' }} />
-                  ) : (
-                    <img src={new URL('../assets/music_standard.png', import.meta.url).href} alt="Standard" style={{ height: 35, objectFit: 'contain' }} />
-                  )}
-                </Box>
+                  <Box>
+                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>VERSION</Text>
+                    <Text size="md" fw={500}>{VERSION_MAPPING[song.version] || song.version || '-'}</Text>
+                  </Box>
+                </Stack>
+              </Grid.Col>
 
-                <Group gap="xl" align="flex-start" justify={isMobile ? 'center' : 'flex-start'} wrap="nowrap">
-                  {song.bpm && (
-                    <Box mt={isMobile ? 0 : 2}>
-                      <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>BPM</Text>
-                      <Text size="xl" fw={500}>{song.bpm}</Text>
-                    </Box>
-                  )}
+              {/* Box 3: Type, BPM, Released */}
+              <Grid.Col span={{ base: 12, md: 4, lg: 4 }}>
+                <Stack gap="md" align={isMobile ? 'center' : 'flex-start'} ta={isMobile ? 'center' : 'left'}>
+                  <Box>
+                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>TYPE</Text>
+                    {activeCardType === 'dx' || activeCardType === 'dx_plus' ? (
+                      <img src={new URL('../assets/music_dx.png', import.meta.url).href} alt="DX" style={{ height: 26, objectFit: 'contain' }} />
+                    ) : (
+                      <img src={new URL('../assets/music_standard.png', import.meta.url).href} alt="Standard" style={{ height: 26, objectFit: 'contain' }} />
+                    )}
+                  </Box>
 
-                  {song.releaseDate && (
-                    <Box mt={isMobile ? 0 : 2} style={(song.bpm && !isMobile) ? { borderLeft: '1px solid var(--mantine-color-default-border)', paddingLeft: 'var(--mantine-spacing-xl)' } : {}}>
-                      <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>Released</Text>
-                      <Text size="xl" fw={500}>{isMobile ? song.releaseDate.split('-')[0] : song.releaseDate}</Text>
-                    </Box>
-                  )}
-                </Group>
-              </Stack>
-            </Grid.Col>
-          </Grid>
+                  <Group gap="xl" align="flex-start" justify={isMobile ? 'center' : 'flex-start'} wrap="nowrap">
+                    {song.bpm && (
+                      <Box mt={isMobile ? 0 : 2}>
+                        <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>BPM</Text>
+                        <Text size="md" fw={500}>{song.bpm}</Text>
+                      </Box>
+                    )}
+
+                    {song.releaseDate && (
+                      <Box mt={isMobile ? 0 : 2} style={(song.bpm && !isMobile) ? { borderLeft: '1px solid var(--mantine-color-default-border)', paddingLeft: 'var(--mantine-spacing-xl)' } : {}}>
+                        <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>RELEASED</Text>
+                        <Text size="md" fw={500}>{isMobile ? song.releaseDate.split('-')[0] : song.releaseDate}</Text>
+                      </Box>
+                    )}
+                  </Group>
+                </Stack>
+              </Grid.Col>
+            </Grid>
+          </Flex>
         </Paper>
 
         {/* Chart Details Section */}
-        {currentSheets && currentSheets.length > 0 && (
-          <Paper p="xl" radius="md" withBorder>
-            <Stack gap="md">
-              <Group justify="space-between" align="flex-end">
-                <Title order={3}>Chart Details</Title>
-              </Group>
-
-              <Group justify="space-between" align="center">
-                {/* Region Availability */}
-                <Group gap="xs" align="center">
-                  <Text size="sm" fw={700}>Regions:</Text>
-                  {(() => {
-                    const firstSheet = currentSheets[0];
-                    if (!firstSheet || !firstSheet.regions) return <Text size="sm" c="dimmed">Unknown</Text>;
-                    return Object.entries(firstSheet.regions)
-                      .map(([region, isAvailable]) => (
-                        <Badge
-                          key={region}
-                          size="sm"
-                          variant={isAvailable ? "light" : "outline"}
-                          color={isAvailable ? "blue" : "gray"}
-                          leftSection={<IconWorld size={10} />}
-                          opacity={isAvailable ? 1 : 0.4}
-                        >
-                          {region.toUpperCase()}
-                        </Badge>
-                      ));
-                  })()}
+        {
+          currentSheets && currentSheets.length > 0 && (
+            <Paper p="xl" radius="md" withBorder>
+              <Stack gap="md">
+                <Group justify="space-between" align="flex-end">
+                  <Title order={3}>Chart Details</Title>
                 </Group>
-              </Group>
 
-              {/* Difficulty Table */}
-              <ScrollArea>
-                <Table striped highlightOnHover withTableBorder>
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th className="sticky-col">Difficulty</Table.Th>
-                      <Table.Th>Level</Table.Th>
-                      <Table.Th>{isMobile ? 'Int. Lvl' : 'Internal Level'}</Table.Th>
-                      <Table.Th>{isMobile ? 'Des.' : 'Designer'}</Table.Th>
-                      <Table.Th>Tap</Table.Th>
-                      <Table.Th>Hold</Table.Th>
-                      <Table.Th>Slide</Table.Th>
-                      <Table.Th>Touch</Table.Th>
-                      <Table.Th>Break</Table.Th>
-                      <Table.Th>Total</Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {currentSheets.map((displaySheet, idx) => {
-                      const diffName = normalizeDifficulty(displaySheet.difficulty);
-                      const color = DIFFICULTY_COLORS[diffName] || 'gray';
+                <Group justify="space-between" align="center">
+                  {/* Region Availability */}
+                  <Group gap="xs" align="center">
+                    <Text size="sm" fw={700}>Regions:</Text>
+                    {(() => {
+                      const firstSheet = currentSheets[0];
+                      if (!firstSheet || !firstSheet.regions) return <Text size="sm" c="dimmed">Unknown</Text>;
+                      return Object.entries(firstSheet.regions)
+                        .map(([region, isAvailable]) => (
+                          <Badge
+                            key={region}
+                            size="sm"
+                            variant={isAvailable ? "light" : "outline"}
+                            color={isAvailable ? "blue" : "gray"}
+                            leftSection={<IconWorld size={10} />}
+                            opacity={isAvailable ? 1 : 0.4}
+                          >
+                            {region.toUpperCase()}
+                          </Badge>
+                        ));
+                    })()}
+                  </Group>
+                </Group>
 
-                      return (
-                        <Table.Tr key={`${displaySheet.type}-${displaySheet.difficulty}-${idx}`}>
-                          <Table.Td className="sticky-col">
-                            <Badge color={color} variant="filled" w="100%" size={isMobile ? "xs" : "sm"}>
-                              {isMobile ? diffName.substring(0, 3).toUpperCase() : diffName}
-                            </Badge>
-                          </Table.Td>
-                          <Table.Td fw={700}>{displaySheet.level}</Table.Td>
-                          <Table.Td>{displaySheet.internalLevel || displaySheet.internalLevelValue || '-'}</Table.Td>
-                          <Table.Td>
-                            <Text size="xs" truncate maw={150} title={displaySheet.noteDesigner}>
-                              {displaySheet.noteDesigner || '-'}
-                            </Text>
-                          </Table.Td>
-                          <Table.Td>{displaySheet.noteCounts?.tap ?? '-'}</Table.Td>
-                          <Table.Td>{displaySheet.noteCounts?.hold ?? '-'}</Table.Td>
-                          <Table.Td>{displaySheet.noteCounts?.slide ?? '-'}</Table.Td>
-                          <Table.Td>{displaySheet.noteCounts?.touch ?? '-'}</Table.Td>
-                          <Table.Td>{displaySheet.noteCounts?.break ?? '-'}</Table.Td>
-                          <Table.Td fw={700}>{displaySheet.noteCounts?.total ?? '-'}</Table.Td>
-                        </Table.Tr>
-                      );
-                    })}
-                  </Table.Tbody>
-                </Table>
-              </ScrollArea>
-            </Stack>
-          </Paper>
-        )}
+                {/* Difficulty Table */}
+                <ScrollArea>
+                  <Table striped highlightOnHover withTableBorder>
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th className="sticky-col">Difficulty</Table.Th>
+                        <Table.Th>Level</Table.Th>
+                        <Table.Th>{isMobile ? 'Int. Lvl' : 'Internal Level'}</Table.Th>
+                        <Table.Th>{isMobile ? 'Des.' : 'Designer'}</Table.Th>
+                        <Table.Th>Tap</Table.Th>
+                        <Table.Th>Hold</Table.Th>
+                        <Table.Th>Slide</Table.Th>
+                        <Table.Th>Touch</Table.Th>
+                        <Table.Th>Break</Table.Th>
+                        <Table.Th>Total</Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {currentSheets.map((displaySheet, idx) => {
+                        const diffName = normalizeDifficulty(displaySheet.difficulty);
+                        const color = DIFFICULTY_COLORS[diffName] || 'gray';
+
+                        return (
+                          <Table.Tr key={`${displaySheet.type}-${displaySheet.difficulty}-${idx}`}>
+                            <Table.Td className="sticky-col">
+                              <Badge color={color} variant="filled" w="100%" size={isMobile ? "xs" : "sm"}>
+                                {isMobile ? diffName.substring(0, 3).toUpperCase() : diffName}
+                              </Badge>
+                            </Table.Td>
+                            <Table.Td fw={700}>{displaySheet.level}</Table.Td>
+                            <Table.Td>{displaySheet.internalLevel || displaySheet.internalLevelValue || '-'}</Table.Td>
+                            <Table.Td>
+                              <Text size="xs" truncate maw={150} title={displaySheet.noteDesigner}>
+                                {displaySheet.noteDesigner || '-'}
+                              </Text>
+                            </Table.Td>
+                            <Table.Td>{displaySheet.noteCounts?.tap ?? '-'}</Table.Td>
+                            <Table.Td>{displaySheet.noteCounts?.hold ?? '-'}</Table.Td>
+                            <Table.Td>{displaySheet.noteCounts?.slide ?? '-'}</Table.Td>
+                            <Table.Td>{displaySheet.noteCounts?.touch ?? '-'}</Table.Td>
+                            <Table.Td>{displaySheet.noteCounts?.break ?? '-'}</Table.Td>
+                            <Table.Td fw={700}>{displaySheet.noteCounts?.total ?? '-'}</Table.Td>
+                          </Table.Tr>
+                        );
+                      })}
+                    </Table.Tbody>
+                  </Table>
+                </ScrollArea>
+              </Stack>
+            </Paper>
+          )
+        }
 
         {/* Discussion Sections */}
         <Grid gutter="lg">
