@@ -3,7 +3,9 @@ import { notifications } from '@mantine/notifications';
 import { IconCheck, IconEdit, IconCheck as IconSave, IconX, IconStarFilled } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
-import { Badge } from '@mantine/core';
+import { Badge, Button } from '@mantine/core';
+import { Link } from 'react-router-dom';
+import { IconMessageCircle } from '@tabler/icons-react';
 
 const formatComboAchievement = (value) => {
   if (!value) return null;
@@ -313,6 +315,19 @@ function MaimaiSongDetailModal({
                 )}
               </Stack>
             )}
+
+            <Button
+              component={Link}
+              to={`/songs/${song.songId}`}
+              state={{ cardType: song.cardType }}
+              variant="light"
+              color="indigo"
+              fullWidth
+              mt="md"
+              leftSection={<IconMessageCircle size={18} />}
+            >
+              Discuss this Song
+            </Button>
           </Stack>
         </Group>
       </Stack >

@@ -31,6 +31,7 @@ const ContactPage = lazy(() => import('./pages/ContactPage'));
 import LoginForm from './components/LoginForm';
 
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
+const SongDiscussionPage = lazy(() => import('./pages/SongDiscussionPage'));
 
 // The main application content (Queue check, Login, etc.)
 function MainApp() {
@@ -126,6 +127,7 @@ function AppProviders() {
           <Route path="/profile" element={<ProfileRedirect />} />
           <Route path="/view" element={<ViewPage />} />
           <Route path="/songs" element={<SongsPage />} />
+          <Route path="/songs/:id" element={<SongDiscussionPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/p/:slug" element={<PublicProfilePage />} />

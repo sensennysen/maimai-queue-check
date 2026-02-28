@@ -1,6 +1,7 @@
-import { Modal, Image, Text, Group, Stack, Badge, Table, ScrollArea, Tooltip, SimpleGrid } from '@mantine/core';
+import { Modal, Image, Text, Group, Stack, Badge, Table, ScrollArea, Tooltip, SimpleGrid, Button } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconCheck } from '@tabler/icons-react';
+import { IconCheck, IconMessageCircle } from '@tabler/icons-react';
+import { Link } from 'react-router-dom';
 import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty } from '../../../config/maimai-constants';
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
@@ -130,6 +131,18 @@ function SongDetailModal({ song, opened, onClose }) {
               )}
             </SimpleGrid>
 
+            <Button
+              component={Link}
+              to={`/songs/${song.songId}`}
+              state={{ cardType: song.cardType }}
+              variant="light"
+              color="indigo"
+              fullWidth
+              mt="md"
+              leftSection={<IconMessageCircle size={18} />}
+            >
+              Discuss this Song
+            </Button>
           </Stack>
         </Group>
 
