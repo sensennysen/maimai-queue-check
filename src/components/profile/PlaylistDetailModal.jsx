@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal, Stack, Text, Group, SimpleGrid, Box, Divider, Button, Image, Badge } from '@mantine/core';
-import { IconPlaylist, IconEdit, IconMusic, IconTrash } from '@tabler/icons-react';
+import { IconPlaylist, IconEdit, IconMusic, IconTrash, IconMessageCircle } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
 import FavoriteSongCard from './FavoriteSongCard';
 import { DIFFICULTY_COLORS, normalizeDifficulty, VERSION_MAPPING } from '../../config/maimai-constants';
 import dxImage from '../../assets/music_dx.png';
@@ -8,6 +9,7 @@ import standardImage from '../../assets/music_standard.png';
 
 export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isOwnProfile, onEdit, onDelete }) {
   const [selectedSongDetails, setSelectedSongDetails] = useState(null);
+  const navigate = useNavigate();
 
   if (!playlist) return null;
 
@@ -151,6 +153,22 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
               ) : (
                 <Text size="sm" c="dimmed" mt="md">Specific chart details are unavailable for this song.</Text>
               )}
+
+              <Button
+                variant="light"
+                color="blue"
+                leftSection={<IconMessageCircle size={18} />}
+                mt="md"
+                w="100%"
+                onClick={() => {
+                  onClose(); // Close playlist modal completely, or just the detail view? Let's just navigate.
+                  navigate(`/song/${selectedSongDetails.songId}`, {
+                    state: { cardType: selectedSongDetails.cardType || selectedSheet?.type }
+                  });
+                }}
+              >
+                Discuss this Song
+              </Button>
             </Stack>
           );
         })()}
