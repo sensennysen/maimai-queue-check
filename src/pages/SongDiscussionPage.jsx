@@ -54,6 +54,7 @@ export default function SongDiscussionPage() {
   const { user } = useAuth();
   const location = useLocation();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobileOrTablet = useMediaQuery('(max-width: 991px)');
 
   const baseSong = songMapById?.get(id);
 
@@ -142,10 +143,10 @@ export default function SongDiscussionPage() {
         )}
 
         {/* Header containing Song Basic Info */}
-        <Paper p="md" radius="md" withBorder>
-          <Flex direction={{ base: 'column', md: 'row' }} gap={{ base: 'md', lg: 'xl' }} align="center">
+        <Paper p={{ base: 'md', md: 'lg' }} radius="md" withBorder>
+          <Flex direction={{ base: 'column', md: 'row' }} gap={{ base: 'md', md: 'xl' }} align="center">
             {/* Image */}
-            <Box style={{ flexShrink: 0, width: isMobile ? 120 : 160 }}>
+            <Box style={{ flexShrink: 0, width: isMobileOrTablet ? 160 : 180 }}>
               <Image
                 src={import.meta.env.VITE_SONG_JACKETS_URL + song.imageName}
                 alt={song.title}
@@ -156,65 +157,78 @@ export default function SongDiscussionPage() {
               />
             </Box>
 
-            {/* Grid for the rest */}
-            <Grid gutter={{ base: 'md', md: 'xl' }} align="center" style={{ flex: 1, width: '100%' }}>
-              {/* Box 1: Title and Artist */}
-              <Grid.Col span={{ base: 12, md: 5, lg: 5 }}>
-                <Stack gap="sm" align={isMobile ? 'center' : 'flex-start'} ta={isMobile ? 'center' : 'left'}>
-                  <Title order={2} className="mobile-song-title" style={{ fontFamily: 'var(--font-heading)', wordBreak: 'break-word', marginTop: '4px' }}>
-                    {song.title}
-                  </Title>
-                  <Text size={isMobile ? "sm" : "md"} mt={-8}>Artist: <Text span fw={500}>{song.artist}</Text></Text>
-                </Stack>
-              </Grid.Col>
+            {/* Content for the rest */}
+            <Box flex={1} w="100%">
+              <Grid gutter={{ base: 'md', md: 'xl' }} align="center">
+                {/* Box 1: Title and Artist */}
+                <Grid.Col span={{ base: 12, md: 5 }}>
+                  <Stack gap="sm" align={isMobileOrTablet ? 'center' : 'flex-start'} ta={isMobileOrTablet ? 'center' : 'left'}>
+                    <Title order={2} className="mobile-song-title" style={{ fontFamily: 'var(--font-heading)', wordBreak: 'break-word', marginTop: '4px' }}>
+                      {song.title}
+                    </Title>
+                    <Text size={isMobileOrTablet ? "sm" : "md"} mt={-8}>Artist: <Text span fw={500}>{song.artist}</Text></Text>
+                  </Stack>
+                </Grid.Col>
 
-              {/* Box 2: Category and Version */}
-              <Grid.Col span={{ base: 12, md: 3, lg: 3 }}>
-                <Stack gap="md" align={isMobile ? 'center' : 'flex-start'} ta={isMobile ? 'center' : 'left'}>
-                  <Box>
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>CATEGORY</Text>
-                    <Badge variant="light" color="blue" size="md" radius="sm">
-                      {CATEGORY_TRANSLATION[song.category] || song.category}
-                    </Badge>
+                {/* Box 2 & 3: Info container wrapped in a Box on mobile/tablet */}
+                <Grid.Col span={{ base: 12, md: 7 }}>
+                  <Box
+                    bg={isMobileOrTablet ? 'var(--mantine-color-default-hover)' : 'transparent'}
+                    p={isMobileOrTablet ? 'md' : 0}
+                    radius="md"
+                  >
+                    <Grid gutter={{ base: 'xs', sm: 'md', md: 'xl' }} align="center">
+                      {/* Category and Version */}
+                      <Grid.Col span={{ base: 6, lg: 5 }}>
+                        <Stack gap="md" align={isMobileOrTablet ? 'center' : 'flex-start'} ta={isMobileOrTablet ? 'center' : 'left'} h="100%" justify="center">
+                          <Box>
+                            <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>CATEGORY</Text>
+                            <Badge variant="light" color="blue" size="md" radius="sm" style={{ whiteSpace: 'normal', height: 'auto', padding: '4px 8px' }}>
+                              {CATEGORY_TRANSLATION[song.category] || song.category}
+                            </Badge>
+                          </Box>
+
+                          <Box>
+                            <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>VERSION</Text>
+                            <Text size="md" fw={500}>{VERSION_MAPPING[song.version] || song.version || '-'}</Text>
+                          </Box>
+                        </Stack>
+                      </Grid.Col>
+
+                      {/* Type, BPM, Released */}
+                      <Grid.Col span={{ base: 6, lg: 7 }}>
+                        <Stack gap="md" align={isMobileOrTablet ? 'center' : 'flex-start'} ta={isMobileOrTablet ? 'center' : 'left'} h="100%" justify="center">
+                          <Box>
+                            <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>TYPE</Text>
+                            {activeCardType === 'dx' || activeCardType === 'dx_plus' ? (
+                              <img src={new URL('../assets/music_dx.png', import.meta.url).href} alt="DX" style={{ height: 26, objectFit: 'contain' }} />
+                            ) : (
+                              <img src={new URL('../assets/music_standard.png', import.meta.url).href} alt="Standard" style={{ height: 26, objectFit: 'contain' }} />
+                            )}
+                          </Box>
+
+                          <Group gap="xl" align="flex-start" justify={isMobileOrTablet ? 'center' : 'flex-start'} wrap="nowrap">
+                            {song.bpm && (
+                              <Box mt={isMobileOrTablet ? 0 : 2}>
+                                <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>BPM</Text>
+                                <Text size="base" fw={500}>{song.bpm}</Text>
+                              </Box>
+                            )}
+
+                            {song.releaseDate && (
+                              <Box mt={isMobileOrTablet ? 0 : 2} style={(song.bpm && !isMobileOrTablet) ? { borderLeft: '1px solid var(--mantine-color-default-border)', paddingLeft: 'var(--mantine-spacing-xl)' } : {}}>
+                                <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>RELEASED</Text>
+                                <Text size="base" fw={500}>{isMobileOrTablet ? song.releaseDate.split('-')[0] : song.releaseDate}</Text>
+                              </Box>
+                            )}
+                          </Group>
+                        </Stack>
+                      </Grid.Col>
+                    </Grid>
                   </Box>
-
-                  <Box>
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>VERSION</Text>
-                    <Text size="md" fw={500}>{VERSION_MAPPING[song.version] || song.version || '-'}</Text>
-                  </Box>
-                </Stack>
-              </Grid.Col>
-
-              {/* Box 3: Type, BPM, Released */}
-              <Grid.Col span={{ base: 12, md: 4, lg: 4 }}>
-                <Stack gap="md" align={isMobile ? 'center' : 'flex-start'} ta={isMobile ? 'center' : 'left'}>
-                  <Box>
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>TYPE</Text>
-                    {activeCardType === 'dx' || activeCardType === 'dx_plus' ? (
-                      <img src={new URL('../assets/music_dx.png', import.meta.url).href} alt="DX" style={{ height: 26, objectFit: 'contain' }} />
-                    ) : (
-                      <img src={new URL('../assets/music_standard.png', import.meta.url).href} alt="Standard" style={{ height: 26, objectFit: 'contain' }} />
-                    )}
-                  </Box>
-
-                  <Group gap="xl" align="flex-start" justify={isMobile ? 'center' : 'flex-start'} wrap="nowrap">
-                    {song.bpm && (
-                      <Box mt={isMobile ? 0 : 2}>
-                        <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>BPM</Text>
-                        <Text size="md" fw={500}>{song.bpm}</Text>
-                      </Box>
-                    )}
-
-                    {song.releaseDate && (
-                      <Box mt={isMobile ? 0 : 2} style={(song.bpm && !isMobile) ? { borderLeft: '1px solid var(--mantine-color-default-border)', paddingLeft: 'var(--mantine-spacing-xl)' } : {}}>
-                        <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>RELEASED</Text>
-                        <Text size="md" fw={500}>{isMobile ? song.releaseDate.split('-')[0] : song.releaseDate}</Text>
-                      </Box>
-                    )}
-                  </Group>
-                </Stack>
-              </Grid.Col>
-            </Grid>
+                </Grid.Col>
+              </Grid>
+            </Box>
           </Flex>
         </Paper>
 
