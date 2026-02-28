@@ -20,17 +20,6 @@ export function AddToPlaylistModal({
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [newPlaylistTitle, setNewPlaylistTitle] = useState('');
 
-  useEffect(() => {
-    if (opened && user) {
-      loadPlaylists();
-    } else if (!opened) {
-      // Reset state on close
-      setSelectedPlaylistId(null);
-      setIsCreatingNew(false);
-      setNewPlaylistTitle('');
-    }
-  }, [opened, user, loadPlaylists]);
-
   const loadPlaylists = useCallback(async () => {
     try {
       setLoading(true);
@@ -50,6 +39,17 @@ export function AddToPlaylistModal({
       setLoading(false);
     }
   }, [user?.id, selectedPlaylistId, isCreatingNew]);
+
+  useEffect(() => {
+    if (opened && user) {
+      loadPlaylists();
+    } else if (!opened) {
+      // Reset state on close
+      setSelectedPlaylistId(null);
+      setIsCreatingNew(false);
+      setNewPlaylistTitle('');
+    }
+  }, [opened, user, loadPlaylists]);
 
   const handleSave = async () => {
     if (!songData) return;

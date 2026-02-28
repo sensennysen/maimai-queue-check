@@ -17,16 +17,6 @@ export function GlobalSharePlaylistModal({
   const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
   const [shareMessage, setShareMessage] = useState('');
 
-  useEffect(() => {
-    if (opened && user) {
-      loadPublicPlaylists();
-    } else if (!opened) {
-      // Reset state on close
-      setSelectedPlaylistId(null);
-      setShareMessage('');
-    }
-  }, [opened, user, loadPublicPlaylists]);
-
   const loadPublicPlaylists = useCallback(async () => {
     try {
       setLoading(true);
@@ -49,6 +39,16 @@ export function GlobalSharePlaylistModal({
       setLoading(false);
     }
   }, [user?.id, selectedPlaylistId]);
+
+  useEffect(() => {
+    if (opened && user) {
+      loadPublicPlaylists();
+    } else if (!opened) {
+      // Reset state on close
+      setSelectedPlaylistId(null);
+      setShareMessage('');
+    }
+  }, [opened, user, loadPublicPlaylists]);
 
   const handleShare = async () => {
     if (!selectedPlaylistId) return;
