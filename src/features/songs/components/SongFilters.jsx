@@ -51,12 +51,13 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
     onFilterChange({ ...filters, [key]: value });
   };
 
-  const hasActiveFilters = filters.categories.length > 0 || filters.versions.length > 0 ||
-    filters.levelMin !== '' || filters.levelMax !== '' || filters.region !== '' || filters.type !== '';
+  const hasActiveFilters = filters.query !== '' || filters.categories.length > 0 || filters.versions.length > 0 ||
+    filters.levelMin !== '' || filters.levelMax !== '' || filters.region !== 'intl' || filters.type !== '';
 
   const resetFilters = () => {
     onFilterChange({
       ...filters,
+      query: '',
       categories: [],
       versions: [],
       levelMin: '',
@@ -252,14 +253,6 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         <Stack gap="lg">
           <Group justify="space-between" align="center" wrap="nowrap">
             <Text fw={700} size="lg" style={{ fontFamily: 'var(--font-heading)' }} truncate>Filters</Text>
-            {hasActiveFilters && (
-              <Tooltip label="Reset all filters">
-                <ActionIcon variant="subtle" color="gray" onClick={resetFilters}>
-                  <IconFilter size={16} style={{ opacity: 0.5 }} />
-                  <IconX size={12} style={{ position: 'absolute', bottom: 4, right: 4 }} />
-                </ActionIcon>
-              </Tooltip>
-            )}
           </Group>
           {filterContent}
         </Stack>
