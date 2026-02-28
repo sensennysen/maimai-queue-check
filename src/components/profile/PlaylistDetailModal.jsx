@@ -9,12 +9,15 @@ import dxImage from '../../assets/music_dx.png';
 import standardImage from '../../assets/music_standard.png';
 import { playlistService } from '../../services/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import { PlaylistProtectionModal } from '../modals/PlaylistProtectionModal';
 
 export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isOwnProfile, onEdit, onDelete, hideShareDelete = false }) {
   const [selectedSongDetails, setSelectedSongDetails] = useState(null);
   const [isSharing, setIsSharing] = useState(false);
   const [shareMessage, setShareMessage] = useState('');
   const [isSubmittingShare, setIsSubmittingShare] = useState(false);
+  const [isProtectionModalOpen, setIsProtectionModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -78,11 +81,7 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
                   variant="subtle"
                   color="red"
                   leftSection={<IconTrash size={16} />}
-                  onClick={() => {
-                    if (window.confirm('Are you sure you want to delete this playlist?')) {
-                      onDelete(playlist.id);
-                    }
-                  }}
+                  onClick={() => setIsProtectionModalOpen(true)}
                 >
                   Delete
                 </Button>
@@ -244,6 +243,22 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
           );
         })()}
       </Modal >
+
+      <PlaylistProtectionModal
+        opened={isProtectionModalOpen}
+        onClose={() => setIsProtectionModalOpen(false)}
+        onConfirm={async () => {
+          setIsDeleting(true);
+          try {
+            await onDelete(playlist.id);
+            setIsProtectionModalOpen(false);
+          } finally {
+            setIsDeleting(false);
+          }
+        }}
+        type="delete"
+        loading={isDeleting}
+      />
     </>
   );
 }

@@ -5,6 +5,7 @@ import { notifications } from '@mantine/notifications';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
 import { playlistService } from '../../services/supabase';
 import { DIFFICULTY_COLORS } from '../../config/maimai-constants';
+import { PlaylistProtectionModal } from '../modals/PlaylistProtectionModal';
 
 export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, onSave, hidePublicToggle = false }) {
   const [title, setTitle] = useState('');
@@ -12,7 +13,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
   const [selectedSongs, setSelectedSongs] = useState([]); // Array of full song objects
   const [isSongPickerOpen, setIsSongPickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
+  const [isProtectionModalOpen, setIsProtectionModalOpen] = useState(false);
 
   const [isPublic, setIsPublic] = useState(false);
 
@@ -207,7 +208,15 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
               label="Make Playlist Public"
               description="Allow others to view and share this playlist"
               checked={isPublic}
-              onChange={(event) => setIsPublic(event.currentTarget.checked)}
+              onChange={(event) => {
+                const newValue = event.currentTarget.checked;
+                if (!newValue && initialPlaylist?.is_public) {
+                  // Trying to make a public playlist private
+                  setIsProtectionModalOpen(true);
+                } else {
+                  setIsPublic(newValue);
+                }
+              }}
               color="teal"
             />
           )}
@@ -219,6 +228,33 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
           </Group>
         </Group>
       </Stack>
+
+      <PlaylistProtectionModal
+        opened={isProtectionModalOpen}
+        onClose={() => setIsProtectionModalOpen(false)}
+        onConfirm={async () => {
+          setIsSaving(true);
+          try {
+            // Making it private according to requirements means soft-deleting it
+            await playlistService.deletePlaylist(initialPlaylist.id);
+            notifications.show({
+              title: 'Playlist Privatized',
+              message: 'Playlist and its shared posts have been removed.',
+              color: 'blue'
+            });
+            if (onSave) onSave({ ...initialPlaylist, deleted: true });
+            onClose();
+          } catch (error) {
+            console.error('Error privatizing playlist:', error);
+            notifications.show({ title: 'Error', message: 'Failed to privatize playlist', color: 'red' });
+          } finally {
+            setIsSaving(false);
+            setIsProtectionModalOpen(false);
+          }
+        }}
+        type="private"
+        loading={isSaving}
+      />
 
       <SongSelectionModal
         key={isSongPickerOpen ? 'open' : 'closed'}

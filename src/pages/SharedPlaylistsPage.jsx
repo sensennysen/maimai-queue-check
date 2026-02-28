@@ -104,12 +104,7 @@ export default function SharedPlaylistsPage() {
           <Paper p="xl" withBorder radius="md" bg="var(--mantine-color-default-hover)">
             <Stack align="center" py="xl">
               <Text fw={500} size="lg">No playlists have been shared yet.</Text>
-              <Text c="dimmed" size="sm">Be the first to share one from your profile!</Text>
-              {user ? (
-                <Button mt="md" onClick={() => navigate(`/p/${user.username || user.id}`)}>Go to Profile</Button>
-              ) : (
-                <Text mt="md" size="sm" fs="italic">Login to create and share playlists.</Text>
-              )}
+              <Text c="dimmed" size="sm">Be the first to share one!</Text>
             </Stack>
           </Paper>
         ) : (

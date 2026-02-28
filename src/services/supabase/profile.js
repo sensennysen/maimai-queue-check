@@ -434,6 +434,7 @@ export const playlistService = {
         )
       `)
       .eq('user_id', userId)
+      .eq('deleted', false)
       .order('order_index', { ascending: true });
 
     if (error) {
@@ -519,16 +520,35 @@ export const playlistService = {
 
   // Delete a playlist
   async deletePlaylist(playlistId) {
-    const { error } = await supabase
+    // 1. Soft delete the playlist
+    const { error: playlistError } = await supabase
       .from('user_playlists')
-      .delete()
+      .update({ deleted: true })
       .eq('id', playlistId);
 
-    if (error) {
-      console.error('Error deleting playlist:', error);
-      throw error;
+    if (playlistError) {
+      console.error('Error deleting playlist:', playlistError);
+      throw playlistError;
     }
+
+    // 2. Soft delete related posts
+    await this.softDeletePostsByPlaylist(playlistId);
+
     return true;
+  },
+
+  // Soft delete all posts for a specific playlist
+  async softDeletePostsByPlaylist(playlistId) {
+    const { error } = await supabase
+      .from('playlist_posts')
+      .update({ deleted: true })
+      .eq('playlist_id', playlistId);
+
+    if (error) {
+      console.error('Error soft deleting posts for playlist:', error);
+      // We don't necessarily want to throw here if the playlist itself was deleted,
+      // but it's good to log.
+    }
   },
 
   // Share a playlist
@@ -572,6 +592,8 @@ export const playlistService = {
           )
         )
       `)
+      .eq('deleted', false)
+      .filter('playlist.deleted', 'eq', false)
       .order('created_at', { ascending: false });
 
     if (error) {
