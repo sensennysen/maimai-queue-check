@@ -434,6 +434,7 @@ export const playlistService = {
         )
       `)
       .eq('user_id', userId)
+      .eq('deleted', false)
       .order('order_index', { ascending: true });
 
     if (error) {
@@ -448,7 +449,7 @@ export const playlistService = {
   },
 
   // Update or create a playlist
-  async upsertPlaylist(userId, playlistId, { title, comment, songIds, songs }) {
+  async upsertPlaylist(userId, playlistId, { title, comment, is_public, songIds, songs }) {
     let finalPlaylistId = playlistId;
 
     if (!finalPlaylistId) {
@@ -458,6 +459,7 @@ export const playlistService = {
           user_id: userId,
           title: title || 'New Playlist',
           comment,
+          is_public: is_public || false,
           order_index: 0
         })
         .select()
@@ -466,9 +468,12 @@ export const playlistService = {
       if (error) throw error;
       finalPlaylistId = data.id;
     } else {
+      const updates = { title, comment };
+      if (is_public !== undefined) updates.is_public = is_public;
+      
       const { error } = await supabase
         .from('user_playlists')
-        .update({ title, comment })
+        .update(updates)
         .eq('id', finalPlaylistId);
 
       if (error) throw error;
@@ -515,13 +520,182 @@ export const playlistService = {
 
   // Delete a playlist
   async deletePlaylist(playlistId) {
-    const { error } = await supabase
+    // 1. Soft delete the playlist
+    const { error: playlistError } = await supabase
       .from('user_playlists')
-      .delete()
+      .update({ deleted: true })
       .eq('id', playlistId);
 
+    if (playlistError) {
+      console.error('Error deleting playlist:', playlistError);
+      throw playlistError;
+    }
+
+    // 2. Soft delete related posts
+    await this.softDeletePostsByPlaylist(playlistId);
+
+    return true;
+  },
+
+  // Soft delete all posts for a specific playlist
+  async softDeletePostsByPlaylist(playlistId) {
+    const { error } = await supabase
+      .from('playlist_posts')
+      .update({ deleted: true })
+      .eq('playlist_id', playlistId);
+
     if (error) {
-      console.error('Error deleting playlist:', error);
+      console.error('Error soft deleting posts for playlist:', error);
+      // We don't necessarily want to throw here if the playlist itself was deleted,
+      // but it's good to log.
+    }
+  },
+
+  // Share a playlist
+  async sharePlaylist(userId, playlistId, content, commentsEnabled = true) {
+    const { data, error } = await supabase
+      .from('playlist_posts')
+      .insert({
+        user_id: userId,
+        playlist_id: playlistId,
+        content: content?.trim() || null,
+        comments_enabled: commentsEnabled
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error sharing playlist:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  // Get shared playlists (feed)
+  async getSharedPlaylists() {
+    const { data, error } = await supabase
+      .from('playlist_posts')
+      .select(`
+        id,
+        content,
+        created_at,
+        comments_enabled,
+      author:user_profiles!user_id(id, slug, display_name, display_photo_url),
+      playlist:user_playlists!playlist_id(
+        id,
+        title,
+        comment,
+        is_public,
+        updated_at,
+        songs:playlist_songs(
+            song_id,
+            level,
+            order_index
+          )
+        )
+      `)
+      .eq('deleted', false)
+      .filter('playlist.deleted', 'eq', false)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching shared playlists:', error);
+      throw error;
+    }
+    
+    // Sort songs cleanly for each post
+    return data.map(post => {
+      if (post.playlist?.songs) {
+        post.playlist.songs = post.playlist.songs.sort((a, b) => a.order_index - b.order_index);
+      }
+      return post;
+    });
+  },
+
+  // Get comments for a shared post
+  async getPostComments(postId) {
+    const { data, error } = await supabase
+      .from('playlist_comments')
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        user_profiles:user_id(display_name, display_photo_url, slug)
+      `)
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching post comments:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  // Add a comment to a shared post
+  async addPostComment(postId, userId, content) {
+    const { data, error } = await supabase
+      .from('playlist_comments')
+      .insert({
+        post_id: postId,
+        user_id: userId,
+        content: content.trim()
+      })
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        user_profiles:user_id(display_name, display_photo_url, slug)
+      `)
+      .single();
+
+    if (error) {
+      console.error('Error adding post comment:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  // Delete a comment
+  async deletePostComment(commentId, userId) {
+    // RLS handles permission
+    const { error } = await supabase
+      .from('playlist_comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (error) {
+      console.error('Error deleting post comment:', error);
+      throw error;
+    }
+    return true;
+  },
+
+  // Delete a specific post
+  async deletePost(postId) {
+    const { error } = await supabase
+      .from('playlist_posts')
+      .update({ deleted: true })
+      .eq('id', postId);
+
+    if (error) {
+      console.error('Error deleting post:', error);
+      throw error;
+    }
+    return true;
+  },
+
+  // Toggle comments on a specific post
+  async togglePostComments(postId, enabled) {
+    const { error } = await supabase
+      .from('playlist_posts')
+      .update({ comments_enabled: enabled })
+      .eq('id', postId);
+
+    if (error) {
+      console.error('Error toggling post comments:', error);
       throw error;
     }
     return true;

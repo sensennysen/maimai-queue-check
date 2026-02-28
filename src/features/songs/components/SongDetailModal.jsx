@@ -1,12 +1,16 @@
+import { useState } from 'react';
 import { Modal, Image, Text, Group, Stack, Badge, Table, ScrollArea, Tooltip, SimpleGrid, Button } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconCheck, IconMessageCircle } from '@tabler/icons-react';
+import { IconCheck, IconMessageCircle, IconPlaylistAdd } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty } from '../../../config/maimai-constants';
+import { AddToPlaylistModal } from '../../../components/modals/AddToPlaylistModal';
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
 
 function SongDetailModal({ song, opened, onClose }) {
+  const [addToPlaylistOpened, setAddToPlaylistOpened] = useState(false);
+
   if (!song) return null;
 
   const handleTitleClick = () => {
@@ -131,18 +135,28 @@ function SongDetailModal({ song, opened, onClose }) {
               )}
             </SimpleGrid>
 
-            <Button
-              component={Link}
-              to={`/songs/${song.songId}`}
-              state={{ cardType: song.cardType }}
-              variant="light"
-              color="indigo"
-              fullWidth
-              mt="md"
-              leftSection={<IconMessageCircle size={18} />}
-            >
-              Discuss this Song
-            </Button>
+            <Stack gap="sm" mt="md">
+              <Button
+                component={Link}
+                to={`/songs/${song.songId}`}
+                state={{ cardType: song.cardType }}
+                variant="light"
+                color="indigo"
+                leftSection={<IconMessageCircle size={18} />}
+                fullWidth
+              >
+                Discuss
+              </Button>
+              <Button
+                variant="light"
+                color="teal"
+                leftSection={<IconPlaylistAdd size={18} />}
+                onClick={() => setAddToPlaylistOpened(true)}
+                fullWidth
+              >
+                Add to Playlist
+              </Button>
+            </Stack>
           </Stack>
         </Group>
 
@@ -160,6 +174,16 @@ function SongDetailModal({ song, opened, onClose }) {
           </Table>
         </ScrollArea>
       </Stack>
+
+      <AddToPlaylistModal
+        opened={addToPlaylistOpened}
+        onClose={() => setAddToPlaylistOpened(false)}
+        songData={song}
+        onSuccess={() => {
+          setAddToPlaylistOpened(false);
+          onClose(); // Close the SongDetailModal as requested
+        }}
+      />
     </Modal >
   );
 }

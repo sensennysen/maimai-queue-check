@@ -2,46 +2,21 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, Alert, Rating, Autocomplete, ActionIcon, Textarea, Center, Flex, Grid, Table, ScrollArea, Box } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh, IconWorld } from '@tabler/icons-react';
+import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh, IconWorld, IconPlaylistAdd } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { discussionService } from '../services/supabase';
 import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty } from '../config/maimai-constants';
+import { AddToPlaylistModal } from '../components/modals/AddToPlaylistModal';
+import { getRelativeTime } from '../utils/formatters';
 
 export default function SongDiscussionPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { songs, songMapById, loading: songsLoading } = useSongDatabaseContext();
 
-  // Helper for relative time formatting
-  const getRelativeTime = useCallback((dateString) => {
-    const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = date - now;
-    const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
-
-    if (Math.abs(diffInDays) > 7) {
-      return date.toLocaleDateString();
-    }
-
-    const diffInHours = Math.round(diffInMs / (1000 * 60 * 60));
-    if (Math.abs(diffInHours) >= 24) {
-      return rtf.format(diffInDays, 'day');
-    }
-
-    const diffInMinutes = Math.round(diffInMs / (1000 * 60));
-    if (Math.abs(diffInMinutes) >= 60) {
-      return rtf.format(diffInHours, 'hour');
-    }
-
-    if (Math.abs(diffInMinutes) < 1) {
-      return 'just now';
-    }
-
-    return rtf.format(diffInMinutes, 'minute');
-  }, []);
+  const getRelativeTimeCb = useCallback((dateString) => getRelativeTime(dateString), []);
   const [discussionData, setDiscussionData] = useState({ ratings: [], comments: [], tags: [] });
   const [availableTags, setAvailableTags] = useState([]);
   const [discussionLoading, setDiscussionLoading] = useState(true);
@@ -51,6 +26,7 @@ export default function SongDiscussionPage() {
   const [newTagValue, setNewTagValue] = useState('');
   const [newCommentValue, setNewCommentValue] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [addToPlaylistOpened, setAddToPlaylistOpened] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -125,9 +101,17 @@ export default function SongDiscussionPage() {
     <Container size="xl" py="xl" className="animate-fade-in">
       <Stack gap="xl">
         {/* Navigation */}
-        <Group>
+        <Group justify="space-between">
           <Button onClick={() => navigate(-1)} variant="subtle" leftSection={<IconArrowLeft size={16} />}>
             Go Back
+          </Button>
+          <Button
+            variant="light"
+            color="teal"
+            leftSection={<IconPlaylistAdd size={16} />}
+            onClick={() => setAddToPlaylistOpened(true)}
+          >
+            Add to Playlist
           </Button>
         </Group>
 
@@ -580,7 +564,7 @@ export default function SongDiscussionPage() {
                             <Group gap="xs">
                               <Text fw={500} size="sm">{comment.user_profiles?.display_name || 'Unknown User'}</Text>
                               <Text c="dimmed" size="xs" title={new Date(comment.created_at).toLocaleString()}>
-                                {getRelativeTime(comment.created_at)}
+                                {getRelativeTimeCb(comment.created_at)}
                               </Text>
                             </Group>
                             {user && user.id === comment.user_id && (

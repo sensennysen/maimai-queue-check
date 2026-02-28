@@ -5,7 +5,7 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/tiptap/styles.css';
 import { Analytics } from '@vercel/analytics/react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';
@@ -32,6 +32,7 @@ import LoginForm from './components/LoginForm';
 
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
 const SongDiscussionPage = lazy(() => import('./pages/SongDiscussionPage'));
+const SharedPlaylistsPage = lazy(() => import('./pages/SharedPlaylistsPage'));
 
 // The main application content (Queue check, Login, etc.)
 function MainApp() {
@@ -128,6 +129,7 @@ function AppProviders() {
           <Route path="/view" element={<ViewPage />} />
           <Route path="/songs" element={<SongsPage />} />
           <Route path="/songs/:id" element={<SongDiscussionPage />} />
+          <Route path="/shared-playlists" element={<SharedPlaylistsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/p/:slug" element={<PublicProfilePage />} />

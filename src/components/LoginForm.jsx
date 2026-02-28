@@ -5,6 +5,7 @@ import IconLogout from '@tabler/icons-react/dist/esm/icons/IconLogout.mjs';
 import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
 import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
 import IconSettings from '@tabler/icons-react/dist/esm/icons/IconSettings.mjs';
+import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';
@@ -107,6 +108,12 @@ const LoginForm = ({ onOpenPreferences }) => {
             onClick={() => navigate('/songs')}
           >
             Songs
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<IconPlaylist size={16} />}
+            onClick={() => navigate('/shared-playlists')}
+          >
+            Shared Playlists
           </Menu.Item>
           <Menu.Item
             leftSection={<IconSettings size={16} />}
