@@ -91,7 +91,7 @@ export default function SharedPlaylistsPage() {
             <Group gap="sm">
               <IconPlaylist size={32} style={{ color: 'var(--theme-primary)' }} />
               <Title order={1} style={{ fontFamily: 'var(--font-heading)' }}>
-                Community Playlists
+                Playlist Feed
               </Title>
             </Group>
             <Text c="dimmed">Discover playlists shared by other players!</Text>

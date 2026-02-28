@@ -113,7 +113,7 @@ const LoginForm = ({ onOpenPreferences }) => {
             leftSection={<IconPlaylist size={16} />}
             onClick={() => navigate('/shared-playlists')}
           >
-            Shared Playlists
+            Playlist Feed
           </Menu.Item>
           <Menu.Item
             leftSection={<IconSettings size={16} />}

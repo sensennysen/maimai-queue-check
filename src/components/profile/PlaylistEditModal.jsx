@@ -244,14 +244,25 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
         onConfirm={async () => {
           setIsSaving(true);
           try {
-            // Making it private according to requirements means soft-deleting it
-            await playlistService.deletePlaylist(initialPlaylist.id);
-            notifications.show({
-              title: 'Playlist Privatized',
-              message: 'Playlist and its shared posts have been removed.',
-              color: 'blue'
+            // Updated behavior: Update visibility instead of deleting
+            const songsForService = selectedSongs.map(s => ({ id: s.cardId || s.songId, level: s.level }));
+            const updatedPlaylist = await playlistService.upsertPlaylist(userId, initialPlaylist?.id, {
+              title: title.trim(),
+              comment: comment.trim(),
+              is_public: false,
+              songs: songsForService
             });
-            if (onSave) onSave({ ...initialPlaylist, deleted: true });
+
+            // Soft delete related posts so they are removed from the global feed
+            await playlistService.softDeletePostsByPlaylist(initialPlaylist.id);
+
+            notifications.show({
+              title: 'Playlist Private',
+              message: 'Playlist is now private and its shared posts have been removed.',
+              color: 'indigo'
+            });
+
+            if (onSave) onSave(updatedPlaylist);
             onClose();
           } catch (error) {
             console.error('Error privatizing playlist:', error);

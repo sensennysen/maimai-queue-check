@@ -596,6 +596,7 @@ export const playlistService = {
       `)
       .eq('deleted', false)
       .filter('playlist.deleted', 'eq', false)
+      .filter('playlist.is_public', 'eq', true)
       .order('created_at', { ascending: false });
 
     if (error) {
