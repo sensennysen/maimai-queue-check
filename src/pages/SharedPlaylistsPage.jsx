@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Container, Stack, Group, Title, Text, Button, Loader, Paper, ActionIcon, Avatar, Box, ScrollArea, Image } from '@mantine/core';
+import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Divider, ActionIcon, Avatar, Box, ScrollArea, Image } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconArrowLeft, IconRefresh, IconPlaylist, IconShare } from '@tabler/icons-react';
+import { IconArrowLeft, IconRefresh, IconPlaylist, IconShare, IconDotsVertical, IconMessageOff, IconMessage, IconTrash } from '@tabler/icons-react';
+import { Menu } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
@@ -11,6 +12,7 @@ import { PlaylistDetailModal } from '../components/profile/PlaylistDetailModal';
 import { PlaylistEditModal } from '../components/profile/PlaylistEditModal';
 import { GlobalSharePlaylistModal } from '../components/modals/GlobalSharePlaylistModal';
 import { SharedPlaylistHorizontalList } from '../components/profile/SharedPlaylistHorizontalList';
+import { PlaylistComments } from '../components/profile/PlaylistComments';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { getRelativeTime } from '../utils/formatters';
 
@@ -54,6 +56,29 @@ export default function SharedPlaylistsPage() {
       })
       .filter(Boolean);
   }, [songMapById]);
+
+  const handleToggleComments = async (postId, currentStatus) => {
+    try {
+      await playlistService.togglePostComments(postId, !currentStatus);
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_enabled: !currentStatus } : p));
+      notifications.show({ title: 'Updated', message: `Comments ${!currentStatus ? 'enabled' : 'disabled'} successfully`, color: 'blue' });
+    } catch (err) {
+      console.error('Failed to toggle comments:', err);
+      notifications.show({ title: 'Error', message: 'Failed to update comment settings', color: 'red' });
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm('Are you sure you want to remove this post from the feed?')) return;
+    try {
+      await playlistService.deletePost(postId);
+      setPosts(prev => prev.filter(p => p.id !== postId));
+      notifications.show({ title: 'Deleted', message: 'Post removed from feed', color: 'blue' });
+    } catch (err) {
+      console.error('Failed to delete post:', err);
+      notifications.show({ title: 'Error', message: 'Failed to remove post', color: 'red' });
+    }
+  };
 
   return (
     <Container size="md" py="xl" className="animate-fade-in">
@@ -129,6 +154,36 @@ export default function SharedPlaylistsPage() {
                           </Text>
                         </Stack>
                       </Group>
+
+                      {user && post.author.id === user.id && (
+                        <Menu shadow="md" width={200} position="bottom-end">
+                          <Menu.Target>
+                            <ActionIcon variant="subtle" color="gray">
+                              <IconDotsVertical size={18} />
+                            </ActionIcon>
+                          </Menu.Target>
+
+                          <Menu.Dropdown>
+                            <Menu.Label>Manage Post</Menu.Label>
+                            <Menu.Item
+                              leftSection={post.comments_enabled ? <IconMessageOff size={14} /> : <IconMessage size={14} />}
+                              onClick={() => handleToggleComments(post.id, post.comments_enabled)}
+                            >
+                              {post.comments_enabled ? 'Disable Comments' : 'Enable Comments'}
+                            </Menu.Item>
+
+                            <Menu.Divider />
+
+                            <Menu.Item
+                              color="red"
+                              leftSection={<IconTrash size={14} />}
+                              onClick={() => handleDeletePost(post.id)}
+                            >
+                              Delete Post
+                            </Menu.Item>
+                          </Menu.Dropdown>
+                        </Menu>
+                      )}
                     </Group>
 
                     {/* Post Content */}
@@ -149,6 +204,19 @@ export default function SharedPlaylistsPage() {
                                 {hydratedSongs.length} song{hydratedSongs.length !== 1 ? 's' : ''}
                               </Text>
                             </Stack>
+                            <Button
+                              variant="subtle"
+                              size="xs"
+                              onClick={() => setViewingPlaylist({
+                                ...post.playlist,
+                                fullSongs: hydratedSongs,
+                                authorId: post.author.id,
+                                postId: post.id,
+                                comments_enabled: post.comments_enabled
+                              })}
+                            >
+                              View Details
+                            </Button>
                           </Group>
 
                           {/* Responsive Playlist Display */}
@@ -160,7 +228,9 @@ export default function SharedPlaylistsPage() {
                                 onClick={() => setViewingPlaylist({
                                   ...post.playlist,
                                   fullSongs: hydratedSongs,
-                                  authorId: post.author.id
+                                  authorId: post.author.id,
+                                  postId: post.id,
+                                  comments_enabled: post.comments_enabled
                                 })}
                               />
                             </Box>
@@ -171,12 +241,24 @@ export default function SharedPlaylistsPage() {
                               onSongClick={() => setViewingPlaylist({
                                 ...post.playlist,
                                 fullSongs: hydratedSongs,
-                                authorId: post.author.id
+                                authorId: post.author.id,
+                                postId: post.id,
+                                comments_enabled: post.comments_enabled
                               })}
                             />
                           )}
                         </Stack>
                       </Paper>
+                    </Box>
+
+                    {/* Comments Section - Directly in feed */}
+                    <Box>
+                      <Divider mb="xs" variant="dotted" />
+                      <PlaylistComments
+                        postId={post.id}
+                        ownerId={post.author.id}
+                        commentsEnabled={post.comments_enabled}
+                      />
                     </Box>
                   </Stack>
                 </Paper>
@@ -191,6 +273,7 @@ export default function SharedPlaylistsPage() {
         onClose={() => setViewingPlaylist(null)}
         playlist={viewingPlaylist}
         songs={viewingPlaylist?.fullSongs || []}
+        postId={viewingPlaylist?.postId}
         isOwnProfile={user && viewingPlaylist?.authorId === user.id}
         onEdit={(p) => setEditingPlaylist(p)}
         hideShareDelete={true}

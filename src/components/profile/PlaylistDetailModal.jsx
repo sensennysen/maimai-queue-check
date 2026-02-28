@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, Stack, Text, Group, SimpleGrid, Box, Divider, Button, Image, Badge, Textarea } from '@mantine/core';
+import { Modal, Stack, Text, Group, SimpleGrid, Box, Divider, Button, Image, Badge, Textarea, Switch } from '@mantine/core';
 import { IconPlaylist, IconEdit, IconMusic, IconTrash, IconMessageCircle, IconShare } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
@@ -11,10 +11,11 @@ import { playlistService } from '../../services/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { PlaylistProtectionModal } from '../modals/PlaylistProtectionModal';
 
-export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isOwnProfile, onEdit, onDelete, hideShareDelete = false }) {
+export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isOwnProfile, onEdit, onDelete, hideShareDelete = false, postId = null }) {
   const [selectedSongDetails, setSelectedSongDetails] = useState(null);
   const [isSharing, setIsSharing] = useState(false);
   const [shareMessage, setShareMessage] = useState('');
+  const [commentsEnabled, setCommentsEnabled] = useState(true);
   const [isSubmittingShare, setIsSubmittingShare] = useState(false);
   const [isProtectionModalOpen, setIsProtectionModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -137,6 +138,13 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
             autosize
             maxLength={300}
           />
+          <Group justify="space-between">
+            <Text size="sm" fw={500}>Allow Comments</Text>
+            <Switch
+              checked={commentsEnabled}
+              onChange={(e) => setCommentsEnabled(e.currentTarget.checked)}
+            />
+          </Group>
           <Group justify="flex-end">
             <Button variant="default" onClick={() => setIsSharing(false)}>Cancel</Button>
             <Button
@@ -145,10 +153,11 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
                 if (!user) return;
                 setIsSubmittingShare(true);
                 try {
-                  await playlistService.sharePlaylist(user.id, playlist.id, shareMessage.trim());
+                  await playlistService.sharePlaylist(user.id, playlist.id, shareMessage.trim(), commentsEnabled);
                   notifications.show({ title: 'Success', message: 'Playlist shared successfully!', color: 'green' });
                   setIsSharing(false);
                   setShareMessage('');
+                  setCommentsEnabled(true);
                 } catch (error) {
                   console.error('Failed to share playlist', error);
                   notifications.show({ title: 'Error', message: 'Failed to share playlist.', color: 'red' });

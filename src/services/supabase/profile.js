@@ -552,13 +552,14 @@ export const playlistService = {
   },
 
   // Share a playlist
-  async sharePlaylist(userId, playlistId, content) {
+  async sharePlaylist(userId, playlistId, content, commentsEnabled = true) {
     const { data, error } = await supabase
       .from('playlist_posts')
       .insert({
         user_id: userId,
         playlist_id: playlistId,
-        content: content?.trim() || null
+        content: content?.trim() || null,
+        comments_enabled: commentsEnabled
       })
       .select()
       .single();
@@ -578,14 +579,15 @@ export const playlistService = {
         id,
         content,
         created_at,
-        author:user_profiles!user_id(id, slug, display_name, display_photo_url),
-        playlist:user_playlists!playlist_id(
-          id,
-          title,
-          comment,
-          is_public,
-          updated_at,
-          songs:playlist_songs(
+        comments_enabled,
+      author:user_profiles!user_id(id, slug, display_name, display_photo_url),
+      playlist:user_playlists!playlist_id(
+        id,
+        title,
+        comment,
+        is_public,
+        updated_at,
+        songs:playlist_songs(
             song_id,
             level,
             order_index
@@ -608,6 +610,95 @@ export const playlistService = {
       }
       return post;
     });
+  },
+
+  // Get comments for a shared post
+  async getPostComments(postId) {
+    const { data, error } = await supabase
+      .from('playlist_comments')
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        user_profiles:user_id(display_name, display_photo_url, slug)
+      `)
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching post comments:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  // Add a comment to a shared post
+  async addPostComment(postId, userId, content) {
+    const { data, error } = await supabase
+      .from('playlist_comments')
+      .insert({
+        post_id: postId,
+        user_id: userId,
+        content: content.trim()
+      })
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        user_profiles:user_id(display_name, display_photo_url, slug)
+      `)
+      .single();
+
+    if (error) {
+      console.error('Error adding post comment:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  // Delete a comment
+  async deletePostComment(commentId, userId) {
+    // RLS handles permission
+    const { error } = await supabase
+      .from('playlist_comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (error) {
+      console.error('Error deleting post comment:', error);
+      throw error;
+    }
+    return true;
+  },
+
+  // Delete a specific post
+  async deletePost(postId) {
+    const { error } = await supabase
+      .from('playlist_posts')
+      .update({ deleted: true })
+      .eq('id', postId);
+
+    if (error) {
+      console.error('Error deleting post:', error);
+      throw error;
+    }
+    return true;
+  },
+
+  // Toggle comments on a specific post
+  async togglePostComments(postId, enabled) {
+    const { error } = await supabase
+      .from('playlist_posts')
+      .update({ comments_enabled: enabled })
+      .eq('id', postId);
+
+    if (error) {
+      console.error('Error toggling post comments:', error);
+      throw error;
+    }
+    return true;
   }
 };
 

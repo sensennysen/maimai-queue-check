@@ -220,6 +220,15 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
               color="teal"
             />
           )}
+
+          {isPublic && !hidePublicToggle && (
+            <Box p="xs" radius="sm" bg="var(--mantine-color-teal-light)" style={{ border: '1px solid var(--mantine-color-teal-outline)' }}>
+              <Text size="xs" c="teal" fw={500}>
+                This playlist will be visible to everyone in the global feed.
+              </Text>
+            </Box>
+          )}
+
           <Group gap="sm">
             <Button variant="default" onClick={onClose} disabled={isSaving}>Cancel</Button>
             <Button leftSection={isSaving ? <Loader size={18} /> : <IconDeviceFloppy size={18} />} onClick={handleSave} loading={isSaving}>
