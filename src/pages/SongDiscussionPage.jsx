@@ -170,13 +170,9 @@ export default function SongDiscussionPage() {
                   </Stack>
                 </Grid.Col>
 
-                {/* Box 2 & 3: Info container wrapped in a Box on mobile/tablet */}
+                {/* Box 2 & 3: Info container on mobile/tablet */}
                 <Grid.Col span={{ base: 12, md: 7 }}>
-                  <Box
-                    bg={isMobileOrTablet ? 'var(--mantine-color-default-hover)' : 'transparent'}
-                    p={isMobileOrTablet ? 'md' : 0}
-                    radius="md"
-                  >
+                  <Box>
                     <Grid gutter={{ base: 'xs', sm: 'md', md: 'xl' }} align="center">
                       {/* Category and Version */}
                       <Grid.Col span={{ base: 6, lg: 5 }}>
