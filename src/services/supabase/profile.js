@@ -55,7 +55,7 @@ export const userService = {
   },
   
   // Update maimai profile specifically
-  async updateMaimaiProfile(userId, { maimai_dx_name, dx_display_photo_url }) {
+  async updateMaimaiProfile(userId, { maimai_dx_name, dx_display_photo_url, circle_name }) {
     const updates = {
       id: userId,
       updated_at: new Date().toISOString()
@@ -63,6 +63,7 @@ export const userService = {
 
     if (maimai_dx_name !== undefined) updates.maimai_dx_name = maimai_dx_name;
     if (dx_display_photo_url !== undefined) updates.dx_display_photo_url = dx_display_photo_url;
+    if (circle_name !== undefined) updates.circle_name = circle_name;
 
     const { data, error } = await supabase
       .from('user_profiles')
@@ -89,6 +90,33 @@ export const userService = {
 
     if (error) throw error;
     return data;
+  },
+
+  // Save recent play history (JSON storage)
+  async saveRecentPlays(userId, recentPlays) {
+    if (!userId || !recentPlays) return;
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ 
+        recent_plays: recentPlays,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId);
+
+    if (error) throw error;
+  },
+
+  // Get recent play history (from JSON storage)
+  async getRecentPlays(userId) {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('recent_plays')
+      .eq('id', userId)
+      .single();
+
+    if (error) throw error;
+    return data?.recent_plays || [];
   },
 
   // Save all raw scores from import
@@ -127,7 +155,7 @@ export const userService = {
 
     const { data, error: profileError } = await supabase
       .from('user_profiles')
-      .select('id, display_name, user_roles(queue_name), maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction, user_attributions(attributions)')
+      .select('id, display_name, user_roles(queue_name), maimai_dx_name, circle_name, maimai_best_scores, maimai_scores_updated_at, recent_plays, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction, user_attributions(attributions)')
       .eq('slug', slug.toLowerCase())
       .maybeSingle();
 
@@ -222,6 +250,7 @@ export const userService = {
       .update({
         maimai_best_scores: null,
         maimai_scores_updated_at: null,
+        recent_plays: null,
         dx_display_photo_url: null,
         maimai_dx_name: null,
         updated_at: new Date().toISOString()
@@ -259,7 +288,7 @@ export const userService = {
 
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('id, display_name, user_roles(queue_name), maimai_dx_name, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction')
+      .select('id, display_name, user_roles(queue_name), maimai_dx_name, circle_name, recent_plays, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction')
       .eq('id', userId)
       .maybeSingle();
 

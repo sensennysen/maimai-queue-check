@@ -39,7 +39,6 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
         display_name: displayName.trim(),
         queue_name: queueName.trim() || null,
         branch_ids: selectedBranches.map(Number),
-        branch_ids: selectedBranches.map(Number),
         main_branch: selectedMainBranch ? parseInt(selectedMainBranch, 10) : null
       });
 

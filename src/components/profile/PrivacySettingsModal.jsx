@@ -18,7 +18,9 @@ const PrivacySettingsModal = ({ opened, onClose, userId, initialData, onSuccess 
     show_preferred_branches: true,
     show_introduction: true,
     show_play_count: true,
-    show_maimai_name: true
+    show_maimai_name: true,
+    show_circle: true,
+    show_recent_plays: true
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -26,10 +28,10 @@ const PrivacySettingsModal = ({ opened, onClose, userId, initialData, onSuccess 
     if (initialData && opened) {
       setIsPublic(!!initialData.is_public);
       if (initialData.privacy_settings) {
-        setPrivacySettings({
-          ...privacySettings,
+        setPrivacySettings((prev) => ({
+          ...prev,
           ...initialData.privacy_settings
-        });
+        }));
       }
     }
   }, [initialData, opened]);
@@ -102,6 +104,7 @@ const PrivacySettingsModal = ({ opened, onClose, userId, initialData, onSuccess 
             <Stack gap="xs">
               <Text size="sm" fw={600}>Score Data</Text>
               <Switch label="Maimai Name" checked={privacySettings.show_maimai_name} onChange={(e) => handleUpdatePrivacy('show_maimai_name', e.currentTarget.checked)} />
+              <Switch label="Circle Name" checked={privacySettings.show_circle !== false} onChange={(e) => handleUpdatePrivacy('show_circle', e.currentTarget.checked)} />
               <Switch label="DX Rating" checked={privacySettings.show_dx_rating} onChange={(e) => handleUpdatePrivacy('show_dx_rating', e.currentTarget.checked)} />
               <Switch label="Play Count" checked={privacySettings.show_play_count !== false} onChange={(e) => handleUpdatePrivacy('show_play_count', e.currentTarget.checked)} />
               <Switch label="Best 50" checked={privacySettings.show_best_50} onChange={(e) => handleUpdatePrivacy('show_best_50', e.currentTarget.checked)} />
@@ -126,6 +129,7 @@ const PrivacySettingsModal = ({ opened, onClose, userId, initialData, onSuccess 
                   onChange={(e) => handleUpdatePrivacy('show_most_played_details', e.currentTarget.checked)}
                 />
               )}
+              <Switch label="Recent Plays" checked={privacySettings.show_recent_plays !== false} onChange={(e) => handleUpdatePrivacy('show_recent_plays', e.currentTarget.checked)} />
             </Stack>
             <Stack gap="xs">
               <Text size="sm" fw={600}>Collections</Text>

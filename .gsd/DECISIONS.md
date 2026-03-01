@@ -15,3 +15,21 @@
 
 ### Constraints
 - Users are identified by their `display_name`.
+
+---
+
+## Phase 5 Decisions
+
+**Date:** 2026-03-01
+
+### Scope
+- Store only `circle_name` per user — no points, no member list.
+- Full member leaderboard is explicitly out of scope for Milestone 2.
+
+### Approach
+- Chose: **Option A** — extend `user_profiles` with a single `circle_name TEXT` column.
+- Reason: One scalar value per user makes a dedicated table unnecessary. No joins, consistent with how all other per-user data is stored.
+
+### Constraints
+- Bookmarklet scrapes circle name and adds it to the payload; edge function upserts it to `user_profiles`.
+- RLS follows existing `is_public` pattern: `circle_name` visible on public profiles, hidden on private ones.
