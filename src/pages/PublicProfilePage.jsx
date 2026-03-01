@@ -4,7 +4,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import {
   Container, Paper, Stack, Group, Title, Text, Avatar,
   Badge, SimpleGrid, Loader, Button, Alert,
-  Divider, ThemeIcon, Box, ActionIcon, Image, Tooltip
+  Divider, ThemeIcon, Box, ActionIcon, Image, Tooltip, Menu
 } from '@mantine/core';
 import {
   IconUser, IconTrophy, IconMapPin, IconAlertCircle,
@@ -15,6 +15,7 @@ import {
 import { notifications } from '@mantine/notifications';
 import MaimaiImportModal from '../components/profile/MaimaiImportModal';
 import ProfileSettingsModal from '../components/profile/ProfileSettingsModal';
+import PrivacySettingsModal from '../components/profile/PrivacySettingsModal';
 import ProfilePictureUploadModal from '../components/profile/ProfilePictureUploadModal';
 import MaimaiSongDetailModal from '../components/profile/MaimaiSongDetailModal';
 import { useAuth } from '../hooks/useAuth';
@@ -40,6 +41,7 @@ const PublicProfilePage = () => {
   const navigate = useNavigate();
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedMostPlayedSong, setSelectedMostPlayedSong] = useState(null);
@@ -246,17 +248,28 @@ const PublicProfilePage = () => {
           {/* Action Buttons only for owner */}
           {isOwner && (
             <Group gap="xs">
-              <ActionIcon
-                variant="light"
-                color="gray"
-                size="lg" // To roughly match the height of the Button
-                style={{ height: 36, width: 36 }}
-                onClick={() => setIsSettingsModalOpen(true)}
-                title="Profile Settings"
-                className="animate-fade-in"
-              >
-                <IconSettings size={20} />
-              </ActionIcon>
+              <Menu position="bottom-end" shadow="md">
+                <Menu.Target>
+                  <ActionIcon
+                    variant="light"
+                    color="gray"
+                    size="lg" // To roughly match the height of the Button
+                    style={{ height: 36, width: 36 }}
+                    title="Settings"
+                    className="animate-fade-in"
+                  >
+                    <IconSettings size={20} />
+                  </ActionIcon>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item leftSection={<IconUser size={14} />} onClick={() => setIsSettingsModalOpen(true)}>
+                    Profile Settings
+                  </Menu.Item>
+                  <Menu.Item leftSection={<IconLock size={14} />} onClick={() => setIsPrivacyModalOpen(true)}>
+                    Privacy Settings
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
               <Button
                 variant="light"
                 color="blue"
@@ -765,6 +778,13 @@ const PublicProfilePage = () => {
                 fetchData();
               }
             }}
+          />
+          <PrivacySettingsModal
+            opened={isPrivacyModalOpen}
+            onClose={() => setIsPrivacyModalOpen(false)}
+            userId={user.id}
+            initialData={profile}
+            onSuccess={fetchData}
           />
         </>
       )}
