@@ -21,7 +21,8 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
     show_playlists: true,
     show_main_branch: true,
     show_preferred_branches: true,
-    show_introduction: true
+    show_introduction: true,
+    show_play_count: true
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingSlug, setIsSavingSlug] = useState(false);
@@ -225,6 +226,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
                 <Text size="sm" fw={600}>Score Data</Text>
                 <Switch label="Maimai Name" checked={privacySettings.show_maimai_name} onChange={(e) => handleUpdatePrivacy('show_maimai_name', e.currentTarget.checked)} />
                 <Switch label="DX Rating" checked={privacySettings.show_dx_rating} onChange={(e) => handleUpdatePrivacy('show_dx_rating', e.currentTarget.checked)} />
+                <Switch label="Play Count" checked={privacySettings.show_play_count !== false} onChange={(e) => handleUpdatePrivacy('show_play_count', e.currentTarget.checked)} />
                 <Switch label="Best 50" checked={privacySettings.show_best_50} onChange={(e) => handleUpdatePrivacy('show_best_50', e.currentTarget.checked)} />
                 {privacySettings.show_best_50 && (
                   <Switch

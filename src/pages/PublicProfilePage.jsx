@@ -609,7 +609,7 @@ const PublicProfilePage = () => {
                   <IconTrophy size={24} style={{ color: 'var(--mantine-color-yellow-6)' }} />
                   <Title order={2}>Best 50</Title>
                 </Group>
-                {profile.maimai_best_scores?.total_play_count && (
+                {profile.maimai_best_scores?.total_play_count && (privacy.show_play_count !== false || isOwner) && (
                   <Group gap="xs" mt={4}>
                     <Badge variant="subtle" color="pink" size="lg">
                       Version: {profile.maimai_best_scores.current_version_play_count || 0} plays
