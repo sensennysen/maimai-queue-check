@@ -46,15 +46,15 @@ const RecentPlayItem = memo(({ play, isOpened, onToggle, index, isMobile, isTabl
             />
             <Stack gap={isMobile ? 'xs' : 0} style={{ minWidth: 0, flex: 1 }}>
               <Stack gap={0}>
-                <Text fw={700} size="sm" truncate="end" title={play.title}>
+                <Text fw={700} size="lg" truncate="end" title={play.title}>
                   {play.title}
                 </Text>
                 <Group gap={6}>
                   {play.track_number && (
-                    <Badge size="xs" variant="light" color="gray">{play.track_number}</Badge>
+                    <Badge size="md" variant="light" color="gray">{play.track_number}</Badge>
                   )}
-                  <Badge size="xs" color={diffColor} variant="filled">{diffLabel} {play.level}</Badge>
-                  <Text size="xs" c="dimmed">{getRelativeTime(play.played_at)}</Text>
+                  <Badge size="md" color={diffColor} variant="filled">{diffLabel} {play.level}</Badge>
+                  <Text size="md" c="dimmed">{getRelativeTime(play.played_at)}</Text>
                 </Group>
               </Stack>
 
