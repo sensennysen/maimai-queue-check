@@ -48,6 +48,7 @@ const PublicProfilePage = () => {
   const [selectedBest50Song, setSelectedBest50Song] = useState(null);
   const [selectedBest50Score, setSelectedBest50Score] = useState(null);
   const [introduction, setIntroduction] = useState(null);
+  const [viewAsPublic, setViewAsPublic] = useState(false);
 
   const { requestFetch, songMapByTitle } = useSongDatabaseContext();
   const { scrollRef, isDragging } = useMouseDragScroll();
@@ -67,19 +68,22 @@ const PublicProfilePage = () => {
 
       if (!profileData) {
         setError('Profile not found');
-      } else if (!profileData.is_public && !user) {
-        setIsRestricted(true);
       } else {
-        const mostPlayedData = await mostPlayedService.getMostPlayed(profileData.id);
-        if (profileData.maimai_best_scores) {
-          profileData.maimai_best_scores.most_played = mostPlayedData || [];
-        } else if (mostPlayedData && mostPlayedData.length > 0) {
-          profileData.maimai_best_scores = { most_played: mostPlayedData };
-        }
+        const isOwner = user && profileData.id === user.id;
+        if (!profileData.is_public && !isOwner) {
+          setIsRestricted(true);
+        } else {
+          const mostPlayedData = await mostPlayedService.getMostPlayed(profileData.id);
+          if (profileData.maimai_best_scores) {
+            profileData.maimai_best_scores.most_played = mostPlayedData || [];
+          } else if (mostPlayedData && mostPlayedData.length > 0) {
+            profileData.maimai_best_scores = { most_played: mostPlayedData };
+          }
 
-        setProfile(profileData);
-        setBranches(branchesData);
-        setIntroduction(profileData.introduction || null);
+          setProfile(profileData);
+          setBranches(branchesData);
+          setIntroduction(profileData.introduction || null);
+        }
       }
     } catch (err) {
       console.error('Error fetching public profile:', err);
@@ -120,7 +124,8 @@ const PublicProfilePage = () => {
     }
   };
 
-  const isOwner = profile?.id === user?.id;
+  const isRealOwner = profile?.id === user?.id;
+  const isOwner = isRealOwner && !viewAsPublic;
 
   if (loading) {
     return (
@@ -143,7 +148,9 @@ const PublicProfilePage = () => {
             </ThemeIcon>
             <Title order={2} mb="sm" fw={800}>Profile is Private</Title>
             <Text size="lg" c="dimmed" mb="xl" style={{ lineHeight: 1.6 }}>
-              The user has restricted viewing it in public. Please log in to view the profile.
+              {user
+                ? "The user has restricted viewing of their profile."
+                : "The user has restricted viewing it in public. Please log in to view the profile."}
             </Text>
 
             <Stack gap="sm">
@@ -233,20 +240,42 @@ const PublicProfilePage = () => {
   return (
     <Container size="lg" py="xl">
       <Stack gap="lg">
-        {/* Back Button / Navigation */}
-        <Group justify="space-between">
-          <Button
-            component={Link}
-            to="/"
-            variant="subtle"
-            leftSection={<IconArrowLeft size={18} />}
+        {/* View as Public Banner */}
+        {viewAsPublic && isRealOwner && (
+          <Alert
+            icon={<IconLogin size={16} />}
+            title="Viewing as Public"
+            color="blue"
+            variant="light"
             className="animate-fade-in"
           >
-            Back to queue
-          </Button>
+            <Group justify="space-between" align="center">
+              <Text size="sm">
+                You are currently viewing your profile as a public guest. All your privacy settings are applied.
+              </Text>
+              <Button size="xs" variant="filled" onClick={() => setViewAsPublic(false)}>
+                Exit Preview
+              </Button>
+            </Group>
+          </Alert>
+        )}
+
+        {/* Back Button / Navigation */}
+        <Group justify="space-between">
+          {!viewAsPublic ? (
+            <Button
+              component={Link}
+              to="/"
+              variant="subtle"
+              leftSection={<IconArrowLeft size={18} />}
+              className="animate-fade-in"
+            >
+              Back to queue
+            </Button>
+          ) : <div />}
 
           {/* Action Buttons only for owner */}
-          {isOwner && (
+          {isRealOwner && !viewAsPublic && (
             <Group gap="xs">
               <Menu position="bottom-end" shadow="md">
                 <Menu.Target>
@@ -267,6 +296,13 @@ const PublicProfilePage = () => {
                   </Menu.Item>
                   <Menu.Item leftSection={<IconLock size={14} />} onClick={() => setIsPrivacyModalOpen(true)}>
                     Privacy Settings
+                  </Menu.Item>
+                  <Menu.Divider />
+                  <Menu.Item
+                    leftSection={<IconLogin size={14} />}
+                    onClick={() => setViewAsPublic(true)}
+                  >
+                    View as Public
                   </Menu.Item>
                 </Menu.Dropdown>
               </Menu>
