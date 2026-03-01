@@ -34,7 +34,7 @@ const RecentPlayItem = memo(({ play, isOpened, onToggle, index, isMobile, isTabl
         <Group justify="space-between" wrap="nowrap" align={isMobile ? "flex-start" : "center"}>
           <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }} align={isMobile ? "flex-start" : "center"}>
             {jacketUrl && (
-              <Avatar src={jacketUrl} size="lg" radius="md" />
+              <Avatar src={jacketUrl} size="xl" radius="md" />
             )}
             <Box
               w={4}
