@@ -66,7 +66,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
 
     const import_name = data.profile?.name || data.name || data.user_data?.name;
     const import_icon_url = data.profile?.icon_url || data.icon_url;
-    const circle_name = data.circle?.name;
+    const circle_name = data.circle?.circle_name;
 
     const updates = {};
     if (import_name && typeof import_name === 'string') updates.maimai_dx_name = import_name;

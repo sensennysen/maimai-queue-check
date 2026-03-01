@@ -165,7 +165,11 @@
       const circleResp = await fetch(endpoint + '/circle/', { credentials: 'include' });
       const circleHtml = await circleResp.text();
       const circleDoc = parser.parseFromString(circleHtml, 'text/html');
-      const circleNamePart = circleDoc.querySelector('.circle_profile_circle_name span')?.innerText.trim();
+      const circleNamePart = (
+          circleDoc.querySelector('.circle_profile_circle_name span') || 
+          circleDoc.querySelector('.circle_profile_circle_name') ||
+          circleDoc.querySelector('#circleProfile .circle_profile_circle_name')
+      )?.textContent.trim();
       if (circleNamePart) {
         output.circle = { circle_name: circleNamePart };
       }
@@ -329,20 +333,21 @@
         const playHtml = await playResp.text();
         const playDoc = parser.parseFromString(playHtml, 'text/html');
 
-        const masterContainer = playDoc.querySelector('.playlog_master_container');
-        if (!masterContainer) continue;
+        // Grab any container that ends with _container (e.g., playlog_master_container, playlog_expert_container)
+        const diffContainer = playDoc.querySelector('div[class^="playlog_"][class$="_container"]');
+        if (!diffContainer) continue;
 
         const subTitleSpans = playDoc.querySelectorAll('.sub_title span');
         const trackNumber = subTitleSpans[0]?.innerText?.trim() || "";
         const playedAt = subTitleSpans[subTitleSpans.length - 1]?.innerText?.trim() || "";
 
-        const titleBlock = masterContainer.querySelector('.basic_block.m_5.m_t_17.m_r_60');
+        const titleBlock = diffContainer.querySelector('.basic_block.m_5.m_t_17.m_r_60');
         const songTitle = titleBlock ? Array.from(titleBlock.childNodes)
           .filter(node => node.nodeType === Node.TEXT_NODE)
           .map(node => node.textContent.trim())
           .join('') : "";
 
-        const achievementBlock = masterContainer.querySelector('.playlog_achievement_txt');
+        const achievementBlock = diffContainer.querySelector('.playlog_achievement_txt');
         let achievementStr = "0";
         if (achievementBlock) {
           const baseAch = achievementBlock.childNodes[0]?.textContent?.trim() || "0";
@@ -350,10 +355,10 @@
           achievementStr = baseAch + decAch;
         }
         
-        const dxScoreBlock = masterContainer.querySelector('.playlog_score_block .white');
+        const dxScoreBlock = diffContainer.querySelector('.playlog_score_block .white');
         const dxScoreFrac = parseFraction(dxScoreBlock?.innerText);
 
-        const badgeImgs = Array.from(masterContainer.querySelectorAll('img.h_35.m_5.f_l'))
+        const badgeImgs = Array.from(diffContainer.querySelectorAll('img.h_35.m_5.f_l'))
           .filter(img => !img.src.includes('_dummy'));
         const comboBadge = badgeImgs.find(img => img.src.includes('fc') || img.src.includes('ap')) ? extractIconValue(badgeImgs.find(img => img.src.includes('fc') || img.src.includes('ap')).src, ['ap', 'app', 'fcp', 'fc']) : null;
         const syncBadge = badgeImgs.find(img => img.src.includes('fs') || img.src.includes('sync')) ? extractIconValue(badgeImgs.find(img => img.src.includes('fs') || img.src.includes('sync')).src, ['fdxp', 'fdx', 'fsp', 'fs', 'sync']) : null;
@@ -410,9 +415,9 @@
         const syncFrac = parseFraction(scoreBlocks[1]?.querySelector('.white')?.innerText);
 
         const diffImg = playDoc.querySelector('.playlog_diff')?.src;
-        const rankImg = masterContainer.querySelector('.playlog_scorerank')?.src;
-        const kindImg = masterContainer.querySelector('.playlog_music_kind_icon')?.src;
-        const jacketUrl = masterContainer.querySelector('.music_img')?.src || "";
+        const rankImg = diffContainer.querySelector('.playlog_scorerank')?.src;
+        const kindImg = diffContainer.querySelector('.playlog_music_kind_icon')?.src;
+        const jacketUrl = diffContainer.querySelector('.music_img')?.src || "";
 
         output.recent_plays.push({
           track_number: trackNumber,
@@ -421,7 +426,7 @@
           jacket_url: jacketUrl,
           difficulty: diffImg ? diffImg.split('/').pop().split('.')[0].replace('diff_', '') : 'unknown',
           chart_type: kindImg && kindImg.includes('dx.png') ? 'DX' : 'Standard',
-          level: masterContainer.querySelector('.playlog_level_icon')?.innerText?.trim() || "",
+          level: diffContainer.querySelector('.playlog_level_icon')?.innerText?.trim() || "",
           achievement: parseFloat(achievementStr.replace('%', '')),
           score_rank: rankImg ? rankImg.split('/').pop().split('.')[0].split('?')[0] : 'd',
           dx_score: dxScoreFrac.left,
