@@ -122,7 +122,9 @@
         profile: {}, 
         scores: [], 
         best_fifty: { best_new: [], best_old: [] },
-        most_played: [] 
+        most_played: [],
+        circle: null,
+        recent_plays: []
       };
 
       const endpoint = window.location.origin + '/maimai-mobile';
@@ -157,6 +159,16 @@
         total_play_count: totalPCMatch ? totalPCMatch[1] : "0",
         icon_url: profileDoc.querySelector('.basic_block.p_10.f_0 .w_112.f_l')?.src || ""
       };
+
+      // 1b. Fetch Circle
+      updateStatus('Fetching Circle...');
+      const circleResp = await fetch(endpoint + '/circle/', { credentials: 'include' });
+      const circleHtml = await circleResp.text();
+      const circleDoc = parser.parseFromString(circleHtml, 'text/html');
+      const circleNamePart = circleDoc.querySelector('.circle_profile_circle_name span')?.innerText.trim();
+      if (circleNamePart) {
+        output.circle = { circle_name: circleNamePart };
+      }
 
       // 2. Fetch All Scores
       const difficultyMap = [
@@ -300,6 +312,135 @@
             else output.best_fifty.best_old.push(finalScore);
         }
         await new Promise(res => setTimeout(res, 100));
+      }
+
+      // 5. Fetch Recent Plays
+      updateStatus('Fetching Recent Play list...', true);
+      const recordResp = await fetch(endpoint + '/record/', { credentials: 'include' });
+      const recordHtml = await recordResp.text();
+      const recordDoc = parser.parseFromString(recordHtml, 'text/html');
+      const recentIdxInputs = recordDoc.querySelectorAll('form.m_t_5.t_r input[name="idx"]');
+      const recentPool = Array.from(recentIdxInputs).slice(0, 50).map(inp => inp.value);
+
+      for (let i = 0; i < recentPool.length; i++) {
+        const rIdx = recentPool[i];
+        updateStatus(`Fetching Recent Play ${i+1}/${recentPool.length}...`, true);
+        const playResp = await fetch(endpoint + `/record/playlogDetail/?idx=${encodeURIComponent(rIdx)}`, { credentials: 'include' });
+        const playHtml = await playResp.text();
+        const playDoc = parser.parseFromString(playHtml, 'text/html');
+
+        const masterContainer = playDoc.querySelector('.playlog_master_container');
+        if (!masterContainer) continue;
+
+        const subTitleSpans = playDoc.querySelectorAll('.sub_title span');
+        const trackNumber = subTitleSpans[0]?.innerText?.trim() || "";
+        const playedAt = subTitleSpans[subTitleSpans.length - 1]?.innerText?.trim() || "";
+
+        const titleBlock = masterContainer.querySelector('.basic_block.m_5.m_t_17.m_r_60');
+        const songTitle = titleBlock ? Array.from(titleBlock.childNodes)
+          .filter(node => node.nodeType === Node.TEXT_NODE)
+          .map(node => node.textContent.trim())
+          .join('') : "";
+
+        const achievementBlock = masterContainer.querySelector('.playlog_achievement_txt');
+        let achievementStr = "0";
+        if (achievementBlock) {
+          const baseAch = achievementBlock.childNodes[0]?.textContent?.trim() || "0";
+          const decAch = achievementBlock.querySelector('span')?.innerText?.trim() || ".0000%";
+          achievementStr = baseAch + decAch;
+        }
+        
+        const dxScoreBlock = masterContainer.querySelector('.playlog_score_block .white');
+        const dxScoreFrac = parseFraction(dxScoreBlock?.innerText);
+
+        const badgeImgs = Array.from(masterContainer.querySelectorAll('img.h_35.m_5.f_l'))
+          .filter(img => !img.src.includes('_dummy'));
+        const comboBadge = badgeImgs.find(img => img.src.includes('fc') || img.src.includes('ap')) ? extractIconValue(badgeImgs.find(img => img.src.includes('fc') || img.src.includes('ap')).src, ['ap', 'app', 'fcp', 'fc']) : null;
+        const syncBadge = badgeImgs.find(img => img.src.includes('fs') || img.src.includes('sync')) ? extractIconValue(badgeImgs.find(img => img.src.includes('fs') || img.src.includes('sync')).src, ['fdxp', 'fdx', 'fsp', 'fs', 'sync']) : null;
+
+        const notesTable = playDoc.querySelector('.playlog_notes_detail');
+        const detailBlock = notesTable ? notesTable.closest('.p_5') : playDoc.querySelector('.p_5');
+        const notes = { tap: {}, hold: {}, slide: {}, touch: {}, break: {} };
+        if (notesTable) {
+          const rows = notesTable.querySelectorAll('tr');
+          // Row 0 is header
+          // Row 1: Tap, Row 2: Hold, Row 3: Slide, Row 4: Touch, Row 5: Break
+          const rowMap = { 1: 'tap', 2: 'hold', 3: 'slide', 4: 'touch', 5: 'break' };
+          
+          for (let r = 1; r <= 5; r++) {
+            const row = rows[r];
+            if (!row) continue;
+            
+            const cells = row.querySelectorAll('td');
+            if (cells.length < 5) continue;
+            
+            const typeKey = rowMap[r];
+            const parseVal = (cell) => {
+              const cleaned = (cell.textContent || "").replace(/[^\d]/g, '');
+              return cleaned ? parseInt(cleaned, 10) : 0;
+            };
+            
+            const cp = parseVal(cells[0]);
+            const p = parseVal(cells[1]);
+            const gr = parseVal(cells[2]);
+            const gd = parseVal(cells[3]);
+            const ms = parseVal(cells[4]);
+            
+            notes[typeKey] = {
+              critical_perfect: cp,
+              perfect: p,
+              great: gr,
+              good: gd,
+              miss: ms,
+              total: (cp + p + gr + gd + ms)
+            };
+          }
+        }
+
+        const flBlock = playDoc.querySelector('.playlog_fl_block');
+        const flDivs = flBlock?.querySelectorAll('.w_96.f_l.t_r') || [];
+        const fastCount = flDivs.length > 0 ? (parseInt(flDivs[0].querySelector('.p_t_5')?.innerText.replace(/[^\d]/g, ''), 10) || 0) : 0;
+        const lateCount = flDivs.length > 1 ? (parseInt(flDivs[1].querySelector('.p_t_5')?.innerText.replace(/[^\d]/g, ''), 10) || 0) : 0;
+
+        const ratingBlock = detailBlock?.querySelector('.rating_block');
+        const ratingDeltaBlock = detailBlock?.querySelector('span.f_l.f_11.v_t');
+        
+        const scoreBlocks = detailBlock?.querySelectorAll('.playlog_score_block') || [];
+        const comboFrac = parseFraction(scoreBlocks[0]?.querySelector('.white')?.innerText);
+        const syncFrac = parseFraction(scoreBlocks[1]?.querySelector('.white')?.innerText);
+
+        const diffImg = playDoc.querySelector('.playlog_diff')?.src;
+        const rankImg = masterContainer.querySelector('.playlog_scorerank')?.src;
+        const kindImg = masterContainer.querySelector('.playlog_music_kind_icon')?.src;
+        const jacketUrl = masterContainer.querySelector('.music_img')?.src || "";
+
+        output.recent_plays.push({
+          track_number: trackNumber,
+          played_at: playedAt,
+          title: songTitle,
+          jacket_url: jacketUrl,
+          difficulty: diffImg ? diffImg.split('/').pop().split('.')[0].replace('diff_', '') : 'unknown',
+          chart_type: kindImg && kindImg.includes('dx.png') ? 'DX' : 'Standard',
+          level: masterContainer.querySelector('.playlog_level_icon')?.innerText?.trim() || "",
+          achievement: parseFloat(achievementStr.replace('%', '')),
+          score_rank: rankImg ? rankImg.split('/').pop().split('.')[0].split('?')[0] : 'd',
+          dx_score: dxScoreFrac.left,
+          dx_score_total: dxScoreFrac.right,
+          combo_badge: comboBadge,
+          sync_badge: syncBadge,
+          rating: ratingBlock ? parseInt(ratingBlock.innerText, 10) : null,
+          rating_delta: ratingDeltaBlock ? parseInt(ratingDeltaBlock.innerText.replace(/[()]/g, ''), 10) : null,
+          max_combo: comboFrac.left,
+          max_combo_total: comboFrac.right,
+          max_sync: syncFrac.left,
+          max_sync_total: syncFrac.right,
+          fast_count: fastCount,
+          late_count: lateCount,
+          notes: notes,
+          scraped_at: new Date().toISOString()
+        });
+
+        await new Promise(res => setTimeout(res, 300));
       }
 
       // Send to app via Edge Function

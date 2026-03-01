@@ -50,6 +50,14 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
       await mostPlayedService.upsertMostPlayed(userId, enrichedMostPlayed);
     }
 
+    if (data.recent_plays && data.recent_plays.length > 0) {
+      try {
+        await userService.saveRecentPlays(userId, data.recent_plays);
+      } catch (err) {
+        console.error("Failed to save recent plays:", err);
+      }
+    }
+
     const dbScores = { ...result };
     delete dbScores.most_played;
 
@@ -58,9 +66,13 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
 
     const import_name = data.profile?.name || data.name || data.user_data?.name;
     const import_icon_url = data.profile?.icon_url || data.icon_url;
+    const circle_name = data.circle?.name;
+
     const updates = {};
     if (import_name && typeof import_name === 'string') updates.maimai_dx_name = import_name;
     if (import_icon_url && typeof import_icon_url === 'string') updates.dx_display_photo_url = import_icon_url;
+    if (circle_name && typeof circle_name === 'string') updates.circle_name = circle_name;
+
     if (Object.keys(updates).length > 0) {
       try {
         await userService.updateMaimaiProfile(userId, updates);
