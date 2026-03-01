@@ -23,6 +23,7 @@ import { usePermissions } from '../../../hooks/usePermissions';
 import { requestService } from '../../../services/supabase';
 import AccessRequestModal from '../../../components/modals/AccessRequestModal';
 import QueueRulesModal from './QueueRulesModal';
+import QueueLogsModal from './QueueLogsModal';
 import './QueueManager.css';
 
 
@@ -89,6 +90,7 @@ function QueueManager() {
   const [showLocationHelp, setShowLocationHelp] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
+  const [showLogsModal, setShowLogsModal] = useState(false);
 
   // Animation state
   const [addedIds, setAddedIds] = useState(new Set());
@@ -388,6 +390,12 @@ function QueueManager() {
         branchId={selectedBranch?.id}
       />
 
+      <QueueLogsModal
+        opened={showLogsModal}
+        onClose={() => setShowLogsModal(false)}
+        branchId={selectedBranch?.id}
+      />
+
       {/* Header with credits and actions */}
       <div>
         {queueLoading || scheduleLoading ? (
@@ -410,6 +418,15 @@ function QueueManager() {
               >
                 Queue Rules
               </Button>
+              {(canEdit || isAdmin || isSuperAdmin) && (
+                <Button
+                  variant="subtle"
+                  size="compact-xs"
+                  onClick={() => setShowLogsModal(true)}
+                >
+                  Recent Logs
+                </Button>
+              )}
             </Group>
             <Group gap="sm">
               {user && (

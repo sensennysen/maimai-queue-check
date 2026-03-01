@@ -213,6 +213,40 @@ export const queueService = {
     if (error) throw error;
     return data || [];
   },
+
+  // Fetch queue logs based on time range and status filters
+  async getQueueLogs({ branchId, timeFilter, statusFilter }) {
+    if (!branchId) return [];
+
+    let query = supabase
+      .from('queue_entries')
+      .select('id, player1, player2, status, cabinet_num, created_at, started_at, ended_at, created_by_profile:created_by(display_photo_url)')
+      .eq('branch_id', branchId)
+      .order('created_at', { ascending: false });
+
+    // Apply time filter
+    if (timeFilter !== 'all_time') {
+      const gteDate = new Date();
+      if (timeFilter === 'past_hour') {
+        gteDate.setHours(gteDate.getHours() - 1);
+      } else if (timeFilter === 'past_3_hours') {
+        gteDate.setHours(gteDate.getHours() - 3);
+      } else if (timeFilter === 'today') {
+        gteDate.setHours(0, 0, 0, 0);
+      }
+      query = query.gte('created_at', gteDate.toISOString());
+    }
+
+    // Apply status filter (if provided and not empty array, else we don't filter to allow all)
+    // Actually, if statusFilter is provided, we use it. If it's empty, we might return nothing or everything. Let's assume it always has values if filtering by status.
+    if (Array.isArray(statusFilter) && statusFilter.length > 0) {
+      query = query.in('status', statusFilter);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
 };
 
 // Real-time subscriptions
