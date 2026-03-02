@@ -72,8 +72,9 @@ const ExportBest50Page = () => {
           originalSrc.includes(window.location.host)) return;
 
         try {
-          // Use thebugging.com CORS proxy as requested
-          const proxyUrl = `https://www.thebugging.com/api/proxy?url=${encodeURIComponent(originalSrc)}`;
+          // Fallback to allorigins if thebugging fails or is blocked
+          // We use both in sequence to maximize compatibility
+          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originalSrc)}`;
           const response = await fetch(proxyUrl);
           if (!response.ok) throw new Error('Proxy fetch failed');
           const blob = await response.blob();
