@@ -1,5 +1,56 @@
 export const changelogData = [
   {
+    version: 'v1.9.0',
+    date: 'March 2, 2026',
+    changes: [
+      {
+        type: 'feature',
+        title: 'Shared Playlist page',
+        description: 'Collaborate and share your favorite song lists with others.',
+      },
+      {
+        type: 'feature',
+        title: 'Songs Discussion',
+        description: 'Engage with the community and share your thoughts on specific tracks. Add tags to songs to help with organization and discovery.',
+      },
+      {
+        type: 'feature',
+        title: 'View as Public on profile',
+        description: 'Preview how your profile appears to other users.',
+      },
+      {
+        type: 'feature',
+        title: 'Circle name and recent plays on import',
+        description: 'Automatically pull your Circle name and recent play history during account import.',
+      },
+      {
+        type: 'feature',
+        title: 'Queue History and Logs',
+        description: 'Track past queue entries and monitor activity in real-time.',
+      },
+      {
+        type: 'revamp',
+        title: 'Privacy Settings',
+        description: 'Complete overhaul of privacy controls for better data management.',
+      },
+      {
+        type: 'improvement',
+        title: 'Filter Cleanup',
+        description: 'Removed redundant reset filters for a cleaner interface.',
+      },
+      {
+        type: 'bugfix',
+        title: 'B50 Export Fix',
+        description: 'Resolved an issue where Best 50 could not be exported due to resource restrictions.',
+      },
+      {
+        type: 'feature',
+        title: 'Audit Trail for Super Admins',
+        description: 'Comprehensive tracking of administrative actions for enhanced accountability.',
+      },
+    ]
+  },
+  {
     version: 'v1.8.2',
     date: 'February 26, 2026',
     changes: [
@@ -189,55 +240,6 @@ export const changelogData = [
         description: 'Added a character limit of 20 to custom URLs.',
         footnote: 'Thanks to Tear, really.'
       }
-    ]
-  },
-  {
-    version: 'v1.7.0',
-    date: 'February 19, 2026',
-    changes: [
-      {
-        type: 'feature',
-        title: 'User Profile',
-        description: 'Showcase your favorite songs, build a playlist, and import your best 50 songs for everyone to see!',
-        footnote: 'You can share your profile via the link button beside your display name. You can also set privacy settings. Big thanks to albinokoi for this idea!'
-      },
-      {
-        type: 'feature',
-        title: 'Queue Rules',
-        description: 'Added a way for branch admins to display their queue rules',
-        footnote: 'Thanks to the UPTC maimai community for this one!'
-      },
-      {
-        type: 'feature',
-        title: 'Best 50 render',
-        description: 'Allows the user to render their Best 50 in an image.',
-      },
-      {
-        type: 'visual',
-        title: 'Premium UI Redesign',
-        description: 'Redesigned headers for the Song Database and Profile pages for a more consistent feel.',
-      },
-      {
-        type: 'feature',
-        title: 'Song Database',
-        description: 'Added a song database for users to search songs and add to their favorites/playlists',
-        footnote: 'Thanks to the data-fetching scripts by zetaraku@github!'
-      },
-      {
-        type: 'optimization',
-        title: 'Performance & Architecture',
-        description: 'Implemented lazy-loading for the song database and refactored context management for better stability.',
-      },
-      {
-        type: 'fix',
-        title: 'Bug Fixes',
-        description: 'Various bug fixes',
-      },
-      {
-        type: 'feature',
-        title: 'Privacy Compliance (RA 10173)',
-        description: 'Updated privacy policy and data handling to comply with Philippines Data Privacy Laws.',
-      },
     ]
   },
 ];
