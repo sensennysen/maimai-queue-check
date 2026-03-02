@@ -94,7 +94,7 @@ export const userService = {
 
   // Save recent play history (JSON storage)
   async saveRecentPlays(userId, recentPlays) {
-    if (!userId || !recentPlays) return;
+    if (!userId || !Array.isArray(recentPlays)) return;
 
     const { error } = await supabase
       .from('user_profiles')

@@ -50,7 +50,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
       await mostPlayedService.upsertMostPlayed(userId, enrichedMostPlayed);
     }
 
-    if (data.recent_plays && data.recent_plays.length > 0) {
+    if (data.recent_plays && Array.isArray(data.recent_plays)) {
       try {
         await userService.saveRecentPlays(userId, data.recent_plays);
       } catch (err) {
