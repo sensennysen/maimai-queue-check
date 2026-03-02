@@ -59,8 +59,9 @@ const ExportBest50Page = () => {
       document.documentElement.style.setProperty('font-size', '16px', 'important');
 
       // --- CORS Bypass: Image Localizer ---
-      // Find all images marked for localization
-      const images = exportRef.current.querySelectorAll('img[data-cors-proxy="true"]');
+      // Select ALL img elements so cross-origin images (including Avatar's
+      // underlying <img> which doesn't have data-cors-proxy) are also proxied.
+      const images = exportRef.current.querySelectorAll('img');
       const imageArray = Array.from(images);
 
       // Localize images by fetching through a proxy and creating ObjectURLs
