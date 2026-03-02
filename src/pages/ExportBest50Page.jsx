@@ -71,29 +71,44 @@ const ExportBest50Page = () => {
           originalSrc.startsWith('blob:') ||
           originalSrc.includes(window.location.host)) return;
 
-        try {
-          // Use thebugging.com CORS proxy
-          const proxyUrl = `https://www.thebugging.com/api/proxy?url=${encodeURIComponent(originalSrc)}`;
-          const response = await fetch(proxyUrl);
-          if (!response.ok) throw new Error('Proxy fetch failed');
-          const blob = await response.blob();
-          const localUrl = URL.createObjectURL(blob);
+        // Try multiple proxies in sequence until one works
+        // Priority: 1. Local Vercel Proxy (server-to-server, no CSP issues)
+        //           2. External Public Proxies (fallback)
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const proxies = [
+          (url) => isLocalhost 
+            ? `https://www.thebugging.com/api/proxy?url=${encodeURIComponent(url)}` // Localhost: Use external proxy
+            : `/api/proxy?url=${encodeURIComponent(url)}`,                       // Production: Use serverless function
+          (url) => `https://www.thebugging.com/api/proxy?url=${encodeURIComponent(url)}`,
+          (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+        ];
 
-          // Store for cleanup
-          objectUrls.push({ img, originalSrc, localUrl });
-
-          // Swap src to local URL
-          img.src = localUrl;
-          await new Promise((resolve) => {
-            if (img.complete) resolve();
-            else {
-              img.onload = resolve;
-              img.onerror = resolve;
-            }
-          });
-        } catch (e) {
-          console.warn(`Failed to localize image via proxy: ${originalSrc}`, e);
+        for (const getProxyUrl of proxies) {
+          try {
+            const proxyUrl = getProxyUrl(originalSrc);
+            const response = await fetch(proxyUrl);
+            if (!response.ok) continue; // Try next proxy
+            
+            const blob = await response.blob();
+            if (blob.type.startsWith('text/')) continue; // Skip if proxy returns HTML/Text (error page)
+            
+            const localUrl = URL.createObjectURL(blob);
+            objectUrls.push({ img, originalSrc, localUrl });
+            img.src = localUrl;
+            
+            await new Promise((resolve) => {
+              if (img.complete) resolve();
+              else {
+                img.onload = resolve;
+                img.onerror = resolve;
+              }
+            });
+            return; // Success!
+          } catch (e) {
+            console.warn(`Proxy failed: ${getProxyUrl(originalSrc)}`, e);
+          }
         }
+        console.warn(`All proxies failed for: ${originalSrc}`);
       }));
 
       // Larger delay to ensure layout/fonts are fully settled
