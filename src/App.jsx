@@ -3,6 +3,7 @@ import { MantineProvider, Container, Title, Paper, Stack, Group, Button, Loader,
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import '@mantine/dates/styles.css';
 import '@mantine/tiptap/styles.css';
 import { Analytics } from '@vercel/analytics/react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
@@ -23,6 +24,7 @@ import './App.css';
 
 // Lazy load pages
 const AdminPage = lazy(() => import('./pages/AdminPage'));
+const AuditLogsPage = lazy(() => import('./pages/AuditLogsPage'));
 // ProfilePage is removed in favor of PublicProfilePage
 const ExportBest50Page = lazy(() => import('./pages/ExportBest50Page'));
 const ViewPage = lazy(() => import('./pages/ViewPage'));
@@ -132,6 +134,7 @@ function AppProviders() {
           <Route path="/shared-playlists" element={<SharedPlaylistsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/audit-logs" element={<AuditLogsPage />} />
           <Route path="/p/:slug" element={<PublicProfilePage />} />
           <Route path="/*" element={<MainApp />} />
         </Routes>
