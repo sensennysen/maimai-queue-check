@@ -235,7 +235,7 @@ export const adminService = {
 
   // Update a user's role
   async updateUserRole(userId, updates) {
-    const allowedFields = ['queue_name', 'can_edit', 'can_edit_on', 'is_admin'];
+    const allowedFields = ['queue_name', 'can_edit', 'can_edit_on', 'is_admin', 'admin_branch'];
     const sanitizedUpdates = {};
     
     for (const key of allowedFields) {
