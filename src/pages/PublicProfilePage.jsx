@@ -382,23 +382,23 @@ const PublicProfilePage = () => {
                     <Group gap={6} align="center" mt={4}>
                       {profile.user_attributions.attributions.includes('DEVELOPER') && (
                         <Tooltip label="Developer" withArrow position="top">
-                          <ThemeIcon size={24} radius="xl" variant="light" color="blue">
-                            <IconCode size={14} />
-                          </ThemeIcon>
+                          <Badge variant="light" color="blue" leftSection={<IconCode size={14} />}>
+                            Developer
+                          </Badge>
                         </Tooltip>
                       )}
                       {profile.user_attributions.attributions.includes('CONTRIBUTOR') && (
                         <Tooltip label="Contributor" withArrow position="top">
-                          <ThemeIcon size={24} radius="xl" variant="light" color="pink">
-                            <IconGitPullRequest size={14} />
-                          </ThemeIcon>
+                          <Badge variant="light" color="pink" leftSection={<IconGitPullRequest size={14} />}>
+                            Contributor
+                          </Badge>
                         </Tooltip>
                       )}
                       {profile.user_attributions.attributions.includes('TESTER') && (
                         <Tooltip label="Tester" withArrow position="top">
-                          <ThemeIcon size={24} radius="xl" variant="light" color="green">
-                            <IconBug size={14} />
-                          </ThemeIcon>
+                          <Badge variant="light" color="green" leftSection={<IconBug size={14} />}>
+                            Tester
+                          </Badge>
                         </Tooltip>
                       )}
                     </Group>
