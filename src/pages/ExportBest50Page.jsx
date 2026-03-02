@@ -64,7 +64,10 @@ const ExportBest50Page = () => {
       const images = exportRef.current.querySelectorAll('img');
       const imageArray = Array.from(images);
 
-      // Localize images by fetching through a proxy and creating ObjectURLs
+      // Localize images by fetching through a proxy and converting to base64 data URLs.
+      // We use data URLs (not blob: ObjectURLs) because html-to-image internally calls
+      // fetch() on every img.src to embed it into the canvas — blob: URLs are blocked by
+      // CSP's connect-src, whereas data: URLs are inlined and require no network fetch.
       await Promise.all(imageArray.map(async (img) => {
         const originalSrc = img.src;
         if (!originalSrc ||
@@ -93,9 +96,15 @@ const ExportBest50Page = () => {
             const blob = await response.blob();
             if (blob.type.startsWith('text/')) continue; // Skip if proxy returns HTML/Text (error page)
             
-            const localUrl = URL.createObjectURL(blob);
-            objectUrls.push({ img, originalSrc, localUrl });
-            img.src = localUrl;
+            // Convert blob → base64 data URL so html-to-image can inline it without fetch()
+            const localDataUrl = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            objectUrls.push({ img, originalSrc });
+            img.src = localDataUrl;
             
             await new Promise((resolve) => {
               if (img.complete) resolve();
@@ -159,10 +168,9 @@ const ExportBest50Page = () => {
       document.body.classList.remove('rendering-export');
       document.documentElement.style.fontSize = originalRootFontSize;
       
-      // Restore URLs and cleanup blobs
-      objectUrls.forEach(({ img, originalSrc, localUrl }) => {
+      // Restore original image URLs (data URLs need no revocation)
+      objectUrls.forEach(({ img, originalSrc }) => {
         img.src = originalSrc;
-        URL.revokeObjectURL(localUrl);
       });
       
       setIsExporting(false);
