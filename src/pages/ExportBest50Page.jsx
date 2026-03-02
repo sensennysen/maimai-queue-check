@@ -48,8 +48,8 @@ const ExportBest50Page = () => {
 
   const handleDownload = useCallback(async () => {
     if (!exportRef.current) return;
-    const objectUrls = [];
     const originalRootFontSize = document.documentElement.style.fontSize;
+    const objectUrls = [];
 
     try {
       setIsExporting(true);
@@ -59,8 +59,8 @@ const ExportBest50Page = () => {
       document.documentElement.style.setProperty('font-size', '16px', 'important');
 
       // --- CORS Bypass: Image Localizer ---
-      // Find all images in the exportable area
-      const images = exportRef.current.querySelectorAll('img');
+      // Find all images marked for localization
+      const images = exportRef.current.querySelectorAll('img[data-cors-proxy="true"]');
       const imageArray = Array.from(images);
 
       // Localize images by fetching through a proxy and creating ObjectURLs
@@ -72,20 +72,18 @@ const ExportBest50Page = () => {
           originalSrc.includes(window.location.host)) return;
 
         try {
-          // Fallback to allorigins if thebugging fails or is blocked
-          // We use both in sequence to maximize compatibility
-          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originalSrc)}`;
+          // Use thebugging.com CORS proxy
+          const proxyUrl = `https://www.thebugging.com/api/proxy?url=${encodeURIComponent(originalSrc)}`;
           const response = await fetch(proxyUrl);
           if (!response.ok) throw new Error('Proxy fetch failed');
           const blob = await response.blob();
           const localUrl = URL.createObjectURL(blob);
 
-          // Store original and new URLs for cleanup
+          // Store for cleanup
           objectUrls.push({ img, originalSrc, localUrl });
 
           // Swap src to local URL
           img.src = localUrl;
-          // Ensure the image is loaded after the swap
           await new Promise((resolve) => {
             if (img.complete) resolve();
             else {
@@ -94,11 +92,11 @@ const ExportBest50Page = () => {
             }
           });
         } catch (e) {
-          console.warn(`Failed to localize image: ${originalSrc}`, e);
+          console.warn(`Failed to localize image via proxy: ${originalSrc}`, e);
         }
       }));
 
-      // Larger delay to ensure layout/fonts/CORS images are fully settled
+      // Larger delay to ensure layout/fonts are fully settled
       await new Promise(resolve => setTimeout(resolve, 800));
 
       const dataUrl = await toPng(exportRef.current, {
@@ -107,7 +105,8 @@ const ExportBest50Page = () => {
         quality: 1,
         width: EXPORT_WIDTH,
         height: exportRef.current.scrollHeight,
-        cacheBust: false,
+        cacheBust: true,
+        includeQueryParams: true,
         // Filter out cross-origin stylesheets that cause SecurityError
         filter: (node) => {
           if (node.tagName === 'LINK' && node.rel === 'stylesheet') {
@@ -143,10 +142,13 @@ const ExportBest50Page = () => {
       // --- Cleanup ---
       document.body.classList.remove('rendering-export');
       document.documentElement.style.fontSize = originalRootFontSize;
+      
+      // Restore URLs and cleanup blobs
       objectUrls.forEach(({ img, originalSrc, localUrl }) => {
         img.src = originalSrc;
         URL.revokeObjectURL(localUrl);
       });
+      
       setIsExporting(false);
     }
   }, [isDark, profileData?.maimai_dx_name]);
