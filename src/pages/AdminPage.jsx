@@ -15,6 +15,7 @@ import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs'
 import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
 import IconMessageReport from '@tabler/icons-react/dist/esm/icons/IconMessageReport.mjs';
 import IconFileText from '@tabler/icons-react/dist/esm/icons/IconFileText.mjs';
+import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import BranchList from '../features/admin/components/BranchList';
@@ -67,6 +68,16 @@ const AdminPage = () => {
               </ActionIcon>
               <Title order={2}>Admin Panel</Title>
             </Group>
+            {isSuperAdmin && (
+              <Button
+                variant="subtle"
+                leftSection={<IconHistory size={16} />}
+                onClick={() => navigate('/audit-logs')}
+                title="View audit logs"
+              >
+                Audit Logs
+              </Button>
+            )}
           </Group>
         </Paper>
 

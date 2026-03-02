@@ -1,0 +1,47 @@
+/* AuditLogsPage Styles */
+
+.audit-summary-card {
+  background-color: var(--mantine-color-blue-0);
+}
+
+[data-mantine-color-scheme='dark'] .audit-summary-card {
+  background-color: var(--mantine-color-dark-6);
+}
+
+/* Table styles */
+.audit-logs-table {
+  font-size: 0.9rem;
+}
+
+.audit-logs-table tbody tr {
+  transition: background-color 0.1s ease;
+}
+
+.audit-logs-table tbody tr:hover {
+  background-color: var(--mantine-color-gray-0);
+}
+
+/* Record ID styling */
+.record-id-cell {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+/* Modal styles */
+.audit-details-modal .mantine-Modal-content {
+  max-height: 80vh;
+}
+
+/* Expandable JSON input styles */
+.expandable-json-input textarea {
+  resize: vertical;
+  min-height: 120px;
+  overflow: auto;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.85rem;
+}
+
+.expandable-json-input textarea:hover {
+  resize: both;
+}
