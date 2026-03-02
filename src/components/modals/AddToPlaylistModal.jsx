@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Modal, Stack, Button, Select, TextInput, Text, Group, LoadingOverlay, Box } from '@mantine/core';
-import { IconPlaylistAdd, IconPlus } from '@tabler/icons-react';
+import { IconPlaylistAdd } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { playlistService } from '../../services/supabase';
 import { useAuth } from '../../hooks/useAuth';

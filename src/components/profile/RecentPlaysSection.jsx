@@ -5,8 +5,7 @@ import {
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import {
-  IconHistory, IconChevronDown, IconChevronUp,
-  IconPlus
+  IconHistory, IconChevronDown, IconChevronUp
 } from '@tabler/icons-react';
 import { userService } from '../../services/supabase';
 import { songsService } from '../../services/songs';

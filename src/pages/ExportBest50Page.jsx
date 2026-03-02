@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Container, Title, Text, Group, Stack, SimpleGrid, Box, Button, Divider, LoadingOverlay, Alert, Loader, Overlay, Avatar } from '@mantine/core';
+import { Container, Title, Text, Group, Stack, SimpleGrid, Box, Button, Divider, Alert, Loader, Overlay, Avatar } from '@mantine/core';
 import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
@@ -11,7 +11,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { rolesService } from '../services/supabase';
 
 const EXPORT_WIDTH = 2560;
-const EXPORT_HEIGHT = 2100;
 
 const ExportBest50Page = () => {
   const { user, loading: authLoading } = useAuth();

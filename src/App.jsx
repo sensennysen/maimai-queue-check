@@ -1,12 +1,12 @@
 import { useState, lazy, Suspense, useMemo } from 'react';
-import { MantineProvider, Container, Title, Paper, Stack, Group, Button, Loader, createTheme } from '@mantine/core';
+import { MantineProvider, Container, Title, Paper, Stack, Group, Loader, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/tiptap/styles.css';
 import { Analytics } from '@vercel/analytics/react';
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';

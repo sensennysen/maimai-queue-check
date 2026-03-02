@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Paper, Title, Button, SimpleGrid, Text, Group, LoadingOverlay, ActionIcon, Stack, Box, Alert } from '@mantine/core';
-import { IconPlus, IconX, IconHeart, IconAlertCircle } from '@tabler/icons-react';
+import { Paper, Title, Button, Text, Group, LoadingOverlay, Stack, Box, Alert } from '@mantine/core';
+import { IconPlus, IconHeart, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { favoritesService } from '../../services/supabase';
 import { TextInput, Modal as MantineModal } from '@mantine/core';

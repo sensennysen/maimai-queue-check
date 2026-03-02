@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Menu, Text, Group, Badge, Loader } from '@mantine/core';
+import { Button, Menu, Text, Badge, Loader } from '@mantine/core';
 import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
 import IconChevronDown from '@tabler/icons-react/dist/esm/icons/IconChevronDown.mjs';
 import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';

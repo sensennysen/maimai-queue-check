@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Text, Group, Anchor, Stack } from '@mantine/core';
+import { Text, Group, Stack } from '@mantine/core';
 import IconMail from '@tabler/icons-react/dist/esm/icons/IconMail.mjs';
 import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
 import IconShieldLock from '@tabler/icons-react/dist/esm/icons/IconShieldLock.mjs';

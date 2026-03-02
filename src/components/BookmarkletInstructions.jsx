@@ -1,10 +1,9 @@
 import React from 'react';
-import { Tabs, Text, Button, Code, List, Group, CopyButton, ActionIcon, Tooltip, Stack, Anchor, Alert } from '@mantine/core';
+import { Tabs, Text, Button, List, Group, CopyButton, Stack, Anchor, Alert } from '@mantine/core';
 import IconDeviceDesktop from '@tabler/icons-react/dist/esm/icons/IconDeviceDesktop.mjs';
 import IconDeviceMobile from '@tabler/icons-react/dist/esm/icons/IconDeviceMobile.mjs';
 import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import IconCopy from '@tabler/icons-react/dist/esm/icons/IconCopy.mjs';
-import IconExternalLink from '@tabler/icons-react/dist/esm/icons/IconExternalLink.mjs';
 import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
 
 export const BookmarkletInstructions = () => {

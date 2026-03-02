@@ -1,4 +1,4 @@
-import { Box, Group, Image, Text } from '@mantine/core';
+import { Group, Image, Text } from '@mantine/core';
 import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
 
 export function SharedPlaylistHorizontalList({ songs, onSongClick }) {

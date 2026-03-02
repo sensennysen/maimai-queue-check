@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TextInput, Group, Button, Stack, Alert, Checkbox, Modal, Text, Autocomplete, Loader } from '@mantine/core';
+import { Group, Button, Stack, Alert, Checkbox, Modal, Text, Autocomplete, Loader } from '@mantine/core';
 import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
 import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
 import DOMPurify from 'dompurify';

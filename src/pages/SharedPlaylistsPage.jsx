@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Divider, ActionIcon, Avatar, Box, ScrollArea, Image } from '@mantine/core';
+import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Divider, ActionIcon, Avatar, Box } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { IconArrowLeft, IconRefresh, IconPlaylist, IconShare, IconDotsVertical, IconMessageOff, IconMessage, IconTrash } from '@tabler/icons-react';
 import { Menu } from '@mantine/core';
