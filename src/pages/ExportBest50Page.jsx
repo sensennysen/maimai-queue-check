@@ -72,8 +72,8 @@ const ExportBest50Page = () => {
           originalSrc.includes(window.location.host)) return;
 
         try {
-          // Use corsproxy.io to bypass CORS
-          const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originalSrc)}`;
+          // Use thebugging.com CORS proxy as requested
+          const proxyUrl = `https://www.thebugging.com/api/proxy?url=${encodeURIComponent(originalSrc)}`;
           const response = await fetch(proxyUrl);
           if (!response.ok) throw new Error('Proxy fetch failed');
           const blob = await response.blob();
