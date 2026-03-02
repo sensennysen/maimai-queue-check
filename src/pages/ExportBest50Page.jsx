@@ -49,7 +49,6 @@ const ExportBest50Page = () => {
   const handleDownload = useCallback(async () => {
     if (!exportRef.current) return;
     const originalRootFontSize = document.documentElement.style.fontSize;
-    const objectUrls = [];
 
     try {
       setIsExporting(true);
@@ -103,7 +102,6 @@ const ExportBest50Page = () => {
               reader.onerror = reject;
               reader.readAsDataURL(blob);
             });
-            objectUrls.push({ img, originalSrc });
             img.src = localDataUrl;
             
             await new Promise((resolve) => {
@@ -130,8 +128,6 @@ const ExportBest50Page = () => {
         quality: 1,
         width: EXPORT_WIDTH,
         height: exportRef.current.scrollHeight,
-        cacheBust: true,
-        includeQueryParams: true,
         // Filter out cross-origin stylesheets that cause SecurityError
         filter: (node) => {
           if (node.tagName === 'LINK' && node.rel === 'stylesheet') {
@@ -167,11 +163,6 @@ const ExportBest50Page = () => {
       // --- Cleanup ---
       document.body.classList.remove('rendering-export');
       document.documentElement.style.fontSize = originalRootFontSize;
-      
-      // Restore original image URLs (data URLs need no revocation)
-      objectUrls.forEach(({ img, originalSrc }) => {
-        img.src = originalSrc;
-      });
       
       setIsExporting(false);
     }

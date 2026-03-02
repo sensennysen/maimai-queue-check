@@ -86,7 +86,6 @@ export const ScoreCard = React.memo(function ScoreCard({ score, onClick, isExpor
             fallbackSrc={isExport ? "https://placehold.co/120x120?text=No+Image" : "https://placehold.co/90x90?text=No+Image"}
             alt={score.title}
             loading={isExport ? 'eager' : 'lazy'}
-            data-cors-proxy="true"
           />
         </Box>
 
