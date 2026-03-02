@@ -71,7 +71,8 @@ const PublicProfilePage = () => {
         setError('Profile not found');
       } else {
         const isOwner = user && profileData.id === user.id;
-        if (!profileData.is_public && !isOwner) {
+        // FRAG-11: Allow viewing if user is owner or if profile is public OR if a user is logged in
+        if (!profileData.is_public && !isOwner && !user) {
           setIsRestricted(true);
         } else {
           const mostPlayedData = await mostPlayedService.getMostPlayed(profileData.id);
@@ -149,9 +150,7 @@ const PublicProfilePage = () => {
             </ThemeIcon>
             <Title order={2} mb="sm" fw={800}>Profile is Private</Title>
             <Text size="lg" c="dimmed" mb="xl" style={{ lineHeight: 1.6 }}>
-              {user
-                ? "The user has restricted viewing of their profile."
-                : "The user has restricted viewing it in public. Please log in to view the profile."}
+              This profile is only visible to logged-in users.
             </Text>
 
             <Stack gap="sm">
