@@ -44,12 +44,10 @@ const PrivacySettingsModal = ({ opened, onClose, userId, initialData, onSuccess 
     try {
       setIsSaving(true);
 
-      // Update privacy settings
-      await userService.updatePrivacySettings(userId, privacySettings);
-
-      // Update is_public flag
+      // Consolidate updates into a single call
       await userService.updatePreferences(userId, {
-        is_public: isPublic
+        is_public: isPublic,
+        privacy_settings: privacySettings
       });
 
       notifications.show({

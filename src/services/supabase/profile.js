@@ -4,12 +4,13 @@ import { validateData, userProfileSchema } from '../../utils/validation';
 // User service functions
 export const userService = {
   // Update user preferences
-  async updatePreferences(userId, { branch_ids, display_name, queue_name, main_branch, is_public }) {
+  async updatePreferences(userId, { branch_ids, display_name, queue_name, main_branch, is_public, privacy_settings }) {
     const updateData = {};
     if (branch_ids !== undefined) updateData.preferred_branches = branch_ids;
     if (display_name !== undefined) updateData.display_name = display_name;
     if (main_branch !== undefined) updateData.main_branch = main_branch;
     if (is_public !== undefined) updateData.is_public = is_public;
+    if (privacy_settings !== undefined) updateData.privacy_settings = privacy_settings;
     
     // VALIDATION
     if (display_name) {
@@ -32,11 +33,11 @@ export const userService = {
     if (Object.keys(profileUpdateData).length > 0) {
       const { data, error: profileError } = await supabase
         .from('user_profiles')
-        .upsert({ 
-          id: userId,
+        .update({ 
           ...profileUpdateData, 
           updated_at: new Date().toISOString()
         })
+        .eq('id', userId)
         .select()
         .single();
       if (profileError) throw profileError;
