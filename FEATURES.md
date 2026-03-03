@@ -14,7 +14,7 @@ This document tracks the features of the application, their status, and relevant
 
 ## In Development
 *(Add features here when the "Planning" phase begins)*
-- [ ] **Agentic Workflow Integration**: Implementing the `AGENTS.md` and associated tracking files. (Started: 2026-02-18)
+- (None)
 
 ## Recently Added
 *(Add features here when the "Confirmation" phase is complete)*

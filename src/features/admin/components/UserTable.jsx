@@ -13,6 +13,7 @@ import {
   Modal,
   TextInput,
   MultiSelect,
+  Select,
   Badge,
   Pagination,
 } from '@mantine/core';
@@ -52,6 +53,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
     can_edit: false,
     can_edit_on: [],
     is_admin: false,
+    admin_branch: null,
     preferred_branches: [],
   });
   const [saving, setSaving] = useState(false);
@@ -128,6 +130,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
       can_edit: user.can_edit || false,
       can_edit_on: Array.isArray(user.can_edit_on) ? user.can_edit_on.map(String) : [],
       is_admin: user.is_admin || false,
+      admin_branch: user.admin_branch ? String(user.admin_branch) : null,
       preferred_branches: user.preferred_branches ? user.preferred_branches.map(String) : [],
     });
     setEditModalOpen(true);
@@ -159,6 +162,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
       if (isSuperAdmin) {
         updates.queue_name = editForm.queue_name;
         updates.is_admin = editForm.is_admin;
+        updates.admin_branch = editForm.admin_branch ? parseInt(editForm.admin_branch, 10) : null;
         profileUpdates.preferred_branches = editForm.preferred_branches.map(String);
         updates.can_edit = editForm.can_edit;
         updates.can_edit_on = editForm.can_edit_on.map(Number);
@@ -581,12 +585,25 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
             )}
 
             {isSuperAdmin && (
-              <Checkbox
-                label="Is Admin"
-                checked={editForm.is_admin}
-                onChange={(e) => setEditForm({ ...editForm, is_admin: e.currentTarget.checked })}
-                disabled={userToEdit?.is_super_admin}
-              />
+              <Stack gap="xs">
+                <Checkbox
+                  label="Is Admin"
+                  checked={editForm.is_admin}
+                  onChange={(e) => setEditForm({ ...editForm, is_admin: e.currentTarget.checked })}
+                  disabled={userToEdit?.is_super_admin}
+                />
+                {editForm.is_admin && (
+                  <Select
+                    label="Admin Branch"
+                    placeholder="Select branch this user is admin of"
+                    data={branchOptions}
+                    value={editForm.admin_branch}
+                    onChange={(val) => setEditForm({ ...editForm, admin_branch: val })}
+                    searchable
+                    clearable
+                  />
+                )}
+              </Stack>
             )}
           </Group>
 

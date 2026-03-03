@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Paper, Title, Button, Text, Group, LoadingOverlay, Box, Alert } from '@mantine/core';
+import { Paper, Title, Button, Group, LoadingOverlay, Box, Alert } from '@mantine/core';
 import { IconPlaylist, IconPlaylistAdd, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { playlistService } from '../../services/supabase';

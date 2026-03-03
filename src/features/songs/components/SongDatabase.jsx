@@ -1,4 +1,4 @@
-import { Container, Title, Box, Group, ActionIcon, Stack, Paper, Avatar, Button, Text } from '@mantine/core';
+import { Container, Title, Box, Group, Stack, Paper, Avatar, Button, Text } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { IconArrowLeft, IconMusic, IconBrandGithub, IconBrandTwitter } from '@tabler/icons-react';
 import ThemeToggle from '../../../components/layout/ThemeToggle';

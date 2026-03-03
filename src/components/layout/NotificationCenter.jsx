@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Popover, ActionIcon, Indicator, Stack, Text, Group, ThemeIcon, ScrollArea, Button, Box } from '@mantine/core';
+import { Popover, ActionIcon, Indicator, Stack, Text, Group, ThemeIcon, ScrollArea, Button } from '@mantine/core';
 import IconBell from '@tabler/icons-react/dist/esm/icons/IconBell.mjs';
 import IconUserPlus from '@tabler/icons-react/dist/esm/icons/IconUserPlus.mjs';
 import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';

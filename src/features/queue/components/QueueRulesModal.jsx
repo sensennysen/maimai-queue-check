@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Modal, Text, Box, Loader, Stack, Group, ThemeIcon, Title, ScrollArea, TypographyStylesProvider } from '@mantine/core';
+import { Modal, Text, Box, Loader, Stack, Group, ThemeIcon, ScrollArea, TypographyStylesProvider } from '@mantine/core';
 import IconFileText from '@tabler/icons-react/dist/esm/icons/IconFileText.mjs';
 import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
 import { rulesService } from '../../../services/supabase';

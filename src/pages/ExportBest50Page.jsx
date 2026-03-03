@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Container, Title, Text, Group, Stack, SimpleGrid, Box, Button, Divider, LoadingOverlay, Alert, Loader, Overlay, Avatar } from '@mantine/core';
+import { Container, Title, Text, Group, Stack, SimpleGrid, Box, Button, Divider, Alert, Loader, Overlay, Avatar } from '@mantine/core';
 import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
@@ -11,7 +11,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { rolesService } from '../services/supabase';
 
 const EXPORT_WIDTH = 2560;
-const EXPORT_HEIGHT = 2100;
 
 const ExportBest50Page = () => {
   const { user, loading: authLoading } = useAuth();
@@ -49,7 +48,6 @@ const ExportBest50Page = () => {
 
   const handleDownload = useCallback(async () => {
     if (!exportRef.current) return;
-    const objectUrls = [];
     const originalRootFontSize = document.documentElement.style.fontSize;
 
     try {
@@ -60,11 +58,15 @@ const ExportBest50Page = () => {
       document.documentElement.style.setProperty('font-size', '16px', 'important');
 
       // --- CORS Bypass: Image Localizer ---
-      // Find all images in the exportable area
+      // Select ALL img elements so cross-origin images (including Avatar's
+      // underlying <img> which doesn't have data-cors-proxy) are also proxied.
       const images = exportRef.current.querySelectorAll('img');
       const imageArray = Array.from(images);
 
-      // Localize images by fetching through a proxy and creating ObjectURLs
+      // Localize images by fetching through a proxy and converting to base64 data URLs.
+      // We use data URLs (not blob: ObjectURLs) because html-to-image internally calls
+      // fetch() on every img.src to embed it into the canvas — blob: URLs are blocked by
+      // CSP's connect-src, whereas data: URLs are inlined and require no network fetch.
       await Promise.all(imageArray.map(async (img) => {
         const originalSrc = img.src;
         if (!originalSrc ||
@@ -72,33 +74,52 @@ const ExportBest50Page = () => {
           originalSrc.startsWith('blob:') ||
           originalSrc.includes(window.location.host)) return;
 
-        try {
-          // Use corsproxy.io to bypass CORS
-          const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originalSrc)}`;
-          const response = await fetch(proxyUrl);
-          if (!response.ok) throw new Error('Proxy fetch failed');
-          const blob = await response.blob();
-          const localUrl = URL.createObjectURL(blob);
+        // Try multiple proxies in sequence until one works
+        // Priority: 1. Local Vercel Proxy (server-to-server, no CSP issues)
+        //           2. External Public Proxies (fallback)
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const proxies = [
+          (url) => isLocalhost 
+            ? `https://www.thebugging.com/api/proxy?url=${encodeURIComponent(url)}` // Localhost: Use external proxy
+            : `/api/proxy?url=${encodeURIComponent(url)}`,                       // Production: Use serverless function
+          (url) => `https://www.thebugging.com/api/proxy?url=${encodeURIComponent(url)}`,
+          (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+        ];
 
-          // Store original and new URLs for cleanup
-          objectUrls.push({ img, originalSrc, localUrl });
-
-          // Swap src to local URL
-          img.src = localUrl;
-          // Ensure the image is loaded after the swap
-          await new Promise((resolve) => {
-            if (img.complete) resolve();
-            else {
-              img.onload = resolve;
-              img.onerror = resolve;
-            }
-          });
-        } catch (e) {
-          console.warn(`Failed to localize image: ${originalSrc}`, e);
+        for (const getProxyUrl of proxies) {
+          try {
+            const proxyUrl = getProxyUrl(originalSrc);
+            const response = await fetch(proxyUrl);
+            if (!response.ok) continue; // Try next proxy
+            
+            const blob = await response.blob();
+            if (blob.type.startsWith('text/')) continue; // Skip if proxy returns HTML/Text (error page)
+            
+            // Convert blob → base64 data URL so html-to-image can inline it without fetch()
+            const localDataUrl = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            img.src = localDataUrl;
+            
+            await new Promise((resolve) => {
+              if (img.complete) resolve();
+              else {
+                img.onload = resolve;
+                img.onerror = resolve;
+              }
+            });
+            return; // Success!
+          } catch (e) {
+            console.warn(`Proxy failed: ${getProxyUrl(originalSrc)}`, e);
+          }
         }
+        console.warn(`All proxies failed for: ${originalSrc}`);
       }));
 
-      // Larger delay to ensure layout/fonts/CORS images are fully settled
+      // Larger delay to ensure layout/fonts are fully settled
       await new Promise(resolve => setTimeout(resolve, 800));
 
       const dataUrl = await toPng(exportRef.current, {
@@ -107,7 +128,6 @@ const ExportBest50Page = () => {
         quality: 1,
         width: EXPORT_WIDTH,
         height: exportRef.current.scrollHeight,
-        cacheBust: false,
         // Filter out cross-origin stylesheets that cause SecurityError
         filter: (node) => {
           if (node.tagName === 'LINK' && node.rel === 'stylesheet') {
@@ -143,10 +163,7 @@ const ExportBest50Page = () => {
       // --- Cleanup ---
       document.body.classList.remove('rendering-export');
       document.documentElement.style.fontSize = originalRootFontSize;
-      objectUrls.forEach(({ img, originalSrc, localUrl }) => {
-        img.src = originalSrc;
-        URL.revokeObjectURL(localUrl);
-      });
+      
       setIsExporting(false);
     }
   }, [isDark, profileData?.maimai_dx_name]);
@@ -362,7 +379,7 @@ const ExportBest50Page = () => {
               <Box>
                 <Divider />
                 <Text size="sm" c="secondary" ta="center" mt="xl" fw={600}>
-                  Generated by maiPaQueueCheck PH - v1.8.2
+                  Generated by maiPaQueueCheck PH - v1.9.0
                 </Text>
               </Box>
             </Stack>

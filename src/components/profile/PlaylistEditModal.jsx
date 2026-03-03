@@ -1,27 +1,32 @@
 import { useState, useEffect } from 'react';
-import { Modal, Stack, Text, Textarea, Button, Group, ActionIcon, Paper, Image, Box, Divider, Loader, TextInput, Badge } from '@mantine/core';
+import { Modal, Stack, Text, Textarea, Button, Group, ActionIcon, Paper, Image, Box, Divider, Loader, TextInput, Badge, Switch } from '@mantine/core';
 import { IconPlus, IconTrash, IconArrowUp, IconArrowDown, IconPlaylistAdd, IconDeviceFloppy } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
 import { playlistService } from '../../services/supabase';
 import { DIFFICULTY_COLORS } from '../../config/maimai-constants';
+import { PlaylistProtectionModal } from '../modals/PlaylistProtectionModal';
 
-export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, onSave }) {
+export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, onSave, hidePublicToggle = false }) {
   const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
   const [selectedSongs, setSelectedSongs] = useState([]); // Array of full song objects
   const [isSongPickerOpen, setIsSongPickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isProtectionModalOpen, setIsProtectionModalOpen] = useState(false);
 
+  const [isPublic, setIsPublic] = useState(false);
 
   useEffect(() => {
     if (opened && initialPlaylist) {
       setTitle(initialPlaylist.title || '');
       setComment(initialPlaylist.comment || '');
+      setIsPublic(initialPlaylist.is_public || false);
       setSelectedSongs(initialPlaylist.fullSongs || []);
     } else if (opened) {
       setTitle('');
       setComment('');
+      setIsPublic(false);
       setSelectedSongs([]);
     }
   }, [opened, initialPlaylist]);
@@ -61,6 +66,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
       const updatedPlaylist = await playlistService.upsertPlaylist(userId, initialPlaylist?.id, {
         title: title.trim(),
         comment: comment.trim(),
+        is_public: isPublic,
         songs
       });
 
@@ -196,7 +202,33 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
           mt="md"
         />
 
-        <Group justify="flex-end" mt="xl">
+        <Group justify={hidePublicToggle ? "flex-end" : "space-between"} mt="xl">
+          {!hidePublicToggle && (
+            <Switch
+              label="Make Playlist Public"
+              description="Allow others to view and share this playlist"
+              checked={isPublic}
+              onChange={(event) => {
+                const newValue = event.currentTarget.checked;
+                if (!newValue && initialPlaylist?.is_public) {
+                  // Trying to make a public playlist private
+                  setIsProtectionModalOpen(true);
+                } else {
+                  setIsPublic(newValue);
+                }
+              }}
+              color="teal"
+            />
+          )}
+
+          {isPublic && !hidePublicToggle && (
+            <Box p="xs" radius="sm" bg="var(--mantine-color-teal-light)" style={{ border: '1px solid var(--mantine-color-teal-outline)' }}>
+              <Text size="xs" c="teal" fw={500}>
+                This playlist will be visible to everyone in the global feed.
+              </Text>
+            </Box>
+          )}
+
           <Group gap="sm">
             <Button variant="default" onClick={onClose} disabled={isSaving}>Cancel</Button>
             <Button leftSection={isSaving ? <Loader size={18} /> : <IconDeviceFloppy size={18} />} onClick={handleSave} loading={isSaving}>
@@ -205,6 +237,44 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
           </Group>
         </Group>
       </Stack>
+
+      <PlaylistProtectionModal
+        opened={isProtectionModalOpen}
+        onClose={() => setIsProtectionModalOpen(false)}
+        onConfirm={async () => {
+          setIsSaving(true);
+          try {
+            // Updated behavior: Update visibility instead of deleting
+            const songsForService = selectedSongs.map(s => ({ id: s.cardId || s.songId, level: s.level }));
+            const updatedPlaylist = await playlistService.upsertPlaylist(userId, initialPlaylist?.id, {
+              title: title.trim(),
+              comment: comment.trim(),
+              is_public: false,
+              songs: songsForService
+            });
+
+            // Soft delete related posts so they are removed from the global feed
+            await playlistService.softDeletePostsByPlaylist(initialPlaylist.id);
+
+            notifications.show({
+              title: 'Playlist Private',
+              message: 'Playlist is now private and its shared posts have been removed.',
+              color: 'indigo'
+            });
+
+            if (onSave) onSave(updatedPlaylist);
+            onClose();
+          } catch (error) {
+            console.error('Error privatizing playlist:', error);
+            notifications.show({ title: 'Error', message: 'Failed to privatize playlist', color: 'red' });
+          } finally {
+            setIsSaving(false);
+            setIsProtectionModalOpen(false);
+          }
+        }}
+        type="private"
+        loading={isSaving}
+      />
 
       <SongSelectionModal
         key={isSongPickerOpen ? 'open' : 'closed'}

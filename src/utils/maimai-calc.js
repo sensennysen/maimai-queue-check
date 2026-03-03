@@ -13,6 +13,7 @@ const getRate = (achievement) => {
 const normalize = (str) => str.trim();
 
 // Map Difficulty Name to Index
+// eslint-disable-next-line no-unused-vars
 const DIFFICULTY_MAP = {
   'Basic': 'bas',
   'Advanced': 'adv',

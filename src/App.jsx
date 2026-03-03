@@ -1,8 +1,9 @@
 import { useState, lazy, Suspense, useMemo } from 'react';
-import { MantineProvider, Container, Title, Paper, Stack, Group, Button, Loader, createTheme } from '@mantine/core';
+import { MantineProvider, Container, Title, Paper, Stack, Group, Loader, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import '@mantine/dates/styles.css';
 import '@mantine/tiptap/styles.css';
 import { Analytics } from '@vercel/analytics/react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -23,6 +24,7 @@ import './App.css';
 
 // Lazy load pages
 const AdminPage = lazy(() => import('./pages/AdminPage'));
+const AuditLogsPage = lazy(() => import('./pages/AuditLogsPage'));
 // ProfilePage is removed in favor of PublicProfilePage
 const ExportBest50Page = lazy(() => import('./pages/ExportBest50Page'));
 const ViewPage = lazy(() => import('./pages/ViewPage'));
@@ -31,6 +33,8 @@ const ContactPage = lazy(() => import('./pages/ContactPage'));
 import LoginForm from './components/LoginForm';
 
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
+const SongDiscussionPage = lazy(() => import('./pages/SongDiscussionPage'));
+const SharedPlaylistsPage = lazy(() => import('./pages/SharedPlaylistsPage'));
 
 // The main application content (Queue check, Login, etc.)
 function MainApp() {
@@ -126,8 +130,11 @@ function AppProviders() {
           <Route path="/profile" element={<ProfileRedirect />} />
           <Route path="/view" element={<ViewPage />} />
           <Route path="/songs" element={<SongsPage />} />
+          <Route path="/songs/:id" element={<SongDiscussionPage />} />
+          <Route path="/shared-playlists" element={<SharedPlaylistsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/audit-logs" element={<AuditLogsPage />} />
           <Route path="/p/:slug" element={<PublicProfilePage />} />
           <Route path="/*" element={<MainApp />} />
         </Routes>

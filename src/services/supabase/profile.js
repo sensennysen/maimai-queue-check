@@ -55,7 +55,7 @@ export const userService = {
   },
   
   // Update maimai profile specifically
-  async updateMaimaiProfile(userId, { maimai_dx_name, dx_display_photo_url }) {
+  async updateMaimaiProfile(userId, { maimai_dx_name, dx_display_photo_url, circle_name }) {
     const updates = {
       id: userId,
       updated_at: new Date().toISOString()
@@ -63,6 +63,7 @@ export const userService = {
 
     if (maimai_dx_name !== undefined) updates.maimai_dx_name = maimai_dx_name;
     if (dx_display_photo_url !== undefined) updates.dx_display_photo_url = dx_display_photo_url;
+    if (circle_name !== undefined) updates.circle_name = circle_name;
 
     const { data, error } = await supabase
       .from('user_profiles')
@@ -89,6 +90,33 @@ export const userService = {
 
     if (error) throw error;
     return data;
+  },
+
+  // Save recent play history (JSON storage)
+  async saveRecentPlays(userId, recentPlays) {
+    if (!userId || !Array.isArray(recentPlays)) return;
+
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ 
+        recent_plays: recentPlays,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId);
+
+    if (error) throw error;
+  },
+
+  // Get recent play history (from JSON storage)
+  async getRecentPlays(userId) {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('recent_plays')
+      .eq('id', userId)
+      .single();
+
+    if (error) throw error;
+    return data?.recent_plays || [];
   },
 
   // Save all raw scores from import
@@ -127,7 +155,7 @@ export const userService = {
 
     const { data, error: profileError } = await supabase
       .from('user_profiles')
-      .select('id, display_name, user_roles(queue_name), maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction, user_attributions(attributions)')
+      .select('id, display_name, user_roles(queue_name), maimai_dx_name, circle_name, maimai_best_scores, maimai_scores_updated_at, recent_plays, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction, user_attributions(attributions)')
       .eq('slug', slug.toLowerCase())
       .maybeSingle();
 
@@ -222,6 +250,7 @@ export const userService = {
       .update({
         maimai_best_scores: null,
         maimai_scores_updated_at: null,
+        recent_plays: null,
         dx_display_photo_url: null,
         maimai_dx_name: null,
         updated_at: new Date().toISOString()
@@ -259,7 +288,7 @@ export const userService = {
 
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('id, display_name, user_roles(queue_name), maimai_dx_name, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction')
+      .select('id, display_name, user_roles(queue_name), maimai_dx_name, circle_name, recent_plays, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction')
       .eq('id', userId)
       .maybeSingle();
 
@@ -434,6 +463,7 @@ export const playlistService = {
         )
       `)
       .eq('user_id', userId)
+      .eq('deleted', false)
       .order('order_index', { ascending: true });
 
     if (error) {
@@ -448,7 +478,7 @@ export const playlistService = {
   },
 
   // Update or create a playlist
-  async upsertPlaylist(userId, playlistId, { title, comment, songIds, songs }) {
+  async upsertPlaylist(userId, playlistId, { title, comment, is_public, songIds, songs }) {
     let finalPlaylistId = playlistId;
 
     if (!finalPlaylistId) {
@@ -458,6 +488,7 @@ export const playlistService = {
           user_id: userId,
           title: title || 'New Playlist',
           comment,
+          is_public: is_public || false,
           order_index: 0
         })
         .select()
@@ -466,9 +497,12 @@ export const playlistService = {
       if (error) throw error;
       finalPlaylistId = data.id;
     } else {
+      const updates = { title, comment };
+      if (is_public !== undefined) updates.is_public = is_public;
+      
       const { error } = await supabase
         .from('user_playlists')
-        .update({ title, comment })
+        .update(updates)
         .eq('id', finalPlaylistId);
 
       if (error) throw error;
@@ -515,13 +549,183 @@ export const playlistService = {
 
   // Delete a playlist
   async deletePlaylist(playlistId) {
-    const { error } = await supabase
+    // 1. Soft delete the playlist
+    const { error: playlistError } = await supabase
       .from('user_playlists')
-      .delete()
+      .update({ deleted: true })
       .eq('id', playlistId);
 
+    if (playlistError) {
+      console.error('Error deleting playlist:', playlistError);
+      throw playlistError;
+    }
+
+    // 2. Soft delete related posts
+    await this.softDeletePostsByPlaylist(playlistId);
+
+    return true;
+  },
+
+  // Soft delete all posts for a specific playlist
+  async softDeletePostsByPlaylist(playlistId) {
+    const { error } = await supabase
+      .from('playlist_posts')
+      .update({ deleted: true })
+      .eq('playlist_id', playlistId);
+
     if (error) {
-      console.error('Error deleting playlist:', error);
+      console.error('Error soft deleting posts for playlist:', error);
+      // We don't necessarily want to throw here if the playlist itself was deleted,
+      // but it's good to log.
+    }
+  },
+
+  // Share a playlist
+  async sharePlaylist(userId, playlistId, content, commentsEnabled = true) {
+    const { data, error } = await supabase
+      .from('playlist_posts')
+      .insert({
+        user_id: userId,
+        playlist_id: playlistId,
+        content: content?.trim() || null,
+        comments_enabled: commentsEnabled
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error sharing playlist:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  // Get shared playlists (feed)
+  async getSharedPlaylists() {
+    const { data, error } = await supabase
+      .from('playlist_posts')
+      .select(`
+        id,
+        content,
+        created_at,
+        comments_enabled,
+      author:user_profiles!user_id(id, slug, display_name, display_photo_url),
+      playlist:user_playlists!playlist_id(
+        id,
+        title,
+        comment,
+        is_public,
+        updated_at,
+        songs:playlist_songs(
+            song_id,
+            level,
+            order_index
+          )
+        )
+      `)
+      .eq('deleted', false)
+      .filter('playlist.deleted', 'eq', false)
+      .filter('playlist.is_public', 'eq', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching shared playlists:', error);
+      throw error;
+    }
+    
+    // Sort songs cleanly for each post
+    return data.map(post => {
+      if (post.playlist?.songs) {
+        post.playlist.songs = post.playlist.songs.sort((a, b) => a.order_index - b.order_index);
+      }
+      return post;
+    });
+  },
+
+  // Get comments for a shared post
+  async getPostComments(postId) {
+    const { data, error } = await supabase
+      .from('playlist_comments')
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        user_profiles:user_id(display_name, display_photo_url, slug)
+      `)
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching post comments:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  // Add a comment to a shared post
+  async addPostComment(postId, userId, content) {
+    const { data, error } = await supabase
+      .from('playlist_comments')
+      .insert({
+        post_id: postId,
+        user_id: userId,
+        content: content.trim()
+      })
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        user_profiles:user_id(display_name, display_photo_url, slug)
+      `)
+      .single();
+
+    if (error) {
+      console.error('Error adding post comment:', error);
+      throw error;
+    }
+    return data;
+  },
+
+  // Delete a comment
+  async deletePostComment(commentId) {
+    // RLS handles permission
+    const { error } = await supabase
+      .from('playlist_comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (error) {
+      console.error('Error deleting post comment:', error);
+      throw error;
+    }
+    return true;
+  },
+
+  // Delete a specific post
+  async deletePost(postId) {
+    const { error } = await supabase
+      .from('playlist_posts')
+      .update({ deleted: true })
+      .eq('id', postId);
+
+    if (error) {
+      console.error('Error deleting post:', error);
+      throw error;
+    }
+    return true;
+  },
+
+  // Toggle comments on a specific post
+  async togglePostComments(postId, enabled) {
+    const { error } = await supabase
+      .from('playlist_posts')
+      .update({ comments_enabled: enabled })
+      .eq('id', postId);
+
+    if (error) {
+      console.error('Error toggling post comments:', error);
       throw error;
     }
     return true;

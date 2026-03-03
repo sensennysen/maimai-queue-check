@@ -1,9 +1,9 @@
 import React from 'react';
-import { Paper, Text, Box, Image, ActionIcon, Tooltip, Badge } from '@mantine/core';
+import { Paper, Text, Box, Image, ActionIcon, Badge } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 import dxImage from '../../assets/music_dx.png';
 import standardImage from '../../assets/music_standard.png';
-import { DIFFICULTY_COLORS, normalizeDifficulty, VERSION_MAPPING } from '../../config/maimai-constants';
+import { DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
 
 const FavoriteSongCard = React.memo(function FavoriteSongCard({ song, onDelete, isOwnProfile, onClick }) {
   const selectedSheet = React.useMemo(() => {

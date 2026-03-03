@@ -40,7 +40,7 @@ export function useSongDatabase() {
 
     return songs.map(song => {
       // Find any sheet that has an override for the effective region
-      const hasOverrides = song.sheets?.some(s => s.regionOverrides?.[effectiveRegion]);
+      song.sheets?.some(s => s.regionOverrides?.[effectiveRegion]);
       
       const newSheets = song.sheets.map(sheet => {
         const override = sheet.regionOverrides?.[effectiveRegion];

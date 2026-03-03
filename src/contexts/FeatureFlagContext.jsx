@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { EXPERIMENTAL_FEATURES, getDefaultFeatureFlags } from '../constants/featureFlags';
+import { getDefaultFeatureFlags } from '../constants/featureFlags';
 import { notifications } from '@mantine/notifications';
 
 import { FeatureFlagContext } from './FeatureFlagContextDef';
