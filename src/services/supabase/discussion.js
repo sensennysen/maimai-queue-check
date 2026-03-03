@@ -45,23 +45,90 @@ export const discussionService = {
   },
 
   // Get available tags from dictionary
-  async getAvailableTags() {
+  async getAvailableTags(isAdmin = false) {
+    let query = supabase
+      .from('song_tags_dictionary')
+      .select('id, tag_name:name, is_predefined, status, description');
+    
+    // Regular users only see approved tags
+    if (!isAdmin) {
+      query = query.eq('status', 'approved');
+    }
+      
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  },
+
+  // Get all tags for administration
+  async getAllTags() {
     const { data, error } = await supabase
       .from('song_tags_dictionary')
-      .select('id, tag_name:name, is_predefined');
+      .select('*, user_profiles:created_by(display_name)')
+      .order('name');
+    if (error) throw error;
+    return data.map(tag => ({
+      ...tag,
+      tag_name: tag.name,
+      creator_name: tag.user_profiles?.display_name || 'System'
+    }));
+  },
+
+  // Delete a tag (Super Admin only)
+  async deleteTag(tagId) {
+    const { error } = await supabase
+      .from('song_tags_dictionary')
+      .delete()
+      .eq('id', tagId);
+    if (error) throw error;
+    return true;
+  },
+
+  // Add a new custom tag to dictionary
+  async addCustomTag(name, description = null, status = 'pending') {
+    const { data, error } = await supabase
+      .from('song_tags_dictionary')
+      .insert({ 
+        name, 
+        is_predefined: false, 
+        status, 
+        description 
+      })
+      .select('id, tag_name:name, is_predefined, status, description')
+      .single();
       
     if (error) throw error;
     return data;
   },
 
-  // Add a new custom tag to dictionary
-  async addCustomTag(name) {
+  // Admin: Get all pending tags
+  async getPendingTags() {
     const { data, error } = await supabase
       .from('song_tags_dictionary')
-      .insert({ name, is_predefined: false })
-      .select('id, tag_name:name, is_predefined')
+      .select(`
+        *,
+        tag_name:name,
+        created_by_profile:user_profiles!created_by(display_name)
+      `)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Admin: Update tag status (approve/reject)
+  async updateTagStatus(tagId, status, description = null) {
+    const updates = { status };
+    if (description !== null) updates.description = description;
+
+    const { data, error } = await supabase
+      .from('song_tags_dictionary')
+      .update(updates)
+      .eq('id', tagId)
+      .select()
       .single();
-      
+
     if (error) throw error;
     return data;
   },

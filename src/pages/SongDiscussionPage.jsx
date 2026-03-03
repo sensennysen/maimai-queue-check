@@ -27,7 +27,7 @@ export default function SongDiscussionPage() {
   const [newCommentValue, setNewCommentValue] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [addToPlaylistOpened, setAddToPlaylistOpened] = useState(false);
-  const { user } = useAuth();
+  const { user, userRoles } = useAuth();
   const location = useLocation();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const isMobileOrTablet = useMediaQuery('(max-width: 991px)');
@@ -56,7 +56,7 @@ export default function SongDiscussionPage() {
       setDiscussionLoading(true);
       const [data, tags] = await Promise.all([
         discussionService.getSongDiscussionData(id),
-        discussionService.getAvailableTags()
+        discussionService.getAvailableTags(userRoles?.is_super_admin)
       ]);
       setDiscussionData(data);
       setAvailableTags(tags);
@@ -66,7 +66,7 @@ export default function SongDiscussionPage() {
     } finally {
       setDiscussionLoading(false);
     }
-  }, [id, song]);
+  }, [id, song, userRoles]);
 
   useEffect(() => {
     loadDiscussion();
@@ -405,88 +405,107 @@ export default function SongDiscussionPage() {
                     )}
 
                     {user ? (
-                      <Group wrap="nowrap" mt="xs" align="flex-end">
-                        <Autocomplete
-                          label="Add Tag"
-                          placeholder="Select or type..."
-                          data={availableTags.map(t => t.tag_name)}
-                          value={newTagValue}
-                          onChange={setNewTagValue}
-                          style={{ flex: 1 }}
-                          disabled={isTaggingLoading}
-                          maxLength={30}
-                        />
-                        <ActionIcon
-                          variant="filled"
-                          color="blue"
-                          size="input-sm"
-                          loading={isTaggingLoading}
-                          onClick={async () => {
-                            const tagInput = newTagValue.trim();
-                            if (!tagInput) return;
+                      <Stack gap="xs" mt="xs">
+                        <Group wrap="nowrap" align="flex-end">
+                          <Autocomplete
+                            label="Add Tag"
+                            placeholder="Select or type..."
+                            data={availableTags.map(t => t.tag_name)}
+                            value={newTagValue}
+                            onChange={setNewTagValue}
+                            style={{ flex: 1 }}
+                            disabled={isTaggingLoading}
+                            maxLength={30}
+                          />
+                          <ActionIcon
+                            variant="filled"
+                            color="blue"
+                            size="input-sm"
+                            loading={isTaggingLoading}
+                            onClick={async () => {
+                              const tagInput = newTagValue.trim();
+                              if (!tagInput) return;
 
-                            setIsTaggingLoading(true);
-                            try {
-                              // Find tag in dictionary, or create if missing
-                              let tagId;
-                              let finalTagName;
                               const existingTag = availableTags.find(t => t.tag_name.toLowerCase() === tagInput.toLowerCase());
+
                               if (existingTag) {
-                                tagId = existingTag.id;
-                                finalTagName = existingTag.tag_name;
+                                setIsTaggingLoading(true);
+                                try {
+                                  await discussionService.addSongTag(id, existingTag.id, user.id);
+                                  setDiscussionData(prev => ({
+                                    ...prev,
+                                    tags: [
+                                      ...prev.tags,
+                                      {
+                                        song_id: id,
+                                        tag_id: existingTag.id,
+                                        user_id: user.id,
+                                        song_tags_dictionary: { tag_name: existingTag.tag_name }
+                                      }
+                                    ]
+                                  }));
+                                  setNewTagValue('');
+                                  notifications.show({
+                                    title: 'Tag Added',
+                                    message: `Added tag "${existingTag.tag_name}" to song.`,
+                                    color: 'green'
+                                  });
+                                } catch (err) {
+                                  console.error('Failed to add existing tag', err);
+                                  notifications.show({ title: 'Error', message: 'Failed to add tag.', color: 'red' });
+                                } finally {
+                                  setIsTaggingLoading(false);
+                                }
                               } else {
-                                const newTag = await discussionService.addCustomTag(tagInput);
-                                tagId = newTag.id;
-                                finalTagName = newTag.tag_name;
-                                setAvailableTags(prev => [...prev, newTag]);
-                              }
+                                // Open description prompt for new tags
+                                const description = window.prompt(`Enter a description for the new tag "${tagInput}" (optional):`);
+                                if (description === null) return; // Cancelled
 
-                              // Link tag to song
-                              await discussionService.addSongTag(id, tagId, user.id);
+                                setIsTaggingLoading(true);
+                                try {
+                                  const isSuperAdmin = !!userRoles?.is_super_admin;
+                                  const status = isSuperAdmin ? 'approved' : 'pending';
+                                  const newTag = await discussionService.addCustomTag(tagInput, description, status);
+                                  await discussionService.addSongTag(id, newTag.id, user.id);
 
-                              // Optimistically update the UI directly
-                              setDiscussionData(prev => ({
-                                ...prev,
-                                tags: [
-                                  ...prev.tags,
-                                  {
-                                    song_id: id,
-                                    tag_id: tagId,
-                                    user_id: user.id,
-                                    song_tags_dictionary: { tag_name: finalTagName }
-                                  }
-                                ]
-                              }));
-                              setNewTagValue('');
-                              notifications.show({
-                                title: 'Tag Added',
-                                message: `Added tag "${finalTagName}" to song.`,
-                                color: 'green'
-                              });
-                            } catch (err) {
-                              console.error('Failed to add tag', err);
-                              const errMsg = err.message || '';
-                              if (errMsg.includes('unique_song_user_tag')) {
-                                notifications.show({
-                                  title: 'Duplicate Tag',
-                                  message: 'You have already added this tag to this song.',
-                                  color: 'yellow'
-                                });
-                              } else {
-                                notifications.show({
-                                  title: 'Error',
-                                  message: 'Failed to add tag. Please try again.',
-                                  color: 'red'
-                                });
+                                  setDiscussionData(prev => ({
+                                    ...prev,
+                                    tags: [
+                                      ...prev.tags,
+                                      {
+                                        song_id: id,
+                                        tag_id: newTag.id,
+                                        user_id: user.id,
+                                        song_tags_dictionary: { tag_name: newTag.tag_name }
+                                      }
+                                    ]
+                                  }));
+                                  setNewTagValue('');
+                                  notifications.show({
+                                    title: isSuperAdmin ? 'Tag Added' : 'Tag Requested',
+                                    message: isSuperAdmin
+                                      ? `Custom tag "${newTag.tag_name}" has been added and auto-approved.`
+                                      : `Custom tag "${newTag.tag_name}" has been requested and is pending moderation.`,
+                                    color: isSuperAdmin ? 'green' : 'blue'
+                                  });
+                                } catch (err) {
+                                  console.error('Failed to create custom tag', err);
+                                  notifications.show({ title: 'Error', message: 'Failed to create tag.', color: 'red' });
+                                } finally {
+                                  setIsTaggingLoading(false);
+                                }
                               }
-                            } finally {
-                              setIsTaggingLoading(false);
-                            }
-                          }}
-                        >
-                          <IconPlus size={16} />
-                        </ActionIcon>
-                      </Group>
+                            }}
+                          >
+                            <IconPlus size={16} />
+                          </ActionIcon>
+                        </Group>
+                        {!availableTags.find(t => t.tag_name.toLowerCase() === newTagValue.trim().toLowerCase()) && newTagValue.trim() !== '' && (
+                          <Text size="xs" c="dimmed">
+                            This is a new tag. You can add a description after clicking the plus icon.
+                          </Text>
+                        )}
+                      </Stack>
                     ) : (
                       <Text size="xs" c="dimmed" fs="italic" ta="center" mt="xs">
                         Log in to add tags
