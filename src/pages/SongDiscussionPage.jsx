@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, Alert, Rating, Autocomplete, ActionIcon, Textarea, Center, Flex, Grid, Table, ScrollArea, Box } from '@mantine/core';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, Alert, Rating, Autocomplete, ActionIcon, Textarea, Center, Flex, Grid, Table, ScrollArea, Box, Avatar } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh, IconWorld, IconPlaylistAdd } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
@@ -9,7 +9,7 @@ import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { discussionService } from '../services/supabase';
 import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty } from '../config/maimai-constants';
 import { AddToPlaylistModal } from '../components/modals/AddToPlaylistModal';
-import { getRelativeTime } from '../utils/formatters';
+import { getRelativeTime, getProfileImageUrl } from '../utils/formatters';
 
 export default function SongDiscussionPage() {
   const { id } = useParams();
@@ -581,10 +581,28 @@ export default function SongDiscussionPage() {
                         <Paper key={comment.id} p="sm" radius="md" withBorder bg="var(--mantine-color-default-hover)">
                           <Group justify="space-between" align="flex-start" mb="xs">
                             <Group gap="xs">
-                              <Text fw={500} size="sm">{comment.user_profiles?.display_name || 'Unknown User'}</Text>
-                              <Text c="dimmed" size="xs" title={new Date(comment.created_at).toLocaleString()}>
-                                {getRelativeTimeCb(comment.created_at)}
-                              </Text>
+                              <Avatar
+                                src={getProfileImageUrl(comment.user_profiles)}
+                                size={40}
+                                radius="xl"
+                                component={Link}
+                                to={`/p/${comment.user_profiles?.slug || comment.user_id}`}
+                                style={{ cursor: 'pointer' }}
+                              />
+                              <Stack gap={0}>
+                                <Text
+                                  fw={500}
+                                  size="sm"
+                                  component={Link}
+                                  to={`/p/${comment.user_profiles?.slug || comment.user_id}`}
+                                  style={{ textDecoration: 'none', color: 'inherit' }}
+                                >
+                                  {comment.user_profiles?.display_name || 'Unknown User'}
+                                </Text>
+                                <Text c="dimmed" size="xs" title={new Date(comment.created_at).toLocaleString()}>
+                                  {getRelativeTimeCb(comment.created_at)}
+                                </Text>
+                              </Stack>
                             </Group>
                             {user && user.id === comment.user_id && (
                               <ActionIcon

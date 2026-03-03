@@ -31,3 +31,14 @@ export const getRelativeTime = (dateString) => {
   const diffInYears = Math.floor(diffInDays / 365);
   return `${diffInYears} year${diffInYears > 1 ? 's' : ''} ago`;
 };
+
+/**
+ * Returns the best available profile image URL for a user
+ * Fallback priority: custom display photo -> maimai dx icon -> placeholder
+ * @param {Object} profile - User profile object from Supabase
+ * @returns {string|null} - Profile image URL or null if no profile
+ */
+export const getProfileImageUrl = (profile) => {
+  if (!profile) return null;
+  return profile.display_photo_url || profile.dx_display_photo_url || null;
+};

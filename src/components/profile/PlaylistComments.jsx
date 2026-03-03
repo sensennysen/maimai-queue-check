@@ -4,7 +4,7 @@ import { IconTrash, IconMessageCircle, IconAlertCircle } from '@tabler/icons-rea
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../../hooks/useAuth';
 import { playlistService } from '../../services/supabase';
-import { getRelativeTime } from '../../utils/formatters';
+import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
 import { useNavigate } from 'react-router-dom';
 
 export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
@@ -101,7 +101,7 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
                   <Group gap="xs"
                     style={{ cursor: 'pointer' }}
                     onClick={() => navigate(`/p/${comment.user_profiles?.slug || comment.user_id}`)}>
-                    <Avatar src={comment.user_profiles?.display_photo_url} size="xs" radius="xl" />
+                    <Avatar src={getProfileImageUrl(comment.user_profiles)} size={32} radius="xl" />
                     <Stack gap={0}>
                       <Group gap={6} align="baseline">
                         <Text size="xs" fw={700}>{comment.user_profiles?.display_name || 'Anonymous'}</Text>

@@ -8,13 +8,13 @@ export const discussionService = {
       const [ratingsResult, commentsResult, tagsResult] = await Promise.all([
         supabase
           .from('song_ratings')
-          .select('user_id, rating, created_at, user_profiles(display_name)')
+          .select('user_id, rating, created_at, user_profiles(display_name, display_photo_url, dx_display_photo_url)')
           .eq('song_id', songId),
         supabase
           .from('song_comments')
           .select(`
             id, user_id, content, created_at, updated_at,
-            user_profiles:user_profiles!song_comments_user_id_fkey(display_name),
+            user_profiles:user_profiles!song_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url),
             song_comment_votes(vote_type, user_id)
           `)
           .eq('song_id', songId)
@@ -23,7 +23,7 @@ export const discussionService = {
           .from('song_tags')
           .select(`
             tag_id, user_id, created_at,
-            user_profiles(display_name),
+            user_profiles(display_name, display_photo_url, dx_display_photo_url),
             song_tags_dictionary(tag_name:name, is_predefined)
           `)
           .eq('song_id', songId)
@@ -190,7 +190,7 @@ export const discussionService = {
       .insert({ song_id: songId, user_id: userId, content })
       .select(`
         id, user_id, content, created_at, updated_at,
-        user_profiles:user_profiles!song_comments_user_id_fkey(display_name)
+        user_profiles:user_profiles!song_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url)
       `)
       .single();
       

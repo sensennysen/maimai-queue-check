@@ -664,7 +664,7 @@ export const playlistService = {
         content,
         created_at,
         comments_enabled,
-      author:user_profiles!user_id(id, slug, display_name, display_photo_url),
+      author:user_profiles!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
       playlist:user_playlists!playlist_id(
         id,
         title,
@@ -706,7 +706,7 @@ export const playlistService = {
         content,
         created_at,
         user_id,
-        user_profiles:user_id(display_name, display_photo_url, slug)
+        user_profiles:user_id(display_name, display_photo_url, dx_display_photo_url, slug)
       `)
       .eq('post_id', postId)
       .order('created_at', { ascending: false });
@@ -732,7 +732,7 @@ export const playlistService = {
         content,
         created_at,
         user_id,
-        user_profiles:user_id(display_name, display_photo_url, slug)
+        user_profiles:user_id(display_name, display_photo_url, dx_display_photo_url, slug)
       `)
       .single();
 

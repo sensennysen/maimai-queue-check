@@ -14,7 +14,7 @@ import { GlobalSharePlaylistModal } from '../components/modals/GlobalSharePlayli
 import { SharedPlaylistHorizontalList } from '../components/profile/SharedPlaylistHorizontalList';
 import { PlaylistComments } from '../components/profile/PlaylistComments';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
-import { getRelativeTime } from '../utils/formatters';
+import { getRelativeTime, getProfileImageUrl } from '../utils/formatters';
 
 export default function SharedPlaylistsPage() {
   const navigate = useNavigate();
@@ -144,7 +144,7 @@ export default function SharedPlaylistsPage() {
                       <Group gap="sm"
                         style={{ cursor: 'pointer' }}
                         onClick={() => navigate(`/p/${post.author.slug || post.author.id}`)}>
-                        <Avatar src={post.author.display_photo_url} radius="xl" color="blue">
+                        <Avatar src={getProfileImageUrl(post.author)} size={40} radius="xl" color="blue">
                           {(post.author.display_name || post.author.slug || '?').charAt(0).toUpperCase()}
                         </Avatar>
                         <Stack gap={0}>
