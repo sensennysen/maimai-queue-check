@@ -6,6 +6,7 @@ import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
 import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
 import IconSettings from '@tabler/icons-react/dist/esm/icons/IconSettings.mjs';
 import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
+import IconList from '@tabler/icons-react/dist/esm/icons/IconList.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';
@@ -91,6 +92,12 @@ const LoginForm = ({ onOpenPreferences }) => {
             </Stack>
           </Menu.Label>
           <Divider />
+          <Menu.Item
+            leftSection={<IconList size={16} />}
+            onClick={() => navigate('/')}
+          >
+            Queue
+          </Menu.Item>
           <Menu.Item
             leftSection={<IconUser size={16} />}
             onClick={() => {

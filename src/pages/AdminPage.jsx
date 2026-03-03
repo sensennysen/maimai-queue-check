@@ -48,7 +48,7 @@ const AdminPage = () => {
 
   if (!userRoles?.is_admin && !isSuperAdmin) {
     return (
-      <Container size="sm" py="xl">
+      <Container size="sm" py={0}>
         <Paper p="xl" withBorder>
           <Stack align="center" gap="md">
             <Title order={3}>Access Denied</Title>
@@ -61,7 +61,7 @@ const AdminPage = () => {
   }
 
   return (
-    <Container size="xl" py="xl">
+    <Container size="xl" pt={0} pb="xl">
       <Stack gap="lg">
         <Paper p="md" radius="md" withBorder>
           <Group justify="space-between" align="center">

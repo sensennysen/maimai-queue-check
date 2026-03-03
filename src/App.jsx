@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense, useMemo } from 'react';
-import { MantineProvider, Container, Title, Paper, Stack, Group, Loader, createTheme } from '@mantine/core';
+import { MantineProvider, Container, Title, Paper, Stack, Box, Loader, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -16,10 +16,10 @@ import { theme as mantineTheme, themes } from './config/theme';
 import QueueManager from './features/queue/components/QueueManager';
 // import LoginForm from './components/LoginForm'; // Assuming this stayed, if not update
 import ThemeToggle from './components/layout/ThemeToggle';
-import BranchSelector from './components/layout/BranchSelector';
+import NotificationCenter from './components/layout/NotificationCenter';
+import GlobalHeader from './components/layout/GlobalHeader';
 import Footer from './components/layout/Footer';
 import PreferencesModal from './components/modals/PreferencesModal';
-import NotificationCenter from './components/layout/NotificationCenter';
 import './App.css';
 
 // Lazy load pages
@@ -38,50 +38,11 @@ const SharedPlaylistsPage = lazy(() => import('./pages/SharedPlaylistsPage'));
 
 // The main application content (Queue check, Login, etc.)
 function MainApp() {
-  const { user } = useAuth();
-  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
-
   return (
     <div className="App">
-      <Container size="lg" py="xl">
-        <Stack gap="lg">
-          <Paper p="md" radius="md" withBorder className="app-header animate-fade-in">
-            <Group justify="space-between" align="center" gap="md" wrap="wrap">
-              <Group gap="md">
-                <Title order={1} className="app-title">
-                  maiPaQueueCheck PH
-                </Title>
-              </Group>
-            </Group>
-          </Paper>
-
-          <Group justify="space-between" gap="sm" className="animate-fade-in delay-100">
-            <BranchSelector />
-            <Group gap="sm">
-              {user && <NotificationCenter />}
-              <ThemeToggle />
-              <LoginForm
-                onOpenPreferences={() => setShowPreferencesModal(true)}
-              />
-            </Group>
-          </Group>
-
-          <main className="animate-fade-in delay-200">
-            <QueueManager />
-          </main>
-
-          <div className="animate-fade-in delay-300">
-            <Footer />
-          </div>
-        </Stack>
-      </Container>
-
-      {user && (
-        <PreferencesModal
-          opened={showPreferencesModal}
-          onClose={() => setShowPreferencesModal(false)}
-        />
-      )}
+      <main className="animate-fade-in delay-200">
+        <QueueManager />
+      </main>
     </div>
   );
 }
@@ -89,6 +50,8 @@ function MainApp() {
 // Mantine wrapper that provides theme
 function AppProviders() {
   const { isDark, currentTheme } = useTheme();
+  const { user } = useAuth();
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
 
   const dynamicTheme = useMemo(() => {
     const selectedPalette = themes[currentTheme] || themes.circle;
@@ -118,27 +81,41 @@ function AppProviders() {
   return (
     <MantineProvider theme={dynamicTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
       <Notifications position="top-right" />
-      <Suspense fallback={
-        <Container size="lg" py="xl">
+
+      <Container size="xl" py="lg">
+        <GlobalHeader onOpenPreferences={() => setShowPreferencesModal(true)} />
+
+        <Suspense fallback={
           <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
             <Loader size="xl" color="pink" type="bars" />
           </Stack>
-        </Container>
-      }>
-        <Routes>
-          <Route path="/profile/export" element={<ExportBest50Page />} />
-          <Route path="/profile" element={<ProfileRedirect />} />
-          <Route path="/view" element={<ViewPage />} />
-          <Route path="/songs" element={<SongsPage />} />
-          <Route path="/songs/:id" element={<SongDiscussionPage />} />
-          <Route path="/shared-playlists" element={<SharedPlaylistsPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/audit-logs" element={<AuditLogsPage />} />
-          <Route path="/p/:slug" element={<PublicProfilePage />} />
-          <Route path="/*" element={<MainApp />} />
-        </Routes>
-      </Suspense>
+        }>
+          <Routes>
+            <Route path="/profile/export" element={<ExportBest50Page />} />
+            <Route path="/profile" element={<ProfileRedirect />} />
+            <Route path="/view" element={<ViewPage />} />
+            <Route path="/songs" element={<SongsPage />} />
+            <Route path="/songs/:id" element={<SongDiscussionPage />} />
+            <Route path="/shared-playlists" element={<SharedPlaylistsPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/audit-logs" element={<AuditLogsPage />} />
+            <Route path="/p/:slug" element={<PublicProfilePage />} />
+            <Route path="/*" element={<MainApp />} />
+          </Routes>
+        </Suspense>
+
+        <Box mt="xl" className="animate-fade-in delay-300">
+          <Footer />
+        </Box>
+      </Container>
+
+      {user && (
+        <PreferencesModal
+          opened={showPreferencesModal}
+          onClose={() => setShowPreferencesModal(false)}
+        />
+      )}
       <Analytics />
     </MantineProvider>
   );

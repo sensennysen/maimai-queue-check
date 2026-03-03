@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Divider, ActionIcon, Avatar, Box } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconArrowLeft, IconRefresh, IconPlaylist, IconShare, IconDotsVertical, IconMessageOff, IconMessage, IconTrash } from '@tabler/icons-react';
+import { IconRefresh, IconPlaylist, IconShare, IconDotsVertical, IconMessageOff, IconMessage, IconTrash, IconArrowLeft } from '@tabler/icons-react';
 import { Menu } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
@@ -81,7 +81,7 @@ export default function SharedPlaylistsPage() {
   };
 
   return (
-    <Container size="md" py="xl" className="animate-fade-in">
+    <Container size="md" pt={0} pb="xl" className="animate-fade-in">
       <Stack gap="xl">
         <Group justify="space-between" align="flex-end">
           <Stack gap={0}>

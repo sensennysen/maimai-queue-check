@@ -89,8 +89,8 @@ export default function SongDiscussionPage() {
       <Container size="md" py="xl">
         <Stack align="center" gap="md">
           <Title order={2}>Song Not Found</Title>
-          <Button onClick={() => navigate(-1)} leftSection={<IconArrowLeft size={16} />}>
-            Go Back
+          <Button onClick={() => navigate('/')}>
+            Back to Queue
           </Button>
         </Stack>
       </Container>
@@ -98,13 +98,10 @@ export default function SongDiscussionPage() {
   }
 
   return (
-    <Container size="xl" py="xl" className="animate-fade-in">
+    <Container size="xl" pt={0} pb="xl" className="animate-fade-in">
       <Stack gap="xl">
         {/* Navigation */}
-        <Group justify="space-between">
-          <Button onClick={() => navigate(-1)} variant="subtle" leftSection={<IconArrowLeft size={16} />}>
-            Go Back
-          </Button>
+        <Group justify="flex-end">
           <Button
             variant="light"
             color="teal"

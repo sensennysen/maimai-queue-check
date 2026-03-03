@@ -9,7 +9,14 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
   const [selectedSongs, setSelectedSongs] = useState(initialSelectedSongs);
 
   useEffect(() => {
-    setSelectedSongs(initialSelectedSongs);
+    // Only update if initialSelectedSongs has changed to avoid infinite loops
+    // using JSON.stringify for a quick deep comparison of the song objects
+    const initialIds = JSON.stringify(initialSelectedSongs.map(s => s.id));
+    const currentIds = JSON.stringify(selectedSongs.map(s => s.id));
+
+    if (initialIds !== currentIds) {
+      setSelectedSongs(initialSelectedSongs);
+    }
   }, [initialSelectedSongs]);
 
   const handleSelectionChange = (songs) => {

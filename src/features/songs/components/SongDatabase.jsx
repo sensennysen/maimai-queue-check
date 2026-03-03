@@ -1,6 +1,6 @@
 import { Container, Title, Box, Group, Stack, Paper, Avatar, Button, Text } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import { IconArrowLeft, IconMusic, IconBrandGithub, IconBrandTwitter } from '@tabler/icons-react';
+import { IconMusic, IconBrandGithub, IconBrandTwitter } from '@tabler/icons-react';
 import ThemeToggle from '../../../components/layout/ThemeToggle';
 import SongFilters from './SongFilters';
 import SongList from './SongList';
@@ -21,20 +21,8 @@ function SongDatabase() {
   } = useSongDatabase();
 
   return (
-    <Container size="xl" pt="xl" pb="xl">
+    <Container size="xl" pt={0} pb="lg">
       <Stack gap="lg">
-        {/* Back Button / Navigation */}
-        <Group justify="space-between">
-          <Button
-            component={Link}
-            to="/"
-            variant="subtle"
-            leftSection={<IconArrowLeft size={18} />}
-            className="animate-fade-in"
-          >
-            Back to queue
-          </Button>
-        </Group>
 
         {/* redesigned Header Card */}
         <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-100">

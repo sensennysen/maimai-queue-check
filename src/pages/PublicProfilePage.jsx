@@ -8,7 +8,7 @@ import {
 } from '@mantine/core';
 import {
   IconUser, IconTrophy, IconMapPin, IconAlertCircle,
-  IconArrowLeft, IconStar, IconLock, IconLogin,
+  IconStar, IconLock, IconLogin,
   IconSettings, IconUpload, IconCamera, IconTrash,
   IconShare, IconCode, IconBug, IconGitPullRequest, IconListDetails
 } from '@tabler/icons-react';
@@ -142,7 +142,7 @@ const PublicProfilePage = () => {
 
   if (isRestricted) {
     return (
-      <Container size="lg" py="xl">
+      <Container size="lg" py={0}>
         <Stack align="center" justify="center" style={{ minHeight: '70vh' }} gap="xl">
           <Paper shadow="xl" p={40} radius="lg" withBorder style={{ maxWidth: 500, width: '100%', textAlign: 'center', backgroundColor: 'var(--mantine-color-body)' }}>
             <ThemeIcon size={80} radius={80} variant="light" color="blue" mb="md">
@@ -168,16 +168,6 @@ const PublicProfilePage = () => {
                   Log In to View
                 </Button>
               )}
-              <Button
-                component={Link}
-                to="/"
-                variant="subtle"
-                color="gray"
-                leftSection={<IconArrowLeft size={18} />}
-                fullWidth
-              >
-                Back to Home
-              </Button>
             </Stack>
           </Paper>
         </Stack>
@@ -187,7 +177,7 @@ const PublicProfilePage = () => {
 
   if (error || !profile) {
     return (
-      <Container size="lg" py="xl">
+      <Container size="lg" py={0}>
         <Stack align="center" justify="center" style={{ minHeight: '70vh' }} gap="xl">
           <Paper shadow="xl" p={40} radius="lg" withBorder style={{ maxWidth: 500, width: '100%', textAlign: 'center' }}>
             <ThemeIcon size={80} radius={80} variant="light" color="red" mb="md">
@@ -197,18 +187,6 @@ const PublicProfilePage = () => {
             <Text size="lg" c="dimmed" mb="xl">
               {error || 'Profile not found'}
             </Text>
-            <Button
-              component={Link}
-              to="/"
-              size="lg"
-              variant="outline"
-              color="red"
-              radius="md"
-              leftSection={<IconArrowLeft size={18} />}
-              fullWidth
-            >
-              Back to Home
-            </Button>
           </Paper>
         </Stack>
       </Container>
@@ -253,7 +231,7 @@ const PublicProfilePage = () => {
   );
 
   return (
-    <Container size="lg" py="xl">
+    <Box className="animate-fade-in" pt={0}>
       <Stack gap="lg">
         {/* View as Public Banner */}
         {viewAsPublic && isRealOwner && (
@@ -275,20 +253,7 @@ const PublicProfilePage = () => {
           </Alert>
         )}
 
-        {/* Back Button / Navigation */}
-        <Group justify="space-between">
-          {!viewAsPublic ? (
-            <Button
-              component={Link}
-              to="/"
-              variant="subtle"
-              leftSection={<IconArrowLeft size={18} />}
-              className="animate-fade-in"
-            >
-              Back to queue
-            </Button>
-          ) : <div />}
-
+        <Group justify="flex-end">
           {/* Action Buttons only for owner */}
           {isRealOwner && !viewAsPublic && (
             <Group gap="xs">
@@ -897,7 +862,7 @@ const PublicProfilePage = () => {
         title="Best 50 Details"
         best50Score={selectedBest50Score}
       />
-    </Container >
+    </Box>
   );
 };
 
