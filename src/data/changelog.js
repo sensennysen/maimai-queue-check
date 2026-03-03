@@ -1,7 +1,7 @@
 export const changelogData = [
   {
     version: 'v1.9.1',
-    date: 'June 10, 2026',
+    date: 'March 4, 2026',
     changes: [
       {
         type: 'QOL',
