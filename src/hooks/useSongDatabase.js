@@ -22,7 +22,8 @@ export function useSongDatabase() {
     levelMax: '',
     showInternalLevels: false,
     region: 'intl',
-    type: ''
+    type: '',
+    artists: []
   });
 
   // Determine the effective region for overrides
@@ -79,15 +80,17 @@ export function useSongDatabase() {
   }, [songs, effectiveRegion, filters.region]);
 
 
-  // Extract unique categories, versions, and levels for filter dropdowns
-  const { categories, versions, levels, internalLevels } = useMemo(() => {
+  // Extract unique categories, versions, levels, and artists for filter dropdowns
+  const { categories, versions, levels, internalLevels, artists } = useMemo(() => {
     const cats = new Set();
     const vers = new Set();
     const lvls = new Set();
     const intLvls = new Set();
+    const arts = new Set();
 
     overriddenSongs.forEach(song => {
       if (song.category && song.category !== 'Unknown') cats.add(song.category);
+      if (song.artist && song.artist !== 'Unknown') arts.add(song.artist);
       if (song.version) {
         // Apply version mapping if exists
         const mappedVersion = VERSION_MAPPING[song.version] || song.version;
@@ -126,7 +129,8 @@ export function useSongDatabase() {
       categories: categoriesOptions,
       versions: sortedVersions,
       levels: sortedLevels,
-      internalLevels: sortedInternalLevels
+      internalLevels: sortedInternalLevels,
+      artists: Array.from(arts).sort().map(art => ({ value: art, label: art }))
     };
   }, [overriddenSongs]);
 
@@ -169,6 +173,11 @@ export function useSongDatabase() {
 
       // 2. Category
       if (filters.categories.length > 0 && !filters.categories.includes(song.category)) {
+        return false;
+      }
+
+      // 2.5 Artist
+      if (filters.artists.length > 0 && !filters.artists.includes(song.artist)) {
         return false;
       }
 
@@ -247,6 +256,7 @@ export function useSongDatabase() {
     categories,
     versions,
     levels,
-    internalLevels
+    internalLevels,
+    artists
   };
 }

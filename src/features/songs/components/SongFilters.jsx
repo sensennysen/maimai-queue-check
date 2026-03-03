@@ -19,7 +19,7 @@ const toLevelLabel = (val) => {
   return `${floor}`;
 };
 
-function SongFilters({ filters, onFilterChange, categories, versions, levels = [], internalLevels = [] }) {
+function SongFilters({ filters, onFilterChange, categories, versions, levels = [], internalLevels = [], artists = [] }) {
   const [isOpen, setIsOpen] = useState(false);
   const isInternal = filters.showInternalLevels;
 
@@ -52,7 +52,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
   };
 
   const hasActiveFilters = filters.query !== '' || filters.categories.length > 0 || filters.versions.length > 0 ||
-    filters.levelMin !== '' || filters.levelMax !== '' || filters.region !== 'intl' || filters.type !== '';
+    filters.levelMin !== '' || filters.levelMax !== '' || filters.region !== 'intl' || filters.type !== '' || filters.artists?.length > 0;
 
   const resetFilters = () => {
     onFilterChange({
@@ -64,7 +64,8 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
       levelMax: '',
       showInternalLevels: false,
       region: 'intl',
-      type: ''
+      type: '',
+      artists: []
     });
   };
 
@@ -115,6 +116,18 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         data={categories}
         value={filters.categories}
         onChange={(val) => updateFilter('categories', val)}
+        searchable
+        clearable
+        variant="filled"
+        radius="md"
+      />
+
+      <MultiSelect
+        label="Artists"
+        placeholder="Select artists"
+        data={artists}
+        value={filters.artists || []}
+        onChange={(val) => updateFilter('artists', val)}
         searchable
         clearable
         variant="filled"
