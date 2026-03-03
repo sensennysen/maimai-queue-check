@@ -16,6 +16,7 @@ import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
 import IconMessageReport from '@tabler/icons-react/dist/esm/icons/IconMessageReport.mjs';
 import IconFileText from '@tabler/icons-react/dist/esm/icons/IconFileText.mjs';
 import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
+import IconTags from '@tabler/icons-react/dist/esm/icons/IconTags.mjs';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../contexts/BranchContext';
@@ -23,6 +24,7 @@ import BranchList from '../features/admin/components/BranchList';
 import UserManager from '../features/admin/components/UserManager';
 import ReportsManager from '../features/admin/components/ReportsManager';
 import QueueRuleManager from '../features/admin/components/QueueRuleManager';
+import TagManager from '../features/admin/components/TagManager';
 import './AdminPage.css';
 
 const AdminPage = () => {
@@ -105,6 +107,11 @@ const AdminPage = () => {
             <Tabs.Tab value="rules" leftSection={<IconFileText size={16} />}>
               Queue Rule
             </Tabs.Tab>
+            {isSuperAdmin && (
+              <Tabs.Tab value="tags" leftSection={<IconTags size={16} />}>
+                Tag Management
+              </Tabs.Tab>
+            )}
           </Tabs.List>
 
           {isSuperAdmin && (
@@ -134,6 +141,12 @@ const AdminPage = () => {
               currentUserRoles={userRoles}
             />
           </Tabs.Panel>
+
+          {isSuperAdmin && (
+            <Tabs.Panel value="tags" pt="md">
+              <TagManager isSuperAdmin={isSuperAdmin} />
+            </Tabs.Panel>
+          )}
         </Tabs>
       </Stack>
     </Container>
