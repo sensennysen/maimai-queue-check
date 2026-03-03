@@ -324,22 +324,45 @@ export default function SongDiscussionPage() {
                     {user ? (
                       <Stack gap={4} mt="xs">
                         <Text size="sm" fw={700} c="blue">How do you like this song?</Text>
-                        <Group justify="space-between">
+                        <Group justify="space-between" align="center">
                           <Text size="xs" fw={500} c="dimmed" tt="uppercase">Your Rating</Text>
-                          {isRatingLoading ? <Loader size="sm" /> : (
-                            <Rating
-                              size="lg"
-                              value={discussionData.ratings.find(r => r.user_id === user.id)?.rating || 0}
-                              onChange={async (val) => {
-                                setIsRatingLoading(true);
-                                try {
-                                  if (val === 0) {
-                                    await discussionService.removeSongRating(id, user.id);
-                                    setDiscussionData(prev => ({
-                                      ...prev,
-                                      ratings: prev.ratings.filter(r => r.user_id !== user.id)
-                                    }));
-                                  } else {
+                          <Group gap="xs">
+                            {discussionData.ratings.some(r => r.user_id === user.id) && !isRatingLoading && (
+                              <ActionIcon
+                                variant="subtle"
+                                color="red"
+                                size="sm"
+                                title="Remove rating"
+                                onClick={async () => {
+                                  if (window.confirm("Remove your rating for this song?")) {
+                                    setIsRatingLoading(true);
+                                    try {
+                                      await discussionService.removeSongRating(id, user.id);
+                                      setDiscussionData(prev => ({
+                                        ...prev,
+                                        ratings: prev.ratings.filter(r => r.user_id !== user.id)
+                                      }));
+                                      notifications.show({ title: 'Rating Removed', message: 'Your rating has been removed.', color: 'blue' });
+                                    } catch (err) {
+                                      console.error('Failed to remove rating', err);
+                                      notifications.show({ title: 'Error', message: 'Failed to remove rating.', color: 'red' });
+                                    } finally {
+                                      setIsRatingLoading(false);
+                                    }
+                                  }
+                                }}
+                              >
+                                <IconTrash size={14} />
+                              </ActionIcon>
+                            )}
+                            {isRatingLoading ? <Loader size="sm" /> : (
+                              <Rating
+                                size="lg"
+                                value={discussionData.ratings.find(r => r.user_id === user.id)?.rating || 0}
+                                onChange={async (val) => {
+                                  if (val === 0) return; // Prevent 0 from being set through stars if not supported
+                                  setIsRatingLoading(true);
+                                  try {
                                     await discussionService.upsertSongRating(id, user.id, val);
                                     setDiscussionData(prev => {
                                       const existing = prev.ratings.find(r => r.user_id === user.id);
@@ -354,15 +377,15 @@ export default function SongDiscussionPage() {
                                         ratings: [...prev.ratings, { user_id: user.id, rating: val }]
                                       };
                                     });
+                                  } catch (err) {
+                                    console.error('Failed to update rating', err);
+                                  } finally {
+                                    setIsRatingLoading(false);
                                   }
-                                } catch (err) {
-                                  console.error('Failed to update rating', err);
-                                } finally {
-                                  setIsRatingLoading(false);
-                                }
-                              }}
-                            />
-                          )}
+                                }}
+                              />
+                            )}
+                          </Group>
                         </Group>
                       </Stack>
                     ) : (

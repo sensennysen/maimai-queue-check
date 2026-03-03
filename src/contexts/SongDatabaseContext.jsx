@@ -47,22 +47,26 @@ export function SongDatabaseProvider({ children }) {
     return [byId, byTitle];
   }, [songs]);
 
+  const requestFetch = useCallback(() => {
+    setIsRequested(true);
+  }, []);
+
+  const refresh = useCallback(() => {
+    songsService.clearCache();
+    setIsRequested(false);
+    // Use a small delay or next tick to ensure state transition is handled
+    setTimeout(() => setIsRequested(true), 0);
+  }, []);
+
   const value = useMemo(() => ({
     songs,
     songMapById,
     songMapByTitle,
     loading,
     error,
-    requestFetch: () => setIsRequested(true),
-    refresh: () => {
-      songsService.clearCache();
-      if (isRequested) {
-        // Re-trigger fetch if already requested
-        setIsRequested(false);
-        setTimeout(() => setIsRequested(true), 0);
-      }
-    }
-  }), [songs, songMapById, songMapByTitle, loading, error, isRequested]);
+    requestFetch,
+    refresh
+  }), [songs, songMapById, songMapByTitle, loading, error, requestFetch, refresh]);
 
   return (
     <SongDatabaseContext.Provider value={value}>
