@@ -1,12 +1,24 @@
 import { Modal, Box, LoadingOverlay, Button, Group, Text } from '@mantine/core';
 import { IconCheck } from '@tabler/icons-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSongDatabase } from '../../../hooks/useSongDatabase';
 import SongFilters from './SongFilters';
 import SongList from './SongList';
 
-function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initialSelectedSongs = [] }) {
+function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initialSelectedSongs = [], onSelectionChange }) {
   const [selectedSongs, setSelectedSongs] = useState(initialSelectedSongs);
+
+  useEffect(() => {
+    setSelectedSongs(initialSelectedSongs);
+  }, [initialSelectedSongs]);
+
+  const handleSelectionChange = (songs) => {
+    setSelectedSongs(songs);
+    if (onSelectionChange) {
+      onSelectionChange(songs);
+    }
+  };
+
   const {
     loading,
     filters,
@@ -33,7 +45,7 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
                   size="xs"
                   variant="subtle"
                   color="red"
-                  onClick={() => setSelectedSongs([])}
+                  onClick={() => handleSelectionChange([])}
                 >
                   Clear Selection
                 </Button>
@@ -117,7 +129,7 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
                 }}
                 multiple={multiple}
                 selectedSongs={selectedSongs}
-                onSelectionChange={setSelectedSongs}
+                onSelectionChange={handleSelectionChange}
               />
             </div>
           </div>
