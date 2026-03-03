@@ -1,14 +1,14 @@
 # Project State
 
-> Last updated by `/map` workflow on March 2, 2026
+> Last updated — Phase 6 added on March 3, 2026
 
 ## Last Session Summary
 
-**Codebase mapping complete.**
+**Phase 6 added: Playlist Draft / Autosave.**
 
-- **Components identified**: 50+ (9 pages, 5 context providers, 17 custom hooks, 10+ services)
-- **Dependencies analyzed**: 43 production + 12 dev (all recent, no critical outdated packages)
-- **Technical debt items found**: 6 (context duplication, hook proliferation, side-effect patterns, service consolidation)
+- New phase added to address user-reported progress loss when closing the New Playlist modal mid-session.
+- Plan saved at `.gsd/phases/6/1-PLAN.md`.
+- Two files in scope: `PlaylistEditModal.jsx` (localStorage draft persistence) and `PlaylistSection.jsx` (draft indicator badge).
 
 ### Key Metrics
 
@@ -49,11 +49,10 @@ React 19 SPA with Vite
 
 ## Next Steps
 
-1. **Review Architecture** - Validate component organization & data flow
-2. **Plan Improvements** - Use `/plan` workflow with this mapping as context
-3. **Add Tests** - Implement unit tests for hooks & services (identified gap)
-4. **Refactor Contexts** - Consolidate duplicate context definitions
-5. **Simplify Hooks** - Consider grouping related hooks
+1. **Execute Phase 6** - Run `/execute 6` to implement playlist draft autosave
+2. **Add Tests** - Implement unit tests for hooks & services (identified gap)
+3. **Refactor Contexts** - Consolidate duplicate context definitions
+4. **Simplify Hooks** - Consider grouping related hooks
 
 ---
 

@@ -464,6 +464,7 @@ export const playlistService = {
       `)
       .eq('user_id', userId)
       .eq('deleted', false)
+      .eq('is_draft', false)
       .order('order_index', { ascending: true });
 
     if (error) {
@@ -478,7 +479,7 @@ export const playlistService = {
   },
 
   // Update or create a playlist
-  async upsertPlaylist(userId, playlistId, { title, comment, is_public, songIds, songs }) {
+  async upsertPlaylist(userId, playlistId, { title, comment, is_public, is_draft = false, songIds, songs }) {
     let finalPlaylistId = playlistId;
 
     if (!finalPlaylistId) {
@@ -489,6 +490,7 @@ export const playlistService = {
           title: title || 'New Playlist',
           comment,
           is_public: is_public || false,
+          is_draft,
           order_index: 0
         })
         .select()
@@ -497,7 +499,7 @@ export const playlistService = {
       if (error) throw error;
       finalPlaylistId = data.id;
     } else {
-      const updates = { title, comment };
+      const updates = { title, comment, is_draft };
       if (is_public !== undefined) updates.is_public = is_public;
       
       const { error } = await supabase
@@ -546,6 +548,58 @@ export const playlistService = {
     const playlists = await this.getPlaylists(userId);
     return playlists.find(p => p.id === finalPlaylistId);
   },
+
+  // --- Draft methods ---
+
+  // Get the current in-progress draft for a user (at most one, enforced by DB index)
+  async getDraft(userId) {
+    if (!userId) return null;
+    const { data, error } = await supabase
+      .from('user_playlists')
+      .select(`
+        *,
+        songs:playlist_songs(
+          song_id,
+          level,
+          order_index
+        )
+      `)
+      .eq('user_id', userId)
+      .eq('is_draft', true)
+      .eq('deleted', false)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return null;
+    return {
+      ...data,
+      songs: (data.songs || []).sort((a, b) => a.order_index - b.order_index)
+    };
+  },
+
+  // Create or update a draft playlist (songs are fully replaced each call)
+  async saveDraft(userId, draftId, { title, comment, is_public, songs }) {
+    const payload = {
+      title: title || '',
+      comment: comment || null,
+      is_public: is_public || false,
+      is_draft: true,
+      songs
+    };
+    return this.upsertPlaylist(userId, draftId || null, payload);
+  },
+
+  // Hard-delete a draft (user discarded it)
+  async discardDraft(draftId) {
+    if (!draftId) return;
+    const { error } = await supabase
+      .from('user_playlists')
+      .update({ deleted: true })
+      .eq('id', draftId);
+    if (error) throw error;
+  },
+
+  // --- End draft methods ---
 
   // Delete a playlist
   async deletePlaylist(playlistId) {

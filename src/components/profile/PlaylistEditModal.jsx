@@ -1,57 +1,195 @@
-import { useState, useEffect } from 'react';
-import { Modal, Stack, Text, Textarea, Button, Group, ActionIcon, Paper, Image, Box, Divider, Loader, TextInput, Badge, Switch } from '@mantine/core';
-import { IconPlus, IconTrash, IconArrowUp, IconArrowDown, IconPlaylistAdd, IconDeviceFloppy } from '@tabler/icons-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Modal, Stack, Text, Textarea, Button, Group, ActionIcon, Paper, Image, Box, Divider, Loader, TextInput, Badge, Switch, Alert } from '@mantine/core';
+import { IconPlus, IconTrash, IconArrowUp, IconArrowDown, IconPlaylistAdd, IconDeviceFloppy, IconFileAlert } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
 import { playlistService } from '../../services/supabase';
 import { DIFFICULTY_COLORS } from '../../config/maimai-constants';
 import { PlaylistProtectionModal } from '../modals/PlaylistProtectionModal';
+import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 
-export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, onSave, hidePublicToggle = false }) {
+export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, onSave, hidePublicToggle = false, onDraftChange }) {
+  const { songMapById } = useSongDatabaseContext();
   const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
-  const [selectedSongs, setSelectedSongs] = useState([]); // Array of full song objects
+  const [selectedSongs, setSelectedSongs] = useState([]);
   const [isSongPickerOpen, setIsSongPickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isProtectionModalOpen, setIsProtectionModalOpen] = useState(false);
-
   const [isPublic, setIsPublic] = useState(false);
 
+  // Draft state managed via Refs for stable debounced access
+  const draftIdRef = useRef(null);
+  const [showDraftAlert, setShowDraftAlert] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState(null);
+  const [isDraftSaving, setIsDraftSaving] = useState(false);
+  const autosaveTimer = useRef(null);
+  const isNewPlaylist = !initialPlaylist;
+
+  // On open: for new playlists, check if a draft exists
   useEffect(() => {
-    if (opened && initialPlaylist) {
+    if (!opened) return;
+
+    if (initialPlaylist) {
       setTitle(initialPlaylist.title || '');
       setComment(initialPlaylist.comment || '');
       setIsPublic(initialPlaylist.is_public || false);
       setSelectedSongs(initialPlaylist.fullSongs || []);
-    } else if (opened) {
+      draftIdRef.current = null;
+      setShowDraftAlert(false);
+      setPendingDraft(null);
+    } else {
       setTitle('');
       setComment('');
       setIsPublic(false);
       setSelectedSongs([]);
+      draftIdRef.current = null;
+      setShowDraftAlert(false);
+      setPendingDraft(null);
+
+      if (userId) {
+        playlistService.getDraft(userId).then((draft) => {
+          if (draft && (draft.title || (draft.songs && draft.songs.length > 0) || draft.comment)) {
+            setPendingDraft(draft);
+            setShowDraftAlert(true);
+          }
+        }).catch(console.error);
+      }
     }
-  }, [opened, initialPlaylist]);
+  }, [opened, initialPlaylist, userId]);
+
+  // Clear autosave timer on close
+  useEffect(() => {
+    if (!opened) {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    }
+  }, [opened]);
+
+  const buildSongsPayload = useCallback((songs) =>
+    songs.map(s => {
+      // Handle both full song objects and raw draft entries
+      const id = s.cardId || s.songId || s.id;
+      return { id, level: s.level || null };
+    }),
+    []
+  );
+
+  // Debounced autosave
+  const scheduleDraftSave = useCallback((nextTitle, nextComment, nextIsPublic, nextSongs) => {
+    if (!isNewPlaylist || !userId) return;
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(async () => {
+      try {
+        setIsDraftSaving(true);
+        const saved = await playlistService.saveDraft(userId, draftIdRef.current, {
+          title: nextTitle,
+          comment: nextComment,
+          is_public: nextIsPublic,
+          songs: buildSongsPayload(nextSongs),
+        });
+        if (saved?.id) draftIdRef.current = saved.id;
+        if (onDraftChange) onDraftChange(true);
+      } catch (err) {
+        console.error('Draft autosave failed:', err);
+      } finally {
+        setIsDraftSaving(false);
+      }
+    }, 1000);
+  }, [isNewPlaylist, userId, buildSongsPayload, onDraftChange]);
+
+  const handleContinueDraft = () => {
+    if (!pendingDraft) return;
+    setTitle(pendingDraft.title || '');
+    setComment(pendingDraft.comment || '');
+    setIsPublic(pendingDraft.is_public || false);
+
+    // Resolve song data from the draft
+    if (pendingDraft.songs && songMapById) {
+      const resolved = pendingDraft.songs.map(entry => {
+        const full = songMapById.get(entry.song_id);
+        return full ? { ...full, level: entry.level } : null;
+      }).filter(Boolean);
+      setSelectedSongs(resolved);
+    } else {
+      setSelectedSongs([]);
+    }
+
+    draftIdRef.current = pendingDraft.id;
+    setShowDraftAlert(false);
+    setPendingDraft(null);
+  };
+
+  const handleDiscardDraft = async () => {
+    if (pendingDraft?.id) {
+      try {
+        await playlistService.discardDraft(pendingDraft.id);
+        if (onDraftChange) onDraftChange(false);
+      } catch (err) {
+        console.error('Failed to discard draft:', err);
+      }
+    }
+    setShowDraftAlert(false);
+    setPendingDraft(null);
+  };
 
   const handleAddSong = (songOrSongs) => {
     const newSelection = Array.isArray(songOrSongs) ? songOrSongs : [songOrSongs];
     setSelectedSongs(newSelection);
     setIsSongPickerOpen(false);
+    scheduleDraftSave(title, comment, isPublic, newSelection);
   };
 
   const handleRemoveSong = (index) => {
     const newSongs = [...selectedSongs];
     newSongs.splice(index, 1);
     setSelectedSongs(newSongs);
+    scheduleDraftSave(title, comment, isPublic, newSongs);
   };
 
   const moveSong = (index, direction) => {
     const newSongs = [...selectedSongs];
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= newSongs.length) return;
-
     const temp = newSongs[index];
     newSongs[index] = newSongs[newIndex];
     newSongs[newIndex] = temp;
     setSelectedSongs(newSongs);
+    scheduleDraftSave(title, comment, isPublic, newSongs);
+  };
+
+  const handleTitleChange = (e) => {
+    const val = e.currentTarget.value;
+    setTitle(val);
+    scheduleDraftSave(val, comment, isPublic, selectedSongs);
+  };
+
+  const handleCommentChange = (e) => {
+    const val = e.currentTarget.value;
+    setComment(val);
+    scheduleDraftSave(title, val, isPublic, selectedSongs);
+  };
+
+  const handlePublicChange = (newValue) => {
+    setIsPublic(newValue);
+    scheduleDraftSave(title, comment, newValue, selectedSongs);
+  };
+
+  const clearDraft = async () => {
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    if (draftIdRef.current) {
+      try {
+        await playlistService.discardDraft(draftIdRef.current);
+        if (onDraftChange) onDraftChange(false);
+      } catch (err) {
+        console.error('Failed to clear draft:', err);
+      }
+      draftIdRef.current = null;
+    }
+  };
+
+  const handleCancel = async () => {
+    await clearDraft();
+    onClose();
   };
 
   const handleSave = async () => {
@@ -61,14 +199,18 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
     }
 
     setIsSaving(true);
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     try {
-      const songs = selectedSongs.map(s => ({ id: s.cardId || s.songId, level: s.level }));
-      const updatedPlaylist = await playlistService.upsertPlaylist(userId, initialPlaylist?.id, {
+      const songs = selectedSongs.map(s => ({ id: s.cardId || s.songId || s.id, level: s.level || null }));
+      const updatedPlaylist = await playlistService.upsertPlaylist(userId, draftIdRef.current || initialPlaylist?.id, {
         title: title.trim(),
         comment: comment.trim(),
         is_public: isPublic,
+        is_draft: false,
         songs
       });
+
+      if (onDraftChange) onDraftChange(false);
 
       notifications.show({
         title: 'Success',
@@ -77,6 +219,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
       });
 
       if (onSave) onSave(updatedPlaylist);
+      draftIdRef.current = null;
       onClose();
     } catch (error) {
       console.error('Error saving playlist:', error);
@@ -85,8 +228,6 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
       setIsSaving(false);
     }
   };
-
-
 
   return (
     <Modal
@@ -97,6 +238,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
           <Group gap="xs">
             <IconPlaylistAdd size={20} />
             <Text fw={700}>{initialPlaylist ? 'Edit Playlist' : 'New Playlist'}</Text>
+            {isDraftSaving && <Text size="xs" c="dimmed">Saving draft…</Text>}
           </Group>
           {selectedSongs.length > 0 && (
             <Button
@@ -104,7 +246,10 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
               variant="subtle"
               color="red"
               leftSection={<IconTrash size={14} />}
-              onClick={() => setSelectedSongs([])}
+              onClick={() => {
+                setSelectedSongs([]);
+                scheduleDraftSave(title, comment, isPublic, []);
+              }}
             >
               Clear All
             </Button>
@@ -118,11 +263,32 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
       classNames={{ content: 'profile-modal-pop' }}
     >
       <Stack gap="md" pt="md">
+        {showDraftAlert && (
+          <Alert
+            icon={<IconFileAlert size={18} />}
+            title="Unsaved draft found"
+            color="orange"
+            variant="light"
+            withCloseButton
+            onClose={handleDiscardDraft}
+          >
+            <Text size="sm" mb="xs">You have an unsaved draft from a previous session.</Text>
+            <Group gap="xs">
+              <Button size="xs" color="orange" onClick={handleContinueDraft}>
+                Continue Draft
+              </Button>
+              <Button size="xs" variant="subtle" color="gray" onClick={handleDiscardDraft}>
+                Discard
+              </Button>
+            </Group>
+          </Alert>
+        )}
+
         <TextInput
           label="Playlist Title"
           placeholder="e.g., My DX Grind Set"
           value={title}
-          onChange={(e) => setTitle(e.currentTarget.value)}
+          onChange={handleTitleChange}
           required
           maxLength={50}
         />
@@ -194,7 +360,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
           label="Playlist Comment"
           placeholder="Share something about this playlist..."
           value={comment}
-          onChange={(e) => setComment(e.currentTarget.value)}
+          onChange={handleCommentChange}
           maxLength={200}
           minRows={3}
           autosize
@@ -211,10 +377,9 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
               onChange={(event) => {
                 const newValue = event.currentTarget.checked;
                 if (!newValue && initialPlaylist?.is_public) {
-                  // Trying to make a public playlist private
                   setIsProtectionModalOpen(true);
                 } else {
-                  setIsPublic(newValue);
+                  handlePublicChange(newValue);
                 }
               }}
               color="teal"
@@ -230,7 +395,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
           )}
 
           <Group gap="sm">
-            <Button variant="default" onClick={onClose} disabled={isSaving}>Cancel</Button>
+            <Button variant="default" onClick={handleCancel} disabled={isSaving}>Cancel</Button>
             <Button leftSection={isSaving ? <Loader size={18} /> : <IconDeviceFloppy size={18} />} onClick={handleSave} loading={isSaving}>
               Save Playlist
             </Button>
@@ -244,8 +409,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
         onConfirm={async () => {
           setIsSaving(true);
           try {
-            // Updated behavior: Update visibility instead of deleting
-            const songsForService = selectedSongs.map(s => ({ id: s.cardId || s.songId, level: s.level }));
+            const songsForService = selectedSongs.map(s => ({ id: s.cardId || s.songId || s.id, level: s.level }));
             const updatedPlaylist = await playlistService.upsertPlaylist(userId, initialPlaylist?.id, {
               title: title.trim(),
               comment: comment.trim(),
@@ -253,7 +417,6 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
               songs: songsForService
             });
 
-            // Soft delete related posts so they are removed from the global feed
             await playlistService.softDeletePostsByPlaylist(initialPlaylist.id);
 
             notifications.show({
@@ -277,12 +440,15 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
       />
 
       <SongSelectionModal
-        key={isSongPickerOpen ? 'open' : 'closed'}
         opened={isSongPickerOpen}
         onClose={() => setIsSongPickerOpen(false)}
         onSelect={handleAddSong}
         multiple={true}
         initialSelectedSongs={selectedSongs}
+        onSelectionChange={(newSelection) => {
+          setSelectedSongs(newSelection);
+          scheduleDraftSave(title, comment, isPublic, newSelection);
+        }}
       />
     </Modal>
   );
