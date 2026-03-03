@@ -215,7 +215,22 @@ const PublicProfilePage = () => {
     );
   }
 
-  const { privacy_settings: privacy } = profile;
+  const privacy = profile?.privacy_settings || {
+    show_dx_rating: true,
+    show_best_50: true,
+    show_best_50_details: true,
+    show_most_played: true,
+    show_most_played_details: true,
+    show_favorite_songs: true,
+    show_playlists: true,
+    show_main_branch: true,
+    show_preferred_branches: true,
+    show_introduction: true,
+    show_play_count: true,
+    show_maimai_name: true,
+    show_circle: true,
+    show_recent_plays: true
+  };
 
   const getBranchName = (id, useAcronym = false) => {
     if (!id) return null;
@@ -678,6 +693,9 @@ const PublicProfilePage = () => {
                   <Group gap="xs">
                     <IconTrophy size={24} style={{ color: 'var(--mantine-color-yellow-6)' }} />
                     <Title order={2}>Best 50</Title>
+                    {isOwner && privacy.show_play_count === false && (
+                      <Badge variant="subtle" color="gray" size="xs">Hidden to public</Badge>
+                    )}
                   </Group>
                   {profile.maimai_best_scores?.total_play_count && (privacy.show_play_count !== false || isOwner) && (
                     <Group gap="xs" mt={4}>
