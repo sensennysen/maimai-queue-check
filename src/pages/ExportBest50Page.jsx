@@ -79,7 +79,7 @@ const ExportBest50Page = () => {
         //           2. External Public Proxies (fallback)
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const proxies = [
-          (url) => isLocalhost 
+          (url) => isLocalhost
             ? `https://www.thebugging.com/api/proxy?url=${encodeURIComponent(url)}` // Localhost: Use external proxy
             : `/api/proxy?url=${encodeURIComponent(url)}`,                       // Production: Use serverless function
           (url) => `https://www.thebugging.com/api/proxy?url=${encodeURIComponent(url)}`,
@@ -91,10 +91,10 @@ const ExportBest50Page = () => {
             const proxyUrl = getProxyUrl(originalSrc);
             const response = await fetch(proxyUrl);
             if (!response.ok) continue; // Try next proxy
-            
+
             const blob = await response.blob();
             if (blob.type.startsWith('text/')) continue; // Skip if proxy returns HTML/Text (error page)
-            
+
             // Convert blob → base64 data URL so html-to-image can inline it without fetch()
             const localDataUrl = await new Promise((resolve, reject) => {
               const reader = new FileReader();
@@ -103,7 +103,7 @@ const ExportBest50Page = () => {
               reader.readAsDataURL(blob);
             });
             img.src = localDataUrl;
-            
+
             await new Promise((resolve) => {
               if (img.complete) resolve();
               else {
@@ -163,7 +163,7 @@ const ExportBest50Page = () => {
       // --- Cleanup ---
       document.body.classList.remove('rendering-export');
       document.documentElement.style.fontSize = originalRootFontSize;
-      
+
       setIsExporting(false);
     }
   }, [isDark, profileData?.maimai_dx_name]);
@@ -228,7 +228,7 @@ const ExportBest50Page = () => {
   // Show loading while auth is restoring or data is fetching
   if (authLoading || isLoading) {
     return (
-      <Container size="xl" py="xl">
+      <Container size="xl" py={0}>
         <Stack align="center" justify="center" h={300} gap="md">
           <Loader size="lg" color="teal" />
           <Text size="xl" fw={700}>Preparing your Best 50 snapshot...</Text>
@@ -240,7 +240,7 @@ const ExportBest50Page = () => {
 
   if (!user) {
     return (
-      <Container size="xl" py="xl">
+      <Container size="xl" py={0}>
         <Alert icon={<IconAlertCircle size={16} />} title="Not Logged In" color="red">
           Please log in to export your Best 50.
         </Alert>

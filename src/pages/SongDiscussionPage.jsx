@@ -74,7 +74,7 @@ export default function SongDiscussionPage() {
 
   if (songsLoading) {
     return (
-      <Container size="md" py="xl">
+      <Container size="md" py={0}>
         <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
           <Loader size="xl" color="pink" type="bars" />
           <Text c="dimmed">Loading song details...</Text>
@@ -86,7 +86,7 @@ export default function SongDiscussionPage() {
   if (!song) {
     // If not loading and no song found, either redirect or show not found
     return (
-      <Container size="md" py="xl">
+      <Container size="md" py={0}>
         <Stack align="center" gap="md">
           <Title order={2}>Song Not Found</Title>
           <Button onClick={() => navigate('/')}>

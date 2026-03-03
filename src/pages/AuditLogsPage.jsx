@@ -111,7 +111,7 @@ const AuditLogsPage = () => {
   // Permission check
   if (!isSuperAdmin) {
     return (
-      <Container size="sm" py="xl">
+      <Container size="sm" py={0}>
         <Paper p="xl" withBorder>
           <Stack align="center" gap="md">
             <Title order={3}>Access Denied</Title>
@@ -155,7 +155,7 @@ const AuditLogsPage = () => {
   };
 
   return (
-    <Container size="xl" py="xl">
+    <Container size="xl" py={0}>
       <Stack gap="lg">
         {/* Header */}
         <Paper p="md" radius="md" withBorder>

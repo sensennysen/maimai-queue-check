@@ -78,7 +78,7 @@ const ContactPage = () => {
   };
 
   return (
-    <Container size="sm" py="xl">
+    <Container size="sm" py={0}>
       <Paper p="xl" withBorder radius="md">
         <Stack gap="lg">
           <Group>

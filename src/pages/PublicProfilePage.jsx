@@ -131,7 +131,7 @@ const PublicProfilePage = () => {
 
   if (loading) {
     return (
-      <Container size="lg" py="xl">
+      <Container size="lg" py={0}>
         <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
           <Loader size="xl" color="pink" type="bars" />
           <Text size="lg" fw={500} mt="md">Loading profile...</Text>
