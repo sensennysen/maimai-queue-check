@@ -17,6 +17,7 @@ function SongDatabase() {
     levels,
     internalLevels,
     error,
+    artists,
   } = useSongDatabase();
 
   return (
@@ -120,6 +121,7 @@ function SongDatabase() {
                 versions={versions}
                 levels={levels}
                 internalLevels={internalLevels}
+                artists={artists}
               />
             </div>
 
