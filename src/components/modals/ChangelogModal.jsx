@@ -34,21 +34,24 @@ function ChangelogModal({ opened, onClose }) {
               size="lg"
               withPadding
             >
-              {release.changes.map((change, i) => (
-                <List.Item key={i}>
-                  <Stack gap={6}>
-                    <Text fw={600} size="lg">{change.title}</Text>
-                    <Text size="md" c="secondary" lh={1.6} style={{ textAlign: 'justify' }}>
-                      {change.description}
-                    </Text>
-                    {change.footnote && (
-                      <Text size="sm" c="secondary" fs="italic" mt={2} lh={1.5} style={{ textAlign: 'justify' }}>
-                        * {change.footnote}
+              {release.changes.map((change, i) => {
+                const foot = change.footnote || change.note;
+                return (
+                  <List.Item key={i}>
+                    <Stack gap={6}>
+                      <Text fw={600} size="lg">{change.title}</Text>
+                      <Text size="md" c="secondary" lh={1.6} style={{ textAlign: 'justify' }}>
+                        {change.description}
                       </Text>
-                    )}
-                  </Stack>
-                </List.Item>
-              ))}
+                      {foot && (
+                        <Text size="sm" c="secondary" fs="italic" mt={2} lh={1.5} style={{ textAlign: 'justify' }}>
+                          * {foot}
+                        </Text>
+                      )}
+                    </Stack>
+                  </List.Item>
+                );
+              })}
             </List>
           </div>
         ))}
