@@ -10,7 +10,8 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
 
   useEffect(() => {
     setSelectedSongs(initialSelectedSongs);
-  }, [initialSelectedSongs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opened]);
 
   const handleSelectionChange = (songs) => {
     setSelectedSongs(songs);
