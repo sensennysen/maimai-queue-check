@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Paper, Title, Button, Group, LoadingOverlay, Box, Alert } from '@mantine/core';
+import { Paper, Title, Button, Group, LoadingOverlay, Box, Alert, Indicator } from '@mantine/core';
 import { IconPlaylist, IconPlaylistAdd, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { playlistService } from '../../services/supabase';
@@ -13,10 +13,11 @@ import './PlaylistStack.css';
 export function PlaylistSection({ userId, isOwnProfile }) {
   const { loading: songsLoading, songMapById } = useSongDatabaseContext();
   const [playlists, setPlaylists] = useState([]);
-  const [loading, setLoading] = useState(true); // Loading for playlists data
+  const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedPlaylist, setSelectedPlaylist] = useState(null); // Playlist being viewed/edited
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
   const { scrollRef, isDragging } = useMouseDragScroll();
 
   const fetchPlaylists = useCallback(async () => {
@@ -39,6 +40,10 @@ export function PlaylistSection({ userId, isOwnProfile }) {
   useEffect(() => {
     if (userId) {
       fetchPlaylists();
+      // Check for existing draft on mount
+      playlistService.getDraft(userId).then((draft) => {
+        setHasDraft(!!draft && (!!draft.title || (draft.songs && draft.songs.length > 0) || !!draft.comment));
+      }).catch(console.error);
     }
   }, [userId, fetchPlaylists]);
 
@@ -84,6 +89,11 @@ export function PlaylistSection({ userId, isOwnProfile }) {
     setIsEditModalOpen(true);
   };
 
+  // Called by PlaylistEditModal when draft state changes
+  const handleDraftChange = (draftExists) => {
+    setHasDraft(draftExists);
+  };
+
   const handleViewDetails = (playlist) => {
     setSelectedPlaylist(playlist);
     setIsDetailModalOpen(true);
@@ -113,13 +123,15 @@ export function PlaylistSection({ userId, isOwnProfile }) {
         </Group>
 
         {isOwnProfile && (
-          <Button
-            leftSection={<IconPlaylistAdd size={18} />}
-            variant="light"
-            onClick={handleCreateNew}
-          >
-            New Playlist
-          </Button>
+          <Indicator color="orange" size={10} processing disabled={!hasDraft}>
+            <Button
+              leftSection={<IconPlaylistAdd size={18} />}
+              variant="light"
+              onClick={handleCreateNew}
+            >
+              New Playlist
+            </Button>
+          </Indicator>
         )}
       </Group>
 
@@ -172,6 +184,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
               fullSongs: getPlaylistSongs(selectedPlaylist)
             } : null}
             onSave={handleSavePlaylist}
+            onDraftChange={handleDraftChange}
           />
         )
       }

@@ -1,5 +1,38 @@
 export const changelogData = [
   {
+    version: 'v1.9.1',
+    date: 'March 4, 2026',
+    changes: [
+      {
+        type: 'QOL',
+        title: 'Save playlist as drafts while editing',
+        description: 'Playlists will now be saved as drafts while editing, allowing you to come back and finish them later without losing your progress.',
+        note: 'Thanks for this suggestion King Halo @ maiph! This still relies on how fast your internet connection is, so it may not work well for users with slow connections. We are working on a more robust solution for this in the future.',
+      },
+      {
+        type: 'QOL',
+        title: 'Allow deletion of comments and posts',
+        description: 'Users can now delete their own comments and playlist posts.',
+      },
+      {
+        type: 'QOL',
+        title: 'Added Artists filter on Songs DB',
+        description: 'Users can now filter songs by artists in the Songs DB.',
+        note: 'Thanks Marethyu @ maiph for this suggestion!',
+      },
+      {
+        type: 'refactor',
+        title: 'Tag Management Refactor',
+        description: 'Refactored the tag management system for admins to manage tags better.',
+      },
+      {
+        type: 'bugfix',
+        title: 'Play count not being hidden on toggling hide play count',
+        description: 'Fixed an issue where play counts are not hidden when toggling the hide play count setting.',
+      }
+    ]
+  },
+  {
     version: 'v1.9.0',
     date: 'March 2, 2026',
     changes: [
