@@ -136,7 +136,8 @@ function AppProviders() {
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/audit-logs" element={<AuditLogsPage />} />
           <Route path="/p/:slug" element={<PublicProfilePage />} />
-          <Route path="/*" element={<MainApp />} />
+          <Route path="/" element={<MainApp />} />
+          <Route path="*" element={<MainApp />} />
         </Routes>
       </Suspense>
       <Analytics />

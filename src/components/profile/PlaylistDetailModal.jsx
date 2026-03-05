@@ -241,7 +241,7 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
                 w="100%"
                 onClick={() => {
                   onClose(); // Close playlist modal completely, or just the detail view? Let's just navigate.
-                  navigate(`/song/${selectedSongDetails.songId}`, {
+                  navigate(`/songs/${selectedSongDetails.songId}`, {
                     state: { cardType: selectedSongDetails.cardType || selectedSheet?.type }
                   });
                 }}

@@ -1,5 +1,21 @@
 export const changelogData = [
   {
+    version: 'v1.9.2',
+    date: 'March 5, 2026',
+    changes: [
+      {
+        type: 'bugfix',
+        title: 'Miscellaneous bug fixes',
+        description: 'Fixes on adding songs from the songs db, the queue page not loading when coming from profile, and song discussion not loading properly on some modules.',
+      },
+      {
+        type: 'qol',
+        title: 'Edit caption on shared playlist posts',
+        description: 'Users can now edit the caption of their shared playlist posts.',
+      }
+    ]
+  },
+  {
     version: 'v1.9.1',
     date: 'March 4, 2026',
     changes: [
@@ -234,44 +250,6 @@ export const changelogData = [
         type: 'feature',
         title: 'Multi-select on playlist making',
         description: 'Allows user to select multiple songs when making a playlist.',
-      }
-    ]
-  },
-  {
-    version: 'v1.7.2',
-    date: 'February 20, 2026',
-    changes: [
-      {
-        type: 'feature',
-        title: 'Most Played & Total Play Count',
-        description: 'Added Most Played section and Total Play Count to user profiles.',
-      },
-      {
-        type: 'fix',
-        title: 'Best 50 Calculation',
-        description: 'Fixed Best 50 calculation logic.',
-      }
-    ]
-  },
-  {
-    version: 'v1.7.1',
-    date: 'February 20, 2026',
-    changes: [
-      {
-        type: 'bugfix',
-        title: 'Best 50 Discrepancies',
-        description: 'Fixed an issue where the Best 50 songs are in incorrect order and does not match maimai DX International versioning.',
-      },
-      {
-        type: 'bugfix',
-        title: 'Custom URL not updating',
-        description: 'Fixed an issue where the custom URL is not updating on the profile menu when the slug is changed.',
-      },
-      {
-        type: 'refactor',
-        title: 'Custom URL Character limit',
-        description: 'Added a character limit of 20 to custom URLs.',
-        footnote: 'Thanks to Tear, really.'
       }
     ]
   },

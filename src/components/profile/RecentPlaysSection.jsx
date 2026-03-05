@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, useCallback } from 'react';
+import { useState, useEffect, memo, useCallback, useRef } from 'react';
 import {
   Paper, Stack, Group, Title, Text, Badge,
   Table, Box, Divider, Collapse, ActionIcon, Avatar, Flex, Pagination
@@ -195,6 +195,14 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
   const totalPages = Math.ceil(plays.length / itemsPerPage);
   const isMobile = useMediaQuery('(max-width: 652px)');
   const isTablet = useMediaQuery('(max-width: 992px)');
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const handleToggle = useCallback((index) => {
     setOpenedIndex(current => current === index ? null : index);
@@ -203,23 +211,25 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
   useEffect(() => {
     async function init() {
       try {
-        setLoading(true);
+        if (isMounted.current) setLoading(true);
         // Load plays and song database in parallel
         const [playsData, songs] = await Promise.all([
           initialData ? Promise.resolve(initialData) : userService.getRecentPlays(userId),
           songsService.getFullSongDatabase()
         ]);
 
-        if (playsData) setPlays(playsData);
+        if (isMounted.current) {
+          if (playsData) setPlays(playsData);
 
-        // Build map for image lookup
-        const map = new Map();
-        songs.forEach(s => map.set(s.title, s.imageUrl));
-        setSongMap(map);
+          // Build map for image lookup
+          const map = new Map();
+          songs.forEach(s => map.set(s.title, s.imageUrl));
+          setSongMap(map);
+        }
       } catch (err) {
         console.error('Failed to initialize recent plays:', err);
       } finally {
-        setLoading(false);
+        if (isMounted.current) setLoading(false);
       }
     }
     if (userId) init();

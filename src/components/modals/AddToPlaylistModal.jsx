@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Modal, Stack, Button, Select, TextInput, Text, Group, LoadingOverlay, Box } from '@mantine/core';
+import { Modal, Stack, Button, Select, TextInput, Text, Group, LoadingOverlay, Box, Tooltip } from '@mantine/core';
 import { IconPlaylistAdd } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { playlistService } from '../../services/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import { DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
 
 export function AddToPlaylistModal({
   opened,
@@ -16,6 +17,8 @@ export function AddToPlaylistModal({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
+  const [selectedLevels, setSelectedLevels] = useState([]);
+
 
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [newPlaylistTitle, setNewPlaylistTitle] = useState('');
@@ -48,6 +51,7 @@ export function AddToPlaylistModal({
       setSelectedPlaylistId(null);
       setIsCreatingNew(false);
       setNewPlaylistTitle('');
+      setSelectedLevels([]);
     }
   }, [opened, user, loadPlaylists]);
 
@@ -72,7 +76,9 @@ export function AddToPlaylistModal({
           null,
           {
             title: newPlaylistTitle.trim(),
-            songs: [{ id: songData.songId || songData.id }] // Default formatting for standard internal representation
+            songs: selectedLevels.length > 0
+              ? selectedLevels.map(level => ({ id: songData.cardId || songData.songId || songData.id, level }))
+              : [{ id: songData.cardId || songData.songId || songData.id, level: null }]
           }
         );
         targetPlaylistId = newPlaylist.id;
@@ -95,10 +101,19 @@ export function AddToPlaylistModal({
           level: s.level
         }));
 
-        currentSongsToSave.push({
-          id: songData.songId || songData.id,
-          level: null // Optional level to add later maybe
-        });
+        if (selectedLevels.length > 0) {
+          selectedLevels.forEach(level => {
+            currentSongsToSave.push({
+              id: songData.cardId || songData.songId || songData.id,
+              level: level
+            });
+          });
+        } else {
+          currentSongsToSave.push({
+            id: songData.cardId || songData.songId || songData.id,
+            level: null
+          });
+        }
 
         await playlistService.upsertPlaylist(
           user.id,
@@ -171,7 +186,6 @@ export function AddToPlaylistModal({
             disabled={saving}
             searchable={playlists.length > 5}
             nothingFoundMessage="No playlists found"
-            placeholder={playlists.length === 0 ? "No playlists yet" : "Choose a playlist"}
           />
 
           {isCreatingNew && (
@@ -186,6 +200,58 @@ export function AddToPlaylistModal({
             />
           )}
 
+          {songData?.sheets && (
+            <Stack gap="xs">
+              <Text size="sm" fw={500}>Select Chart Levels</Text>
+              <Group gap="xs">
+                {songData.sheets.map(sheet => {
+                  const normalized = normalizeDifficulty(sheet.difficulty);
+                  const isSelected = selectedLevels.includes(normalized);
+
+                  // Check if this specific chart (song + level) is already in the selected playlist
+                  const currentPlaylist = playlists.find(p => p.id === selectedPlaylistId);
+                  const songIdToCompare = songData.cardId || songData.songId || songData.id;
+                  const isAlreadyInPlaylist = currentPlaylist?.songs?.some(s =>
+                    (s.song_id === songIdToCompare) &&
+                    (normalizeDifficulty(s.level) === normalized)
+                  );
+
+                  const button = (
+                    <Button
+                      key={normalized}
+                      size="xs"
+                      variant={isSelected ? 'filled' : 'outline'}
+                      color={DIFFICULTY_COLORS[normalized] || 'gray'}
+                      disabled={isAlreadyInPlaylist}
+                      onClick={() => {
+                        setSelectedLevels(prev =>
+                          prev.includes(normalized)
+                            ? prev.filter(l => l !== normalized)
+                            : [...prev, normalized]
+                        );
+                      }}
+                    >
+                      {normalized} {sheet.level}
+                    </Button>
+                  );
+
+                  if (isAlreadyInPlaylist) {
+                    return (
+                      <Tooltip key={normalized} label="This chart is already in the playlist" withArrow>
+                        {/* Wrapper for disabled element tooltip */}
+                        <Box component="div" style={{ cursor: 'not-allowed' }}>
+                          {button}
+                        </Box>
+                      </Tooltip>
+                    );
+                  }
+
+                  return button;
+                })}
+              </Group>
+            </Stack>
+          )}
+
           <Group position="right" mt="md" justify="flex-end">
             <Button variant="default" onClick={onClose} disabled={saving}>
               Cancel
@@ -193,7 +259,11 @@ export function AddToPlaylistModal({
             <Button
               onClick={handleSave}
               loading={saving}
-              disabled={(!isCreatingNew && !selectedPlaylistId) || (isCreatingNew && !newPlaylistTitle.trim())}
+              disabled={
+                (!isCreatingNew && !selectedPlaylistId) ||
+                (isCreatingNew && !newPlaylistTitle.trim()) ||
+                (selectedLevels.length === 0)
+              }
             >
               Add Song
             </Button>

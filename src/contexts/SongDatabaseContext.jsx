@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { notifications } from '@mantine/notifications';
 import { songsService } from '../services/songs';
 import { SongDatabaseContext } from './SongDatabaseContextDef';
@@ -47,22 +47,31 @@ export function SongDatabaseProvider({ children }) {
     return [byId, byTitle];
   }, [songs]);
 
+  // Stable callbacks — extracted from useMemo so their references don't change
+  // when songs/loading/error state updates. This prevents downstream useEffect
+  // hooks that depend on these functions from firing on every context update.
+  const requestFetch = useCallback(() => setIsRequested(true), []);
+  const refresh = useCallback(() => {
+    songsService.clearCache();
+    setIsRequested(prev => {
+      if (prev) {
+        // Re-trigger fetch: flip to false then back to true
+        setTimeout(() => setIsRequested(true), 0);
+        return false;
+      }
+      return prev;
+    });
+  }, []);
+
   const value = useMemo(() => ({
     songs,
     songMapById,
     songMapByTitle,
     loading,
     error,
-    requestFetch: () => setIsRequested(true),
-    refresh: () => {
-      songsService.clearCache();
-      if (isRequested) {
-        // Re-trigger fetch if already requested
-        setIsRequested(false);
-        setTimeout(() => setIsRequested(true), 0);
-      }
-    }
-  }), [songs, songMapById, songMapByTitle, loading, error, isRequested]);
+    requestFetch,
+    refresh,
+  }), [songs, songMapById, songMapByTitle, loading, error, requestFetch, refresh]);
 
   return (
     <SongDatabaseContext.Provider value={value}>

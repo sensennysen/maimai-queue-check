@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Divider, ActionIcon, Avatar, Box } from '@mantine/core';
+import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Divider, ActionIcon, Avatar, Box, Textarea } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconArrowLeft, IconRefresh, IconPlaylist, IconShare, IconDotsVertical, IconMessageOff, IconMessage, IconTrash } from '@tabler/icons-react';
+import { IconArrowLeft, IconRefresh, IconPlaylist, IconShare, IconDotsVertical, IconMessageOff, IconMessage, IconTrash, IconEdit, IconCheck, IconX } from '@tabler/icons-react';
 import { Menu } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
@@ -26,6 +26,9 @@ export default function SharedPlaylistsPage() {
   const [viewingPlaylist, setViewingPlaylist] = useState(null);
   const [editingPlaylist, setEditingPlaylist] = useState(null);
   const [shareModalOpened, setShareModalOpened] = useState(false);
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editContent, setEditContent] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const fetchPosts = async () => {
@@ -77,6 +80,33 @@ export default function SharedPlaylistsPage() {
     } catch (err) {
       console.error('Failed to delete post:', err);
       notifications.show({ title: 'Error', message: 'Failed to remove post', color: 'red' });
+    }
+  };
+
+  const handleStartEdit = (post) => {
+    setEditingPostId(post.id);
+    setEditContent(post.content || '');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPostId(null);
+    setEditContent('');
+  };
+
+  const handleSaveEdit = async () => {
+    if (savingEdit) return;
+
+    try {
+      setSavingEdit(true);
+      await playlistService.updatePostContent(editingPostId, editContent);
+      setPosts(prev => prev.map(p => p.id === editingPostId ? { ...p, content: editContent.trim() || null } : p));
+      notifications.show({ title: 'Success', message: 'Caption updated', color: 'green' });
+      handleCancelEdit();
+    } catch (err) {
+      console.error('Failed to update caption:', err);
+      notifications.show({ title: 'Error', message: 'Failed to update caption', color: 'red' });
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -172,6 +202,13 @@ export default function SharedPlaylistsPage() {
                               {post.comments_enabled ? 'Disable Comments' : 'Enable Comments'}
                             </Menu.Item>
 
+                            <Menu.Item
+                              leftSection={<IconEdit size={14} />}
+                              onClick={() => handleStartEdit(post)}
+                            >
+                              Edit Caption
+                            </Menu.Item>
+
                             <Menu.Divider />
 
                             <Menu.Item
@@ -187,10 +224,33 @@ export default function SharedPlaylistsPage() {
                     </Group>
 
                     {/* Post Content */}
-                    {post.content && (
-                      <Text size="md" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                        {post.content}
-                      </Text>
+                    {editingPostId === post.id ? (
+                      <Stack gap="xs">
+                        <Textarea
+                          placeholder="Talk about your playlist..."
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.currentTarget.value)}
+                          minRows={3}
+                          autosize
+                          maxLength={300}
+                          description={`${editContent.length}/300 characters`}
+                          disabled={savingEdit}
+                        />
+                        <Group gap="xs" justify="flex-end">
+                          <Button variant="subtle" size="xs" onClick={handleCancelEdit} disabled={savingEdit} leftSection={<IconX size={14} />}>
+                            Cancel
+                          </Button>
+                          <Button size="xs" onClick={handleSaveEdit} loading={savingEdit} leftSection={<IconCheck size={14} />}>
+                            Save
+                          </Button>
+                        </Group>
+                      </Stack>
+                    ) : (
+                      post.content && (
+                        <Text size="md" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                          {post.content}
+                        </Text>
+                      )
                     )}
 
                     {/* Attached Playlist Details - Bottom Full Width */}

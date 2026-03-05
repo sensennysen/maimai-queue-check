@@ -784,6 +784,22 @@ export const playlistService = {
       throw error;
     }
     return true;
+  },
+
+  // Update content of a shared post
+  async updatePostContent(postId, content) {
+    const { data, error } = await supabase
+      .from('playlist_posts')
+      .update({ content: content?.trim() || null })
+      .eq('id', postId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating post content:', error);
+      throw error;
+    }
+    return data;
   }
 };
 
