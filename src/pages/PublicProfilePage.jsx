@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@mantine/hooks';
 import {
@@ -53,6 +53,14 @@ const PublicProfilePage = () => {
 
   const { requestFetch, songMapByTitle } = useSongDatabaseContext();
   const { scrollRef, isDragging } = useMouseDragScroll();
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (profile) {
@@ -68,12 +76,12 @@ const PublicProfilePage = () => {
       ]);
 
       if (!profileData) {
-        setError('Profile not found');
+        if (isMounted.current) setError('Profile not found');
       } else {
         const isOwner = user && profileData.id === user.id;
         // FRAG-11: Allow viewing if user is owner or if profile is public OR if a user is logged in
         if (!profileData.is_public && !isOwner && !user) {
-          setIsRestricted(true);
+          if (isMounted.current) setIsRestricted(true);
         } else {
           const mostPlayedData = await mostPlayedService.getMostPlayed(profileData.id);
           if (profileData.maimai_best_scores) {
@@ -82,16 +90,18 @@ const PublicProfilePage = () => {
             profileData.maimai_best_scores = { most_played: mostPlayedData };
           }
 
-          setProfile(profileData);
-          setBranches(branchesData);
-          setIntroduction(profileData.introduction || null);
+          if (isMounted.current) {
+            setProfile(profileData);
+            setBranches(branchesData);
+            setIntroduction(profileData.introduction || null);
+          }
         }
       }
     } catch (err) {
       console.error('Error fetching public profile:', err);
-      setError('Failed to load profile');
+      if (isMounted.current) setError('Failed to load profile');
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
     // user?.id is the correct dep — avoids re-creating fetchData on every user object re-render
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -169,10 +179,11 @@ const PublicProfilePage = () => {
                 </Button>
               )}
               <Button
-                component={Link}
-                to="/"
-                variant="subtle"
-                color="gray"
+                onClick={() => navigate('/')}
+                size="lg"
+                variant="outline"
+                color="red"
+                radius="md"
                 leftSection={<IconArrowLeft size={18} />}
                 fullWidth
               >
@@ -198,8 +209,7 @@ const PublicProfilePage = () => {
               {error || 'Profile not found'}
             </Text>
             <Button
-              component={Link}
-              to="/"
+              onClick={() => navigate('/')}
               size="lg"
               variant="outline"
               color="red"
@@ -279,8 +289,7 @@ const PublicProfilePage = () => {
         <Group justify="space-between">
           {!viewAsPublic ? (
             <Button
-              component={Link}
-              to="/"
+              onClick={() => navigate('/')}
               variant="subtle"
               leftSection={<IconArrowLeft size={18} />}
               className="animate-fade-in"

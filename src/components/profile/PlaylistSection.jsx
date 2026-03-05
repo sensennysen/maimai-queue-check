@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Paper, Title, Button, Group, LoadingOverlay, Box, Alert, Indicator } from '@mantine/core';
 import { IconPlaylist, IconPlaylistAdd, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
@@ -19,21 +19,31 @@ export function PlaylistSection({ userId, isOwnProfile }) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
   const { scrollRef, isDragging } = useMouseDragScroll();
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const fetchPlaylists = useCallback(async () => {
     try {
-      setLoading(true);
+      if (isMounted.current) setLoading(true);
       const playlistsData = await playlistService.getPlaylists(userId);
-      setPlaylists(playlistsData);
+      if (isMounted.current) setPlaylists(playlistsData);
     } catch (error) {
       console.error("Error loading playlists:", error);
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to load playlists',
-        color: 'red'
-      });
+      if (isMounted.current) {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to load playlists',
+          color: 'red'
+        });
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, [userId]);
 
@@ -42,7 +52,9 @@ export function PlaylistSection({ userId, isOwnProfile }) {
       fetchPlaylists();
       // Check for existing draft on mount
       playlistService.getDraft(userId).then((draft) => {
-        setHasDraft(!!draft && (!!draft.title || (draft.songs && draft.songs.length > 0) || !!draft.comment));
+        if (isMounted.current) {
+          setHasDraft(!!draft && (!!draft.title || (draft.songs && draft.songs.length > 0) || !!draft.comment));
+        }
       }).catch(console.error);
     }
   }, [userId, fetchPlaylists]);
