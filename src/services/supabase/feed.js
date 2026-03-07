@@ -113,18 +113,17 @@ export const feedService = {
    * Get suggested players based on shared branches.
    * Returns user profiles that share the current user's main_branch or preferred_branches.
    */
-  async getSuggestedPlayers(userId, mainBranch, preferredBranches, limit = 15) {
+  async getSuggestedPlayers(userId, mainBranch, preferredBranches, limit = 20) {
     if (!userId) return [];
 
-    // Build branch filter: combine main + preferred, remove nulls
-    const allBranches = [
-      ...(mainBranch ? [mainBranch] : []),
-      ...(preferredBranches || [])
-    ].filter(Boolean).map(String);
+    // Build user branch set for scoring
+    const userPreferredBranches = (preferredBranches || []).map(String);
+    const allUserBranches = [
+      ...(mainBranch ? [String(mainBranch)] : []),
+      ...userPreferredBranches
+    ].filter(Boolean);
 
-    if (allBranches.length === 0) return [];
-
-    // Fetch users who have matching branches, exclude self
+    // Fetch a larger pool of public users to ensure variety and provide random suggestions
     const { data, error } = await supabase
       .from('user_profiles')
       .select(`
@@ -135,23 +134,44 @@ export const feedService = {
       .neq('id', userId)
       .eq('is_public', true)
       .not('slug', 'is', null)
-      .limit(100); // Fetch more and filter client-side for branch overlap
+      .limit(150); // Fetch a substantial pool for client-side scoring/randomization
 
     if (error) throw error;
 
-    // Filter by branch overlap
-    const matched = (data || []).filter(profile => {
-      const profileBranches = [
-        ...(profile.main_branch ? [String(profile.main_branch)] : []),
-        ...(profile.preferred_branches || []).map(String)
-      ];
-      return profileBranches.some(b => allBranches.includes(b));
+    // Score and filter by branch overlap
+    const scored = (data || []).map(profile => {
+      let score = 0;
+      const profileMainBranch = profile.main_branch ? String(profile.main_branch) : null;
+      const profilePreferredBranches = (profile.preferred_branches || []).map(String);
+
+      // 1. People with the same home branch as the user (Highest Priority)
+      if (mainBranch && profileMainBranch === String(mainBranch)) {
+        score += 100;
+      }
+
+      // 2. People with the same preferred branch as the user (Medium Priority)
+      const hasPreferredOverlap = profilePreferredBranches.some(b => userPreferredBranches.includes(b)) ||
+                                 (profileMainBranch && userPreferredBranches.includes(profileMainBranch));
+      
+      if (hasPreferredOverlap) {
+        score += 50;
+      }
+
+      // Return all users, but include their score for sorting
+      // Users with no overlap stay at score 0 (Lowest Priority / Random)
+      return { profile, score };
     });
 
-    // Shuffle slightly and return limited results
-    return matched
-      .sort(() => Math.random() - 0.5)
-      .slice(0, limit);
+    // Sort by score descending, then random within same score bracket
+    return scored
+      .sort((a, b) => {
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
+        return Math.random() - 0.5;
+      })
+      .slice(0, limit)
+      .map(item => item.profile);
   },
 
   /**

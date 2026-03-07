@@ -139,17 +139,19 @@ export default function FeedPage() {
     }
   }, []);
 
-  // Fetch suggested players (login + branches required)
+  // Fetch suggested players (login required)
   const fetchSuggestedPlayers = useCallback(async () => {
     if (!user) return;
     const mainBranch = userRoles?.main_branch || null;
     const preferredBranches = userRoles?.preferred_branches || [];
-    if (!mainBranch && preferredBranches.length === 0) return;
+
+    // We no longer return early if no branch is set, 
+    // because we want to show random users as a fallback.
 
     setLoadingPlayers(true);
     try {
       const [players, followedSet] = await Promise.all([
-        feedService.getSuggestedPlayers(user.id, mainBranch, preferredBranches, 15),
+        feedService.getSuggestedPlayers(user.id, mainBranch, preferredBranches, 20),
         followService.getBulkFollowStatus(user.id, []),
       ]);
       // Pre-fetch follow status for all suggested players
