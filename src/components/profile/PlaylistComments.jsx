@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Stack, Text, Button, Textarea, Group, Box, Paper, Avatar, ActionIcon, Loader, Center, Divider } from '@mantine/core';
-import { IconTrash, IconMessageCircle, IconAlertCircle } from '@tabler/icons-react';
+import { Stack, Text, Button, Textarea, Group, Box, Paper, Avatar, ActionIcon, Loader, Center, Divider, Tooltip } from '@mantine/core';
+import { IconTrash, IconMessageCircle, IconAlertCircle, IconThumbUp, IconThumbDown } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../../hooks/useAuth';
 import { playlistService } from '../../services/supabase';
@@ -8,7 +8,7 @@ import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
 import { useNavigate } from 'react-router-dom';
 
 export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
-  const { user } = useAuth();
+  const { user, userRoles } = useAuth();
   const navigate = useNavigate();
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -94,39 +94,137 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
         </Center>
       ) : comments.length > 0 ? (
         <Stack gap="xs">
-          {comments.map((comment) => (
-            <Box key={comment.id} p="xs" radius="sm" bg="var(--mantine-color-default-hover)" style={{ borderLeft: '3px solid var(--mantine-color-blue-filled)', borderRadius: '4px' }}>
-              <Stack gap={4}>
-                <Group justify="space-between" align="flex-start" wrap="nowrap">
-                  <Group gap="xs"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => navigate(`/p/${comment.user_profiles?.slug || comment.user_id}`)}>
-                    <Avatar src={getProfileImageUrl(comment.user_profiles)} size={32} radius="xl" />
-                    <Stack gap={0}>
-                      <Group gap={6} align="baseline">
-                        <Text size="xs" fw={700}>{comment.user_profiles?.display_name || 'Anonymous'}</Text>
-                        <Text size="xs" c="dimmed">{getRelativeTime(comment.created_at)}</Text>
-                      </Group>
-                    </Stack>
-                  </Group>
+          {comments.map((comment) => {
+            const upvotes = comment.playlist_comment_votes?.filter(v => v.vote_type === 1) || [];
+            const downvotes = comment.playlist_comment_votes?.filter(v => v.vote_type === -1) || [];
+            const myVote = comment.playlist_comment_votes?.find(v => v.user_id === user?.id)?.vote_type || 0;
 
-                  {(user?.id === comment.user_id || user?.id === ownerId) && (
-                    <ActionIcon
-                      variant="subtle"
-                      color="red"
-                      size="xs"
-                      onClick={() => handleDeleteComment(comment.id)}
+            return (
+              <Box key={comment.id} p="xs" radius="sm" bg="var(--mantine-color-default-hover)" style={{ borderLeft: '3px solid var(--mantine-color-blue-filled)', borderRadius: '4px' }}>
+                <Stack gap={4}>
+                  <Group justify="space-between" align="flex-start" wrap="nowrap">
+                    <Group gap="xs"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => navigate(`/p/${comment.user_profiles?.slug || comment.user_id}`)}>
+                      <Avatar src={getProfileImageUrl(comment.user_profiles)} size={32} radius="xl" />
+                      <Stack gap={0}>
+                        <Group gap={6} align="baseline">
+                          <Text size="xs" fw={700}>{comment.user_profiles?.display_name || 'Anonymous'}</Text>
+                          <Text size="xs" c="dimmed">{getRelativeTime(comment.created_at)}</Text>
+                        </Group>
+                      </Stack>
+                    </Group>
+
+                    {(user?.id === comment.user_id || user?.id === ownerId) && (
+                      <ActionIcon
+                        variant="subtle"
+                        color="red"
+                        size="xs"
+                        onClick={() => handleDeleteComment(comment.id)}
+                      >
+                        <IconTrash size={14} />
+                      </ActionIcon>
+                    )}
+                  </Group>
+                  <Text size="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', paddingLeft: '2px' }}>
+                    {comment.content}
+                  </Text>
+
+                  <Group gap="xs" mt={4}>
+                    <Tooltip
+                      label={
+                        upvotes.length > 0 ? (
+                          <Stack gap={4}>
+                            {upvotes.slice(0, 10).map((v, i) => (
+                              <Group key={i} gap="xs">
+                                <Avatar src={getProfileImageUrl(v.user_profiles)} size={20} radius="xl" />
+                                <Text size="xs">{v.user_profiles?.display_name || 'Unknown'}</Text>
+                              </Group>
+                            ))}
+                            {upvotes.length > 10 && <Text size="xs" c="dimmed">+{upvotes.length - 10} more</Text>}
+                          </Stack>
+                        ) : null
+                      }
+                      disabled={upvotes.length === 0}
+                      position="top"
+                      withArrow
                     >
-                      <IconTrash size={14} />
-                    </ActionIcon>
-                  )}
-                </Group>
-                <Text size="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', paddingLeft: '2px' }}>
-                  {comment.content}
-                </Text>
-              </Stack>
-            </Box>
-          ))}
+                      <Button
+                        variant={myVote === 1 ? 'light' : 'subtle'}
+                        color={myVote === 1 ? 'blue' : 'gray'}
+                        size="compact-xs"
+                        leftSection={<IconThumbUp size={14} />}
+                        disabled={!user}
+                        onClick={async () => {
+                          try {
+                            const nextVote = myVote === 1 ? 0 : 1;
+                            await playlistService.votePostComment(comment.id, user.id, nextVote);
+                            setComments(prev => prev.map(c => {
+                              if (c.id !== comment.id) return c;
+                              const filteredVotes = (c.playlist_comment_votes || []).filter(v => v.user_id !== user.id);
+                              if (nextVote !== 0) {
+                                filteredVotes.push({ user_id: user.id, vote_type: nextVote, user_profiles: { display_name: userRoles?.display_name || 'You', display_photo_url: userRoles?.display_photo_url, dx_display_photo_url: userRoles?.dx_display_photo_url } });
+                              }
+                              return { ...c, playlist_comment_votes: filteredVotes };
+                            }));
+                          } catch (err) {
+                            console.error('Failed to vote', err);
+                          }
+                        }}
+                      >
+                        {upvotes.length > 0 ? upvotes.length : ''}
+                      </Button>
+                    </Tooltip>
+
+                    <Tooltip
+                      label={
+                        downvotes.length > 0 ? (
+                          <Stack gap={4}>
+                            {downvotes.slice(0, 10).map((v, i) => (
+                              <Group key={i} gap="xs">
+                                <Avatar src={getProfileImageUrl(v.user_profiles)} size={20} radius="xl" />
+                                <Text size="xs">{v.user_profiles?.display_name || 'Unknown'}</Text>
+                              </Group>
+                            ))}
+                            {downvotes.length > 10 && <Text size="xs" c="dimmed">+{downvotes.length - 10} more</Text>}
+                          </Stack>
+                        ) : null
+                      }
+                      disabled={downvotes.length === 0}
+                      position="top"
+                      withArrow
+                    >
+                      <Button
+                        variant={myVote === -1 ? 'light' : 'subtle'}
+                        color={myVote === -1 ? 'red' : 'gray'}
+                        size="compact-xs"
+                        leftSection={<IconThumbDown size={14} />}
+                        disabled={!user}
+                        onClick={async () => {
+                          try {
+                            const nextVote = myVote === -1 ? 0 : -1;
+                            await playlistService.votePostComment(comment.id, user.id, nextVote);
+                            setComments(prev => prev.map(c => {
+                              if (c.id !== comment.id) return c;
+                              const filteredVotes = (c.playlist_comment_votes || []).filter(v => v.user_id !== user.id);
+                              if (nextVote !== 0) {
+                                filteredVotes.push({ user_id: user.id, vote_type: nextVote, user_profiles: { display_name: userRoles?.display_name || 'You', display_photo_url: userRoles?.display_photo_url, dx_display_photo_url: userRoles?.dx_display_photo_url } });
+                              }
+                              return { ...c, playlist_comment_votes: filteredVotes };
+                            }));
+                          } catch (err) {
+                            console.error('Failed to vote', err);
+                          }
+                        }}
+                      >
+                        {downvotes.length > 0 ? downvotes.length : ''}
+                      </Button>
+                    </Tooltip>
+                  </Group>
+                </Stack>
+              </Box>
+            )
+          })}
         </Stack>
       ) : (
         <Center py="sm">

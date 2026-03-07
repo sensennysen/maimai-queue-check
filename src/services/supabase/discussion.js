@@ -15,7 +15,7 @@ export const discussionService = {
           .select(`
             id, user_id, content, created_at, updated_at,
             user_profiles:user_profiles!song_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url),
-            song_comment_votes(vote_type, user_id)
+            song_comment_votes(vote_type, user_id, user_profiles:user_id(display_name, display_photo_url, dx_display_photo_url))
           `)
           .eq('song_id', songId)
           .order('created_at', { ascending: false }),
@@ -24,7 +24,7 @@ export const discussionService = {
           .select(`
             tag_id, user_id, created_at,
             user_profiles(display_name, display_photo_url, dx_display_photo_url),
-            song_tags_dictionary(tag_name:name, is_predefined)
+            song_tags_dictionary(tag_name:name, is_predefined, description)
           `)
           .eq('song_id', songId)
       ]);
