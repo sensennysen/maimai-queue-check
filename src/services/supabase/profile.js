@@ -39,7 +39,7 @@ export const userService = {
         })
         .eq('id', userId)
         .select()
-        .single();
+        .maybeSingle();
       if (profileError) throw profileError;
       profileData = data;
     }
@@ -70,7 +70,7 @@ export const userService = {
       .from('user_profiles')
       .upsert(updates)
       .select()
-      .single();
+      .maybeSingle();
       
     if (error) throw error;
     return data;
@@ -87,7 +87,7 @@ export const userService = {
         updated_at: new Date().toISOString()
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data;
@@ -217,7 +217,7 @@ export const userService = {
         updated_at: new Date().toISOString()
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return updated;
