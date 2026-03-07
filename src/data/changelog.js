@@ -1,4 +1,21 @@
 export const changelogData = [
+    {
+    version: 'v1.9.3',
+    date: 'March 7, 2026',
+    changes: [
+      {
+        type: 'qol',
+        title: 'Branches Refactor',
+        description: 'Now allows all branches to be displayed when editing the profile',
+        footnote: 'Some branches will still not be available on queueing due to missing coordinates.'
+      },
+      {
+        type: 'qol',
+        title: 'Songs Discussion Improvement',
+        description: 'Now allows users to remove their tags and to see what those tags mean',
+      }
+    ]
+  },
   {
     version: 'v1.9.2',
     date: 'March 5, 2026',
@@ -228,28 +245,6 @@ export const changelogData = [
         type: 'feature',
         title: 'Playlist enhancements',
         description: 'You can now select DX and Standard charts separately, and select the specific difficulty you want to showcase!',
-      }
-    ]
-  },
-  {
-    version: 'v1.7.3',
-    date: 'February 21, 2026',
-    changes: [
-      {
-        type: 'feature',
-        title: 'Custom Display Photo',
-        description: 'Added an upload feature for custom display photos.',
-      },
-      {
-        type: 'fix',
-        title: 'Favorite songs improvement',
-        description: 'Allows user to edit the comment on their favorite songs.',
-        footnote: 'Thanks to Sunnyjim for this suggestion!'
-      },
-      {
-        type: 'feature',
-        title: 'Multi-select on playlist making',
-        description: 'Allows user to select multiple songs when making a playlist.',
       }
     ]
   },
