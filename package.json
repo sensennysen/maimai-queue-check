@@ -15,6 +15,7 @@
     "prebuild": "npm run build:bookmarklet"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "@mantine/core": "^8.3.15",
     "@mantine/dates": "^8.3.15",
     "@mantine/dropzone": "^8.3.15",

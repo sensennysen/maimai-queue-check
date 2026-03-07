@@ -828,6 +828,33 @@ export const playlistService = {
       throw error;
     }
     return data;
+  },
+
+  // Reorder playlists for a user
+  async reorderPlaylists(userId, playlistIds) {
+    if (!userId || !playlistIds || playlistIds.length === 0) return;
+
+    // We'll use a Promise.all with individual updates since Supabase JS client 
+    // doesn't have a built-in multiple row update with different values 
+    // unless using a complex upsert with IDs.
+    // For small number of playlists, this is acceptable.
+    const updates = playlistIds.map((id, index) => 
+      supabase
+        .from('user_playlists')
+        .update({ order_index: index })
+        .eq('id', id)
+        .eq('user_id', userId) // Security check
+    );
+
+    const results = await Promise.all(updates);
+    const errors = results.filter(r => r.error).map(r => r.error);
+    
+    if (errors.length > 0) {
+      console.error('Errors reordering playlists:', errors);
+      throw new Error('Failed to save some playlist positions');
+    }
+
+    return true;
   }
 };
 

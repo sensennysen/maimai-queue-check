@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Paper, Image, Text, Stack } from '@mantine/core';
 import './PlaylistStack.css';
 
-export const PlaylistStack = React.memo(function PlaylistStack({ playlist, songs = [], onClick }) {
+export const PlaylistStack = React.memo(function PlaylistStack({ playlist, songs = [], onClick, style = {} }) {
   // Get up to 3 song images for the stack
   const stackImages = songs.slice(0, 3).map(s => s.imageUrl).filter(Boolean);
 
@@ -15,7 +15,7 @@ export const PlaylistStack = React.memo(function PlaylistStack({ playlist, songs
     <Box
       className="playlist-stack-container"
       onClick={onClick}
-      style={{ overflow: 'visible' }}
+      style={{ overflow: 'visible', ...style }}
     >
       <Box className="playlist-stack">
         {/* Render background cards (offsets) */}
