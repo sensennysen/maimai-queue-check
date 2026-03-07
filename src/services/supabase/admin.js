@@ -2,16 +2,27 @@ import { supabase } from './client';
 
 // Branch service functions
 export const branchService = {
-  // Fetch all branches from allowed_places
+  // Fetch all branches that are fully set up for queueing (has coordinates and schedule)
   async getAllBranches() {
     const { data, error } = await supabase
       .from('allowed_places')
-      .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled')
+      .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled, mall_schedule(id)')
       .eq('enabled', true)
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
       .order('arcade_name', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    
+    // Filter on client side for branches that have at least one schedule
+    // and remove the nested mall_schedule array from the result to match previous signature
+    const filteredData = (data || []).filter(branch => branch.mall_schedule && branch.mall_schedule.length > 0)
+      .map(branch => {
+        const { mall_schedule, ...rest } = branch;
+        return rest;
+      });
+      
+    return filteredData;
   },
 
   // Fetch a single branch by ID
