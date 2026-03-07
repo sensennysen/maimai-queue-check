@@ -207,7 +207,7 @@ export const adminService = {
 
     let query = supabase
       .from('user_roles')
-      .select('user_id, email, queue_name, can_edit, can_edit_on, is_admin, is_super_admin, user_profiles!inner(preferred_branches, slug)', { count: 'exact' });
+      .select('user_id, email, queue_name, can_edit, can_edit_on, is_admin, is_super_admin, admin_branch, user_profiles!inner(preferred_branches, slug)', { count: 'exact' });
 
     if (searchQuery.trim()) {
       const queryStr = `%${searchQuery.trim()}%`;
@@ -260,9 +260,10 @@ export const adminService = {
       .update(sanitizedUpdates)
       .eq('user_id', userId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) throw new Error("Permission denied or user role record not found.");
     return data;
   },
 
@@ -403,9 +404,10 @@ export const requestService = {
           .update({ status })
           .eq('id', requestId)
           .select()
-          .single();
+          .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("Permission denied or request record not found.");
       return data;
   }
 };
