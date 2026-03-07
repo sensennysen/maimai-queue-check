@@ -11,6 +11,11 @@ export const changelogData = [
       },
       {
         type: 'qol',
+        title: 'Playlist Reordering',
+        description: 'Now allows users to reorder their playlists',
+      },
+      {
+        type: 'qol',
         title: 'Songs Discussion Improvement',
         description: 'Now allows users to remove their tags and to see what those tags mean',
       }
