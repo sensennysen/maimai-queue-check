@@ -22,8 +22,8 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
   const [schedules, setSchedules] = useState(
     DAYS_OF_WEEK.map(day => ({
       day,
-      time_open: '10:00',
-      time_close: '22:00'
+      time_open: '',
+      time_close: ''
     }))
   );
   const [loading, setLoading] = useState(false);
@@ -55,7 +55,7 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
                 time_open: convertTime(existing.time_open),
                 time_close: convertTime(existing.time_close)
               }
-              : { day, time_open: '10:00', time_close: '22:00' };
+              : { day, time_open: '', time_close: '' };
           });
           setSchedules(mappedSchedules);
         }
@@ -87,11 +87,16 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
     if (!branch) return;
 
     // Validation
+    const validSchedules = [];
     for (const schedule of schedules) {
+      if (!schedule.time_open && !schedule.time_close) {
+        continue;
+      }
+
       if (!schedule.time_open || !schedule.time_close) {
         notifications.show({
           title: 'Validation Error',
-          message: `Please fill in both opening and closing times for ${schedule.day}`,
+          message: `Please fill in both opening and closing times for ${schedule.day}, or leave both blank if closed.`,
           color: 'red',
         });
         return;
@@ -110,11 +115,17 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
         });
         return;
       }
+
+      validSchedules.push({
+        ...schedule,
+        time_open: openTime,
+        time_close: closeTime
+      });
     }
 
     setLoading(true);
     try {
-      await adminService.updateMallSchedules(branch.id, schedules);
+      await adminService.updateMallSchedules(branch.id, validSchedules);
 
       notifications.show({
         title: 'Success',
@@ -179,7 +190,6 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
                             type="time"
                             value={schedule.time_open}
                             onChange={(e) => handleScheduleChange(index, 'time_open', e.target.value)}
-                            required
                             leftSection={<IconClock size={16} />}
                             styles={{ input: { textAlign: 'center' } }}
                           />
@@ -189,7 +199,6 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
                             type="time"
                             value={schedule.time_close}
                             onChange={(e) => handleScheduleChange(index, 'time_close', e.target.value)}
-                            required
                             leftSection={<IconClock size={16} />}
                             styles={{ input: { textAlign: 'center' } }}
                           />

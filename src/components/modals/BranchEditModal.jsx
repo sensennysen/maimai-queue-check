@@ -99,25 +99,27 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
       return;
     }
 
-    if (!latitude || !longitude) {
-      notifications.show({
-        title: 'Validation Error',
-        message: 'Latitude and longitude are required',
-        color: 'red',
-      });
-      return;
-    }
+    if (latitude || longitude) {
+      if (!latitude || !longitude) {
+        notifications.show({
+          title: 'Validation Error',
+          message: 'Both latitude and longitude must be provided if you want to set coordinates',
+          color: 'red',
+        });
+        return;
+      }
 
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
 
-    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      notifications.show({
-        title: 'Validation Error',
-        message: 'Invalid coordinates. Latitude must be between -90 and 90, longitude between -180 and 180',
-        color: 'red',
-      });
-      return;
+      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        notifications.show({
+          title: 'Validation Error',
+          message: 'Invalid coordinates. Latitude must be between -90 and 90, longitude between -180 and 180',
+          color: 'red',
+        });
+        return;
+      }
     }
 
     if (cabCount < 1) {
@@ -133,8 +135,8 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
       arcade_name: arcadeName.trim(),
       short_name: shortName.trim(),
       acronym: acronym.trim().toUpperCase(),
-      longitude: lng,
-      latitude: lat,
+      longitude: longitude ? parseFloat(longitude) : null,
+      latitude: latitude ? parseFloat(latitude) : null,
       cab_count: cabCount,
       enabled,
     };
@@ -176,19 +178,26 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
     e.preventDefault();
 
     // Validation
+    const validSchedules = [];
     for (const schedule of schedules) {
+      // If both are empty, that means no schedule for this day (valid)
+      if (!schedule.time_open && !schedule.time_close) {
+        continue;
+      }
+
+      // If only one is provided
       if (!schedule.time_open || !schedule.time_close) {
         notifications.show({
           title: 'Validation Error',
-          message: `Please fill in both opening and closing times for ${schedule.day}`,
+          message: `Please fill in both opening and closing times for ${schedule.day}, or leave both blank if closed.`,
           color: 'red',
         });
         return;
       }
 
-      // Validate time format (HH:MM)
+      // Validate time format (HH:MM or H:MM)
       const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-      if (!timeRegex.test(schedule.time_open) || !timeRegex.test(schedule.time_close)) {
+      if (!timeRegex.test(schedule.time_open.trim()) || !timeRegex.test(schedule.time_close.trim())) {
         notifications.show({
           title: 'Validation Error',
           message: `Invalid time format for ${schedule.day}. Use HH:MM format`,
@@ -196,6 +205,8 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
         });
         return;
       }
+
+      validSchedules.push(schedule);
     }
 
     setLoading(true);
@@ -205,22 +216,23 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
         arcade_name: arcadeName.trim(),
         short_name: shortName.trim(),
         acronym: acronym.trim().toUpperCase(),
-        longitude: parseFloat(longitude),
-        latitude: parseFloat(latitude),
+        longitude: longitude ? parseFloat(longitude) : null,
+        latitude: latitude ? parseFloat(latitude) : null,
         cab_count: cabCount,
         enabled,
       };
       const newBranch = await adminService.createBranch(branchData);
 
       // Then create schedules with the new branch ID
-      const scheduleData = schedules.map(schedule => ({
-        branch_id: newBranch.id,
-        day: schedule.day,
-        time_open: schedule.time_open,
-        time_close: schedule.time_close,
-      }));
-
-      await adminService.createMallSchedules(scheduleData);
+      if (validSchedules.length > 0) {
+        const scheduleData = validSchedules.map(schedule => ({
+          branch_id: newBranch.id,
+          day: schedule.day,
+          time_open: schedule.time_open.trim(),
+          time_close: schedule.time_close.trim(),
+        }));
+        await adminService.createMallSchedules(scheduleData);
+      }
 
       notifications.show({
         title: 'Success',
@@ -319,8 +331,7 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
                   label="Latitude"
                   placeholder="e.g., 14.5995"
                   value={latitude}
-                  onChange={(value) => setLatitude(value.toString())}
-                  required
+                  onChange={(value) => setLatitude(value === '' ? '' : value.toString())}
                   decimalScale={6}
                   step={0.000001}
                   hideControls
@@ -329,8 +340,7 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
                   label="Longitude"
                   placeholder="e.g., 120.9842"
                   value={longitude}
-                  onChange={(value) => setLongitude(value.toString())}
-                  required
+                  onChange={(value) => setLongitude(value === '' ? '' : value.toString())}
                   decimalScale={6}
                   step={0.000001}
                   hideControls
@@ -404,7 +414,6 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
                               type="time"
                               value={schedule.time_open}
                               onChange={(e) => handleScheduleChange(index, 'time_open', e.target.value)}
-                              required
                               leftSection={<IconClock size={16} />}
                               styles={{ input: { textAlign: 'center' } }}
                             />
@@ -414,7 +423,6 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
                               type="time"
                               value={schedule.time_close}
                               onChange={(e) => handleScheduleChange(index, 'time_close', e.target.value)}
-                              required
                               leftSection={<IconClock size={16} />}
                               styles={{ input: { textAlign: 'center' } }}
                             />
