@@ -706,7 +706,8 @@ export const playlistService = {
         content,
         created_at,
         user_id,
-        user_profiles:user_id(display_name, display_photo_url, dx_display_photo_url, slug)
+        user_profiles:user_id(display_name, display_photo_url, dx_display_photo_url, slug),
+        playlist_comment_votes(vote_type, user_id, user_profiles(display_name, display_photo_url, dx_display_photo_url))
       `)
       .eq('post_id', postId)
       .order('created_at', { ascending: false });
@@ -756,6 +757,33 @@ export const playlistService = {
       throw error;
     }
     return true;
+  },
+
+  // Vote on a playlist comment
+  async votePostComment(commentId, userId, voteType) {
+    if (voteType === 0) {
+      // Remove vote
+      const { data, error } = await supabase
+        .from('playlist_comment_votes')
+        .delete()
+        .eq('comment_id', commentId)
+        .eq('user_id', userId);
+        
+      if (error) throw error;
+      return data;
+    } else {
+      // Upsert vote
+      const { data, error } = await supabase
+        .from('playlist_comment_votes')
+        .upsert(
+          { comment_id: commentId, user_id: userId, vote_type: voteType },
+          { onConflict: 'comment_id,user_id' }
+        )
+        .select();
+        
+      if (error) throw error;
+      return data;
+    }
   },
 
   // Delete a specific post

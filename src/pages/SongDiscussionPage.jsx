@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, Alert, Rating, Autocomplete, ActionIcon, Textarea, Center, Flex, Grid, Table, ScrollArea, Box, Avatar } from '@mantine/core';
+import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, Alert, Rating, Autocomplete, ActionIcon, Textarea, Center, Flex, Grid, Table, ScrollArea, Box, Avatar, Modal, HoverCard, Tooltip } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh, IconWorld, IconPlaylistAdd } from '@tabler/icons-react';
+import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh, IconWorld, IconPlaylistAdd, IconBook, IconX } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
@@ -27,6 +27,7 @@ export default function SongDiscussionPage() {
   const [newCommentValue, setNewCommentValue] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [addToPlaylistOpened, setAddToPlaylistOpened] = useState(false);
+  const [glossaryOpened, setGlossaryOpened] = useState(false);
   const { user, userRoles } = useAuth();
   const location = useLocation();
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -375,25 +376,139 @@ export default function SongDiscussionPage() {
               </Paper>
 
               <Paper p="md" radius="md" withBorder>
-                <Title order={4} mb="sm">Tags</Title>
+                <Group justify="space-between" align="center" mb="sm">
+                  <Title order={4}>Tags</Title>
+                  <Tooltip label="Tag Glossary">
+                    <ActionIcon variant="light" color="blue" onClick={() => setGlossaryOpened(true)}>
+                      <IconBook size={18} />
+                    </ActionIcon>
+                  </Tooltip>
+                </Group>
                 {discussionLoading ? <Loader size="sm" /> : (
                   <Stack gap="sm">
                     {discussionData.tags.length > 0 ? (
                       <Group gap="xs">
-                        {Object.entries(
-                          discussionData.tags.reduce((acc, currentInfo) => {
-                            const name = currentInfo.song_tags_dictionary?.tag_name;
+                        {Object.values(
+                          discussionData.tags.reduce((acc, tagItem) => {
+                            const name = tagItem.song_tags_dictionary?.tag_name;
                             if (name) {
-                              acc[name] = (acc[name] || 0) + 1;
+                              if (!acc[name]) {
+                                acc[name] = {
+                                  tagId: tagItem.tag_id,
+                                  tagName: name,
+                                  description: tagItem.song_tags_dictionary?.description,
+                                  count: 0,
+                                  users: [],
+                                  hasAdded: false
+                                };
+                              }
+                              acc[name].count += 1;
+                              if (tagItem.user_profiles) {
+                                acc[name].users.push(tagItem.user_profiles);
+                              }
+                              if (user && tagItem.user_id === user.id) {
+                                acc[name].hasAdded = true;
+                              }
                             }
                             return acc;
                           }, {})
                         )
-                          .sort((a, b) => b[1] - a[1]) // Sort by count descending
-                          .map(([tagName, count]) => (
-                            <Badge key={tagName} variant="light" color="blue" size="lg">
-                              {tagName} <Text span size="xs" c="dimmed" ml={4}>({count})</Text>
-                            </Badge>
+                          .sort((a, b) => b.count - a.count)
+                          .map((tagObj) => (
+                            <HoverCard width={280} shadow="md" withArrow openDelay={200} closeDelay={400} key={tagObj.tagName}>
+                              <HoverCard.Target>
+                                <Badge
+                                  variant={tagObj.hasAdded ? "filled" : "light"}
+                                  color="blue"
+                                  size="lg"
+                                  style={{ cursor: user ? 'pointer' : 'default', paddingRight: tagObj.hasAdded ? 0 : undefined }}
+                                  onClick={async () => {
+                                    if (!user) return;
+                                    if (!tagObj.hasAdded) {
+                                      // Quick Add
+                                      setIsTaggingLoading(true);
+                                      try {
+                                        await discussionService.addSongTag(id, tagObj.tagId, user.id);
+                                        setDiscussionData(prev => ({
+                                          ...prev,
+                                          tags: [
+                                            ...prev.tags,
+                                            {
+                                              song_id: id,
+                                              tag_id: tagObj.tagId,
+                                              user_id: user.id,
+                                              song_tags_dictionary: { tag_name: tagObj.tagName, description: tagObj.description },
+                                              user_profiles: { display_name: userRoles?.display_name || 'You', display_photo_url: userRoles?.display_photo_url }
+                                            }
+                                          ]
+                                        }));
+                                        notifications.show({ title: 'Tag Added', message: `Added tag "${tagObj.tagName}".`, color: 'green' });
+                                      } catch (err) {
+                                        console.error('Failed to add tag', err);
+                                        notifications.show({ title: 'Error', message: 'Failed to add tag.', color: 'red' });
+                                      } finally {
+                                        setIsTaggingLoading(false);
+                                      }
+                                    }
+                                  }}
+                                  rightSection={
+                                    tagObj.hasAdded ? (
+                                      <ActionIcon size="xs" color="blue" radius="xl" variant="transparent"
+                                        onClick={async (e) => {
+                                          e.stopPropagation();
+                                          setIsTaggingLoading(true);
+                                          try {
+                                            await discussionService.removeSongTag(id, tagObj.tagId, user.id);
+                                            setDiscussionData(prev => ({
+                                              ...prev,
+                                              tags: prev.tags.filter(t => !(t.tag_id === tagObj.tagId && t.user_id === user.id))
+                                            }));
+                                            notifications.show({ title: 'Tag Removed', message: `Removed tag "${tagObj.tagName}".`, color: 'blue' });
+                                          } catch (err) {
+                                            console.error('Failed to remove tag', err);
+                                            notifications.show({ title: 'Error', message: 'Failed to remove tag.', color: 'red' });
+                                          } finally {
+                                            setIsTaggingLoading(false);
+                                          }
+                                        }}
+                                      >
+                                        <IconX size={10} />
+                                      </ActionIcon>
+                                    ) : null
+                                  }
+                                >
+                                  {tagObj.tagName} <Text span size="xs" c={tagObj.hasAdded ? "white" : "dimmed"} ml={4}>({tagObj.count})</Text>
+                                </Badge>
+                              </HoverCard.Target>
+                              <HoverCard.Dropdown>
+                                <Stack gap="xs">
+                                  <Text size="sm" fw={700}>{tagObj.tagName}</Text>
+                                  {tagObj.description ? (
+                                    <Text size="xs" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>{tagObj.description}</Text>
+                                  ) : (
+                                    <Text size="xs" c="dimmed" fs="italic">No description available.</Text>
+                                  )}
+                                  <Box mt="xs">
+                                    <Text size="xs" fw={500} mb={4}>Added by:</Text>
+                                    <Avatar.Group spacing="sm">
+                                      {tagObj.users.slice(0, 5).map((u, i) => (
+                                        <Tooltip key={i} label={u?.display_name || 'Unknown'}>
+                                          <Avatar src={getProfileImageUrl(u)} size="sm" radius="xl" />
+                                        </Tooltip>
+                                      ))}
+                                      {tagObj.users.length > 5 && (
+                                        <Tooltip label={`${tagObj.users.length - 5} more`}>
+                                          <Avatar size="sm" radius="xl">+{tagObj.users.length - 5}</Avatar>
+                                        </Tooltip>
+                                      )}
+                                    </Avatar.Group>
+                                  </Box>
+                                  {user && !tagObj.hasAdded && (
+                                    <Text size="xs" c="blue" mt="xs" fw={500}>Click badge to add this tag</Text>
+                                  )}
+                                </Stack>
+                              </HoverCard.Dropdown>
+                            </HoverCard>
                           ))}
                       </Group>
                     ) : (
@@ -440,7 +555,8 @@ export default function SongDiscussionPage() {
                                         song_id: id,
                                         tag_id: existingTag.id,
                                         user_id: user.id,
-                                        song_tags_dictionary: { tag_name: existingTag.tag_name }
+                                        song_tags_dictionary: { tag_name: existingTag.tag_name, description: existingTag.description },
+                                        user_profiles: { display_name: userRoles?.display_name || 'You', display_photo_url: userRoles?.display_photo_url }
                                       }
                                     ]
                                   }));
@@ -476,7 +592,8 @@ export default function SongDiscussionPage() {
                                         song_id: id,
                                         tag_id: newTag.id,
                                         user_id: user.id,
-                                        song_tags_dictionary: { tag_name: newTag.tag_name }
+                                        song_tags_dictionary: { tag_name: newTag.tag_name, description: newTag.description },
+                                        user_profiles: { display_name: userRoles?.display_name || 'You', display_photo_url: userRoles?.display_photo_url }
                                       }
                                     ]
                                   }));
@@ -573,8 +690,8 @@ export default function SongDiscussionPage() {
                 {discussionLoading ? <Loader size="sm" /> : (
                   <Stack gap="md" mt="sm">
                     {discussionData.comments.length > 0 ? discussionData.comments.map(comment => {
-                      const upvotes = comment.song_comment_votes?.filter(v => v.vote_type === 1).length || 0;
-                      const downvotes = comment.song_comment_votes?.filter(v => v.vote_type === -1).length || 0;
+                      const upvotes = comment.song_comment_votes?.filter(v => v.vote_type === 1) || [];
+                      const downvotes = comment.song_comment_votes?.filter(v => v.vote_type === -1) || [];
                       const myVote = comment.song_comment_votes?.find(v => v.user_id === user?.id)?.vote_type || 0;
 
                       return (
@@ -635,62 +752,101 @@ export default function SongDiscussionPage() {
                           </Text>
 
                           <Group gap="xs" mt="sm">
-                            <Button
-                              variant={myVote === 1 ? 'light' : 'subtle'}
-                              color={myVote === 1 ? 'blue' : 'gray'}
-                              size="compact-xs"
-                              leftSection={<IconThumbUp size={14} />}
-                              disabled={!user}
-                              onClick={async () => {
-                                try {
-                                  const nextVote = myVote === 1 ? 0 : 1;
-                                  await discussionService.voteComment(comment.id, user.id, nextVote);
-                                  setDiscussionData(prev => ({
-                                    ...prev,
-                                    comments: prev.comments.map(c => {
-                                      if (c.id !== comment.id) return c;
-                                      const filteredVotes = (c.song_comment_votes || []).filter(v => v.user_id !== user.id);
-                                      if (nextVote !== 0) {
-                                        filteredVotes.push({ user_id: user.id, vote_type: nextVote });
-                                      }
-                                      return { ...c, song_comment_votes: filteredVotes };
-                                    })
-                                  }));
-                                } catch (err) {
-                                  console.error('Failed to vote', err);
-                                }
-                              }}
+                            <Tooltip
+                              label={
+                                upvotes.length > 0 ? (
+                                  <Stack gap={4}>
+                                    {upvotes.slice(0, 10).map((v, i) => (
+                                      <Group key={i} gap="xs">
+                                        <Avatar src={getProfileImageUrl(v.user_profiles)} size={20} radius="xl" />
+                                        <Text size="xs">{v.user_profiles?.display_name || 'Unknown'}</Text>
+                                      </Group>
+                                    ))}
+                                    {upvotes.length > 10 && <Text size="xs" c="dimmed">+{upvotes.length - 10} more</Text>}
+                                  </Stack>
+                                ) : null
+                              }
+                              disabled={upvotes.length === 0}
+                              position="top"
+                              withArrow
                             >
-                              {upvotes > 0 ? upvotes : ''}
-                            </Button>
-                            <Button
-                              variant={myVote === -1 ? 'light' : 'subtle'}
-                              color={myVote === -1 ? 'red' : 'gray'}
-                              size="compact-xs"
-                              leftSection={<IconThumbDown size={14} />}
-                              disabled={!user}
-                              onClick={async () => {
-                                try {
-                                  const nextVote = myVote === -1 ? 0 : -1;
-                                  await discussionService.voteComment(comment.id, user.id, nextVote);
-                                  setDiscussionData(prev => ({
-                                    ...prev,
-                                    comments: prev.comments.map(c => {
-                                      if (c.id !== comment.id) return c;
-                                      const filteredVotes = (c.song_comment_votes || []).filter(v => v.user_id !== user.id);
-                                      if (nextVote !== 0) {
-                                        filteredVotes.push({ user_id: user.id, vote_type: nextVote });
-                                      }
-                                      return { ...c, song_comment_votes: filteredVotes };
-                                    })
-                                  }));
-                                } catch (err) {
-                                  console.error('Failed to vote', err);
-                                }
-                              }}
+                              <Button
+                                variant={myVote === 1 ? 'light' : 'subtle'}
+                                color={myVote === 1 ? 'blue' : 'gray'}
+                                size="compact-xs"
+                                leftSection={<IconThumbUp size={14} />}
+                                disabled={!user}
+                                onClick={async () => {
+                                  try {
+                                    const nextVote = myVote === 1 ? 0 : 1;
+                                    await discussionService.voteComment(comment.id, user.id, nextVote);
+                                    setDiscussionData(prev => ({
+                                      ...prev,
+                                      comments: prev.comments.map(c => {
+                                        if (c.id !== comment.id) return c;
+                                        const filteredVotes = (c.song_comment_votes || []).filter(v => v.user_id !== user.id);
+                                        if (nextVote !== 0) {
+                                          filteredVotes.push({ user_id: user.id, vote_type: nextVote, user_profiles: { display_name: userRoles?.display_name || 'You', display_photo_url: userRoles?.display_photo_url } });
+                                        }
+                                        return { ...c, song_comment_votes: filteredVotes };
+                                      })
+                                    }));
+                                  } catch (err) {
+                                    console.error('Failed to vote', err);
+                                  }
+                                }}
+                              >
+                                {upvotes.length > 0 ? upvotes.length : ''}
+                              </Button>
+                            </Tooltip>
+
+                            <Tooltip
+                              label={
+                                downvotes.length > 0 ? (
+                                  <Stack gap={4}>
+                                    {downvotes.slice(0, 10).map((v, i) => (
+                                      <Group key={i} gap="xs">
+                                        <Avatar src={getProfileImageUrl(v.user_profiles)} size={20} radius="xl" />
+                                        <Text size="xs">{v.user_profiles?.display_name || 'Unknown'}</Text>
+                                      </Group>
+                                    ))}
+                                    {downvotes.length > 10 && <Text size="xs" c="dimmed">+{downvotes.length - 10} more</Text>}
+                                  </Stack>
+                                ) : null
+                              }
+                              disabled={downvotes.length === 0}
+                              position="top"
+                              withArrow
                             >
-                              {downvotes > 0 ? downvotes : ''}
-                            </Button>
+                              <Button
+                                variant={myVote === -1 ? 'light' : 'subtle'}
+                                color={myVote === -1 ? 'red' : 'gray'}
+                                size="compact-xs"
+                                leftSection={<IconThumbDown size={14} />}
+                                disabled={!user}
+                                onClick={async () => {
+                                  try {
+                                    const nextVote = myVote === -1 ? 0 : -1;
+                                    await discussionService.voteComment(comment.id, user.id, nextVote);
+                                    setDiscussionData(prev => ({
+                                      ...prev,
+                                      comments: prev.comments.map(c => {
+                                        if (c.id !== comment.id) return c;
+                                        const filteredVotes = (c.song_comment_votes || []).filter(v => v.user_id !== user.id);
+                                        if (nextVote !== 0) {
+                                          filteredVotes.push({ user_id: user.id, vote_type: nextVote, user_profiles: { display_name: userRoles?.display_name || 'You', display_photo_url: userRoles?.display_photo_url } });
+                                        }
+                                        return { ...c, song_comment_votes: filteredVotes };
+                                      })
+                                    }));
+                                  } catch (err) {
+                                    console.error('Failed to vote', err);
+                                  }
+                                }}
+                              >
+                                {downvotes.length > 0 ? downvotes.length : ''}
+                              </Button>
+                            </Tooltip>
                           </Group>
                         </Paper>
                       );
@@ -724,6 +880,35 @@ export default function SongDiscussionPage() {
           imageUrl: import.meta.env.VITE_SONG_JACKETS_URL + song.imageName
         }}
       />
+
+      {/* Tag Glossary Modal */}
+      <Modal
+        opened={glossaryOpened}
+        onClose={() => setGlossaryOpened(false)}
+        title={<Title order={3}>Tag Glossary</Title>}
+        size="lg"
+      >
+        <Stack gap="md">
+          {availableTags.length === 0 ? (
+            <Text c="dimmed">No tags available in the dictionary.</Text>
+          ) : (
+            availableTags.map((tag) => (
+              <Paper key={tag.id} p="sm" withBorder radius="md">
+                <Group justify="space-between" align="flex-start" wrap="nowrap">
+                  <Stack gap={4} style={{ flex: 1 }}>
+                    <Badge variant="light" color="blue" size="lg">{tag.tag_name}</Badge>
+                    {tag.description ? (
+                      <Text size="sm" mt="xs">{tag.description}</Text>
+                    ) : (
+                      <Text size="sm" c="dimmed" mt="xs" fs="italic">No description available.</Text>
+                    )}
+                  </Stack>
+                </Group>
+              </Paper>
+            ))
+          )}
+        </Stack>
+      </Modal>
     </Container >
   );
 }
