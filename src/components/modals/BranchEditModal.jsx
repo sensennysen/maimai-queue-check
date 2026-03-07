@@ -54,8 +54,8 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
       setArcadeName(branchToEdit.arcade_name);
       setShortName(branchToEdit.short_name || '');
       setAcronym(branchToEdit.acronym || '');
-      setLatitude(branchToEdit.latitude.toString());
-      setLongitude(branchToEdit.longitude.toString());
+      setLatitude(branchToEdit.latitude?.toString() || '');
+      setLongitude(branchToEdit.longitude?.toString() || '');
       setCabCount(branchToEdit.cab_count);
       setEnabled(branchToEdit.enabled);
     } else if (opened && mode === 'create') {
