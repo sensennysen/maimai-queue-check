@@ -65,8 +65,10 @@ export const BranchProvider = ({ children }) => {
     const { eventType, new: newRecord, old: oldRecord } = payload;
 
     if (eventType === 'INSERT') {
-      // New branch added - only add if enabled
-      if (newRecord.enabled) {
+      // New branch added - only add if enabled and has coordinates
+      if (newRecord.enabled && newRecord.latitude != null && newRecord.longitude != null) {
+        // Note: we can't easily verify mall_schedule here, but coordinate presence is a good proxy 
+        // until a full reload happens.
         setBranches(prev => [...prev, newRecord].sort((a, b) =>
           a.arcade_name.localeCompare(b.arcade_name)
         ));
@@ -78,13 +80,13 @@ export const BranchProvider = ({ children }) => {
           branch.id === newRecord.id ? newRecord : branch
         );
 
-        // If branch was disabled, remove it from the list
-        if (!newRecord.enabled) {
+        // If branch was disabled or lost coordinates, remove it from the list
+        if (!newRecord.enabled || newRecord.latitude == null || newRecord.longitude == null) {
           return updated.filter(b => b.id !== newRecord.id);
         }
 
-        // If branch was enabled, make sure it's in the list
-        if (newRecord.enabled && !prev.find(b => b.id === newRecord.id)) {
+        // If branch was enabled with coordinates, make sure it's in the list
+        if (newRecord.enabled && newRecord.latitude != null && newRecord.longitude != null && !prev.find(b => b.id === newRecord.id)) {
           return [...updated, newRecord].sort((a, b) =>
             a.arcade_name.localeCompare(b.arcade_name)
           );
@@ -108,10 +110,10 @@ export const BranchProvider = ({ children }) => {
         return prev;
       });
 
-      // If the selected branch was disabled, switch to first available
-      if (newRecord.id === selectedBranch?.id && !newRecord.enabled) {
+      // If the selected branch was disabled or lost coordinates, switch to first available
+      if (newRecord.id === selectedBranch?.id && (!newRecord.enabled || newRecord.latitude == null || newRecord.longitude == null)) {
         setBranches(currentBranches => {
-          const otherBranches = currentBranches.filter(b => b.id !== newRecord.id && b.enabled);
+          const otherBranches = currentBranches.filter(b => b.id !== newRecord.id && b.enabled && b.latitude != null && b.longitude != null);
           if (otherBranches.length > 0) {
             setSelectedBranch(otherBranches[0]);
           }
@@ -179,6 +181,18 @@ export const BranchProvider = ({ children }) => {
         },
         (payload) => {
           handleBranchChange(payload);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'mall_schedule',
+        },
+        () => {
+          // Schedules changed, trigger a full reload since we filter by schedule presence
+          loadBranches();
         }
       )
       .subscribe();

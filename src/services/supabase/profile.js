@@ -706,7 +706,8 @@ export const playlistService = {
         content,
         created_at,
         user_id,
-        user_profiles:user_id(display_name, display_photo_url, dx_display_photo_url, slug)
+        user_profiles:user_id(display_name, display_photo_url, dx_display_photo_url, slug),
+        playlist_comment_votes(vote_type, user_id, user_profiles(display_name, display_photo_url, dx_display_photo_url))
       `)
       .eq('post_id', postId)
       .order('created_at', { ascending: false });
@@ -758,6 +759,33 @@ export const playlistService = {
     return true;
   },
 
+  // Vote on a playlist comment
+  async votePostComment(commentId, userId, voteType) {
+    if (voteType === 0) {
+      // Remove vote
+      const { data, error } = await supabase
+        .from('playlist_comment_votes')
+        .delete()
+        .eq('comment_id', commentId)
+        .eq('user_id', userId);
+        
+      if (error) throw error;
+      return data;
+    } else {
+      // Upsert vote
+      const { data, error } = await supabase
+        .from('playlist_comment_votes')
+        .upsert(
+          { comment_id: commentId, user_id: userId, vote_type: voteType },
+          { onConflict: 'comment_id,user_id' }
+        )
+        .select();
+        
+      if (error) throw error;
+      return data;
+    }
+  },
+
   // Delete a specific post
   async deletePost(postId) {
     const { error } = await supabase
@@ -800,6 +828,33 @@ export const playlistService = {
       throw error;
     }
     return data;
+  },
+
+  // Reorder playlists for a user
+  async reorderPlaylists(userId, playlistIds) {
+    if (!userId || !playlistIds || playlistIds.length === 0) return;
+
+    // We'll use a Promise.all with individual updates since Supabase JS client 
+    // doesn't have a built-in multiple row update with different values 
+    // unless using a complex upsert with IDs.
+    // For small number of playlists, this is acceptable.
+    const updates = playlistIds.map((id, index) => 
+      supabase
+        .from('user_playlists')
+        .update({ order_index: index })
+        .eq('id', id)
+        .eq('user_id', userId) // Security check
+    );
+
+    const results = await Promise.all(updates);
+    const errors = results.filter(r => r.error).map(r => r.error);
+    
+    if (errors.length > 0) {
+      console.error('Errors reordering playlists:', errors);
+      throw new Error('Failed to save some playlist positions');
+    }
+
+    return true;
   }
 };
 

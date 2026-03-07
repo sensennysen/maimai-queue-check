@@ -6,6 +6,7 @@ import { playlistService } from '../../services/supabase';
 import { PlaylistEditModal } from './PlaylistEditModal';
 import { PlaylistStack } from './PlaylistStack';
 import { PlaylistDetailModal } from './PlaylistDetailModal';
+import { PlaylistManageModal } from './PlaylistManageModal';
 import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
 import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 import './PlaylistStack.css';
@@ -17,6 +18,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
   const { scrollRef, isDragging } = useMouseDragScroll();
   const isMounted = useRef(true);
@@ -135,15 +137,28 @@ export function PlaylistSection({ userId, isOwnProfile }) {
         </Group>
 
         {isOwnProfile && (
-          <Indicator color="orange" size={10} processing disabled={!hasDraft}>
-            <Button
-              leftSection={<IconPlaylistAdd size={18} />}
-              variant="light"
-              onClick={handleCreateNew}
-            >
-              New Playlist
-            </Button>
-          </Indicator>
+          <Group gap="xs">
+            {playlists.length > 1 && (
+              <Button
+                variant="light"
+                color="gray"
+                size="sm"
+                onClick={() => setIsManageModalOpen(true)}
+                leftSection={<IconPlaylist size={18} />}
+              >
+                Manage Order
+              </Button>
+            )}
+            <Indicator color="orange" size={10} processing disabled={!hasDraft}>
+              <Button
+                leftSection={<IconPlaylistAdd size={18} />}
+                variant="light"
+                onClick={handleCreateNew}
+              >
+                New Playlist
+              </Button>
+            </Indicator>
+          </Group>
         )}
       </Group>
 
@@ -159,9 +174,6 @@ export function PlaylistSection({ userId, isOwnProfile }) {
           className="hide-scrollbar"
           style={{
             display: 'flex',
-            /* Top padding gives cards room to rotate/hover without clipping */
-            /* Horizontal margin matches parent Paper padding to keep it contained */
-            /* Top margin 0 prevents the container from bleeding above the Title/Header area */
             padding: '24px 20px 20px 20px',
             margin: '0 -20px -20px -20px',
             overflowX: 'auto',
@@ -209,6 +221,13 @@ export function PlaylistSection({ userId, isOwnProfile }) {
         isOwnProfile={isOwnProfile}
         onEdit={handleEditFromDetail}
         onDelete={handleDeletePlaylist}
+      />
+      <PlaylistManageModal
+        opened={isManageModalOpen}
+        onClose={() => setIsManageModalOpen(false)}
+        userId={userId}
+        playlists={playlists}
+        onSave={(updatedList) => setPlaylists(updatedList)}
       />
     </Paper >
   );
