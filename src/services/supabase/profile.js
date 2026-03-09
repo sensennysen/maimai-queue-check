@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { feedService } from './feed';
 import { validateData, userProfileSchema } from '../../utils/validation';
 
 // User service functions
@@ -741,6 +742,32 @@ export const playlistService = {
       console.error('Error adding post comment:', error);
       throw error;
     }
+
+    // Notify other commenters (thread activity)
+    try {
+      const { data: others } = await supabase
+        .from('playlist_comments')
+        .select('user_id')
+        .eq('post_id', postId)
+        .neq('user_id', userId)
+        .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .limit(10);
+      
+      const uniqueOthers = [...new Set(others?.map(o => o.user_id) || [])];
+      await Promise.all(uniqueOthers.map(recipientId => 
+        feedService.createActivityNotification({
+          recipientId,
+          actorId: userId,
+          type: 'thread_activity',
+          entityId: data.id,
+          entityType: 'playlist_comment',
+          postId: postId
+        })
+      ));
+    } catch (notifErr) {
+      console.error('Thread notification failed:', notifErr);
+    }
+
     return data;
   },
 
@@ -782,6 +809,31 @@ export const playlistService = {
         .select();
         
       if (error) throw error;
+
+      // Notify owner of upvote
+      if (voteType === 1) {
+        try {
+          const { data: comment } = await supabase
+            .from('playlist_comments')
+            .select('user_id, post_id')
+            .eq('id', commentId)
+            .single();
+
+          if (comment && comment.user_id !== userId) {
+            await feedService.createActivityNotification({
+              recipientId: comment.user_id,
+              actorId: userId,
+              type: 'playlist_comment_upvote',
+              entityId: commentId,
+              entityType: 'playlist_comment',
+              postId: comment.post_id
+            });
+          }
+        } catch (notifErr) {
+          console.error('Upvote notification failed:', notifErr);
+        }
+      }
+
       return data;
     }
   },

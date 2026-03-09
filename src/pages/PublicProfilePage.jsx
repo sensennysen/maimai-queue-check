@@ -19,7 +19,7 @@ import PrivacySettingsModal from '../components/profile/PrivacySettingsModal';
 import ProfilePictureUploadModal from '../components/profile/ProfilePictureUploadModal';
 import MaimaiSongDetailModal from '../components/profile/MaimaiSongDetailModal';
 import { useAuth } from '../hooks/useAuth';
-import { userService, branchService, mostPlayedService } from '../services/supabase';
+import { userService, branchService, mostPlayedService, followService } from '../services/supabase';
 import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection';
 import { PlaylistSection } from '../components/profile/PlaylistSection';
 import { RecentPlaysSection } from '../components/profile/RecentPlaysSection';
@@ -40,6 +40,8 @@ const PublicProfilePage = () => {
   const { user, refreshUserRoles } = useAuth();
   const isMobile = useMediaQuery('(max-width: 640px)');
   const navigate = useNavigate();
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
@@ -94,6 +96,16 @@ const PublicProfilePage = () => {
             setProfile(profileData);
             setBranches(branchesData);
             setIntroduction(profileData.introduction || null);
+          }
+
+          // Fetch follow status if viewer is logged in and not the owner
+          if (user && profileData.id !== user.id) {
+            try {
+              const following = await followService.isFollowing(user.id, profileData.id);
+              if (isMounted.current) setIsFollowing(following);
+            } catch (followErr) {
+              console.error('Error fetching follow status:', followErr);
+            }
           }
         }
       }
@@ -348,6 +360,51 @@ const PublicProfilePage = () => {
                 Share Profile
               </Button>
             </Group>
+          )}
+
+          {/* Follow Button for authenticated non-owners */}
+          {user && profile && profile.id !== user.id && (
+            <Button
+              variant={isFollowing ? 'light' : 'filled'}
+              color={isFollowing ? 'gray' : 'primary'}
+              leftSection={isFollowing ? <IconUser size={18} /> : <IconUser size={18} />}
+              loading={followLoading}
+              onClick={async () => {
+                const targetId = profile.id;
+                const wasFollowing = isFollowing;
+
+                // Optimistic update
+                setIsFollowing(!wasFollowing);
+                setFollowLoading(true);
+
+                try {
+                  if (wasFollowing) {
+                    await followService.unfollow(user.id, targetId);
+                  } else {
+                    await followService.follow(user.id, targetId);
+                    notifications.show({
+                      title: 'Followed!',
+                      message: `You are now following ${profile.display_name || 'this player'}.`,
+                      color: 'green',
+                      autoClose: 2000
+                    });
+                  }
+                } catch (_err) {
+                  // Revert on error
+                  setIsFollowing(wasFollowing);
+                  notifications.show({
+                    title: 'Error',
+                    message: 'Failed to update follow status.',
+                    color: 'red'
+                  });
+                } finally {
+                  setFollowLoading(false);
+                }
+              }}
+              className="animate-fade-in"
+            >
+              {isFollowing ? 'Following' : 'Follow'}
+            </Button>
           )}
         </Group>
 

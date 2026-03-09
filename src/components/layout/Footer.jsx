@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { Text, Group, Stack } from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
 import IconMail from '@tabler/icons-react/dist/esm/icons/IconMail.mjs';
 import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
 import IconShieldLock from '@tabler/icons-react/dist/esm/icons/IconShieldLock.mjs';
 import IconHeart from '@tabler/icons-react/dist/esm/icons/IconHeart.mjs';
+import IconLayoutDashboard from '@tabler/icons-react/dist/esm/icons/IconLayoutDashboard.mjs';
 import ChangelogModal from '../modals/ChangelogModal';
 import PrivacyModal from '../modals/PrivacyModal';
 import './Footer.css';
 
 function Footer() {
+  const navigate = useNavigate();
   const [changelogOpened, setChangelogOpened] = useState(false);
   const [privacyOpened, setPrivacyOpened] = useState(false);
 
@@ -40,6 +43,18 @@ function Footer() {
             <Text size="sm" className="footer-link-text">
               Privacy
             </Text>
+          </Group>
+
+          <Text size="sm" c="secondary" className="footer-divider">•</Text>
+
+          <Group
+            gap="xs"
+            className="footer-link-group"
+            style={{ cursor: 'pointer' }}
+            onClick={() => navigate('/feed')}
+          >
+            <IconLayoutDashboard size={16} />
+            <Text size="sm" className="footer-link-text">Feed</Text>
           </Group>
 
           <Text size="sm" c="secondary" className="footer-divider">•</Text>
