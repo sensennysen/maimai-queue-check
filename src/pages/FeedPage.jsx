@@ -10,6 +10,7 @@ import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs'
 import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
 import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
 import IconSparkles from '@tabler/icons-react/dist/esm/icons/IconSparkles.mjs';
+import IconActivityHeartbeat from '@tabler/icons-react/dist/esm/icons/IconActivityHeartbeat.mjs';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { useBranch } from '../hooks/useBranch';
@@ -69,12 +70,14 @@ export default function FeedPage() {
   const [songDiscussions, setSongDiscussions] = useState([]);
   const [playlistDiscussions, setPlaylistDiscussions] = useState([]);
   const [newPosts, setNewPosts] = useState([]);
+  const [followingActivity, setFollowingActivity] = useState([]);
   const [suggestedPlayers, setSuggestedPlayers] = useState([]);
   const [followedIds, setFollowedIds] = useState(new Set());
   const [morePlayersOpened, setMorePlayersOpened] = useState(false);
 
   const [loadingDiscussions, setLoadingDiscussions] = useState(true);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingFollowingActivity, setLoadingFollowingActivity] = useState(false);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
 
   useEffect(() => {
@@ -144,10 +147,31 @@ export default function FeedPage() {
     }
   }, [user, userRoles?.main_branch, userRoles?.preferred_branches]);
 
+  const fetchFollowingActivity = useCallback(async () => {
+    if (!user?.id) {
+      setFollowingActivity([]);
+      return;
+    }
+
+    setLoadingFollowingActivity(true);
+    try {
+      const data = await feedService.getFollowingActivity(user.id, SECTION_LIMIT);
+      setFollowingActivity(data || []);
+    } catch (err) {
+      console.error('Failed to load following activity:', err);
+    } finally {
+      setLoadingFollowingActivity(false);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     fetchSongDiscussions();
     fetchPlaylistData();
   }, [fetchSongDiscussions, fetchPlaylistData]);
+
+  useEffect(() => {
+    fetchFollowingActivity();
+  }, [fetchFollowingActivity]);
 
   useEffect(() => {
     if (user && userRoles?.user_id && !hasLoadedPlayers.current) {
@@ -195,6 +219,7 @@ export default function FeedPage() {
   const handleRefreshAll = () => {
     fetchSongDiscussions();
     fetchPlaylistData();
+    fetchFollowingActivity();
     fetchSuggestedPlayers();
   };
 
@@ -260,6 +285,57 @@ export default function FeedPage() {
         <Grid gutter="xl" className="community-feed-layout">
           <Grid.Col span={{ base: 12, md: 8 }}>
             <Stack gap="lg">
+              <Paper p="md" radius="xl" withBorder className="community-panel">
+                <PanelHeader
+                  title="Following Activity"
+                  subtitle="What people you follow are doing now"
+                  onRefresh={fetchFollowingActivity}
+                  loading={loadingFollowingActivity}
+                  rightSection={<IconActivityHeartbeat size={18} style={{ color: 'var(--theme-primary)' }} />}
+                />
+
+                {!user ? (
+                  <Text c="dimmed" size="sm" ta="center" py="md">
+                    Log in to see updates from players you follow.
+                  </Text>
+                ) : loadingFollowingActivity ? (
+                  <SectionSkeleton rows={4} height={84} />
+                ) : followingActivity.length === 0 ? (
+                  <Text c="dimmed" size="sm" ta="center" py="md">
+                    No activity from followed players yet.
+                  </Text>
+                ) : (
+                  <Stack gap="sm">
+                    {followingActivity.map((item) => (
+                      <Box key={item.id}>
+                        {item.type === 'song_comment' && item.song_id ? (
+                          <FeedSongCard
+                            song={songMapById?.get(item.song_id)}
+                            songId={item.song_id}
+                            latestComment={item.comment}
+                            onClick={() => navigate(`/songs/${item.song_id}`)}
+                            variant="discussion"
+                            className="community-following-activity-row"
+                          />
+                        ) : (
+                          <FeedPlaylistCard
+                            post={item.post}
+                            latestComment={item.type === 'playlist_comment' ? item.comment : null}
+                            onClick={() => {
+                              const targetPostId = item.playlist_post_id || item.post?.id;
+                              if (targetPostId) navigate(`/shared-playlists?post=${targetPostId}`);
+                              else navigate('/shared-playlists');
+                            }}
+                            layout="strip"
+                            className="community-following-activity-row"
+                          />
+                        )}
+                      </Box>
+                    ))}
+                  </Stack>
+                )}
+              </Paper>
+
               <Paper p="md" radius="xl" withBorder className="community-panel community-trending-panel">
                 <PanelHeader
                   title="Active Song Discussions"
@@ -292,7 +368,7 @@ export default function FeedPage() {
               <Paper p="md" radius="xl" withBorder className="community-panel">
                 <PanelHeader
                   title="New Songs"
-                  subtitle="Recently released or updated songs in maimai DX International"
+                  subtitle="Recently released songs in maimai DX"
                   onRefresh={() => requestFetch()}
                   loading={songsLoading}
                   rightSection={(
@@ -384,6 +460,7 @@ export default function FeedPage() {
                   </Stack>
                 )}
               </Paper>
+
             </Stack>
           </Grid.Col>
 

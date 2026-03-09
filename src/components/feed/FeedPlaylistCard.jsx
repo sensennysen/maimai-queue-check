@@ -76,6 +76,12 @@ export function FeedPlaylistCard({ post, latestComment, onClick, className, layo
               </Text>
             </Group>
           )}
+
+          {latestComment?.content && (
+            <Text size="xs" c="dimmed" lineClamp={2} mt={4} fs="italic">
+              "{latestComment.content}"
+            </Text>
+          )}
         </Box>
       </Group>
     </Paper>

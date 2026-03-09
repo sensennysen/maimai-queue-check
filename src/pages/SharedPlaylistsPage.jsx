@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Divider, ActionIcon, Avatar, Box, Textarea } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { IconArrowLeft, IconRefresh, IconPlaylist, IconShare, IconDotsVertical, IconMessageOff, IconMessage, IconTrash, IconEdit, IconCheck, IconX } from '@tabler/icons-react';
 import { Menu } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { playlistService } from '../services/supabase';
@@ -18,6 +18,7 @@ import { getRelativeTime, getProfileImageUrl } from '../utils/formatters';
 
 export default function SharedPlaylistsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { loading: songsLoading, songMapById } = useSongDatabaseContext();
   const [posts, setPosts] = useState([]);
@@ -30,6 +31,11 @@ export default function SharedPlaylistsPage() {
   const [editContent, setEditContent] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const scrolledToPostRef = useRef(null);
+  const focusPostId = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('post');
+  }, [location.search]);
 
   const fetchPosts = async () => {
     try {
@@ -48,6 +54,18 @@ export default function SharedPlaylistsPage() {
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    if (!focusPostId || loading || posts.length === 0) return;
+    if (scrolledToPostRef.current === focusPostId) return;
+
+    const targetId = `playlist-post-${focusPostId}`;
+    const el = document.getElementById(targetId);
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    scrolledToPostRef.current = focusPostId;
+  }, [focusPostId, loading, posts]);
 
   const getPlaylistSongs = useCallback((playlist) => {
     if (!playlist || !playlist.songs) return [];
@@ -167,7 +185,15 @@ export default function SharedPlaylistsPage() {
             {posts.map((post) => {
               const hydratedSongs = getPlaylistSongs(post.playlist);
               return (
-                <Paper key={post.id} p="md" radius="md" withBorder className="glass-effect-hover">
+                <Paper
+                  key={post.id}
+                  id={`playlist-post-${post.id}`}
+                  p="md"
+                  radius="md"
+                  withBorder
+                  className="glass-effect-hover"
+                  style={focusPostId === String(post.id) ? { borderColor: 'var(--theme-primary)', boxShadow: '0 0 0 1px rgba(255, 40, 169, 0.45)' } : undefined}
+                >
                   <Stack gap="md">
                     {/* Author Header */}
                     <Group justify="space-between">
