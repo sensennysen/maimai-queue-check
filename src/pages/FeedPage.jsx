@@ -1,39 +1,31 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Container, Stack, Group, Title, Text, Button, Paper,
-  Grid, Avatar, Divider, ActionIcon, Box, Tabs, Alert,
-  Skeleton, ScrollArea, Anchor, Modal
+  Grid, ActionIcon, Box, Skeleton, ScrollArea, Modal
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
 import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs';
 import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
-import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
-import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
-import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
 import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
 import IconSparkles from '@tabler/icons-react/dist/esm/icons/IconSparkles.mjs';
-import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { useBranch } from '../hooks/useBranch';
 import { feedService, followService } from '../services/supabase';
-import { getRelativeTime, getProfileImageUrl } from '../utils/formatters';
 import { FeedSongCard } from '../components/feed/FeedSongCard';
 import { FeedPlaylistCard } from '../components/feed/FeedPlaylistCard';
 import { FeedPlayerCard } from '../components/feed/FeedPlayerCard';
+import './FeedPage.css';
 
 const SECTION_LIMIT = 10;
 
-function SectionHeader({ icon, title, subtitle, onRefresh, loading, rightSection }) {
+function PanelHeader({ title, subtitle, onRefresh, loading, rightSection, className }) {
   return (
-    <Group justify="space-between" align="flex-end" mb="sm">
+    <Group justify="space-between" align="flex-end" mb="sm" className={className}>
       <Stack gap={2}>
-        <Group gap="xs">
-          <Box style={{ color: 'var(--theme-primary)' }}>{icon}</Box>
-          <Title order={3} style={{ fontFamily: 'var(--font-heading)' }}>{title}</Title>
-        </Group>
+        <Title order={3} className="community-panel-title">{title}</Title>
         {subtitle && <Text size="xs" c="dimmed">{subtitle}</Text>}
       </Stack>
       <Group gap="xs">
@@ -48,11 +40,11 @@ function SectionHeader({ icon, title, subtitle, onRefresh, loading, rightSection
   );
 }
 
-function SectionSkeleton({ rows = 3 }) {
+function SectionSkeleton({ rows = 3, height = 72 }) {
   return (
     <Stack gap="sm">
       {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} height={70} radius="md" />
+        <Skeleton key={i} height={height} radius="md" />
       ))}
     </Stack>
   );
@@ -65,16 +57,14 @@ export default function FeedPage() {
   const { branches } = useBranch();
   const hasLoadedPlayers = useRef(false);
 
-  // Create mapping of branch ID to name for player cards (acronym preferred)
   const branchMap = useMemo(() => {
     const map = {};
-    branches.forEach(b => {
+    branches.forEach((b) => {
       map[b.id] = b.acronym || b.short_name || b.arcade_name;
     });
     return map;
   }, [branches]);
 
-  // State for each section
   const [newSongs, setNewSongs] = useState([]);
   const [songDiscussions, setSongDiscussions] = useState([]);
   const [playlistDiscussions, setPlaylistDiscussions] = useState([]);
@@ -83,33 +73,26 @@ export default function FeedPage() {
   const [followedIds, setFollowedIds] = useState(new Set());
   const [morePlayersOpened, setMorePlayersOpened] = useState(false);
 
-  // Loading / error state per section
   const [loadingDiscussions, setLoadingDiscussions] = useState(true);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
-  const [newContentAlert, setNewContentAlert] = useState(false);
 
-  // Request song DB on mount
   useEffect(() => {
     requestFetch();
   }, [requestFetch]);
 
-  // Derive new songs from the song database (20 newest by release date)
-  // Filter only for songs available in the 'international' region
   useEffect(() => {
     if (!songs || songs.length === 0) return;
     const sorted = [...songs]
-      .filter(s => {
+      .filter((s) => {
         if (s.isMissingMetadata || s.category === 'Unknown') return false;
-        // Check if at least one sheet is available in intl region
-        return s.sheets?.some(sheet => sheet.regions?.intl === true);
+        return s.sheets?.some((sheet) => sheet.regions?.intl === true);
       })
       .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))
       .slice(0, SECTION_LIMIT * 2);
     setNewSongs(sorted);
   }, [songs]);
 
-  // Fetch song discussions
   const fetchSongDiscussions = useCallback(async () => {
     setLoadingDiscussions(true);
     try {
@@ -122,7 +105,6 @@ export default function FeedPage() {
     }
   }, []);
 
-  // Fetch playlist discussions + new posts
   const fetchPlaylistData = useCallback(async () => {
     setLoadingPosts(true);
     try {
@@ -139,30 +121,19 @@ export default function FeedPage() {
     }
   }, []);
 
-  // Fetch suggested players (login required)
   const fetchSuggestedPlayers = useCallback(async () => {
     if (!user) return;
     const mainBranch = userRoles?.main_branch || null;
     const preferredBranches = userRoles?.preferred_branches || [];
 
-    // We no longer return early if no branch is set, 
-    // because we want to show random users as a fallback.
-
     setLoadingPlayers(true);
     try {
-      const [players, followedSet] = await Promise.all([
-        feedService.getSuggestedPlayers(user.id, mainBranch, preferredBranches, 20),
-        followService.getBulkFollowStatus(user.id, []),
-      ]);
-      // Pre-fetch follow status for all suggested players
+      const players = await feedService.getSuggestedPlayers(user.id, mainBranch, preferredBranches, 20);
       if (players?.length > 0) {
-        const ids = players.map(p => p.id);
+        const ids = players.map((p) => p.id);
         const followed = await followService.getBulkFollowStatus(user.id, ids);
         setFollowedIds(followed);
-
-        // Filter out already followed users from the displayed list
-        const filteredPlayers = players.filter(p => !followed.has(p.id));
-        setSuggestedPlayers(filteredPlayers);
+        setSuggestedPlayers(players.filter((p) => !followed.has(p.id)));
       } else {
         setSuggestedPlayers([]);
       }
@@ -171,9 +142,8 @@ export default function FeedPage() {
     } finally {
       setLoadingPlayers(false);
     }
-  }, [user?.id, userRoles?.id, userRoles?.main_branch, userRoles?.preferred_branches]); // Re-fetch if user profile or branch preferences change
+  }, [user, userRoles?.main_branch, userRoles?.preferred_branches]);
 
-  // Initial loads
   useEffect(() => {
     fetchSongDiscussions();
     fetchPlaylistData();
@@ -186,25 +156,24 @@ export default function FeedPage() {
     }
   }, [fetchSuggestedPlayers, user, userRoles?.user_id]);
 
-  // Reset flag if user changes
   useEffect(() => {
     hasLoadedPlayers.current = false;
   }, [user?.id]);
 
-  // Handle follow/unfollow on suggested players
   const handleFollow = useCallback(async (targetId) => {
     if (!user) {
       notifications.show({ title: 'Login required', message: 'Please log in to follow players.', color: 'blue' });
       return;
     }
+
     const isCurrentlyFollowing = followedIds.has(targetId);
-    // Optimistic update
-    setFollowedIds(prev => {
+    setFollowedIds((prev) => {
       const next = new Set(prev);
       if (isCurrentlyFollowing) next.delete(targetId);
       else next.add(targetId);
       return next;
     });
+
     try {
       if (isCurrentlyFollowing) {
         await followService.unfollow(user.id, targetId);
@@ -213,8 +182,7 @@ export default function FeedPage() {
         notifications.show({ title: 'Followed!', message: 'You are now following this player.', color: 'green', autoClose: 2000 });
       }
     } catch {
-      // Revert optimistic update
-      setFollowedIds(prev => {
+      setFollowedIds((prev) => {
         const next = new Set(prev);
         if (isCurrentlyFollowing) next.add(targetId);
         else next.delete(targetId);
@@ -222,196 +190,169 @@ export default function FeedPage() {
       });
       notifications.show({ title: 'Error', message: 'Failed to update follow status.', color: 'red' });
     }
-  }, [user?.id, followedIds]);
+  }, [user, followedIds]);
 
   const handleRefreshAll = () => {
     fetchSongDiscussions();
     fetchPlaylistData();
     fetchSuggestedPlayers();
-    setNewContentAlert(false);
   };
 
   const isLoading = loadingDiscussions || loadingPosts;
+  const trendingRows = useMemo(() => {
+    return songDiscussions.map((item) => ({
+      key: `trending-disc-${item.song_id}-${item.created_at}`,
+      song: songMapById?.get(item.song_id),
+      songId: item.song_id,
+      latestComment: {
+        content: item.content,
+        author: item.user_profiles,
+        createdAt: item.created_at,
+      },
+    }));
+  }, [songDiscussions, songMapById]);
+
+  const playlistRows = playlistDiscussions.length > 0
+    ? playlistDiscussions.map((item) => ({
+      key: `discussion-${item.post_id}`,
+      post: item.post,
+      latestComment: {
+        content: item.content,
+        author: item.user_profiles,
+        createdAt: item.created_at,
+      },
+    }))
+    : newPosts.map((post) => ({ key: post.id, post }));
 
   return (
-    <Container size="lg" py="xl" className="animate-fade-in">
-      <Stack gap="xl">
-        {/* Header */}
-        <Stack gap={4}>
-          <Button
-            onClick={() => navigate(-1)}
-            variant="subtle"
-            leftSection={<IconArrowLeft size={16} />}
-            px={0}
-            w="fit-content"
-            size="sm"
-          >
-            Back
-          </Button>
-          <Group justify="space-between" align="flex-end" wrap="wrap" gap="sm">
-            <Stack gap={2}>
-              <Group gap="sm">
-                <IconSparkles size={32} style={{ color: 'var(--theme-primary)' }} />
-                <Title order={1} style={{ fontFamily: 'var(--font-heading)' }}>
-                  Community Feed
-                </Title>
-              </Group>
-              <Text c="dimmed" size="sm">
-                Discover new songs, discussions, and players in the community
-              </Text>
-            </Stack>
+    <Container size="xl" py="xl" className="community-feed-page animate-fade-in">
+      <Stack gap="lg">
+        <Group justify="space-between" align="flex-end" wrap="wrap" gap="sm">
+          <Stack gap={2}>
             <Button
+              onClick={() => navigate(-1)}
               variant="subtle"
-              leftSection={<IconRefresh size={16} />}
-              onClick={handleRefreshAll}
-              loading={isLoading}
+              leftSection={<IconArrowLeft size={16} />}
+              px={0}
+              w="fit-content"
               size="sm"
             >
-              Refresh
+              Back
             </Button>
-          </Group>
-        </Stack>
+            <Group gap="sm">
+              <IconSparkles size={30} style={{ color: 'var(--theme-primary)' }} />
+              <Title order={1} className="community-page-title">Community Feed</Title>
+            </Group>
+            <Text c="dimmed" size="sm">Discuss, discover, and connect with the community</Text>
+          </Stack>
 
-        {/* New content alert */}
-        {newContentAlert && (
-          <Alert
-            color="blue"
-            variant="light"
-            icon={<IconSparkles size={16} />}
-            withCloseButton
-            onClose={() => setNewContentAlert(false)}
+          <Button
+            variant="subtle"
+            leftSection={<IconRefresh size={16} />}
+            onClick={handleRefreshAll}
+            loading={isLoading}
+            size="sm"
           >
-            New content is available — <Anchor component="button" onClick={handleRefreshAll}>Refresh now</Anchor>
-          </Alert>
-        )}
+            Refresh
+          </Button>
+        </Group>
 
-        <Grid gutter="xl">
-          {/* Left column — main content */}
+        <Grid gutter="xl" className="community-feed-layout">
           <Grid.Col span={{ base: 12, md: 8 }}>
-            <Stack gap="xl">
-
-              {/* ─── New Songs ─── */}
-              <section>
-                <SectionHeader
-                  icon={<IconMusic size={22} />}
-                  title="New Songs"
-                  subtitle="Recently added to the maimai database"
-                  onRefresh={() => requestFetch()}
-                  loading={songsLoading}
-                />
-                {songsLoading ? (
-                  <SectionSkeleton rows={3} />
-                ) : newSongs.length === 0 ? (
-                  <Text c="dimmed" size="sm" ta="center" py="md">No songs found</Text>
-                ) : (
-                  <ScrollArea.Autosize mah={420} type="scroll">
-                    <Stack gap="xs">
-                      {newSongs.map(song => (
-                        <FeedSongCard
-                          key={song.cardId || song.songId || song.id}
-                          song={song}
-                          onClick={() => navigate(`/songs/${song.cardId || song.songId}`)}
-                        />
-                      ))}
-                    </Stack>
-                  </ScrollArea.Autosize>
-                )}
-              </section>
-
-              <Divider variant="dashed" opacity={0.4} />
-
-              {/* ─── Song Discussions ─── */}
-              <section>
-                <SectionHeader
-                  icon={<IconMessageCircle size={22} />}
+            <Stack gap="lg">
+              <Paper p="md" radius="xl" withBorder className="community-panel community-trending-panel">
+                <PanelHeader
                   title="Active Song Discussions"
-                  subtitle="Songs with the most recent community activity"
+                  subtitle="Most recent conversations about songs in maimai DX"
                   onRefresh={fetchSongDiscussions}
                   loading={loadingDiscussions}
                 />
+
                 {loadingDiscussions ? (
-                  <SectionSkeleton rows={4} />
-                ) : songDiscussions.length === 0 ? (
+                  <SectionSkeleton rows={5} height={146} />
+                ) : trendingRows.length === 0 ? (
                   <Text c="dimmed" size="sm" ta="center" py="md">No recent discussions yet</Text>
                 ) : (
-                  <Stack gap="xs">
-                    {songDiscussions.map((item, i) => {
-                      const song = songMapById?.get(item.song_id);
-                      return (
-                        <FeedSongCard
-                          key={`disc-${item.song_id}-${i}`}
-                          song={song}
-                          songId={item.song_id}
-                          latestComment={{
-                            content: item.content,
-                            author: item.user_profiles,
-                            createdAt: item.created_at,
-                          }}
-                          onClick={() => navigate(`/songs/${item.song_id}`)}
-                          variant="discussion"
-                        />
-                      );
-                    })}
-                  </Stack>
-                )}
-              </section>
-
-              <Divider variant="dashed" opacity={0.4} />
-
-              {/* ─── Playlist Discussions ─── */}
-              <section>
-                <SectionHeader
-                  icon={<IconPlaylist size={22} />}
-                  title="Active Playlist Discussions"
-                  subtitle="Playlist posts with recent comments"
-                  onRefresh={fetchPlaylistData}
-                  loading={loadingPosts}
-                  rightSection={
-                    <Button
-                      variant="subtle"
-                      size="xs"
-                      px={0}
-                      rightSection={<IconChevronRight size={14} />}
-                      onClick={() => navigate('/shared-playlists')}
-                    >
-                      View Feed
-                    </Button>
-                  }
-                />
-                {loadingPosts ? (
-                  <SectionSkeleton rows={3} />
-                ) : playlistDiscussions.length === 0 ? (
-                  <Text c="dimmed" size="sm" ta="center" py="md">No recent playlist discussions yet</Text>
-                ) : (
-                  <Stack gap="xs">
-                    {playlistDiscussions.map((item, i) => (
-                      <FeedPlaylistCard
-                        key={`pdisc-${item.post_id}-${i}`}
-                        post={item.post}
-                        latestComment={{
-                          content: item.content,
-                          author: item.user_profiles,
-                          createdAt: item.created_at,
-                        }}
-                        songMapById={songMapById}
-                        onClick={() => navigate('/shared-playlists')}
+                  <Stack gap="sm">
+                    {trendingRows.map((item) => (
+                      <FeedSongCard
+                        key={item.key}
+                        song={item.song}
+                        songId={item.songId}
+                        latestComment={item.latestComment}
+                        onClick={() => navigate(`/songs/${item.songId}`)}
+                        variant="trending"
+                        className="community-trending-card"
                       />
                     ))}
                   </Stack>
                 )}
-              </section>
+              </Paper>
 
-              <Divider variant="dashed" opacity={0.4} />
+              <Paper p="md" radius="xl" withBorder className="community-panel">
+                <PanelHeader
+                  title="New Songs"
+                  subtitle="Recently released or updated songs in maimai DX International"
+                  onRefresh={() => requestFetch()}
+                  loading={songsLoading}
+                  rightSection={(
+                    <Button
+                      variant="subtle"
+                      size="xs"
+                      px={0}
+                      rightSection={<IconChevronRight size={14} />}
+                      onClick={() => navigate('/songs')}
+                    >
+                      View all
+                    </Button>
+                  )}
+                />
 
-              {/* ─── New Playlist Posts ─── */}
-              <section>
-                <SectionHeader
-                  icon={<IconPlaylist size={22} />}
-                  title="New Playlist Posts"
-                  subtitle="Latest shared playlists from the community"
+                {songsLoading ? (
+                  <SectionSkeleton rows={1} height={180} />
+                ) : newSongs.length === 0 ? (
+                  <Text c="dimmed" size="sm" ta="center" py="md">No songs found</Text>
+                ) : (
+                  <ScrollArea type="never">
+                    <Group gap="sm" wrap="nowrap" className="community-release-row">
+                      {newSongs.slice(0, 12).map((song) => (
+                        <Paper
+                          key={song.cardId || song.songId || song.id}
+                          p="xs"
+                          radius="lg"
+                          withBorder
+                          className="community-release-card"
+                          onClick={() => navigate(`/songs/${song.cardId || song.songId}`)}
+                        >
+                          <Box className="community-release-image-wrap">
+                            {song.imageUrl ? (
+                              <img
+                                src={song.imageUrl}
+                                alt={song.title}
+                                className="community-release-image"
+                              />
+                            ) : (
+                              <Box className="community-release-image community-release-placeholder">
+                                <Text fw={700}>{(song.title || '?').charAt(0)}</Text>
+                              </Box>
+                            )}
+                          </Box>
+                          <Text fw={600} size="sm" lineClamp={1} mt={8}>{song.title}</Text>
+                          <Text c="dimmed" size="xs" lineClamp={1}>{song.artist || 'Unknown artist'}</Text>
+                        </Paper>
+                      ))}
+                    </Group>
+                  </ScrollArea>
+                )}
+              </Paper>
+
+              <Paper p="md" radius="xl" withBorder className="community-panel">
+                <PanelHeader
+                  title="Community Playlists"
+                  subtitle="Latest playlist conversations"
                   onRefresh={fetchPlaylistData}
                   loading={loadingPosts}
-                  rightSection={
+                  rightSection={(
                     <Button
                       variant="subtle"
                       size="xs"
@@ -419,64 +360,60 @@ export default function FeedPage() {
                       rightSection={<IconChevronRight size={14} />}
                       onClick={() => navigate('/shared-playlists')}
                     >
-                      View Feed
+                      View feed
                     </Button>
-                  }
+                  )}
                 />
+
                 {loadingPosts ? (
-                  <SectionSkeleton rows={3} />
-                ) : newPosts.length === 0 ? (
+                  <SectionSkeleton rows={3} height={88} />
+                ) : playlistRows.length === 0 ? (
                   <Text c="dimmed" size="sm" ta="center" py="md">No playlist posts yet</Text>
                 ) : (
-                  <Stack gap="xs">
-                    {newPosts.map(post => (
+                  <Stack gap="sm">
+                    {playlistRows.slice(0, 4).map((item) => (
                       <FeedPlaylistCard
-                        key={post.id}
-                        post={post}
-                        songMapById={songMapById}
+                        key={item.key}
+                        post={item.post}
+                        latestComment={item.latestComment}
                         onClick={() => navigate('/shared-playlists')}
+                        layout="strip"
+                        className="community-playlist-strip"
                       />
                     ))}
                   </Stack>
                 )}
-              </section>
-
+              </Paper>
             </Stack>
           </Grid.Col>
 
-          {/* Right sidebar — Suggested Players */}
           <Grid.Col span={{ base: 12, md: 4 }}>
-            <Box style={{ position: 'sticky', top: '1rem' }}>
-              <SectionHeader
-                icon={<IconUsers size={22} />}
+            <Paper p="md" radius="xl" withBorder className="community-sidebar" style={{ position: 'sticky', top: '1rem' }}>
+              <PanelHeader
                 title="Suggested Players"
-                subtitle="Players that you might know"
+                subtitle="People you may want to follow"
                 onRefresh={fetchSuggestedPlayers}
                 loading={loadingPlayers}
+                className="community-sidebar-header"
               />
+
               {!user ? (
-                <Paper p="md" radius="md" withBorder>
-                  <Stack align="center" gap="xs" py="sm">
-                    <IconUsers size={32} opacity={0.3} />
-                    <Text size="sm" c="dimmed" ta="center">
-                      Log in and set your branch to see player suggestions
-                    </Text>
-                  </Stack>
+                <Paper p="md" radius="md" withBorder className="community-sidebar-empty">
+                  <Text size="sm" c="dimmed" ta="center">
+                    Log in and set your branch to see player suggestions.
+                  </Text>
                 </Paper>
               ) : loadingPlayers ? (
-                <SectionSkeleton rows={4} />
+                <SectionSkeleton rows={5} height={72} />
               ) : suggestedPlayers.length === 0 ? (
-                <Paper p="md" radius="md" withBorder>
-                  <Stack align="center" gap="xs" py="sm">
-                    <IconUsers size={32} opacity={0.3} />
-                    <Text size="sm" c="dimmed" ta="center">
-                      Set your home or preferred branches in preferences to see suggestions
-                    </Text>
-                  </Stack>
+                <Paper p="md" radius="md" withBorder className="community-sidebar-empty">
+                  <Text size="sm" c="dimmed" ta="center">
+                    Set your home or preferred branches in preferences to see suggestions.
+                  </Text>
                 </Paper>
               ) : (
                 <Stack gap="xs">
-                  {suggestedPlayers.slice(0, 10).map(player => (
+                  {suggestedPlayers.slice(0, 8).map((player) => (
                     <FeedPlayerCard
                       key={player.id}
                       player={player}
@@ -484,9 +421,10 @@ export default function FeedPage() {
                       onFollow={() => handleFollow(player.id)}
                       onClick={() => player.slug && navigate(`/p/${player.slug}`)}
                       branchMap={branchMap}
+                      className="community-player-row"
                     />
                   ))}
-                  {suggestedPlayers.length > 10 && (
+                  {suggestedPlayers.length > 8 && (
                     <Button
                       variant="light"
                       color="gray"
@@ -495,32 +433,30 @@ export default function FeedPage() {
                       onClick={() => setMorePlayersOpened(true)}
                       mt="xs"
                     >
-                      Show More Suggested Players ({suggestedPlayers.length - 10} more)
+                      Show {suggestedPlayers.length - 8} more players
                     </Button>
                   )}
                 </Stack>
               )}
-            </Box>
+            </Paper>
           </Grid.Col>
         </Grid>
       </Stack>
 
-      {/* More Suggested Players Modal */}
       <Modal
         opened={morePlayersOpened}
         onClose={() => setMorePlayersOpened(false)}
-        title={
+        title={(
           <Group gap="xs">
             <IconUsers size={20} style={{ color: 'var(--theme-primary)' }} />
             <Text fw={700}>More Suggested Players</Text>
           </Group>
-        }
+        )}
         size="md"
         radius="md"
-        classNames={{ content: 'glass-modal' }}
       >
         <Stack gap="xs" py="xs">
-          {suggestedPlayers.map(player => (
+          {suggestedPlayers.map((player) => (
             <FeedPlayerCard
               key={`modal-${player.id}`}
               player={player}
@@ -528,13 +464,13 @@ export default function FeedPage() {
               onFollow={() => handleFollow(player.id)}
               onClick={() => {
                 setMorePlayersOpened(false);
-                player.slug && navigate(`/p/${player.slug}`);
+                if (player.slug) navigate(`/p/${player.slug}`);
               }}
               branchMap={branchMap}
             />
           ))}
         </Stack>
       </Modal>
-    </Container >
+    </Container>
   );
 }

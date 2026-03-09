@@ -1,24 +1,25 @@
-import { Paper, Group, Text, Avatar, Badge, Stack, Box } from '@mantine/core';
+﻿import { Paper, Group, Text, Avatar, Badge, Stack, Box } from '@mantine/core';
 import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
 import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
 import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
 
-// Category color mapping for maimai genres
 const CATEGORY_COLORS = {
   'POPS & ANIME': 'pink',
-  'niconico': 'red',
-  '東方Project': 'cyan',
+  niconico: 'red',
+  '\u6771\u65b9Project': 'cyan',
   'GAME & VARIETY': 'violet',
-  'maimai': 'yellow',
+  maimai: 'yellow',
   'ORIGINAL & JOYPOLIS': 'teal',
-  'ゲキチュウMAI': 'orange',
+  '\u30b2\u30ad\u30c1\u30e5\u30a6MAI': 'orange',
 };
 
-export function FeedSongCard({ song, songId, latestComment, onClick, variant = 'new' }) {
+export function FeedSongCard({ song, songId, latestComment, onClick, variant = 'new', className }) {
   const displayTitle = song?.title || songId || 'Unknown Song';
   const displayArtist = song?.artist;
   const category = song?.category;
   const categoryColor = CATEGORY_COLORS[category] || 'gray';
+  const isTrending = variant === 'trending';
+  const isDiscussion = variant === 'discussion' || isTrending;
 
   return (
     <Paper
@@ -30,14 +31,14 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
         cursor: 'pointer',
         transition: 'all 0.15s ease',
       }}
-      className="glass-effect-hover"
+      className={`glass-effect-hover ${className || ''}`.trim()}
     >
-      <Group gap="sm" wrap="nowrap" align="flex-start">
-        {/* Song Jacket / Thumbnail */}
+      <Group gap={isTrending ? 'md' : 'sm'} wrap="nowrap" align="flex-start">
         <Box
+          className={isTrending ? 'community-trending-jacket' : undefined}
           style={{
-            width: 48,
-            height: 48,
+            width: isTrending ? 220 : 48,
+            height: isTrending ? 120 : 48,
             borderRadius: 'var(--mantine-radius-md)',
             overflow: 'hidden',
             flexShrink: 0,
@@ -50,7 +51,7 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
               alt={displayTitle}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               onError={(e) => {
-                e.currentTarget.src = ''; // Clear src on error
+                e.currentTarget.src = '';
                 e.currentTarget.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--theme-primary)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></div>';
               }}
             />
@@ -64,14 +65,14 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
                 color: 'var(--theme-primary)',
               }}
             >
-              <IconMusic size={20} />
+              <IconMusic size={isTrending ? 32 : 20} />
             </Box>
           )}
         </Box>
 
-        <Box style={{ flex: 1, overflow: 'hidden' }}>
+        <Box style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
           <Group gap={6} wrap="wrap" mb={2}>
-            <Text fw={600} size="sm" lineClamp={1} style={{ maxWidth: '100%' }}>
+            <Text fw={700} size={isTrending ? 'xl' : 'sm'} lineClamp={1} style={{ maxWidth: '100%' }}>
               {displayTitle}
             </Text>
             {category && (
@@ -81,31 +82,30 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
             )}
           </Group>
           {displayArtist && (
-            <Text size="xs" c="dimmed" lineClamp={1}>
+            <Text size={isTrending ? 'sm' : 'xs'} c="dimmed" lineClamp={1}>
               {displayArtist}
             </Text>
           )}
 
-          {/* Latest comment preview (discussion variant) */}
-          {variant === 'discussion' && latestComment && (
+          {isDiscussion && latestComment && (
             <Group gap={6} mt={6} wrap="nowrap" align="flex-start">
               <Avatar
                 src={getProfileImageUrl(latestComment.author)}
-                size={18}
+                size={isTrending ? 24 : 18}
                 radius="xl"
                 color="blue"
               >
                 {(latestComment.author?.display_name || '?').charAt(0)}
               </Avatar>
               <Stack gap={0} style={{ flex: 1, overflow: 'hidden' }}>
-                <Text size="xs" c="dimmed" lineClamp={1}>
+                <Text size={isTrending ? 'sm' : 'xs'} c="dimmed" lineClamp={1}>
                   <Text span fw={500} c="var(--mantine-color-text)">
                     {latestComment.author?.display_name || 'Someone'}
                   </Text>
-                  {' commented • '}{getRelativeTime(latestComment.createdAt)}
+                  {' commented - '}{getRelativeTime(latestComment.createdAt)}
                 </Text>
                 {latestComment.content && (
-                  <Text size="xs" c="dimmed" lineClamp={1} fs="italic">
+                  <Text size={isTrending ? 'sm' : 'xs'} c="dimmed" lineClamp={isTrending ? 2 : 1} fs="italic">
                     "{latestComment.content}"
                   </Text>
                 )}
@@ -113,7 +113,6 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
             </Group>
           )}
 
-          {/* New song date */}
           {variant === 'new' && song?.releaseDate && (
             <Text size="xs" c="dimmed" mt={2}>
               Added {getRelativeTime(song.releaseDate)}
@@ -121,8 +120,7 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
           )}
         </Box>
 
-        {/* Discussion icon indicator */}
-        {variant === 'discussion' && (
+        {isDiscussion && !isTrending && (
           <Box style={{ color: 'var(--theme-primary)', opacity: 0.6, flexShrink: 0 }}>
             <IconMessageCircle size={16} />
           </Box>
