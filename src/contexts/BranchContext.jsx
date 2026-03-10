@@ -201,7 +201,7 @@ export const BranchProvider = ({ children }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [handleBranchChange]);
+  }, [handleBranchChange, loadBranches]);
 
   // Refresh user location
   const refreshLocation = async () => {

@@ -180,7 +180,6 @@ export default function ViewPage() {
   return (
     <div className="public-monitor-container">
       <Stack gap="lg">
-        {/* Main Header replicating App.jsx */}
         <Paper p="md" radius="md" withBorder className="app-header">
           <Group gap="md" justify="space-between" align="center">
             <Title
@@ -194,7 +193,6 @@ export default function ViewPage() {
             <Badge size="lg" variant="gradient" gradient={{ from: 'var(--theme-primary)', to: 'var(--theme-secondary)', deg: 90 }}>View Mode</Badge>
           </Group>
         </Paper>
-
         {/* Info Alert replicating QueueManager.jsx */}
         <Alert icon={<IconAlertTriangle size={16} />} color="blue" variant="light">
           Info here might not reflect the actual queue in the branch

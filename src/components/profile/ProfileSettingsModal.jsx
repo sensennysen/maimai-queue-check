@@ -6,7 +6,6 @@ import { userService } from '../../services/supabase';
 
 const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranches, onSuccess }) => {
   const [displayName, setDisplayName] = useState('');
-  const [queueName, setQueueName] = useState('');
   const [selectedBranches, setSelectedBranches] = useState([]);
   const [selectedMainBranch, setSelectedMainBranch] = useState(null);
   const [slug, setSlug] = useState('');
@@ -16,7 +15,6 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
   useEffect(() => {
     if (initialData) {
       setDisplayName(initialData.display_name || '');
-      setQueueName(initialData.user_roles?.queue_name || '');
       setSelectedBranches(initialData.preferred_branches?.map(String) || []);
       setSelectedMainBranch(initialData.main_branch ? String(initialData.main_branch) : null);
       setSlug(initialData.slug || '');
@@ -37,7 +35,6 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
       setIsSaving(true);
       await userService.updatePreferences(userId, {
         display_name: displayName.trim(),
-        queue_name: queueName.trim() || null,
         branch_ids: selectedBranches.map(Number),
         main_branch: selectedMainBranch ? parseInt(selectedMainBranch, 10) : null
       });
@@ -101,14 +98,6 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
             onChange={(e) => setDisplayName(e.currentTarget.value)}
             maxLength={20}
             description="Shown as your profile heading"
-          />
-          <TextInput
-            label="Queue Name"
-            placeholder="Enter your queue name"
-            value={queueName}
-            onChange={(e) => setQueueName(e.currentTarget.value.slice(0, 10))}
-            maxLength={10}
-            description="Used in queue autocomplete (max 10 chars)"
           />
           <Select
             label="Home Branch"

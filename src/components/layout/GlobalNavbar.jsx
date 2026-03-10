@@ -24,6 +24,7 @@ const navItems = [
 ];
 
 function getActivePath(pathname) {
+  if (pathname.startsWith('/p/') || pathname.startsWith('/profile')) return null;
   const exact = navItems.find((item) => pathname === item.path);
   if (exact) return exact.path;
   const startsWith = navItems.find((item) => item.path !== '/' && pathname.startsWith(item.path));
@@ -40,6 +41,8 @@ export default function GlobalNavbar() {
   const activePath = getActivePath(location.pathname);
   const isCompact = useMediaQuery('(max-width: 1000px)');
   const isMenu = useMediaQuery('(max-width: 690px)');
+
+  if (location.pathname === '/view') return null;
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();

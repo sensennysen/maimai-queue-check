@@ -13,6 +13,15 @@
   overflow: hidden;
 }
 
+[data-mantine-color-scheme='light'] .global-top-nav {
+  border: 1px solid rgba(35, 55, 90, 0.12) !important;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(242, 246, 255, 0.9)) !important;
+  box-shadow:
+    0 0 0 1px rgba(120, 140, 190, 0.12),
+    0 18px 45px rgba(30, 46, 80, 0.12),
+    0 0 26px rgba(120, 190, 255, 0.18);
+}
+
 .global-top-nav-inner {
   min-height: 82px;
   padding: 0.8rem 1rem;
@@ -58,6 +67,14 @@
 
 .global-top-link:hover {
   color: #f7f1ff !important;
+}
+
+[data-mantine-color-scheme='light'] .global-top-link {
+  color: rgba(42, 50, 78, 0.8) !important;
+}
+
+[data-mantine-color-scheme='light'] .global-top-link:hover {
+  color: rgba(24, 30, 52, 0.95) !important;
 }
 
 .global-top-link.is-active {
@@ -140,6 +157,20 @@
 
 .global-top-search .mantine-Input-section {
   color: rgba(212, 205, 232, 0.75);
+}
+
+[data-mantine-color-scheme='light'] .global-top-search .mantine-Input-input {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(35, 55, 90, 0.16);
+  color: #2b2f45;
+}
+
+[data-mantine-color-scheme='light'] .global-top-search .mantine-Input-input::placeholder {
+  color: rgba(70, 80, 110, 0.6);
+}
+
+[data-mantine-color-scheme='light'] .global-top-search .mantine-Input-section {
+  color: rgba(70, 80, 110, 0.7);
 }
 
 @media (max-width: 990px) {

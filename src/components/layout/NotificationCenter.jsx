@@ -11,8 +11,6 @@ import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRigh
 import IconThumbUp from '@tabler/icons-react/dist/esm/icons/IconThumbUp.mjs';
 import IconThumbDown from '@tabler/icons-react/dist/esm/icons/IconThumbDown.mjs';
 import IconHeart from '@tabler/icons-react/dist/esm/icons/IconHeart.mjs';
-import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
-import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
 import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
@@ -166,7 +164,7 @@ const NotificationCenter = () => {
       })
       .subscribe();
     return () => supabase.removeChannel(channel);
-  }, [isAdmin, adminBranch, isSuperAdmin, supabase]);
+  }, [isAdmin, adminBranch, isSuperAdmin]);
 
   // ── General Notifications ──
   const fetchGeneralNotifications = useCallback(async () => {
@@ -177,7 +175,7 @@ const NotificationCenter = () => {
     } catch {
       // console.error silent
     }
-  }, [userId, notificationService]);
+  }, [userId]);
 
   // ── Activity Notifications ──
   const fetchActivityNotifications = useCallback(async () => {
@@ -195,7 +193,7 @@ const NotificationCenter = () => {
     } catch {
       // console.error silent
     }
-  }, [userId, feedService, followService]);
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -213,7 +211,7 @@ const NotificationCenter = () => {
       })
       .subscribe();
     return () => supabase.removeChannel(channel);
-  }, [userId, fetchGeneralNotifications, supabase]);
+  }, [userId, fetchGeneralNotifications]);
 
   // Real-time subscription for activity notifications
   useEffect(() => {
@@ -230,7 +228,7 @@ const NotificationCenter = () => {
       })
       .subscribe();
     return () => supabase.removeChannel(channel);
-  }, [userId, fetchActivityNotifications, supabase]);
+  }, [userId, fetchActivityNotifications]);
 
   const handleMarkGeneralRead = async (e, notification) => {
     e.stopPropagation();
@@ -248,7 +246,8 @@ const NotificationCenter = () => {
     setActivityNotifications(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n));
     try {
       await feedService.markActivityNotificationRead(notifId, userId);
-    } catch (error) {
+    } catch (err) {
+      console.error('Failed to mark activity notification as read', err);
       fetchActivityNotifications();
     }
   };
@@ -257,7 +256,8 @@ const NotificationCenter = () => {
     setActivityNotifications(prev => prev.map(n => ({ ...n, read: true })));
     try {
       await feedService.markAllActivityNotificationsRead(userId);
-    } catch (error) {
+    } catch (err) {
+      console.error('Failed to mark all activity notifications as read', err);
       fetchActivityNotifications();
     }
   };
