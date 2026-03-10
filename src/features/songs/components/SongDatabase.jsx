@@ -23,39 +23,11 @@ function SongDatabase() {
   return (
     <Container size="xl" pt="xl" pb="xl">
       <Stack gap="lg">
-        {/* Back Button / Navigation */}
-        <Group justify="space-between">
-          <Button
-            component={Link}
-            to="/"
-            variant="subtle"
-            leftSection={<IconArrowLeft size={18} />}
-            className="animate-fade-in"
-          >
-            Back to queue
-          </Button>
-        </Group>
-
         {/* redesigned Header Card */}
         <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-100">
           <Group wrap="nowrap" justify="space-between" align="center">
             <Group wrap="nowrap" style={{ flex: 1 }}>
-              <Avatar
-                size={70}
-                radius={70}
-                color="primary"
-                variant="light"
-              >
-                <IconMusic size={35} />
-              </Avatar>
-
               <Stack gap={4}>
-                <Title order={1} style={{ fontSize: '1.75rem', lineHeight: 1.2 }}>
-                  Song Database
-                </Title>
-                <Text size="sm" c="dimmed" fw={500}>
-                  Explore and filter all available songs in the database
-                </Text>
                 <Group gap="xs" mt={4}>
                   <Text size="xs" c="dimmed">Attribution:</Text>
                   <Text
@@ -82,9 +54,6 @@ function SongDatabase() {
                 </Group>
               </Stack>
             </Group>
-            <Box hiddenFrom="sm">
-              <ThemeToggle />
-            </Box>
           </Group>
         </Paper>
 

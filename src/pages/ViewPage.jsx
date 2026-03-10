@@ -129,7 +129,7 @@ export default function ViewPage() {
 
   if (error) {
     return (
-      <Container size="md" py="xl">
+      <Container size="xl" py="xl">
         <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red">
           {error}
         </Alert>

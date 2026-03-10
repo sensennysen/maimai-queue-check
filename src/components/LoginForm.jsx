@@ -3,17 +3,19 @@ import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider, Badge, 
 import IconBrandGoogle from '@tabler/icons-react/dist/esm/icons/IconBrandGoogle.mjs';
 import IconLogout from '@tabler/icons-react/dist/esm/icons/IconLogout.mjs';
 import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
-import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
 import IconSettings from '@tabler/icons-react/dist/esm/icons/IconSettings.mjs';
-import IconLayoutDashboard from '@tabler/icons-react/dist/esm/icons/IconLayoutDashboard.mjs';
+import IconSun from '@tabler/icons-react/dist/esm/icons/IconSun.mjs';
+import IconMoon from '@tabler/icons-react/dist/esm/icons/IconMoon.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';
+import { useTheme } from '../contexts/ThemeContext';
 import './LoginForm.css';
 
-const LoginForm = ({ onOpenPreferences }) => {
+const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
   const { user, loading, signInWithProvider, signOut, userRoles } = useAuth();
   const { branches } = useBranch();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -104,23 +106,19 @@ const LoginForm = ({ onOpenPreferences }) => {
             Profile
           </Menu.Item>
           <Menu.Item
-            leftSection={<IconMusic size={16} />}
-            onClick={() => navigate('/songs')}
-          >
-            Songs
-          </Menu.Item>
-          <Menu.Item
-            leftSection={<IconLayoutDashboard size={16} />}
-            onClick={() => navigate('/feed')}
-          >
-            Feed
-          </Menu.Item>
-          <Menu.Item
             leftSection={<IconSettings size={16} />}
             onClick={onOpenPreferences}
           >
             Preferences
           </Menu.Item>
+          {showThemeToggleInMenu && (
+            <Menu.Item
+              leftSection={isDark ? <IconSun size={16} /> : <IconMoon size={16} />}
+              onClick={toggleTheme}
+            >
+              {isDark ? 'Light Mode' : 'Dark Mode'}
+            </Menu.Item>
+          )}
           {(userRoles?.is_admin || userRoles?.is_super_admin) && (
             <>
               <Menu.Item

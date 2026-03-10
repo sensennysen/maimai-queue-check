@@ -6,7 +6,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
-import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs';
 import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
 import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
 import IconSparkles from '@tabler/icons-react/dist/esm/icons/IconSparkles.mjs';
@@ -252,31 +251,17 @@ export default function FeedPage() {
   return (
     <Container size="xl" py="xl" className="community-feed-page animate-fade-in">
       <Stack gap="lg">
-        <Group justify="space-between" align="flex-end" wrap="wrap" gap="sm">
-          <Stack gap={2}>
-            <Button
-              onClick={() => navigate(-1)}
-              variant="subtle"
-              leftSection={<IconArrowLeft size={16} />}
-              px={0}
-              w="fit-content"
-              size="sm"
-            >
-              Back
-            </Button>
-            <Group gap="sm">
-              <IconSparkles size={30} style={{ color: 'var(--theme-primary)' }} />
-              <Title order={1} className="community-page-title">Community Feed</Title>
-            </Group>
-            <Text c="dimmed" size="sm">Discuss, discover, and connect with the community</Text>
-          </Stack>
-
+        <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+          <Group gap="sm">
+            <IconSparkles size={22} style={{ color: 'var(--theme-primary)' }} />
+            <Title order={2} className="community-page-title">Community Feed</Title>
+          </Group>
           <Button
             variant="subtle"
             leftSection={<IconRefresh size={16} />}
             onClick={handleRefreshAll}
             loading={isLoading}
-            size="sm"
+            size="xs"
           >
             Refresh
           </Button>
