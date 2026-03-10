@@ -39,6 +39,11 @@ export default function GlobalNavbar() {
   const { user } = useAuth();
   const { songs } = useSongDatabaseContext();
   const [searchTerm, setSearchTerm] = useState('');
+
+  const visibleNavItems = useMemo(() => {
+    if (user) return navItems;
+    return navItems.filter(item => item.label === 'Queue' || item.label === 'Songs');
+  }, [user]);
   const [debouncedQuery] = useDebouncedValue(searchTerm.trim(), 200);
   const [profileSuggestions, setProfileSuggestions] = useState([]);
   const [profileLoading, setProfileLoading] = useState(false);
@@ -123,7 +128,7 @@ export default function GlobalNavbar() {
             <Text fw={800} className="global-top-brand">mPQCheckPH</Text>
 
             <Group gap={4} wrap="nowrap" className="global-top-links">
-              {!isMenu && navItems.map((item) => {
+              {!isMenu && visibleNavItems.map((item) => {
                 const Icon = item.icon;
                 return isCompact ? (
                   <Tooltip key={item.path} label={item.label} position="bottom" withArrow>
@@ -153,127 +158,129 @@ export default function GlobalNavbar() {
             </Group>
 
             <Group gap="xs" wrap="nowrap" className="global-top-controls">
-              <Popover
-                opened={suggestionsOpen && hasSuggestions && (!isCompact || showSearch)}
-                onClose={() => setSuggestionsOpen(false)}
-                position="bottom-end"
-                width={230}
-                withinPortal
-                shadow="md"
-                radius="md"
-              >
-                <Popover.Target>
-                  <Box component="form" onSubmit={handleSearchSubmit} className={`global-top-search-wrap ${showSearch ? 'is-open' : ''} ${isCompact ? 'compact' : ''}`}>
-                    {(!isCompact || showSearch) && (
-                      <TextInput
-                        value={searchTerm}
-                        onChange={(event) => setSearchTerm(event.currentTarget.value)}
-                        placeholder="Search players or songs..."
-                        leftSection={<IconSearch size={16} />}
-                        rightSection={
-                          isCompact && (
-                            <ActionIcon size="sm" variant="subtle" onClick={() => setShowSearch(false)} aria-label="Close search">
-                              <IconX size={14} />
-                            </ActionIcon>
-                          )
-                        }
-                        className="global-top-search"
-                        autoFocus={isCompact && showSearch}
-                        onFocus={() => {
-                          if (hasSuggestions) setSuggestionsOpen(true);
-                        }}
-                      />
-                    )}
-                    {isCompact && !showSearch && (
-                      <ActionIcon
-                        variant="subtle"
-                        size="lg"
-                        className="global-search-icon"
-                        aria-label="Open search"
-                        onClick={() => setShowSearch(true)}
-                      >
-                        <IconSearch size={18} />
-                      </ActionIcon>
-                    )}
-                  </Box>
-                </Popover.Target>
-                <Popover.Dropdown p="sm">
-                  <Stack gap="xs" align="stretch">
-                    <Group gap={6} justify="flex-start" align="center">
-                      <IconUsersGroup size={14} />
-                      <Text size="xs" fw={700}>Profiles</Text>
-                    </Group>
-                    {profileLoading && <Text size="xs" c="dimmed">Searching profiles...</Text>}
-                    {!profileLoading && profileSuggestions.length === 0 && (
-                      <Text size="xs" c="dimmed">No profile matches.</Text>
-                    )}
-                    {profileSuggestions.map((profile) => (
-                      <Button
-                        key={profile.id}
-                        variant="subtle"
-                        size="sm"
-                        fullWidth
-                        styles={{
-                          root: { justifyContent: 'flex-start' },
-                          inner: { justifyContent: 'flex-start', width: '100%' },
-                          label: { width: '100%', textAlign: 'left' },
-                        }}
-                        onClick={() => {
-                          if (profile.slug) navigate(`/p/${profile.slug}`);
-                          setSuggestionsOpen(false);
-                        }}
-                        leftSection={
-                          <Avatar
-                            src={profile.display_photo_url || profile.dx_display_photo_url || undefined}
-                            radius="xl"
-                            size={32}
-                          >
-                            {(profile.display_name || profile.slug || '?').slice(0, 2).toUpperCase()}
-                          </Avatar>
-                        }
-                      >
-                        {profile.display_name || profile.slug || 'Unnamed'}
-                      </Button>
-                    ))}
+              {user && (
+                <Popover
+                  opened={suggestionsOpen && hasSuggestions && (!isCompact || showSearch)}
+                  onClose={() => setSuggestionsOpen(false)}
+                  position="bottom-end"
+                  width={230}
+                  withinPortal
+                  shadow="md"
+                  radius="md"
+                >
+                  <Popover.Target>
+                    <Box component="form" onSubmit={handleSearchSubmit} className={`global-top-search-wrap ${showSearch ? 'is-open' : ''} ${isCompact ? 'compact' : ''}`}>
+                      {(!isCompact || showSearch) && (
+                        <TextInput
+                          value={searchTerm}
+                          onChange={(event) => setSearchTerm(event.currentTarget.value)}
+                          placeholder="Search players or songs..."
+                          leftSection={<IconSearch size={16} />}
+                          rightSection={
+                            isCompact && (
+                              <ActionIcon size="sm" variant="subtle" onClick={() => setShowSearch(false)} aria-label="Close search">
+                                <IconX size={14} />
+                              </ActionIcon>
+                            )
+                          }
+                          className="global-top-search"
+                          autoFocus={isCompact && showSearch}
+                          onFocus={() => {
+                            if (hasSuggestions) setSuggestionsOpen(true);
+                          }}
+                        />
+                      )}
+                      {isCompact && !showSearch && (
+                        <ActionIcon
+                          variant="subtle"
+                          size="lg"
+                          className="global-search-icon"
+                          aria-label="Open search"
+                          onClick={() => setShowSearch(true)}
+                        >
+                          <IconSearch size={18} />
+                        </ActionIcon>
+                      )}
+                    </Box>
+                  </Popover.Target>
+                  <Popover.Dropdown p="sm">
+                    <Stack gap="xs" align="stretch">
+                      <Group gap={6} justify="flex-start" align="center">
+                        <IconUsersGroup size={14} />
+                        <Text size="xs" fw={700}>Profiles</Text>
+                      </Group>
+                      {profileLoading && <Text size="xs" c="dimmed">Searching profiles...</Text>}
+                      {!profileLoading && profileSuggestions.length === 0 && (
+                        <Text size="xs" c="dimmed">No profile matches.</Text>
+                      )}
+                      {profileSuggestions.map((profile) => (
+                        <Button
+                          key={profile.id}
+                          variant="subtle"
+                          size="sm"
+                          fullWidth
+                          styles={{
+                            root: { justifyContent: 'flex-start' },
+                            inner: { justifyContent: 'flex-start', width: '100%' },
+                            label: { width: '100%', textAlign: 'left' },
+                          }}
+                          onClick={() => {
+                            if (profile.slug) navigate(`/p/${profile.slug}`);
+                            setSuggestionsOpen(false);
+                          }}
+                          leftSection={
+                            <Avatar
+                              src={profile.display_photo_url || profile.dx_display_photo_url || undefined}
+                              radius="xl"
+                              size={32}
+                            >
+                              {(profile.display_name || profile.slug || '?').slice(0, 2).toUpperCase()}
+                            </Avatar>
+                          }
+                        >
+                          {profile.display_name || profile.slug || 'Unnamed'}
+                        </Button>
+                      ))}
 
-                    <Divider />
+                      <Divider />
 
-                    <Group gap={6} justify="flex-start" align="center">
-                      <IconMusic size={14} />
-                      <Text size="xs" fw={700}>Songs</Text>
-                    </Group>
-                    {songSuggestions.length === 0 && (
-                      <Text size="xs" c="dimmed">No song matches.</Text>
-                    )}
-                    {songSuggestions.map((song) => (
-                      <Button
-                        key={song.songId}
-                        variant="subtle"
-                        size="sm"
-                        fullWidth
-                        styles={{
-                          root: { justifyContent: 'flex-start' },
-                          inner: { justifyContent: 'flex-start', width: '100%' },
-                          label: { width: '100%', textAlign: 'left' },
-                        }}
-                        onClick={() => {
-                          navigate(`/search?query=${encodeURIComponent(song.title)}`);
-                          setSuggestionsOpen(false);
-                        }}
-                        leftSection={
-                          <Avatar
-                            src={song.imageUrl || undefined}
-                            radius="sm"
-                            size={32}
-                          />
-                        }
-                      >
-                        {song.title}
-                      </Button>
-                    ))}
-                  </Stack>
-                </Popover.Dropdown>
-              </Popover>
+                      <Group gap={6} justify="flex-start" align="center">
+                        <IconMusic size={14} />
+                        <Text size="xs" fw={700}>Songs</Text>
+                      </Group>
+                      {songSuggestions.length === 0 && (
+                        <Text size="xs" c="dimmed">No song matches.</Text>
+                      )}
+                      {songSuggestions.map((song) => (
+                        <Button
+                          key={song.songId}
+                          variant="subtle"
+                          size="sm"
+                          fullWidth
+                          styles={{
+                            root: { justifyContent: 'flex-start' },
+                            inner: { justifyContent: 'flex-start', width: '100%' },
+                            label: { width: '100%', textAlign: 'left' },
+                          }}
+                          onClick={() => {
+                            navigate(`/search?query=${encodeURIComponent(song.title)}`);
+                            setSuggestionsOpen(false);
+                          }}
+                          leftSection={
+                            <Avatar
+                              src={song.imageUrl || undefined}
+                              radius="sm"
+                              size={32}
+                            />
+                          }
+                        >
+                          {song.title}
+                        </Button>
+                      ))}
+                    </Stack>
+                  </Popover.Dropdown>
+                </Popover>
+              )}
               {isMenu && (
                 <Menu shadow="md" width={220} position="bottom-end">
                   <Menu.Target>
@@ -282,7 +289,7 @@ export default function GlobalNavbar() {
                     </ActionIcon>
                   </Menu.Target>
                   <Menu.Dropdown>
-                    {navItems.map((item) => {
+                    {visibleNavItems.map((item) => {
                       const Icon = item.icon;
                       return (
                         <Menu.Item

@@ -83,6 +83,13 @@ function AppProviders() {
     return <Navigate to="/" replace />;
   };
 
+  const ProtectedRoute = ({ children }) => {
+    const { user, loading: authLoading } = useAuth();
+    if (authLoading) return null;
+    if (!user) return <Navigate to="/" replace />;
+    return children;
+  };
+
   return (
     <MantineProvider theme={dynamicTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
       <Notifications position="top-right" />
@@ -100,9 +107,9 @@ function AppProviders() {
           <Route path="/view" element={<ViewPage />} />
           <Route path="/songs" element={<SongsPage />} />
           <Route path="/songs/:id" element={<SongDiscussionPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/shared-playlists" element={<SharedPlaylistsPage />} />
-          <Route path="/feed" element={<FeedPage />} />
+          <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+          <Route path="/shared-playlists" element={<ProtectedRoute><SharedPlaylistsPage /></ProtectedRoute>} />
+          <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/audit-logs" element={<AuditLogsPage />} />
