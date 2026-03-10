@@ -165,6 +165,23 @@ export const userService = {
     return data;
   },
 
+  // Search public profiles by display name or slug
+  async searchPublicProfiles(query, limit = 12) {
+    const trimmed = query?.trim();
+    if (!trimmed) return [];
+
+    const search = `%${trimmed}%`;
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('id, display_name, slug, display_photo_url, dx_display_photo_url, is_public')
+      .eq('is_public', true)
+      .or(`display_name.ilike.${search},slug.ilike.${search}`)
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  },
+
   // Update profile slug (once every 60 days)
   async updateProfileSlug(userId, slug) {
     if (!userId) throw new Error('User ID is required');
@@ -696,6 +713,50 @@ export const playlistService = {
       }
       return post;
     });
+  },
+
+  // Get public playlists that contain the target song IDs
+  async getPublicPlaylistsBySongIds(songIds, limit = 12) {
+    if (!Array.isArray(songIds) || songIds.length === 0) return [];
+
+    const { data, error } = await supabase
+      .from('user_playlists')
+      .select(`
+        id,
+        title,
+        comment,
+        is_public,
+        updated_at,
+        user_id,
+        songs:playlist_songs!inner(
+          song_id,
+          level,
+          order_index
+        ),
+        author:user_profiles!user_id(
+          id,
+          display_name,
+          slug,
+          display_photo_url,
+          dx_display_photo_url
+        )
+      `)
+      .eq('deleted', false)
+      .eq('is_draft', false)
+      .eq('is_public', true)
+      .in('songs.song_id', songIds)
+      .order('updated_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching public playlists by song:', error);
+      throw error;
+    }
+
+    return (data || []).map((playlist) => ({
+      ...playlist,
+      songs: (playlist.songs || []).sort((a, b) => a.order_index - b.order_index)
+    }));
   },
 
   // Get comments for a shared post

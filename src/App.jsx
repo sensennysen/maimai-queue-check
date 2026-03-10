@@ -27,6 +27,7 @@ const ExportBest50Page = lazy(() => import('./pages/ExportBest50Page'));
 const ViewPage = lazy(() => import('./pages/ViewPage'));
 const SongsPage = lazy(() => import('./pages/SongsPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
+const SearchPage = lazy(() => import('./pages/SearchPage'));
 
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
 const SongDiscussionPage = lazy(() => import('./pages/SongDiscussionPage'));
@@ -99,6 +100,7 @@ function AppProviders() {
           <Route path="/view" element={<ViewPage />} />
           <Route path="/songs" element={<SongsPage />} />
           <Route path="/songs/:id" element={<SongDiscussionPage />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/shared-playlists" element={<SharedPlaylistsPage />} />
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/contact" element={<ContactPage />} />
