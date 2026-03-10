@@ -19,11 +19,9 @@ import {
   Grid,
   JsonInput,
 } from '@mantine/core';
-import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs';
 import IconDownload from '@tabler/icons-react/dist/esm/icons/IconDownload.mjs';
 import IconEye from '@tabler/icons-react/dist/esm/icons/IconEye.mjs';
 import { DatePickerInput } from '@mantine/dates';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { auditService } from '../services/supabase/audit';
 import './AuditLogsPage.css';
@@ -43,7 +41,6 @@ const TABLES = [
 
 const AuditLogsPage = () => {
   const { userRoles } = useAuth();
-  const navigate = useNavigate();
   const isSuperAdmin = userRoles?.is_super_admin || false;
 
   // State
@@ -111,12 +108,11 @@ const AuditLogsPage = () => {
   // Permission check
   if (!isSuperAdmin) {
     return (
-      <Container size="sm" py="xl">
+      <Container size="xl" py="xl">
         <Paper p="xl" withBorder>
           <Stack align="center" gap="md">
             <Title order={3}>Access Denied</Title>
             <Text>Only super admins can view audit logs.</Text>
-            <Button onClick={() => navigate('/')}>Go Back</Button>
           </Stack>
         </Paper>
       </Container>
@@ -161,14 +157,6 @@ const AuditLogsPage = () => {
         <Paper p="md" radius="md" withBorder>
           <Group justify="space-between" align="center">
             <Group gap="md">
-              <ActionIcon
-                variant="subtle"
-                size="lg"
-                onClick={() => navigate('/admin')}
-                title="Back to Admin Panel"
-              >
-                <IconArrowLeft size={20} />
-              </ActionIcon>
               <Title order={2}>Audit Logs</Title>
             </Group>
             <Group gap="sm">

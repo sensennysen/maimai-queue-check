@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Alert, Modal, Skeleton, Tabs, LoadingOverlay } from '@mantine/core';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Alert, Modal, Skeleton, Tabs, LoadingOverlay, TextInput } from '@mantine/core';
 import { useOs } from '@mantine/hooks';
 import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
@@ -20,7 +20,8 @@ import { useBranch } from '../../../hooks/useBranch';
 import { useAuth } from '../../../hooks/useAuth';
 import { closedMessages, loadingMessages } from '../../../data/subtitleMessages';
 import { usePermissions } from '../../../hooks/usePermissions';
-import { requestService } from '../../../services/supabase';
+import { notifications } from '@mantine/notifications';
+import { requestService, userService } from '../../../services/supabase';
 import AccessRequestModal from '../../../components/modals/AccessRequestModal';
 import QueueRulesModal from './QueueRulesModal';
 import QueueLogsModal from './QueueLogsModal';
@@ -77,12 +78,57 @@ function QueueManager() {
   // Auth and roles
   const [actionsLoaded, setActionsLoaded] = useState(false);
   const { user, loading: authLoading } = useAuth();
+  const [queueName, setQueueName] = useState('');
+  const [queueNameOriginal, setQueueNameOriginal] = useState('');
+  const [queueNameLoading, setQueueNameLoading] = useState(false);
+  const [queueNameSaving, setQueueNameSaving] = useState(false);
+  const [queueNameModalOpen, setQueueNameModalOpen] = useState(false);
 
   useEffect(() => {
     if (!queueLoading && !authLoading) {
       setTimeout(() => setActionsLoaded(true), 0);
     }
   }, [queueLoading, authLoading]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setQueueName('');
+      setQueueNameOriginal('');
+      return;
+    }
+
+    let isActive = true;
+    setQueueNameLoading(true);
+    userService.getOwnProfile(user.id)
+      .then((profile) => {
+        if (!isActive) return;
+        const name = profile?.user_roles?.queue_name || '';
+        setQueueName(name);
+        setQueueNameOriginal(name);
+      })
+      .catch(console.error)
+      .finally(() => {
+        if (isActive) setQueueNameLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [user?.id]);
+
+  const handleSaveQueueName = async () => {
+    if (!user) return;
+    setQueueNameSaving(true);
+    try {
+      await userService.updatePreferences(user.id, { queue_name: queueName.trim() || null });
+      setQueueNameOriginal(queueName.trim());
+      notifications.show({ title: 'Saved', message: 'Queue name updated', color: 'green' });
+    } catch (e) {
+      notifications.show({ title: 'Error', message: e.message || 'Failed to save', color: 'red' });
+    } finally {
+      setQueueNameSaving(false);
+    }
+  };
 
   // UI state
   const [editingId, setEditingId] = useState(null);
@@ -342,6 +388,54 @@ function QueueManager() {
       <Alert icon={<IconAlertTriangle size={16} />} color="blue" variant="light">
         Info here might not reflect the actual queue in the branch
       </Alert>
+
+      {user && (
+        <>
+          <Group justify="flex-end" align="center" wrap="wrap" gap="md">
+            <Button
+              onClick={() => setQueueNameModalOpen(true)}
+              loading={queueNameLoading}
+              size="sm"
+            >
+              Change your queue name
+            </Button>
+          </Group>
+
+          <Modal
+            opened={queueNameModalOpen}
+            onClose={() => setQueueNameModalOpen(false)}
+            title={<Text fw={600}>Change Queue Name</Text>}
+            centered
+            size="sm"
+          >
+            <Stack gap="md">
+              <Text size="xs" c="dimmed">Name shown in queue autocomplete (max 10 chars)</Text>
+              <TextInput
+                placeholder="Your queue name"
+                value={queueName}
+                onChange={(e) => setQueueName(e.currentTarget.value.slice(0, 10))}
+                maxLength={10}
+                disabled={queueNameLoading}
+              />
+              <Group justify="flex-end">
+                <Button variant="default" onClick={() => setQueueNameModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={async () => {
+                    await handleSaveQueueName();
+                    setQueueNameModalOpen(false);
+                  }}
+                  loading={queueNameSaving}
+                  disabled={queueNameLoading || queueName.trim() === queueNameOriginal}
+                >
+                  Save
+                </Button>
+              </Group>
+            </Stack>
+          </Modal>
+        </>
+      )}
 
       {/* Cabinet Tabs - Only show when there are multiple cabinets */}
       {hasMultipleCabinets && (

@@ -6,12 +6,10 @@ import {
   Group,
   Title,
   Text,
-  ActionIcon,
   Paper,
   Tabs,
 } from '@mantine/core';
 import IconBuildingStore from '@tabler/icons-react/dist/esm/icons/IconBuildingStore.mjs';
-import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs';
 import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
 import IconMessageReport from '@tabler/icons-react/dist/esm/icons/IconMessageReport.mjs';
 import IconFileText from '@tabler/icons-react/dist/esm/icons/IconFileText.mjs';
@@ -48,12 +46,11 @@ const AdminPage = () => {
 
   if (!userRoles?.is_admin && !isSuperAdmin) {
     return (
-      <Container size="sm" py="xl">
+      <Container size="xl" py="xl">
         <Paper p="xl" withBorder>
           <Stack align="center" gap="md">
             <Title order={3}>Access Denied</Title>
             <Text>You do not have permission to view this page.</Text>
-            <Button onClick={() => navigate('/')}>Go Back</Button>
           </Stack>
         </Paper>
       </Container>
@@ -66,14 +63,6 @@ const AdminPage = () => {
         <Paper p="md" radius="md" withBorder>
           <Group justify="space-between" align="center">
             <Group gap="md">
-              <ActionIcon
-                variant="subtle"
-                size="lg"
-                onClick={() => navigate('/')}
-                title="Back to Queue Manager"
-              >
-                <IconArrowLeft size={20} />
-              </ActionIcon>
               <Title order={2}>Admin Panel{adminBranchName ? ` (${adminBranchName})` : ''}</Title>
             </Group>
             {isSuperAdmin && (

@@ -6,11 +6,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
-import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs';
 import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
 import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
-import IconSparkles from '@tabler/icons-react/dist/esm/icons/IconSparkles.mjs';
-import IconActivityHeartbeat from '@tabler/icons-react/dist/esm/icons/IconActivityHeartbeat.mjs';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { useBranch } from '../hooks/useBranch';
@@ -250,33 +247,15 @@ export default function FeedPage() {
     : newPosts.map((post) => ({ key: post.id, post }));
 
   return (
-    <Container size="xl" py="xl" className="community-feed-page animate-fade-in">
+    <Container size="xl" py="lg" className="community-feed-page animate-fade-in">
       <Stack gap="lg">
-        <Group justify="space-between" align="flex-end" wrap="wrap" gap="sm">
-          <Stack gap={2}>
-            <Button
-              onClick={() => navigate(-1)}
-              variant="subtle"
-              leftSection={<IconArrowLeft size={16} />}
-              px={0}
-              w="fit-content"
-              size="sm"
-            >
-              Back
-            </Button>
-            <Group gap="sm">
-              <IconSparkles size={30} style={{ color: 'var(--theme-primary)' }} />
-              <Title order={1} className="community-page-title">Community Feed</Title>
-            </Group>
-            <Text c="dimmed" size="sm">Discuss, discover, and connect with the community</Text>
-          </Stack>
-
+        <Group justify="flex-end" align="center" wrap="wrap" gap="xs" w="100%">
           <Button
             variant="subtle"
             leftSection={<IconRefresh size={16} />}
             onClick={handleRefreshAll}
             loading={isLoading}
-            size="sm"
+            size="xs"
           >
             Refresh
           </Button>
@@ -291,7 +270,6 @@ export default function FeedPage() {
                   subtitle="What people you follow are doing now"
                   onRefresh={fetchFollowingActivity}
                   loading={loadingFollowingActivity}
-                  rightSection={<IconActivityHeartbeat size={18} style={{ color: 'var(--theme-primary)' }} />}
                 />
 
                 {!user ? (
@@ -485,7 +463,7 @@ export default function FeedPage() {
               ) : suggestedPlayers.length === 0 ? (
                 <Paper p="md" radius="md" withBorder className="community-sidebar-empty">
                   <Text size="sm" c="dimmed" ta="center">
-                    Set your home or preferred branches in preferences to see suggestions.
+                    Set your home or preferred branches in App Settings to see suggestions.
                   </Text>
                 </Paper>
               ) : (

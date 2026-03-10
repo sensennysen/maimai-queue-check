@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMediaQuery } from '@mantine/hooks';
 import {
   Container, Paper, Stack, Group, Title, Text, Avatar,
   Badge, SimpleGrid, Loader, Button, Alert,
-  Divider, ThemeIcon, Box, ActionIcon, Image, Tooltip, Menu
+  Divider, ThemeIcon, Box, ActionIcon, Image, Tooltip
 } from '@mantine/core';
 import {
   IconUser, IconTrophy, IconMapPin, IconAlertCircle,
-  IconArrowLeft, IconStar, IconLock, IconLogin,
-  IconSettings, IconUpload, IconCamera, IconTrash,
+  IconStar, IconLock, IconLogin,
+  IconUpload, IconCamera, IconTrash,
   IconShare, IconCode, IconBug, IconGitPullRequest, IconListDetails
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
@@ -42,6 +42,7 @@ const PublicProfilePage = () => {
   const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
@@ -151,9 +152,26 @@ const PublicProfilePage = () => {
   const isRealOwner = profile?.id === user?.id;
   const isOwner = isRealOwner && !viewAsPublic;
 
+  useEffect(() => {
+    if (!isRealOwner) return;
+    const settingsTarget = searchParams.get('settings');
+    if (settingsTarget === 'profile') {
+      setIsSettingsModalOpen(true);
+    }
+    if (settingsTarget === 'privacy') {
+      setIsPrivacyModalOpen(true);
+    }
+  }, [isRealOwner, searchParams]);
+
+  const clearSettingsParam = useCallback(() => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('settings');
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   if (loading) {
     return (
-      <Container size="lg" py="xl">
+      <Container size="xl" py="xl">
         <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
           <Loader size="xl" color="pink" type="bars" />
           <Text size="lg" fw={500} mt="md">Loading profile...</Text>
@@ -164,7 +182,7 @@ const PublicProfilePage = () => {
 
   if (isRestricted) {
     return (
-      <Container size="lg" py="xl">
+      <Container size="xl" py="xl">
         <Stack align="center" justify="center" style={{ minHeight: '70vh' }} gap="xl">
           <Paper shadow="xl" p={40} radius="lg" withBorder style={{ maxWidth: 500, width: '100%', textAlign: 'center', backgroundColor: 'var(--mantine-color-body)' }}>
             <ThemeIcon size={80} radius={80} variant="light" color="blue" mb="md">
@@ -190,17 +208,9 @@ const PublicProfilePage = () => {
                   Log In to View
                 </Button>
               )}
-              <Button
-                onClick={() => navigate('/')}
-                size="lg"
-                variant="outline"
-                color="red"
-                radius="md"
-                leftSection={<IconArrowLeft size={18} />}
-                fullWidth
-              >
-                Back to Home
-              </Button>
+              <Text size="sm" c="dimmed">
+                Sign in with an account that has access to continue.
+              </Text>
             </Stack>
           </Paper>
         </Stack>
@@ -210,7 +220,7 @@ const PublicProfilePage = () => {
 
   if (error || !profile) {
     return (
-      <Container size="lg" py="xl">
+      <Container size="xl" py="xl">
         <Stack align="center" justify="center" style={{ minHeight: '70vh' }} gap="xl">
           <Paper shadow="xl" p={40} radius="lg" withBorder style={{ maxWidth: 500, width: '100%', textAlign: 'center' }}>
             <ThemeIcon size={80} radius={80} variant="light" color="red" mb="md">
@@ -220,17 +230,6 @@ const PublicProfilePage = () => {
             <Text size="lg" c="dimmed" mb="xl">
               {error || 'Profile not found'}
             </Text>
-            <Button
-              onClick={() => navigate('/')}
-              size="lg"
-              variant="outline"
-              color="red"
-              radius="md"
-              leftSection={<IconArrowLeft size={18} />}
-              fullWidth
-            >
-              Back to Home
-            </Button>
           </Paper>
         </Stack>
       </Container>
@@ -275,7 +274,7 @@ const PublicProfilePage = () => {
   );
 
   return (
-    <Container size="lg" py="xl">
+    <Container size="xl" py="xl">
       <Stack gap="lg">
         {/* View as Public Banner */}
         {viewAsPublic && isRealOwner && (
@@ -297,68 +296,74 @@ const PublicProfilePage = () => {
           </Alert>
         )}
 
-        {/* Back Button / Navigation */}
-        <Group justify="space-between">
-          {!viewAsPublic ? (
-            <Button
-              onClick={() => navigate('/')}
-              variant="subtle"
-              leftSection={<IconArrowLeft size={18} />}
-              className="animate-fade-in"
-            >
-              Back to queue
-            </Button>
-          ) : <div />}
-
+        <Group justify="flex-end">
           {/* Action Buttons only for owner */}
           {isRealOwner && !viewAsPublic && (
             <Group gap="xs">
-              <Menu position="bottom-end" shadow="md">
-                <Menu.Target>
+              {isMobile ? (
+                <Tooltip label="View as Public" withArrow>
                   <ActionIcon
                     variant="light"
                     color="gray"
-                    size="lg" // To roughly match the height of the Button
-                    style={{ height: 36, width: 36 }}
-                    title="Settings"
-                    className="animate-fade-in"
-                  >
-                    <IconSettings size={20} />
-                  </ActionIcon>
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item leftSection={<IconUser size={14} />} onClick={() => setIsSettingsModalOpen(true)}>
-                    Profile Settings
-                  </Menu.Item>
-                  <Menu.Item leftSection={<IconLock size={14} />} onClick={() => setIsPrivacyModalOpen(true)}>
-                    Privacy Settings
-                  </Menu.Item>
-                  <Menu.Divider />
-                  <Menu.Item
-                    leftSection={<IconLogin size={14} />}
+                    size="lg"
                     onClick={() => setViewAsPublic(true)}
+                    className="animate-fade-in"
+                    aria-label="View as Public"
                   >
-                    View as Public
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-              <Button
-                variant="light"
-                color="blue"
-                leftSection={<IconShare size={18} />}
-                onClick={() => {
-                  const url = window.location.href;
-                  navigator.clipboard.writeText(url);
-                  notifications.show({
-                    title: 'Link Copied',
-                    message: 'Profile link copied to clipboard!',
-                    color: 'blue',
-                  });
-                }}
-                className="animate-fade-in"
-              >
-                Share Profile
-              </Button>
+                    <IconLogin size={18} />
+                  </ActionIcon>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="light"
+                  color="gray"
+                  leftSection={<IconLogin size={18} />}
+                  onClick={() => setViewAsPublic(true)}
+                  className="animate-fade-in"
+                >
+                  View as Public
+                </Button>
+              )}
+              {isMobile ? (
+                <Tooltip label="Share Profile" withArrow>
+                  <ActionIcon
+                    variant="light"
+                    color="blue"
+                    size="lg"
+                    onClick={() => {
+                      const url = window.location.href;
+                      navigator.clipboard.writeText(url);
+                      notifications.show({
+                        title: 'Link Copied',
+                        message: 'Profile link copied to clipboard!',
+                        color: 'blue',
+                      });
+                    }}
+                    className="animate-fade-in"
+                    aria-label="Share Profile"
+                  >
+                    <IconShare size={18} />
+                  </ActionIcon>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="light"
+                  color="blue"
+                  leftSection={<IconShare size={18} />}
+                  onClick={() => {
+                    const url = window.location.href;
+                    navigator.clipboard.writeText(url);
+                    notifications.show({
+                      title: 'Link Copied',
+                      message: 'Profile link copied to clipboard!',
+                      color: 'blue',
+                    });
+                  }}
+                  className="animate-fade-in"
+                >
+                  Share Profile
+                </Button>
+              )}
             </Group>
           )}
 
@@ -389,7 +394,7 @@ const PublicProfilePage = () => {
                       autoClose: 2000
                     });
                   }
-                } catch (_err) {
+                } catch {
                   // Revert on error
                   setIsFollowing(wasFollowing);
                   notifications.show({
@@ -917,7 +922,10 @@ const PublicProfilePage = () => {
             />
             <ProfileSettingsModal
               opened={isSettingsModalOpen}
-              onClose={() => setIsSettingsModalOpen(false)}
+              onClose={() => {
+                setIsSettingsModalOpen(false);
+                clearSettingsParam();
+              }}
               userId={user.id}
               initialData={profile}
               allBranches={branches}
@@ -933,7 +941,10 @@ const PublicProfilePage = () => {
             />
             <PrivacySettingsModal
               opened={isPrivacyModalOpen}
-              onClose={() => setIsPrivacyModalOpen(false)}
+              onClose={() => {
+                setIsPrivacyModalOpen(false);
+                clearSettingsParam();
+              }}
               userId={user.id}
               initialData={profile}
               onSuccess={fetchData}

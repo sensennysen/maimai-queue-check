@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Divider, ActionIcon, Avatar, Box, Textarea } from '@mantine/core';
+import { Container, Stack, Group, Text, Button, Loader, Paper, Divider, ActionIcon, Avatar, Box, Textarea } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconArrowLeft, IconRefresh, IconPlaylist, IconShare, IconDotsVertical, IconMessageOff, IconMessage, IconTrash, IconEdit, IconCheck, IconX } from '@tabler/icons-react';
+import { IconRefresh, IconShare, IconDotsVertical, IconMessageOff, IconMessage, IconTrash, IconEdit, IconCheck, IconX } from '@tabler/icons-react';
 import { Menu } from '@mantine/core';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
@@ -129,36 +129,22 @@ export default function SharedPlaylistsPage() {
   };
 
   return (
-    <Container size="md" py="xl" className="animate-fade-in">
+    <Container size="xl" py="lg" className="animate-fade-in">
       <Stack gap="xl">
-        <Group justify="space-between" align="flex-end">
-          <Stack gap={0}>
-            <Button onClick={() => navigate(-1)} variant="subtle" leftSection={<IconArrowLeft size={16} />} px={0} mb="xs" w="fit-content">
-              Go Back
+        <Group justify="flex-end" align="flex-end" gap="sm" w="100%">
+          {user && (
+            <Button
+              variant="gradient"
+              gradient={{ from: 'indigo', to: 'cyan' }}
+              leftSection={<IconShare size={18} />}
+              onClick={() => setShareModalOpened(true)}
+            >
+              Share Your Playlist
             </Button>
-            <Group gap="sm">
-              <IconPlaylist size={32} style={{ color: 'var(--theme-primary)' }} />
-              <Title order={1} style={{ fontFamily: 'var(--font-heading)' }}>
-                Shared Playlists
-              </Title>
-            </Group>
-            <Text c="dimmed">Discover playlists shared by other players!</Text>
-          </Stack>
-          <Group gap="sm">
-            {user && (
-              <Button
-                variant="gradient"
-                gradient={{ from: 'indigo', to: 'cyan' }}
-                leftSection={<IconShare size={18} />}
-                onClick={() => setShareModalOpened(true)}
-              >
-                Share Your Playlist
-              </Button>
-            )}
-            <ActionIcon variant="light" size="lg" onClick={fetchPosts} loading={loading}>
-              <IconRefresh size={20} />
-            </ActionIcon>
-          </Group>
+          )}
+          <ActionIcon variant="light" size="lg" onClick={fetchPosts} loading={loading}>
+            <IconRefresh size={20} />
+          </ActionIcon>
         </Group>
 
         {loading || songsLoading ? (

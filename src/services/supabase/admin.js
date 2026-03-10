@@ -18,7 +18,8 @@ export const branchService = {
     // and remove the nested mall_schedule array from the result to match previous signature
     const filteredData = (data || []).filter(branch => branch.mall_schedule && branch.mall_schedule.length > 0)
       .map(branch => {
-        const { mall_schedule, ...rest } = branch;
+        const rest = { ...branch };
+        delete rest.mall_schedule;
         return rest;
       });
       
