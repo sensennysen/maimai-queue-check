@@ -59,10 +59,10 @@ body[data-theme='dark'] .community-feed-page {
   ) !important;
 }
 
-.community-trending-card:hover {
+/* .community-trending-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 20px color-mix(in srgb, var(--theme-primary) 28%, transparent);
-}
+} */
 
 .community-release-row {
   padding: 2px 2px 6px;

@@ -8,6 +8,7 @@ import { notifications } from '@mantine/notifications';
 import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
 import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
 import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
+
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { useBranch } from '../hooks/useBranch';
@@ -15,6 +16,8 @@ import { feedService, followService } from '../services/supabase';
 import { FeedSongCard } from '../components/feed/FeedSongCard';
 import { FeedPlaylistCard } from '../components/feed/FeedPlaylistCard';
 import { FeedPlayerCard } from '../components/feed/FeedPlayerCard';
+import { FeedPostComposer } from '../components/feed/FeedPostComposer';
+import { FeedPostCard } from '../components/feed/FeedPostCard';
 import './FeedPage.css';
 
 const SECTION_LIMIT = 10;
@@ -71,6 +74,8 @@ export default function FeedPage() {
   const [suggestedPlayers, setSuggestedPlayers] = useState([]);
   const [followedIds, setFollowedIds] = useState(new Set());
   const [morePlayersOpened, setMorePlayersOpened] = useState(false);
+  const [communityPosts, setCommunityPosts] = useState([]);
+  const [loadingCommunityPosts, setLoadingCommunityPosts] = useState(true);
 
   const [loadingDiscussions, setLoadingDiscussions] = useState(true);
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -161,10 +166,34 @@ export default function FeedPage() {
     }
   }, [user?.id]);
 
+  const fetchCommunityPosts = useCallback(async () => {
+    setLoadingCommunityPosts(true);
+    try {
+      const data = await feedService.getFeedPosts(user?.id, SECTION_LIMIT);
+      setCommunityPosts(data || []);
+    } catch (err) {
+      console.error('Failed to load community posts:', err);
+    } finally {
+      setLoadingCommunityPosts(false);
+    }
+  }, [user?.id]);
+
+  const handleCreatePost = useCallback(async (content, visibility, songId, playlistId, imageUrl) => {
+    if (!user) return;
+    try {
+      const newPost = await feedService.createFeedPost(user.id, content, visibility, songId, playlistId, imageUrl);
+      setCommunityPosts(prev => [{ ...newPost, comment_count: 0 }, ...prev]);
+      notifications.show({ title: 'Posted!', message: 'Your post is now live.', color: 'green', autoClose: 2000 });
+    } catch {
+      notifications.show({ title: 'Error', message: 'Failed to create post.', color: 'red' });
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchSongDiscussions();
     fetchPlaylistData();
-  }, [fetchSongDiscussions, fetchPlaylistData]);
+    fetchCommunityPosts();
+  }, [fetchSongDiscussions, fetchPlaylistData, fetchCommunityPosts]);
 
   useEffect(() => {
     fetchFollowingActivity();
@@ -218,6 +247,7 @@ export default function FeedPage() {
     fetchPlaylistData();
     fetchFollowingActivity();
     fetchSuggestedPlayers();
+    fetchCommunityPosts();
   };
 
   const isLoading = loadingDiscussions || loadingPosts;
@@ -264,6 +294,46 @@ export default function FeedPage() {
         <Grid gutter="xl" className="community-feed-layout">
           <Grid.Col span={{ base: 12, md: 8 }}>
             <Stack gap="lg">
+              {/* Post Composer — visible to logged-in users only */}
+              {user && (
+                <FeedPostComposer 
+                  user={user} 
+                  profileData={userRoles} 
+                  onSubmit={handleCreatePost} 
+                />
+              )}
+
+              {/* Community Posts panel */}
+              <Paper p="md" radius="xl" withBorder className="community-panel">
+                <PanelHeader
+                  title="Community Posts"
+                  subtitle="Latest posts from the community"
+                  onRefresh={fetchCommunityPosts}
+                  loading={loadingCommunityPosts}
+                />
+                {loadingCommunityPosts ? (
+                  <SectionSkeleton rows={3} height={100} />
+                ) : communityPosts.length === 0 ? (
+                  <Text c="dimmed" size="sm" ta="center" py="md">
+                    No posts yet. Be the first to share something!
+                  </Text>
+                ) : (
+                  <Stack gap="sm">
+                    {communityPosts.map(post => (
+                      <FeedPostCard
+                        key={post.id}
+                        post={post}
+                        currentUser={user}
+                        profileData={userRoles}
+                        onDelete={(id) => setCommunityPosts(prev => prev.filter(p => p.id !== id))}
+                        onUpdate={(id, content) => setCommunityPosts(prev => prev.map(p => p.id === id ? { ...p, content } : p))}
+                        className="community-trending-card"
+                      />
+                    ))}
+                  </Stack>
+                )}
+              </Paper>
+
               <Paper p="md" radius="xl" withBorder className="community-panel">
                 <PanelHeader
                   title="Following Activity"
@@ -286,7 +356,13 @@ export default function FeedPage() {
                   <Stack gap="sm">
                     {followingActivity.map((item) => (
                       <Box key={item.id}>
-                        {item.type === 'song_comment' && item.song_id ? (
+                        {item.type === 'feed_post' ? (
+                          <FeedPostCard
+                            post={item.feed_post}
+                            currentUser={user}
+                            className="community-following-activity-row"
+                          />
+                        ) : item.type === 'song_comment' && item.song_id ? (
                           <FeedSongCard
                             song={songMapById?.get(item.song_id)}
                             songId={item.song_id}

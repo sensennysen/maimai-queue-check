@@ -20,7 +20,8 @@ const PrivacySettingsModal = ({ opened, onClose, userId, initialData, onSuccess 
     show_play_count: true,
     show_maimai_name: true,
     show_circle: true,
-    show_recent_plays: true
+    show_recent_plays: true,
+    show_posts: true
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -133,6 +134,7 @@ const PrivacySettingsModal = ({ opened, onClose, userId, initialData, onSuccess 
               <Text size="sm" fw={600}>Collections</Text>
               <Switch label="Favorites" checked={privacySettings.show_favorite_songs} onChange={(e) => handleUpdatePrivacy('show_favorite_songs', e.currentTarget.checked)} />
               <Switch label="Playlists" checked={privacySettings.show_playlists} onChange={(e) => handleUpdatePrivacy('show_playlists', e.currentTarget.checked)} />
+              <Switch label="Community Posts" checked={privacySettings.show_posts !== false} onChange={(e) => handleUpdatePrivacy('show_posts', e.currentTarget.checked)} />
             </Stack>
           </SimpleGrid>
         </Box>
