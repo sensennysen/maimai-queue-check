@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { queueService, subscribeToQueueChanges } from '../services/supabase';
 import { useBranch } from './useBranch';
-import { QUEUE_STATUS } from '../constants/queue';
+import { QUEUE_STATUSES } from '../constants/queue';
 
 /**
  * Hook for managing queue data fetching and real-time subscriptions
@@ -16,8 +16,8 @@ export const useQueueData = (selectedCabinet = 1) => {
   const [isConnected, setIsConnected] = useState(false);
 
   // Derived state
-  const nowPlaying = queue.find(item => item.status === QUEUE_STATUS.PLAYING) || null;
-  const waitingQueue = queue.filter(item => item.status === QUEUE_STATUS.WAITING);
+  const nowPlaying = queue.find(item => item.status === QUEUE_STATUSES.PLAYING) || null;
+  const waitingQueue = queue.filter(item => item.status === QUEUE_STATUSES.WAITING);
 
   // Load initial data
   const loadInitialData = useCallback(async () => {

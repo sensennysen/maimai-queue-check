@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { queueService, subscribeToQueueChanges } from '../services/supabase';
 import { useBranch } from './useBranch';
-import { QUEUE_STATUS } from '../constants/queue';
+import { QUEUE_STATUSES } from '../constants/queue';
 
 /**
  * Hook for managing queue data for ALL cabinets (Public Monitor)
@@ -41,9 +41,9 @@ export const useMonitorData = (branchIdOverride = null) => {
             };
         }
         
-        if (entry.status === QUEUE_STATUS.PLAYING) {
+        if (entry.status === QUEUE_STATUSES.PLAYING) {
             grouped[cab].playing.push(entry);
-        } else if (entry.status === QUEUE_STATUS.WAITING) {
+        } else if (entry.status === QUEUE_STATUSES.WAITING) {
             grouped[cab].waiting.push(entry);
         }
       });

@@ -1,9 +1,11 @@
 /**
  * Queue status constants
  */
-export const QUEUE_STATUS = {
+export const QUEUE_STATUSES = {
   WAITING: 'waiting',
-  PLAYING: 'playing'
+  PLAYING: 'playing',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled'
 };
 
 /**
