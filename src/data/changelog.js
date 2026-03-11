@@ -1,5 +1,26 @@
 export const changelogData = [
-    {
+  {
+    version: 'v1.10.0',
+    date: 'March 11, 2026',
+    changes: [
+      {
+        type: 'feature',
+        title: 'Community Feed',
+        description: 'Share posts, follow other users, and engage with the community directly within the app.',
+      },
+      {
+        type: 'bugfix',
+        title: 'Miscellaneous bug fixes',
+        description: 'Resolved issues with post deletion in the feed, admin branch visibility in profiles, and queue export stability.',
+      },
+      {
+        type: 'improvement',
+        title: 'Otoge DB Update',
+        description: 'Updated the internal database with the latest song information.',
+      }
+    ]
+  },
+  {
     version: 'v1.9.3',
     date: 'March 7, 2026',
     changes: [
@@ -209,48 +230,6 @@ export const changelogData = [
         title: 'Code Optimization',
         description: 'General code optimization.',
       },
-    ]
-  },
-  {
-    version: 'v1.7.5',
-    date: 'February 22, 2026',
-    changes: [
-      {
-        type: 'bugfix',
-        title: 'Profile Page Visibility',
-        description: 'Fixed an issue where profile pages were not visible to logged-in users.',
-      },
-      {
-        type: 'refactor',
-        title: 'Preferred Branches',
-        description: 'Refactored the preferred branches to only use 1 column',
-      },
-      {
-        type: 'bugfix',
-        title: 'Error on editing comments on favorite songs',
-        description: 'Fixed an issue where users cannot edit the comment on their favorite songs.',
-      }
-    ]
-  },
-  {
-    version: 'v1.7.4',
-    date: 'February 21, 2026',
-    changes: [
-      {
-        type: 'optimization',
-        title: 'Profile Page Optimization on Mobile',
-        description: 'Refactored CSS that caused performance issues on mobile devices and introduced various optimizations.',
-      },
-      {
-        type: 'bugfix',
-        title: 'Bug Fixes',
-        description: 'Fixed an issue where multiselect selected both chart types for the same song title. Removed the shareable profile link for visitors.',
-      },
-      {
-        type: 'feature',
-        title: 'Playlist enhancements',
-        description: 'You can now select DX and Standard charts separately, and select the specific difficulty you want to showcase!',
-      }
     ]
   },
 ];
