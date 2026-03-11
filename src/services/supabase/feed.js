@@ -24,7 +24,7 @@ export const feedService = {
 
     const fetchLimit = Math.max(limit * 3, 20);
 
-    const [playlistPostsResult, songCommentsResult, playlistCommentsResult] = await Promise.all([
+    const [playlistPostsResult, songCommentsResult, playlistCommentsResult, feedPostsResult] = await Promise.all([
       supabase
         .from('playlist_posts')
         .select(`
@@ -79,8 +79,30 @@ export const feedService = {
         .in('user_id', followingIds)
         .order('created_at', { ascending: false })
         .limit(fetchLimit),
+      supabase
+        .from('feed_posts')
+        .select(`
+          id,
+          content,
+          created_at,
+          user_id,
+          visibility,
+          attached_song_id,
+          attached_playlist_id,
+          image_url,
+          author:user_profiles!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+          attached_playlist:user_playlists!attached_playlist_id(
+            id, title, comment, is_public,
+            songs:playlist_songs(song_id, level, order_index)
+          )
+        `)
+        .eq('deleted', false)
+        .in('user_id', followingIds)
+        .order('created_at', { ascending: false })
+        .limit(fetchLimit),
     ]);
 
+    if (feedPostsResult.error) throw feedPostsResult.error;
     if (playlistPostsResult.error) throw playlistPostsResult.error;
     if (songCommentsResult.error) throw songCommentsResult.error;
     if (playlistCommentsResult.error) throw playlistCommentsResult.error;
@@ -155,6 +177,29 @@ export const feedService = {
           content: comment.content || null,
           author: comment.author,
           createdAt: comment.created_at,
+        },
+      });
+    }
+
+    for (const fp of (feedPostsResult.data || [])) {
+      activity.push({
+        id: `feed-post-${fp.id}`,
+        type: 'feed_post',
+        created_at: fp.created_at,
+        actor: fp.author,
+        feed_post_id: fp.id,
+        content: fp.content,
+        visibility: fp.visibility,
+        attached_song_id: fp.attached_song_id,
+        attached_playlist: fp.attached_playlist,
+        feed_post: { 
+          id: fp.id, 
+          content: fp.content, 
+          created_at: fp.created_at, 
+          author: fp.author, 
+          visibility: fp.visibility,
+          attached_song_id: fp.attached_song_id,
+          attached_playlist: fp.attached_playlist
         },
       });
     }
@@ -377,6 +422,198 @@ export const feedService = {
       .eq('read', false);
 
     if (error) throw error;
+  },
+
+  // ─── Feed Posts ──────────────────────────────────────────────────────────────
+
+  /**
+   * Create a new community feed post.
+   */
+  async createFeedPost(userId, content, visibility = 'public', songId = null, playlistId = null, imageUrl = null) {
+    const { data, error } = await supabase
+      .from('feed_posts')
+      .insert({ 
+        user_id: userId, 
+        content: content.trim(),
+        visibility: visibility,
+        attached_song_id: songId,
+        attached_playlist_id: playlistId,
+        image_url: imageUrl
+      })
+      .select(`
+        id, content, visibility, attached_song_id, attached_playlist_id, image_url, created_at, updated_at,
+        author:user_profiles!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        attached_playlist:user_playlists!attached_playlist_id(
+          id, title, comment, is_public,
+          songs:playlist_songs(song_id, level, order_index)
+        )
+      `)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Get the latest community feed posts (chronological, newest first).
+   */
+  async getFeedPosts(userId = null, limit = 10) {
+    let query = supabase
+      .from('feed_posts')
+      .select(`
+        id, content, visibility, attached_song_id, attached_playlist_id, image_url, created_at, updated_at,
+        author:user_profiles!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        comments:feed_post_comments(id),
+        attached_playlist:user_playlists!attached_playlist_id(
+          id, title, comment, is_public,
+          songs:playlist_songs(song_id, level, order_index)
+        )
+      `)
+      .eq('deleted', false);
+
+    if (userId) {
+      query = query.or(`visibility.eq.public,user_id.eq.${userId}`);
+    } else {
+      query = query.eq('visibility', 'public');
+    }
+
+    const { data, error } = await query
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return (data || []).map(p => ({ ...p, comment_count: p.comments?.length ?? 0, comments: undefined }));
+  },
+
+  /**
+   * Get feed posts for a specific user (for their profile page).
+   */
+  async getUserFeedPosts(userId, limit = 20) {
+    const { data, error } = await supabase
+      .from('feed_posts')
+      .select(`
+        id, content, visibility, attached_song_id, attached_playlist_id, image_url, created_at, updated_at,
+        author:user_profiles!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        comments:feed_post_comments(id),
+        attached_playlist:user_playlists!attached_playlist_id(
+          id, title, comment, is_public,
+          songs:playlist_songs(song_id, level, order_index)
+        )
+      `)
+      .eq('user_id', userId)
+      .eq('deleted', false)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return (data || []).map(p => ({ ...p, comment_count: p.comments?.length ?? 0, comments: undefined }));
+  },
+
+  /**
+   * Update content of your own feed post.
+   */
+  async updateFeedPost(postId, userId, content) {
+    const { data, error } = await supabase
+      .from('feed_posts')
+      .update({ content: content.trim(), updated_at: new Date().toISOString() })
+      .eq('id', postId)
+      .eq('user_id', userId)
+      .select('id, content, updated_at')
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Soft-delete your own feed post.
+   */
+  async deleteFeedPost(postId, userId) {
+    const { error } = await supabase
+      .from('feed_posts')
+      .update({ deleted: true })
+      .eq('id', postId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+  },
+
+  // ─── Feed Post Comments ──────────────────────────────────────────────────────
+
+  /**
+   * Get comments for a feed post.
+   */
+  async getFeedPostComments(postId, limit = 30) {
+    const { data, error } = await supabase
+      .from('feed_post_comments')
+      .select(`
+        id, content, created_at,
+        author:user_profiles!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url)
+      `)
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true })
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Add a comment to a feed post.
+   */
+  async addFeedPostComment(postId, userId, content) {
+    const { data, error } = await supabase
+      .from('feed_post_comments')
+      .insert({ post_id: postId, user_id: userId, content: content.trim() })
+      .select(`
+        id, content, created_at,
+        author:user_profiles!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url)
+      `)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Delete your own comment from a feed post.
+   */
+  async deleteFeedPostComment(commentId, userId) {
+    const { error } = await supabase
+      .from('feed_post_comments')
+      .delete()
+      .eq('id', commentId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+  },
+
+  /**
+   * Upload an image for a community post.
+   */
+  async uploadPostImage(userId, file) {
+    if (!userId) throw new Error('User ID is required');
+    
+    // Create unique file name
+    const fileExt = file.name?.split('.').pop() || 'jpg';
+    const fileName = `${userId}/${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error } = await supabase.storage
+      .from('community-media')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (error) throw error;
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('community-media')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
   },
 
   /**

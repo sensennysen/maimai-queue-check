@@ -22,6 +22,7 @@ import { useAuth } from '../hooks/useAuth';
 import { userService, branchService, mostPlayedService, followService } from '../services/supabase';
 import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection';
 import { PlaylistSection } from '../components/profile/PlaylistSection';
+import { ProfilePostsSection } from '../components/profile/ProfilePostsSection';
 import { RecentPlaysSection } from '../components/profile/RecentPlaysSection';
 import { IntroductionCard } from '../components/profile/IntroductionCard';
 import { ScoreCard } from '../components/maimai/ScoreCard';
@@ -250,7 +251,8 @@ const PublicProfilePage = () => {
     show_play_count: true,
     show_maimai_name: true,
     show_circle: true,
-    show_recent_plays: true
+    show_recent_plays: true,
+    show_posts: true
   };
 
   const getBranchName = (id, useAcronym = false) => {
@@ -579,6 +581,19 @@ const PublicProfilePage = () => {
           )
         }
 
+        {/* Community Posts Section */}
+        {
+          (privacy.show_posts !== false || isOwner) && (
+            <div className="animate-fade-in delay-250">
+              <ProfilePostsSection 
+                userId={profile.id} 
+                currentUser={user} 
+                isOwnProfile={isOwner} 
+              />
+            </div>
+          )
+        }
+
         {/* Favorite Songs Section */}
         {
           (privacy.show_favorite_songs || isOwner) && (
@@ -600,7 +615,7 @@ const PublicProfilePage = () => {
         {/* Most Played Songs Section */}
         {
           (privacy.show_most_played !== false || isOwner) && profile.maimai_best_scores?.most_played?.length > 0 && (
-            <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-350">
+            <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-400">
               <Group gap="xs" mb="md">
                 <IconStar size={24} style={{ color: 'var(--mantine-color-pink-5)' }} />
                 <Title order={2}>Most Played Songs</Title>
@@ -753,7 +768,7 @@ const PublicProfilePage = () => {
         {/* Best 50 Section */}
         {
           (privacy.show_best_50 || isOwner) && (
-            <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-400">
+            <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-450">
               {isOwner && isMalformedBest50 && (
                 <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light" mb="md" title="Action Required">
                   Data and Bookmark is out of date. Please create a new bookmark from the Import message and reimport
