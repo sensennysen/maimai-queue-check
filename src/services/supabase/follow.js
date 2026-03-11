@@ -1,10 +1,11 @@
 import { supabase } from './client';
+import { TABLES } from '../../constants/database';
 
 export const followService = {
   // Follow a user
   async follow(followerId, followingId) {
     const { data, error } = await supabase
-      .from('user_follows')
+      .from(TABLES.USER_FOLLOWS)
       .insert({ follower_id: followerId, following_id: followingId })
       .select()
       .single();
@@ -19,7 +20,7 @@ export const followService = {
   // Unfollow a user
   async unfollow(followerId, followingId) {
     const { error } = await supabase
-      .from('user_follows')
+      .from(TABLES.USER_FOLLOWS)
       .delete()
       .eq('follower_id', followerId)
       .eq('following_id', followingId);
@@ -31,11 +32,11 @@ export const followService = {
   // Get all followers of a user
   async getFollowers(userId, limit = 50) {
     const { data, error } = await supabase
-      .from('user_follows')
+      .from(TABLES.USER_FOLLOWS)
       .select(`
         id,
         created_at,
-        follower:user_profiles!follower_id(id, display_name, slug, display_photo_url, dx_display_photo_url, main_branch, preferred_branches)
+        follower:${TABLES.USER_PROFILES}!follower_id(id, display_name, slug, display_photo_url, dx_display_photo_url, main_branch, preferred_branches)
       `)
       .eq('following_id', userId)
       .order('created_at', { ascending: false })
@@ -48,11 +49,11 @@ export const followService = {
   // Get all users that a user follows
   async getFollowing(userId, limit = 50) {
     const { data, error } = await supabase
-      .from('user_follows')
+      .from(TABLES.USER_FOLLOWS)
       .select(`
         id,
         created_at,
-        following:user_profiles!following_id(id, display_name, slug, display_photo_url, dx_display_photo_url, main_branch, preferred_branches)
+        following:${TABLES.USER_PROFILES}!following_id(id, display_name, slug, display_photo_url, dx_display_photo_url, main_branch, preferred_branches)
       `)
       .eq('follower_id', userId)
       .order('created_at', { ascending: false })
@@ -67,7 +68,7 @@ export const followService = {
     if (!followerId || !followingId) return false;
 
     const { data, error } = await supabase
-      .from('user_follows')
+      .from(TABLES.USER_FOLLOWS)
       .select('id')
       .eq('follower_id', followerId)
       .eq('following_id', followingId)
@@ -82,7 +83,7 @@ export const followService = {
     if (!followerId || !followingIds?.length) return new Set();
 
     const { data, error } = await supabase
-      .from('user_follows')
+      .from(TABLES.USER_FOLLOWS)
       .select('following_id')
       .eq('follower_id', followerId)
       .in('following_id', followingIds);
@@ -95,11 +96,11 @@ export const followService = {
   async getCounts(userId) {
     const [followersResult, followingResult] = await Promise.all([
       supabase
-        .from('user_follows')
+        .from(TABLES.USER_FOLLOWS)
         .select('id', { count: 'exact', head: true })
         .eq('following_id', userId),
       supabase
-        .from('user_follows')
+        .from(TABLES.USER_FOLLOWS)
         .select('id', { count: 'exact', head: true })
         .eq('follower_id', userId),
     ]);

@@ -24,19 +24,20 @@ import IconEye from '@tabler/icons-react/dist/esm/icons/IconEye.mjs';
 import { DatePickerInput } from '@mantine/dates';
 import { useAuth } from '../hooks/useAuth';
 import { auditService } from '../services/supabase/audit';
+import { TABLES as DB_TABLES } from '../constants/database';
 import './AuditLogsPage.css';
 
 const OPERATIONS = ['INSERT', 'UPDATE', 'DELETE'];
 const TABLES = [
-  'queue_entries',
-  'user_roles',
-  'user_profiles',
-  'allowed_places',
-  'playlist_posts',
-  'song_comments',
-  'playlist_comments',
-  'access_requests',
-  'queue_rules'
+  DB_TABLES.QUEUE_ENTRIES,
+  DB_TABLES.USER_ROLES,
+  DB_TABLES.USER_PROFILES,
+  DB_TABLES.ALLOWED_PLACES,
+  DB_TABLES.PLAYLIST_POSTS,
+  DB_TABLES.SONG_COMMENTS,
+  DB_TABLES.PLAYLIST_COMMENTS,
+  DB_TABLES.ACCESS_REQUESTS,
+  DB_TABLES.QUEUE_RULES
 ];
 
 const AuditLogsPage = () => {

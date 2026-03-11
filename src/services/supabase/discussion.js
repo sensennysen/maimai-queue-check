@@ -1,5 +1,6 @@
 import { supabase } from './client';
 import { feedService } from './feed';
+import { TABLES } from '../../constants/database';
 
 export const discussionService = {
   // Get all discussion data for a song
@@ -8,24 +9,24 @@ export const discussionService = {
       // Run queries in parallel
       const [ratingsResult, commentsResult, tagsResult] = await Promise.all([
         supabase
-          .from('song_ratings')
-          .select('user_id, rating, created_at, user_profiles(display_name, display_photo_url, dx_display_photo_url)')
+          .from(TABLES.SONG_RATINGS)
+          .select(`user_id, rating, created_at, ${TABLES.USER_PROFILES}(display_name, display_photo_url, dx_display_photo_url)`)
           .eq('song_id', songId),
         supabase
-          .from('song_comments')
+          .from(TABLES.SONG_COMMENTS)
           .select(`
             id, user_id, content, created_at, updated_at,
-            user_profiles:user_profiles!song_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url),
-            song_comment_votes(vote_type, user_id, user_profiles:user_id(display_name, display_photo_url, dx_display_photo_url))
+            user_profiles: ${TABLES.USER_PROFILES}!song_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url),
+            ${TABLES.SONG_COMMENT_VOTES}(vote_type, user_id, user_profiles:user_id(display_name, display_photo_url, dx_display_photo_url))
           `)
           .eq('song_id', songId)
           .order('created_at', { ascending: false }),
         supabase
-          .from('song_tags')
+          .from(TABLES.SONG_TAGS)
           .select(`
             tag_id, user_id, created_at,
-            user_profiles(display_name, display_photo_url, dx_display_photo_url),
-            song_tags_dictionary(tag_name:name, is_predefined, description)
+            ${TABLES.USER_PROFILES}(display_name, display_photo_url, dx_display_photo_url),
+            ${TABLES.SONG_TAGS_DICTIONARY}(tag_name:name, is_predefined, description)
           `)
           .eq('song_id', songId)
       ]);
@@ -48,7 +49,7 @@ export const discussionService = {
   // Get available tags from dictionary
   async getAvailableTags(isAdmin = false) {
     let query = supabase
-      .from('song_tags_dictionary')
+      .from(TABLES.SONG_TAGS_DICTIONARY)
       .select('id, tag_name:name, is_predefined, status, description');
     
     // Regular users only see approved tags
@@ -64,8 +65,8 @@ export const discussionService = {
   // Get all tags for administration
   async getAllTags() {
     const { data, error } = await supabase
-      .from('song_tags_dictionary')
-      .select('*, user_profiles:created_by(display_name)')
+      .from(TABLES.SONG_TAGS_DICTIONARY)
+      .select(`*, user_profiles:${TABLES.USER_PROFILES}!created_by(display_name)`)
       .order('name');
     if (error) throw error;
     return data.map(tag => ({
@@ -78,7 +79,7 @@ export const discussionService = {
   // Delete a tag (Super Admin only)
   async deleteTag(tagId) {
     const { error } = await supabase
-      .from('song_tags_dictionary')
+      .from(TABLES.SONG_TAGS_DICTIONARY)
       .delete()
       .eq('id', tagId);
     if (error) throw error;
@@ -88,7 +89,7 @@ export const discussionService = {
   // Add a new custom tag to dictionary
   async addCustomTag(name, description = null, status = 'pending') {
     const { data, error } = await supabase
-      .from('song_tags_dictionary')
+      .from(TABLES.SONG_TAGS_DICTIONARY)
       .insert({ 
         name, 
         is_predefined: false, 
@@ -105,11 +106,11 @@ export const discussionService = {
   // Admin: Get all pending tags
   async getPendingTags() {
     const { data, error } = await supabase
-      .from('song_tags_dictionary')
+      .from(TABLES.SONG_TAGS_DICTIONARY)
       .select(`
         *,
         tag_name:name,
-        created_by_profile:user_profiles!created_by(display_name)
+        created_by_profile: ${TABLES.USER_PROFILES}!created_by(display_name)
       `)
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
@@ -124,7 +125,7 @@ export const discussionService = {
     if (description !== null) updates.description = description;
 
     const { data, error } = await supabase
-      .from('song_tags_dictionary')
+      .from(TABLES.SONG_TAGS_DICTIONARY)
       .update(updates)
       .eq('id', tagId)
       .select()
@@ -137,7 +138,7 @@ export const discussionService = {
   // Add a tag to a song
   async addSongTag(songId, tagId, userId) {
     const { data, error } = await supabase
-      .from('song_tags')
+      .from(TABLES.SONG_TAGS)
       .insert({ song_id: songId, tag_id: tagId, user_id: userId })
       .select();
       
@@ -148,7 +149,7 @@ export const discussionService = {
   // Remove a tag from a song
   async removeSongTag(songId, tagId, userId) {
     const { error } = await supabase
-      .from('song_tags')
+      .from(TABLES.SONG_TAGS)
       .delete()
       .eq('song_id', songId)
       .eq('tag_id', tagId)
@@ -161,7 +162,7 @@ export const discussionService = {
   // Upsert a 1-5 rating
   async upsertSongRating(songId, userId, rating) {
     const { data, error } = await supabase
-      .from('song_ratings')
+      .from(TABLES.SONG_RATINGS)
       .upsert(
         { song_id: songId, user_id: userId, rating },
         { onConflict: 'song_id,user_id' }
@@ -175,7 +176,7 @@ export const discussionService = {
   // Remove user's rating
   async removeSongRating(songId, userId) {
     const { error } = await supabase
-      .from('song_ratings')
+      .from(TABLES.SONG_RATINGS)
       .delete()
       .eq('song_id', songId)
       .eq('user_id', userId);
@@ -187,11 +188,11 @@ export const discussionService = {
   // Add a comment
   async addComment(songId, userId, content) {
     const { data, error } = await supabase
-      .from('song_comments')
+      .from(TABLES.SONG_COMMENTS)
       .insert({ song_id: songId, user_id: userId, content })
       .select(`
         id, user_id, content, created_at, updated_at,
-        user_profiles:user_profiles!song_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url)
+        user_profiles: ${TABLES.USER_PROFILES}!song_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url)
       `)
       .single();
       
@@ -200,7 +201,7 @@ export const discussionService = {
     // Notify other commenters on this song (thread activity)
     try {
       const { data: others } = await supabase
-        .from('song_comments')
+        .from(TABLES.SONG_COMMENTS)
         .select('user_id')
         .eq('song_id', songId)
         .neq('user_id', userId)
@@ -230,7 +231,7 @@ export const discussionService = {
     if (voteType === 0) {
       // Remove vote
       const { data, error } = await supabase
-        .from('song_comment_votes')
+        .from(TABLES.SONG_COMMENT_VOTES)
         .delete()
         .eq('comment_id', commentId)
         .eq('user_id', userId);
@@ -240,7 +241,7 @@ export const discussionService = {
     } else {
       // Upsert vote
       const { data, error } = await supabase
-        .from('song_comment_votes')
+        .from(TABLES.SONG_COMMENT_VOTES)
         .upsert(
           { comment_id: commentId, user_id: userId, vote_type: voteType },
           { onConflict: 'comment_id,user_id' }
@@ -253,7 +254,7 @@ export const discussionService = {
       if (voteType === 1) {
         try {
           const { data: comment } = await supabase
-            .from('song_comments')
+            .from(TABLES.SONG_COMMENTS)
             .select('user_id, song_id')
             .eq('id', commentId)
             .single();
@@ -280,7 +281,7 @@ export const discussionService = {
   // Delete user's comment
   async deleteComment(commentId, userId) {
     const { error } = await supabase
-      .from('song_comments')
+      .from(TABLES.SONG_COMMENTS)
       .delete()
       .eq('id', commentId)
       .eq('user_id', userId);

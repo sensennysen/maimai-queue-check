@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
+import { STORAGE_KEYS } from '../../constants/storage';
+import { APP_CONFIG } from '../../constants/config';
 
 // Supabase configuration
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -9,17 +11,17 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 // Migrate old auth session key to the new 'auth' key
-const oldAuth = window.localStorage.getItem('smf-queue-auth');
+const oldAuth = window.localStorage.getItem(STORAGE_KEYS.LEGACY_AUTH);
 if (oldAuth) {
-  window.localStorage.setItem('auth', oldAuth);
-  window.localStorage.removeItem('smf-queue-auth');
+  window.localStorage.setItem(STORAGE_KEYS.AUTH, oldAuth);
+  window.localStorage.removeItem(STORAGE_KEYS.LEGACY_AUTH);
 }
 
 // Create Supabase client with explicit session persistence configuration
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
-    storageKey: 'auth',
+    storageKey: STORAGE_KEYS.AUTH,
     storage: window.localStorage,
     autoRefreshToken: true,
     detectSessionInUrl: true
@@ -28,7 +30,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     params: {
       // Intentionally limited to 10 events per second globally to constrain
       // client/server load. (PERF-01 tuned constraint)
-      eventsPerSecond: 10,
+      eventsPerSecond: APP_CONFIG.REALTIME_EVENTS_PER_SECOND,
     },
   },
 });

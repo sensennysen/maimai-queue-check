@@ -1,4 +1,7 @@
 import { supabase } from './client';
+import { TABLES, BUCKETS } from '../../constants/database';
+import { LIMITS } from '../../constants/limits';
+import { APP_CONFIG } from '../../constants/config';
 
 export const feedService = {
   /**
@@ -8,11 +11,11 @@ export const feedService = {
    * - new song comments
    * - new playlist comments on public posts
    */
-  async getFollowingActivity(userId, limit = 12) {
+  async getFollowingActivity(userId, limit = LIMITS.FEED_ACTIVITY) {
     if (!userId) return [];
 
     const { data: followingRows, error: followingError } = await supabase
-      .from('user_follows')
+      .from(TABLES.USER_FOLLOWS)
       .select('following_id')
       .eq('follower_id', userId)
       .limit(200);
@@ -26,16 +29,16 @@ export const feedService = {
 
     const [playlistPostsResult, songCommentsResult, playlistCommentsResult, feedPostsResult] = await Promise.all([
       supabase
-        .from('playlist_posts')
+        .from(TABLES.PLAYLIST_POSTS)
         .select(`
           id,
           content,
           created_at,
           user_id,
-          author:user_profiles!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
-          playlist:user_playlists!playlist_id(
+          author:${TABLES.USER_PROFILES}!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
+          playlist:${TABLES.USER_PLAYLISTS}!playlist_id(
             id, title, comment, is_public,
-            songs:playlist_songs(song_id, level, order_index)
+            songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
           )
         `)
         .eq('deleted', false)
@@ -44,35 +47,35 @@ export const feedService = {
         .order('created_at', { ascending: false })
         .limit(fetchLimit),
       supabase
-        .from('song_comments')
+        .from(TABLES.SONG_COMMENTS)
         .select(`
           id,
           song_id,
           content,
           created_at,
           user_id,
-          author:user_profiles!song_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url)
+          author:${TABLES.USER_PROFILES}!song_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url)
         `)
         .in('user_id', followingIds)
         .order('created_at', { ascending: false })
         .limit(fetchLimit),
       supabase
-        .from('playlist_comments')
+        .from(TABLES.PLAYLIST_COMMENTS)
         .select(`
           id,
           post_id,
           content,
           created_at,
           user_id,
-          author:user_profiles!playlist_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
-          post:playlist_posts!post_id(
+          author:${TABLES.USER_PROFILES}!playlist_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+          post:${TABLES.PLAYLIST_POSTS}!post_id(
             id,
             content,
             created_at,
-            author:user_profiles!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
-            playlist:user_playlists!playlist_id(
+            author:${TABLES.USER_PROFILES}!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
+            playlist:${TABLES.USER_PLAYLISTS}!playlist_id(
               id, title, comment, is_public,
-              songs:playlist_songs(song_id, level, order_index)
+              songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
             )
           )
         `)
@@ -80,7 +83,7 @@ export const feedService = {
         .order('created_at', { ascending: false })
         .limit(fetchLimit),
       supabase
-        .from('feed_posts')
+        .from(TABLES.FEED_POSTS)
         .select(`
           id,
           content,
@@ -90,10 +93,10 @@ export const feedService = {
           attached_song_id,
           attached_playlist_id,
           image_url,
-          author:user_profiles!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
-          attached_playlist:user_playlists!attached_playlist_id(
+          author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+          attached_playlist:${TABLES.USER_PLAYLISTS}!attached_playlist_id(
             id, title, comment, is_public,
-            songs:playlist_songs(song_id, level, order_index)
+            songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
           )
         `)
         .eq('deleted', false)
@@ -213,13 +216,13 @@ export const feedService = {
    * Get songs with recent discussions (most recently commented songs).
    * Returns up to `limit` song_ids with their latest comment timestamp.
    */
-  async getSongsWithRecentDiscussions(limit = 10) {
+  async getSongsWithRecentDiscussions(limit = LIMITS.RECENT_DISCUSSIONS) {
     const { data, error } = await supabase
-      .from('song_comments')
+      .from(TABLES.SONG_COMMENTS)
       .select(`
         song_id,
         created_at,
-        user_profiles:user_profiles!song_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url, slug),
+        user_profiles:${TABLES.USER_PROFILES}!song_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url, slug),
         content
       `)
       .order('created_at', { ascending: false })
@@ -243,21 +246,21 @@ export const feedService = {
   /**
    * Get playlist posts that have recent discussions.
    */
-  async getPlaylistsWithRecentDiscussions(limit = 10) {
+  async getPlaylistsWithRecentDiscussions(limit = LIMITS.RECENT_DISCUSSIONS) {
     const { data, error } = await supabase
-      .from('playlist_comments')
+      .from(TABLES.PLAYLIST_COMMENTS)
       .select(`
         post_id,
         created_at,
-        user_profiles:user_profiles!playlist_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url, slug),
-        post:playlist_posts!post_id(
+        user_profiles:${TABLES.USER_PROFILES}!playlist_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url, slug),
+        post:${TABLES.PLAYLIST_POSTS}!post_id(
           id,
           content,
           created_at,
-          author:user_profiles!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
-          playlist:user_playlists!playlist_id(
+          author:${TABLES.USER_PROFILES}!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
+          playlist:${TABLES.USER_PLAYLISTS}!playlist_id(
             id, title, comment, is_public,
-            songs:playlist_songs(song_id, level, order_index)
+            songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
           )
         )
       `)
@@ -283,18 +286,18 @@ export const feedService = {
   /**
    * Get new playlist posts (recently shared playlists).
    */
-  async getNewPlaylistPosts(limit = 10) {
+  async getNewPlaylistPosts(limit = LIMITS.RECENT_DISCUSSIONS) {
     const { data, error } = await supabase
-      .from('playlist_posts')
+      .from(TABLES.PLAYLIST_POSTS)
       .select(`
         id,
         content,
         created_at,
         comments_enabled,
-        author:user_profiles!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
-        playlist:user_playlists!playlist_id(
+        author:${TABLES.USER_PROFILES}!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        playlist:${TABLES.USER_PLAYLISTS}!playlist_id(
           id, title, comment, is_public,
-          songs:playlist_songs(song_id, level, order_index)
+          songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
         )
       `)
       .eq('deleted', false)
@@ -321,7 +324,7 @@ export const feedService = {
    * Get suggested players based on shared branches.
    * Returns user profiles that share the current user's main_branch or preferred_branches.
    */
-  async getSuggestedPlayers(userId, mainBranch, preferredBranches, limit = 20) {
+  async getSuggestedPlayers(userId, mainBranch, preferredBranches, limit = LIMITS.SUGGESTED_PLAYERS) {
     if (!userId) return [];
 
     // Build user branch set for scoring
@@ -329,16 +332,16 @@ export const feedService = {
 
     // Fetch a larger pool of public users to ensure variety and provide random suggestions
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from(TABLES.USER_PROFILES)
       .select(`
         id, display_name, slug, display_photo_url, dx_display_photo_url,
         main_branch, preferred_branches, is_public,
-        user_roles(queue_name)
+        user_roles:${TABLES.USER_ROLES}(queue_name)
       `)
       .neq('id', userId)
       .eq('is_public', true)
       .not('slug', 'is', null)
-      .limit(150); // Fetch a substantial pool for client-side scoring/randomization
+      .limit(LIMITS.PLAYER_POOL_SIZE); // Fetch a substantial pool for client-side scoring/randomization
 
     if (error) throw error;
 
@@ -381,14 +384,14 @@ export const feedService = {
   /**
    * Get activity notifications for a user (votes on comments, new followers).
    */
-  async getActivityNotifications(userId, limit = 30) {
+  async getActivityNotifications(userId, limit = LIMITS.NOTIFICATION_POOL) {
     if (!userId) return [];
 
     const { data, error } = await supabase
-      .from('user_activity_notifications')
+      .from(TABLES.USER_ACTIVITY_NOTIFICATIONS)
       .select(`
         id, type, entity_id, entity_type, song_id, post_id, read, created_at,
-        actor:user_profiles!actor_id(id, display_name, slug, display_photo_url, dx_display_photo_url)
+        actor:${TABLES.USER_PROFILES}!actor_id(id, display_name, slug, display_photo_url, dx_display_photo_url)
       `)
       .eq('recipient_id', userId)
       .order('created_at', { ascending: false })
@@ -403,7 +406,7 @@ export const feedService = {
    */
   async markActivityNotificationRead(notificationId, userId) {
     const { error } = await supabase
-      .from('user_activity_notifications')
+      .from(TABLES.USER_ACTIVITY_NOTIFICATIONS)
       .update({ read: true })
       .eq('id', notificationId)
       .eq('recipient_id', userId);
@@ -416,7 +419,7 @@ export const feedService = {
    */
   async markAllActivityNotificationsRead(userId) {
     const { error } = await supabase
-      .from('user_activity_notifications')
+      .from(TABLES.USER_ACTIVITY_NOTIFICATIONS)
       .update({ read: true })
       .eq('recipient_id', userId)
       .eq('read', false);
@@ -429,9 +432,9 @@ export const feedService = {
   /**
    * Create a new community feed post.
    */
-  async createFeedPost(userId, content, visibility = 'public', songId = null, playlistId = null, imageUrl = null) {
+  async createFeedPost(userId, content, visibility = APP_CONFIG.DEFAULT_VISIBILITY, songId = null, playlistId = null, imageUrl = null) {
     const { data, error } = await supabase
-      .from('feed_posts')
+      .from(TABLES.FEED_POSTS)
       .insert({ 
         user_id: userId, 
         content: content.trim(),
@@ -442,10 +445,10 @@ export const feedService = {
       })
       .select(`
         id, content, visibility, attached_song_id, attached_playlist_id, image_url, created_at, updated_at,
-        author:user_profiles!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
-        attached_playlist:user_playlists!attached_playlist_id(
+        author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        attached_playlist:${TABLES.USER_PLAYLISTS}!attached_playlist_id(
           id, title, comment, is_public,
-          songs:playlist_songs(song_id, level, order_index)
+          songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
         )
       `)
       .single();
@@ -457,16 +460,16 @@ export const feedService = {
   /**
    * Get the latest community feed posts (chronological, newest first).
    */
-  async getFeedPosts(userId = null, limit = 10) {
+  async getFeedPosts(userId = null, limit = LIMITS.FEED_POSTS) {
     let query = supabase
-      .from('feed_posts')
+      .from(TABLES.FEED_POSTS)
       .select(`
         id, content, visibility, attached_song_id, attached_playlist_id, image_url, created_at, updated_at,
-        author:user_profiles!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
-        comments:feed_post_comments(id),
-        attached_playlist:user_playlists!attached_playlist_id(
+        author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        comments:${TABLES.FEED_POST_COMMENTS}(id),
+        attached_playlist:${TABLES.USER_PLAYLISTS}!attached_playlist_id(
           id, title, comment, is_public,
-          songs:playlist_songs(song_id, level, order_index)
+          songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
         )
       `)
       .eq('deleted', false);
@@ -488,16 +491,16 @@ export const feedService = {
   /**
    * Get feed posts for a specific user (for their profile page).
    */
-  async getUserFeedPosts(userId, limit = 20) {
+  async getUserFeedPosts(userId, limit = LIMITS.PROFILE_POSTS) {
     const { data, error } = await supabase
-      .from('feed_posts')
+      .from(TABLES.FEED_POSTS)
       .select(`
         id, content, visibility, attached_song_id, attached_playlist_id, image_url, created_at, updated_at,
-        author:user_profiles!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
-        comments:feed_post_comments(id),
-        attached_playlist:user_playlists!attached_playlist_id(
+        author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        comments:${TABLES.FEED_POST_COMMENTS}(id),
+        attached_playlist:${TABLES.USER_PLAYLISTS}!attached_playlist_id(
           id, title, comment, is_public,
-          songs:playlist_songs(song_id, level, order_index)
+          songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
         )
       `)
       .eq('user_id', userId)
@@ -514,7 +517,7 @@ export const feedService = {
    */
   async updateFeedPost(postId, userId, content) {
     const { data, error } = await supabase
-      .from('feed_posts')
+      .from(TABLES.FEED_POSTS)
       .update({ content: content.trim(), updated_at: new Date().toISOString() })
       .eq('id', postId)
       .eq('user_id', userId)
@@ -530,7 +533,7 @@ export const feedService = {
    */
   async deleteFeedPost(postId, userId) {
     const { error } = await supabase
-      .from('feed_posts')
+      .from(TABLES.FEED_POSTS)
       .update({ deleted: true })
       .eq('id', postId)
       .eq('user_id', userId);
@@ -543,12 +546,12 @@ export const feedService = {
   /**
    * Get comments for a feed post.
    */
-  async getFeedPostComments(postId, limit = 30) {
+  async getFeedPostComments(postId, limit = LIMITS.COMMENT_POOL) {
     const { data, error } = await supabase
-      .from('feed_post_comments')
+      .from(TABLES.FEED_POST_COMMENTS)
       .select(`
         id, content, created_at,
-        author:user_profiles!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url)
+        author:${TABLES.USER_PROFILES}!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url)
       `)
       .eq('post_id', postId)
       .order('created_at', { ascending: true })
@@ -563,11 +566,11 @@ export const feedService = {
    */
   async addFeedPostComment(postId, userId, content) {
     const { data, error } = await supabase
-      .from('feed_post_comments')
+      .from(TABLES.FEED_POST_COMMENTS)
       .insert({ post_id: postId, user_id: userId, content: content.trim() })
       .select(`
         id, content, created_at,
-        author:user_profiles!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url)
+        author:${TABLES.USER_PROFILES}!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url)
       `)
       .single();
 
@@ -580,7 +583,7 @@ export const feedService = {
    */
   async deleteFeedPostComment(commentId, userId) {
     const { error } = await supabase
-      .from('feed_post_comments')
+      .from(TABLES.FEED_POST_COMMENTS)
       .delete()
       .eq('id', commentId)
       .eq('user_id', userId);
@@ -600,7 +603,7 @@ export const feedService = {
     const filePath = `${fileName}`;
 
     const { error } = await supabase.storage
-      .from('community-media')
+      .from(BUCKETS.COMMUNITY_MEDIA)
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: true
@@ -610,7 +613,7 @@ export const feedService = {
 
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
-      .from('community-media')
+      .from(BUCKETS.COMMUNITY_MEDIA)
       .getPublicUrl(filePath);
 
     return publicUrl;
@@ -624,19 +627,19 @@ export const feedService = {
     
     // Check for recent duplicate to avoid spam
     const { data: existing } = await supabase
-      .from('user_activity_notifications')
+      .from(TABLES.USER_ACTIVITY_NOTIFICATIONS)
       .select('id')
       .eq('recipient_id', recipientId)
       .eq('actor_id', actorId)
       .eq('type', type)
       .eq('entity_id', entityId)
-      .gt('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString()) // Within 5 minutes
+      .gt('created_at', new Date(Date.now() - APP_CONFIG.NOTIFICATION_DEDUP_WINDOW).toISOString()) // Within dedup window
       .maybeSingle();
 
     if (existing) return null;
 
     const { data, error } = await supabase
-      .from('user_activity_notifications')
+      .from(TABLES.USER_ACTIVITY_NOTIFICATIONS)
       .insert({
         recipient_id: recipientId,
         actor_id: actorId,

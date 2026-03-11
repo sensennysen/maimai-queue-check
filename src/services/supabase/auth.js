@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { TABLES } from '../../constants/database';
 
 // Authentication service functions
 export const authService = {
@@ -39,15 +40,15 @@ export const rolesService = {
     try {
       const [roleResult, profileResult] = await Promise.all([
         supabase
-          .from('user_roles')
+          .from(TABLES.USER_ROLES)
           .select('user_id, can_edit, can_edit_on, is_admin, is_super_admin, admin_branch, queue_name')
           .eq('user_id', userId)
           .limit(1)
           .maybeSingle(),
         
         supabase
-          .from('user_profiles')
-          .select('id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, slug, slug_updated_at, privacy_settings, is_public, user_attributions(attributions)')
+          .from(TABLES.USER_PROFILES)
+          .select(`id, display_name, preferred_branches, main_branch, maimai_dx_name, maimai_best_scores, maimai_scores_updated_at, display_photo_url, dx_display_photo_url, slug, slug_updated_at, privacy_settings, is_public, ${TABLES.USER_ATTRIBUTIONS}(attributions)`)
           .eq('id', userId)
           .maybeSingle()
       ]);
@@ -142,13 +143,13 @@ export const rolesService = {
 
 export const subscribeToUserRoleChanges = (callback) => {
   const channel = supabase
-    .channel('user_roles_realtime')
+    .channel('user_role_changes')
     .on(
       'postgres_changes',
       {
         event: '*',
         schema: 'public',
-        table: 'user_roles'
+        table: TABLES.USER_ROLES
       },
       (payload) => {
         if (callback && typeof callback === 'function') {

@@ -11,10 +11,9 @@ import { getProfileImageUrl } from '../../utils/formatters';
 import { SongPicker, PlaylistPicker, AttachmentPreview } from './AttachmentPickers';
 import { Tooltip, ActionIcon, FileButton, Image as MantineImage } from '@mantine/core';
 import { feedService } from '../../services/supabase';
+import { APP_CONFIG } from '../../constants/config';
+import { FEED_PLACEHOLDERS } from '../../constants/placeholders';
 
-
-
-const MAX_CHARS = 500;
 
 /**
  * A compact post composer card shown at the top of the feed.
@@ -22,7 +21,7 @@ const MAX_CHARS = 500;
  */
 export function FeedPostComposer({ user, profileData, onSubmit }) {
   const [content, setContent] = useState('');
-  const [visibility, setVisibility] = useState('public');
+  const [visibility, setVisibility] = useState(APP_CONFIG.DEFAULT_VISIBILITY);
   const [loading, setLoading] = useState(false);
   
   const [attachedSong, setAttachedSong] = useState(null);
@@ -100,19 +99,12 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
     }
   };
 
-  const remaining = MAX_CHARS - content.length;
+  const remaining = APP_CONFIG.MAX_POST_LENGTH - content.length;
   const isOver = remaining < 0;
   const isDisabled = !content.trim() || isOver || loading;
 
   const placeholder = useMemo(() => {
-    const options = [
-      "What're you grinding today?",
-      "Anything you wanted to play?",
-      "I'm feeling like playing...",
-      "Share a song or playlist!",
-      "Aiming for something?"
-    ];
-    return options[Math.floor(Math.random() * options.length)];
+    return FEED_PLACEHOLDERS[Math.floor(Math.random() * FEED_PLACEHOLDERS.length)];
   }, []);
 
   return (

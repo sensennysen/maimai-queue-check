@@ -3,6 +3,7 @@ import { authService, rolesService, supabase } from '../services/supabase';
 import { useBranch } from '../hooks/useBranch';
 import { notifications } from '@mantine/notifications';
 import { AuthContext } from './AuthContextProvider';
+import { TABLES } from '../constants/database';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -140,7 +141,7 @@ export const AuthProvider = ({ children }) => {
         {
           event: '*',
           schema: 'public',
-          table: 'user_roles',
+          table: TABLES.USER_ROLES,
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
@@ -170,7 +171,7 @@ export const AuthProvider = ({ children }) => {
         {
           event: '*',
           schema: 'public',
-          table: 'user_profiles',
+          table: TABLES.USER_PROFILES,
           filter: `id=eq.${user.id}`,
         },
         () => {
@@ -233,4 +234,4 @@ export const AuthProvider = ({ children }) => {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+};

@@ -1,12 +1,13 @@
 import { supabase } from './client';
+import { TABLES } from '../../constants/database';
 
 // Branch service functions
 export const branchService = {
   // Fetch all branches that are fully set up for queueing (has coordinates and schedule)
   async getAllBranches() {
     const { data, error } = await supabase
-      .from('allowed_places')
-      .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled, mall_schedule(id)')
+      .from(TABLES.ALLOWED_PLACES)
+      .select(`id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled, ${TABLES.MALL_SCHEDULE}(id)`)
       .eq('enabled', true)
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)
@@ -16,10 +17,10 @@ export const branchService = {
     
     // Filter on client side for branches that have at least one schedule
     // and remove the nested mall_schedule array from the result to match previous signature
-    const filteredData = (data || []).filter(branch => branch.mall_schedule && branch.mall_schedule.length > 0)
+    const filteredData = (data || []).filter(branch => branch[TABLES.MALL_SCHEDULE] && branch[TABLES.MALL_SCHEDULE].length > 0)
       .map(branch => {
         const rest = { ...branch };
-        delete rest.mall_schedule;
+        delete rest[TABLES.MALL_SCHEDULE];
         return rest;
       });
       
@@ -29,7 +30,7 @@ export const branchService = {
   // Fetch a single branch by ID
   async getBranchById(branchId) {
     const { data, error } = await supabase
-      .from('allowed_places')
+      .from(TABLES.ALLOWED_PLACES)
       .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled')
       .eq('id', branchId)
       .eq('enabled', true)
@@ -42,7 +43,7 @@ export const branchService = {
   // Fetch ALL branches for name resolution
   async getBranchesForResolution() {
     const { data, error } = await supabase
-      .from('allowed_places')
+      .from(TABLES.ALLOWED_PLACES)
       .select('id, arcade_name, short_name, acronym');
 
     if (error) throw error;
@@ -55,7 +56,7 @@ export const scheduleService = {
   // Fetch full mall schedule
   async getSchedule(branchId) {
     let query = supabase
-      .from('mall_schedule')
+      .from(TABLES.MALL_SCHEDULE)
       .select('id, branch_id, day, time_open, time_close');
     
     if (branchId) {
@@ -76,7 +77,7 @@ export const adminService = {
   // Get all branches for admin
   async getAllBranchesForAdmin() {
     const { data, error } = await supabase
-      .from('allowed_places')
+      .from(TABLES.ALLOWED_PLACES)
       .select('id, arcade_name, short_name, acronym, cab_count, enabled, latitude, longitude')
       .order('arcade_name', { ascending: true });
 
@@ -87,7 +88,7 @@ export const adminService = {
   // Create a new branch in allowed_places
   async createBranch(branchData) {
     const { data, error } = await supabase
-      .from('allowed_places')
+      .from(TABLES.ALLOWED_PLACES)
       .insert([{
         arcade_name: branchData.arcade_name,
         short_name: branchData.short_name,
@@ -107,7 +108,7 @@ export const adminService = {
   // Create mall schedules for a branch
   async createMallSchedules(schedules) {
     const { data, error } = await supabase
-      .from('mall_schedule')
+      .from(TABLES.MALL_SCHEDULE)
       .insert(schedules)
       .select();
 
@@ -118,7 +119,7 @@ export const adminService = {
   // Update an existing branch
   async updateBranch(branchId, updates) {
     const { data, error } = await supabase
-      .from('allowed_places')
+      .from(TABLES.ALLOWED_PLACES)
       .update(updates)
       .eq('id', branchId)
       .select()
@@ -131,7 +132,7 @@ export const adminService = {
   // Get branch with its schedules
   async getBranchWithSchedules(branchId) {
     const { data: branch, error: branchError } = await supabase
-      .from('allowed_places')
+      .from(TABLES.ALLOWED_PLACES)
       .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled')
       .eq('id', branchId)
       .single();
@@ -139,7 +140,7 @@ export const adminService = {
     if (branchError) throw branchError;
 
     const { data: schedules, error: scheduleError } = await supabase
-      .from('mall_schedule')
+      .from(TABLES.MALL_SCHEDULE)
       .select('id, branch_id, day, time_open, time_close')
       .eq('branch_id', branchId)
       .order('id', { ascending: true });
@@ -155,14 +156,14 @@ export const adminService = {
   // Delete a branch and its schedules
   async deleteBranch(branchId) {
     const { error: scheduleError } = await supabase
-      .from('mall_schedule')
+      .from(TABLES.MALL_SCHEDULE)
       .delete()
       .eq('branch_id', branchId);
 
     if (scheduleError) throw scheduleError;
 
     const { error: branchError } = await supabase
-      .from('allowed_places')
+      .from(TABLES.ALLOWED_PLACES)
       .delete()
       .eq('id', branchId);
 
@@ -172,7 +173,7 @@ export const adminService = {
   // Update mall schedules for a branch
   async updateMallSchedules(branchId, schedules) {
     const { error: deleteError } = await supabase
-      .from('mall_schedule')
+      .from(TABLES.MALL_SCHEDULE)
       .delete()
       .eq('branch_id', branchId);
 
@@ -186,7 +187,7 @@ export const adminService = {
     }));
 
     const { data, error } = await supabase
-      .from('mall_schedule')
+      .from(TABLES.MALL_SCHEDULE)
       .insert(scheduleData)
       .select();
 
@@ -207,8 +208,8 @@ export const adminService = {
     const to = from + pageSize - 1;
 
     let query = supabase
-      .from('user_roles')
-      .select('user_id, email, queue_name, can_edit, can_edit_on, is_admin, is_super_admin, admin_branch, user_profiles!inner(preferred_branches, slug)', { count: 'exact' });
+      .from(TABLES.USER_ROLES)
+      .select(`user_id, email, queue_name, can_edit, can_edit_on, is_admin, is_super_admin, admin_branch, ${TABLES.USER_PROFILES}!inner(preferred_branches, slug)`, { count: 'exact' });
 
     if (searchQuery.trim()) {
       const queryStr = `%${searchQuery.trim()}%`;
@@ -216,7 +217,7 @@ export const adminService = {
     }
 
     if (adminBranch) {
-      query = query.contains('user_profiles.preferred_branches', [adminBranch]);
+      query = query.contains(`${TABLES.USER_PROFILES}.preferred_branches`, [adminBranch]);
     }
 
     if (sortField) {
@@ -229,10 +230,10 @@ export const adminService = {
     if (error) throw error;
 
     const mappedUsers = (data || []).map(u => {
-      const branches = u.user_profiles?.preferred_branches || [];
+      const branches = u[TABLES.USER_PROFILES]?.preferred_branches || [];
       return {
         ...u,
-        slug: u.user_profiles?.slug || null,
+        slug: u[TABLES.USER_PROFILES]?.slug || null,
         preferred_branches: Array.isArray(branches) 
           ? branches.map(id => typeof id === 'string' ? parseInt(id, 10) : id).filter(id => !isNaN(id))
           : []
@@ -257,7 +258,7 @@ export const adminService = {
     }
 
     const { data, error } = await supabase
-      .from('user_roles')
+      .from(TABLES.USER_ROLES)
       .update(sanitizedUpdates)
       .eq('user_id', userId)
       .select()
@@ -282,7 +283,7 @@ export const adminService = {
     if (Object.keys(sanitizedUpdates).length === 0) return null;
 
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from(TABLES.USER_PROFILES)
       .update(sanitizedUpdates)
       .eq('id', userId)
       .select();
@@ -297,7 +298,7 @@ export const requestService = {
   // Create a new access request
   async createRequest(userId, branchId) {
     const { data, error } = await supabase
-      .from('access_requests')
+      .from(TABLES.ACCESS_REQUESTS)
       .insert([{
         user_id: userId,
         branch_id: branchId,
@@ -321,7 +322,7 @@ export const requestService = {
     }));
 
     const { data, error } = await supabase
-      .from('access_requests')
+      .from(TABLES.ACCESS_REQUESTS)
       .insert(rows)
       .select();
 
@@ -332,10 +333,10 @@ export const requestService = {
   // Get all pending requests
   async getPendingRequests(adminBranchId = null) {
       let query = supabase
-        .from('access_requests')
+        .from(TABLES.ACCESS_REQUESTS)
         .select(`
             id, user_id, branch_id, status, created_at,
-            allowed_places!inner (
+            ${TABLES.ALLOWED_PLACES}!inner (
                 arcade_name,
                 short_name,
                 acronym
@@ -354,7 +355,7 @@ export const requestService = {
 
       const userIds = [...new Set(requests.map(r => r.user_id))];
       const { data: users, error: userError } = await supabase
-          .from('user_roles')
+          .from(TABLES.USER_ROLES)
           .select('user_id, email, queue_name')
           .in('user_id', userIds);
       
@@ -374,7 +375,7 @@ export const requestService = {
   // Get requests made by a specific user
   async getUserRequests(userId) {
       const { data, error } = await supabase
-          .from('access_requests')
+          .from(TABLES.ACCESS_REQUESTS)
           .select('id, user_id, branch_id, status, created_at')
           .eq('user_id', userId);
       
@@ -387,7 +388,7 @@ export const requestService = {
       if (!userId || !branchId) return false;
       
       const { count, error } = await supabase
-          .from('access_requests')
+          .from(TABLES.ACCESS_REQUESTS)
           .select('id', { count: 'exact', head: true })
           .eq('user_id', userId)
           .eq('branch_id', branchId)
@@ -401,7 +402,7 @@ export const requestService = {
   // Update request status
   async updateRequestStatus(requestId, status) {
       const { data, error } = await supabase
-          .from('access_requests')
+          .from(TABLES.ACCESS_REQUESTS)
           .update({ status })
           .eq('id', requestId)
           .select()
@@ -420,7 +421,7 @@ export const rulesService = {
     if (!branchId) return null;
 
     const { data, error } = await supabase
-      .from('queue_rules')
+      .from(TABLES.QUEUE_RULES)
       .select('rules, updated_at')
       .eq('branch_id', branchId)
       .maybeSingle();
@@ -434,7 +435,7 @@ export const rulesService = {
     if (!branchId) throw new Error('branchId is required');
 
     const { data, error } = await supabase
-      .from('queue_rules')
+      .from(TABLES.QUEUE_RULES)
       .upsert({
         branch_id: branchId,
         rules: rules,

@@ -1,5 +1,6 @@
 import { supabase } from './client';
 import { validateData, contactReportSchema } from '../../utils/validation';
+import { TABLES, BUCKETS } from '../../constants/database';
 
 // Contact service functions
 export const contactService = {
@@ -24,7 +25,7 @@ export const contactService = {
         const filePath = `${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-            .from('contact_uploads')
+            .from(BUCKETS.CONTACT_UPLOADS)
             .upload(filePath, file, {
                 cacheControl: '3600',
                 upsert: false,
@@ -38,7 +39,7 @@ export const contactService = {
     }
 
     const { data, error } = await supabase
-      .from('contact_reports')
+      .from(TABLES.CONTACT_REPORTS)
       .insert([{
         report_type,
         description,
@@ -56,7 +57,7 @@ export const contactService = {
   // Get all reports (for admin)
   async getReports() {
     const { data: reports, error } = await supabase
-      .from('contact_reports')
+      .from(TABLES.CONTACT_REPORTS)
       .select('id, report_type, description, email, user_id, status, attachment_path, created_at')
       .order('created_at', { ascending: false });
 
@@ -68,7 +69,7 @@ export const contactService = {
 
     if (userIds.length > 0) {
         const { data: users, error: userError } = await supabase
-            .from('user_roles')
+            .from(TABLES.USER_ROLES)
             .select('user_id, display_name, email')
             .in('user_id', userIds);
         
@@ -90,7 +91,7 @@ export const contactService = {
   // Update report status
   async updateReportStatus(id, status) {
     const { data, error } = await supabase
-        .from('contact_reports')
+        .from(TABLES.CONTACT_REPORTS)
         .update({ status })
         .eq('id', id)
         .select()
@@ -104,7 +105,7 @@ export const contactService = {
   async getAttachmentUrl(path) {
       if (!path) return null;
       const { data, error } = await supabase.storage
-          .from('contact_uploads')
+          .from(BUCKETS.CONTACT_UPLOADS)
           .createSignedUrl(path, 60 * 60);
       
       if (error) throw error;
@@ -115,7 +116,7 @@ export const contactService = {
   async deleteReport(id, attachmentPath) {
       if (attachmentPath) {
           const { error: storageError } = await supabase.storage
-              .from('contact_uploads')
+              .from(BUCKETS.CONTACT_UPLOADS)
               .remove([attachmentPath]);
           
           if (storageError) {
@@ -124,7 +125,7 @@ export const contactService = {
       }
 
       const { error } = await supabase
-          .from('contact_reports')
+          .from(TABLES.CONTACT_REPORTS)
           .delete()
           .eq('id', id);
 
@@ -140,7 +141,7 @@ export const notificationService = {
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
     const { data: notifications, error: notifError } = await supabase
-      .from('notifications')
+      .from(TABLES.NOTIFICATIONS)
       .select('id, type, title, message, created_at')
       .gte('created_at', oneWeekAgo.toISOString())
       .order('created_at', { ascending: false });
@@ -152,7 +153,7 @@ export const notificationService = {
     let readIds = new Set();
     if (userId) {
         const { data: reads, error: readError } = await supabase
-            .from('user_notification_reads')
+            .from(TABLES.USER_NOTIFICATION_READS)
             .select('notification_id')
             .eq('user_id', userId);
         
@@ -174,7 +175,7 @@ export const notificationService = {
       if (!userId) return;
       
       const { error } = await supabase
-        .from('user_notification_reads')
+        .from(TABLES.USER_NOTIFICATION_READS)
         .upsert(
             { user_id: userId, notification_id: notificationId },
             { onConflict: 'user_id, notification_id', ignoreDuplicates: true }
