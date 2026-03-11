@@ -390,7 +390,7 @@ export const feedService = {
     const { data, error } = await supabase
       .from(TABLES.USER_ACTIVITY_NOTIFICATIONS)
       .select(`
-        id, type, entity_id, entity_type, song_id, post_id, read, created_at,
+        id, type, actor_id, entity_id, entity_type, song_id, post_id, read, created_at,
         actor:${TABLES.USER_PROFILES}!actor_id(id, display_name, slug, display_photo_url, dx_display_photo_url)
       `)
       .eq('recipient_id', userId)
