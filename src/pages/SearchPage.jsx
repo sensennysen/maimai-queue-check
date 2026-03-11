@@ -48,6 +48,7 @@ function SearchPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialQuery = searchParams.get('query') || '';
+  const typeFilter = searchParams.get('type') || '';
   const [selectedSong, setSelectedSong] = useState(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [selectedPlaylistSongs, setSelectedPlaylistSongs] = useState([]);
@@ -64,7 +65,7 @@ function SearchPage() {
   const [playlistsError, setPlaylistsError] = useState(null);
 
   useEffect(() => {
-    if (!debouncedQuery) {
+    if (!debouncedQuery || typeFilter === 'song') {
       setProfileResults([]);
       setProfilesError(null);
       return;
@@ -94,7 +95,7 @@ function SearchPage() {
     return () => {
       isCancelled = true;
     };
-  }, [debouncedQuery]);
+  }, [debouncedQuery, typeFilter]);
 
   const songResults = useMemo(() => {
     if (!debouncedQuery) return [];
@@ -185,53 +186,57 @@ function SearchPage() {
 
         {debouncedQuery && (
           <>
-            <Stack gap="sm">
-              <Group gap="xs" align="center">
-                <IconUsers size={18} />
-                <Text fw={700}>Profiles</Text>
-                <Badge variant="light">{profileResults.length}</Badge>
-              </Group>
-              <Paper withBorder radius="md" p="md" pos="relative">
-                <LoadingOverlay visible={profilesLoading} />
-                {profilesError && (
-                  <Text c="red" fw={600}>Failed to load profiles.</Text>
-                )}
-                {!profilesLoading && !profilesError && profileResults.length === 0 && (
-                  <Text c="dimmed">No public profiles found.</Text>
-                )}
-                <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                  {profileResults.map((profile) => (
-                    <Paper key={profile.id} withBorder radius="md" p="sm">
-                      <Group align="center" justify="space-between" wrap="nowrap">
-                        <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
-                          <Avatar
-                            src={profile.display_photo_url || profile.dx_display_photo_url || undefined}
-                            radius="xl"
-                            color="blue"
-                          >
-                            {(profile.display_name || profile.slug || '?').slice(0, 2).toUpperCase()}
-                          </Avatar>
-                          <Stack gap={2} style={{ minWidth: 0 }}>
-                            <Text fw={600} lineClamp={1}>{profile.display_name || profile.slug || 'Unnamed'}</Text>
-                            <Text size="xs" c="dimmed" lineClamp={1}>@{profile.slug || 'no-slug'}</Text>
-                          </Stack>
-                        </Group>
-                        <Button
-                          size="xs"
-                          variant="light"
-                          onClick={() => profile.slug && navigate(`/p/${profile.slug}`)}
-                          disabled={!profile.slug}
-                        >
-                          View
-                        </Button>
-                      </Group>
-                    </Paper>
-                  ))}
-                </SimpleGrid>
-              </Paper>
-            </Stack>
+            {typeFilter !== 'song' && !selectedSong && (
+              <>
+                <Stack gap="sm">
+                  <Group gap="xs" align="center">
+                    <IconUsers size={18} />
+                    <Text fw={700}>Profiles</Text>
+                    <Badge variant="light">{profileResults.length}</Badge>
+                  </Group>
+                  <Paper withBorder radius="md" p="md" pos="relative">
+                    <LoadingOverlay visible={profilesLoading} />
+                    {profilesError && (
+                      <Text c="red" fw={600}>Failed to load profiles.</Text>
+                    )}
+                    {!profilesLoading && !profilesError && profileResults.length === 0 && (
+                      <Text c="dimmed">No public profiles found.</Text>
+                    )}
+                    <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+                      {profileResults.map((profile) => (
+                        <Paper key={profile.id} withBorder radius="md" p="sm">
+                          <Group align="center" justify="space-between" wrap="nowrap">
+                            <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+                              <Avatar
+                                src={profile.display_photo_url || profile.dx_display_photo_url || undefined}
+                                radius="xl"
+                                color="blue"
+                              >
+                                {(profile.display_name || profile.slug || '?').slice(0, 2).toUpperCase()}
+                              </Avatar>
+                              <Stack gap={2} style={{ minWidth: 0 }}>
+                                <Text fw={600} lineClamp={1}>{profile.display_name || profile.slug || 'Unnamed'}</Text>
+                                <Text size="xs" c="dimmed" lineClamp={1}>@{profile.slug || 'no-slug'}</Text>
+                              </Stack>
+                            </Group>
+                            <Button
+                              size="xs"
+                              variant="light"
+                              onClick={() => profile.slug && navigate(`/p/${profile.slug}`)}
+                              disabled={!profile.slug}
+                            >
+                              View
+                            </Button>
+                          </Group>
+                        </Paper>
+                      ))}
+                    </SimpleGrid>
+                  </Paper>
+                </Stack>
 
-            <Divider my="md" />
+                <Divider my="md" />
+              </>
+            )}
 
             <Stack gap="sm">
               <Group gap="xs" align="center">
@@ -302,26 +307,37 @@ function SearchPage() {
                         </Group>
                         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
                           {playlists.slice(0, PLAYLIST_LIMIT).map((playlist) => (
-                            <Paper key={playlist.id} withBorder radius="md" p="sm">
-                              <Stack gap={4}>
-                                <Text fw={600} lineClamp={1}>{playlist.title}</Text>
-                                <Text size="xs" c="dimmed" lineClamp={1}>
-                                  by {playlist.author?.display_name || playlist.author?.slug || 'Unknown'}
-                                </Text>
-                                <Text size="xs" c="dimmed">
-                                  {(playlist.songs || []).length} matched song{(playlist.songs || []).length !== 1 ? 's' : ''}
-                                </Text>
-                                <Button
-                                  size="xs"
-                                  variant="light"
-                                  onClick={() => {
-                                    setSelectedPlaylist(playlist);
-                                    setSelectedPlaylistSongs(hydratePlaylistSongs(playlist));
-                                  }}
-                                >
-                                  View Playlist
-                                </Button>
-                              </Stack>
+                            <Paper key={playlist.id} withBorder radius="md" p="md">
+                              <Group justify="space-between" align="center" wrap="nowrap">
+                                <Group gap="md" wrap="nowrap" style={{ minWidth: 0 }}>
+                                  <Avatar
+                                    src={song.imageUrl || undefined}
+                                    radius="md"
+                                    size={64}
+                                  />
+                                  <Stack gap={2} style={{ minWidth: 0 }}>
+                                    <Text fw={700} lineClamp={1}>{playlist.title}</Text>
+                                    <Text size="sm" c="dimmed" lineClamp={1}>
+                                      by {playlist.author?.display_name || playlist.author?.slug || 'Unknown'}
+                                    </Text>
+                                    <Badge size="xs" variant="light">
+                                      {(playlist.songs || []).length} match{(playlist.songs || []).length !== 1 ? 'es' : ''}
+                                    </Badge>
+                                  </Stack>
+                                </Group>
+                                <Group gap="xs" wrap="nowrap">
+                                  <Button
+                                    size="xs"
+                                    variant="light"
+                                    onClick={() => {
+                                      setSelectedPlaylist(playlist);
+                                      setSelectedPlaylistSongs(hydratePlaylistSongs(playlist));
+                                    }}
+                                  >
+                                    View Playlist
+                                  </Button>
+                                </Group>
+                              </Group>
                             </Paper>
                           ))}
                         </SimpleGrid>

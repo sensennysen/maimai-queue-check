@@ -263,7 +263,7 @@ export default function GlobalNavbar() {
                             label: { width: '100%', textAlign: 'left' },
                           }}
                           onClick={() => {
-                            navigate(`/search?query=${encodeURIComponent(song.title)}`);
+                            navigate(`/search?query=${encodeURIComponent(song.title)}&type=song`);
                             setSuggestionsOpen(false);
                           }}
                           leftSection={

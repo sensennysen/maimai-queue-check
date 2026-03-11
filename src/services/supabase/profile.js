@@ -719,6 +719,24 @@ export const playlistService = {
   async getPublicPlaylistsBySongIds(songIds, limit = 12) {
     if (!Array.isArray(songIds) || songIds.length === 0) return [];
 
+    // 1. Get playlist IDs that contain these songs, ensuring they are public and not deleted
+    const { data: idData, error: idError } = await supabase
+      .from('playlist_songs')
+      .select('playlist_id, user_playlists!inner(is_public, deleted, is_draft)')
+      .in('song_id', songIds)
+      .eq('user_playlists.is_public', true)
+      .eq('user_playlists.deleted', false)
+      .eq('user_playlists.is_draft', false);
+
+    if (idError) {
+      console.error('Error fetching matching playlist IDs:', idError);
+      throw idError;
+    }
+
+    const uniqueIds = Array.from(new Set((idData || []).map(d => d.playlist_id))).slice(0, limit);
+    if (uniqueIds.length === 0) return [];
+
+    // 2. Fetch full playlists for these IDs (to avoid child filtering in PostgREST)
     const { data, error } = await supabase
       .from('user_playlists')
       .select(`
@@ -728,7 +746,7 @@ export const playlistService = {
         is_public,
         updated_at,
         user_id,
-        songs:playlist_songs!inner(
+        songs:playlist_songs(
           song_id,
           level,
           order_index
@@ -741,15 +759,11 @@ export const playlistService = {
           dx_display_photo_url
         )
       `)
-      .eq('deleted', false)
-      .eq('is_draft', false)
-      .eq('is_public', true)
-      .in('songs.song_id', songIds)
-      .order('updated_at', { ascending: false })
-      .limit(limit);
+      .in('id', uniqueIds)
+      .order('updated_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching public playlists by song:', error);
+      console.error('Error fetching full public playlists:', error);
       throw error;
     }
 
