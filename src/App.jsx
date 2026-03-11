@@ -44,10 +44,6 @@ function MainApp() {
           <main className="animate-fade-in delay-100">
             <QueueManager />
           </main>
-
-          <div className="animate-fade-in delay-200">
-            <Footer />
-          </div>
         </Stack>
       </Container>
     </div>
@@ -118,6 +114,7 @@ function AppProviders() {
           <Route path="*" element={<MainApp />} />
         </Routes>
       </Suspense>
+      <Footer />
       <Analytics />
     </MantineProvider>
   );

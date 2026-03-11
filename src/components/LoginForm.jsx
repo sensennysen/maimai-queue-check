@@ -7,6 +7,8 @@ import IconSettings from '@tabler/icons-react/dist/esm/icons/IconSettings.mjs';
 import IconLock from '@tabler/icons-react/dist/esm/icons/IconLock.mjs';
 import IconSun from '@tabler/icons-react/dist/esm/icons/IconSun.mjs';
 import IconMoon from '@tabler/icons-react/dist/esm/icons/IconMoon.mjs';
+import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
+import IconMail from '@tabler/icons-react/dist/esm/icons/IconMail.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';
@@ -15,6 +17,7 @@ import { notifications } from '@mantine/notifications';
 import { userService } from '../services/supabase';
 import ProfileSettingsModal from './profile/ProfileSettingsModal';
 import PrivacySettingsModal from './profile/PrivacySettingsModal';
+import ChangelogModal from './modals/ChangelogModal';
 import './LoginForm.css';
 
 const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
@@ -27,6 +30,7 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSettingsOpen, setProfileSettingsOpen] = useState(false);
   const [privacySettingsOpen, setPrivacySettingsOpen] = useState(false);
+  const [changelogOpened, setChangelogOpened] = useState(false);
 
   const handleSocialLogin = async (provider) => {
     try {
@@ -203,8 +207,26 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
             >
               Sign Out
             </Menu.Item>
+            <Divider />
+            <Menu.Item
+              leftSection={<IconHistory size={16} />}
+              onClick={() => setChangelogOpened(true)}
+            >
+              Changelogs
+            </Menu.Item>
+            <Menu.Item
+              leftSection={<IconMail size={16} />}
+              onClick={() => navigate('/contact')}
+            >
+              Contact
+            </Menu.Item>
           </Menu.Dropdown>
         </Menu>
+
+        <ChangelogModal
+          opened={changelogOpened}
+          onClose={() => setChangelogOpened(false)}
+        />
 
         <ProfileSettingsModal
           opened={profileSettingsOpen}
