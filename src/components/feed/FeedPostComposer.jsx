@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Paper, Group, Avatar, Textarea, Button, Text, SegmentedControl, Center, Box } from '@mantine/core';
 import IconSend from '@tabler/icons-react/dist/esm/icons/IconSend.mjs';
 import IconWorld from '@tabler/icons-react/dist/esm/icons/IconWorld.mjs';
@@ -104,6 +104,17 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
   const isOver = remaining < 0;
   const isDisabled = !content.trim() || isOver || loading;
 
+  const placeholder = useMemo(() => {
+    const options = [
+      "What're you grinding today?",
+      "Anything you wanted to play?",
+      "I'm feeling like playing...",
+      "Share a song or playlist!",
+      "Aiming for something?"
+    ];
+    return options[Math.floor(Math.random() * options.length)];
+  }, []);
+
   return (
     <Paper p="md" radius="xl" withBorder className="community-panel">
       <Group gap="sm" wrap="nowrap" align="flex-start">
@@ -119,7 +130,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
 
         <div style={{ flex: 1 }}>
           <Textarea
-            placeholder="What's on your mind? (Ctrl+Enter to post)"
+            placeholder={`${placeholder} (Ctrl+Enter to post)`}
             value={content}
             onChange={(e) => setContent(e.currentTarget.value)}
             onKeyDown={handleKeyDown}
