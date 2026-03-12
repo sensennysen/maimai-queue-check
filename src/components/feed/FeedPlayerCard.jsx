@@ -5,7 +5,6 @@ import { getProfileImageUrl } from '../../utils/formatters';
 
 export function FeedPlayerCard({ player, isFollowing, onFollow, onClick, branchMap = {}, className }) {
   const displayName = player.display_name || player.slug || 'Player';
-  const queueName = player.user_roles?.queue_name;
 
   const homeBranchName = player.main_branch ? (branchMap[player.main_branch] || `Branch ${player.main_branch}`) : null;
   const preferredBranchNames = (player.preferred_branches || [])
