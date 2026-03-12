@@ -1,10 +1,10 @@
-﻿import { Paper, Group, Text, Avatar, Button, Stack, Badge } from '@mantine/core';
+import { Paper, Group, Text, Avatar, Button, Stack, Badge } from '@mantine/core';
 import IconUserPlus from '@tabler/icons-react/dist/esm/icons/IconUserPlus.mjs';
 import IconUserCheck from '@tabler/icons-react/dist/esm/icons/IconUserCheck.mjs';
 import { getProfileImageUrl } from '../../utils/formatters';
 
 export function FeedPlayerCard({ player, isFollowing, onFollow, onClick, branchMap = {}, className }) {
-  const displayName = player.display_name || player.user_roles?.queue_name || player.slug || 'Player';
+  const displayName = player.display_name || player.slug || 'Player';
   const queueName = player.user_roles?.queue_name;
 
   const homeBranchName = player.main_branch ? (branchMap[player.main_branch] || `Branch ${player.main_branch}`) : null;
@@ -58,11 +58,6 @@ export function FeedPlayerCard({ player, isFollowing, onFollow, onClick, branchM
               </Group>
             )}
 
-            {!homeBranchName && !preferredBranchNames.length && queueName && queueName !== displayName && (
-              <Text size="xs" c="dimmed" lineClamp={1}>
-                Queue: {queueName}
-              </Text>
-            )}
           </Stack>
         </Group>
 

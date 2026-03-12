@@ -341,7 +341,7 @@ export const feedService = {
       .neq('id', userId)
       .eq('is_public', true)
       .not('slug', 'is', null)
-      .limit(LIMITS.PLAYER_POOL_SIZE); // Fetch a substantial pool for client-side scoring/randomization
+      .limit(Math.max(LIMITS.PLAYER_POOL_SIZE, limit * 5)); // Fetch a substantial pool for client-side scoring/randomization
 
     if (error) throw error;
 
@@ -377,7 +377,6 @@ export const feedService = {
         }
         return Math.random() - 0.5;
       })
-      .slice(0, limit)
       .map(item => item.profile);
   },
 

@@ -133,12 +133,18 @@ export default function FeedPage() {
 
     setLoadingPlayers(true);
     try {
-      const players = await feedService.getSuggestedPlayers(user.id, mainBranch, preferredBranches, 20);
+      const targetLimit = 20;
+      // Fetch a larger pool to ensure we have enough after filtering followed players
+      const players = await feedService.getSuggestedPlayers(user.id, mainBranch, preferredBranches, 100);
+      
       if (players?.length > 0) {
         const ids = players.map((p) => p.id);
         const followed = await followService.getBulkFollowStatus(user.id, ids);
         setFollowedIds(followed);
-        setSuggestedPlayers(players.filter((p) => !followed.has(p.id)));
+        
+        // Filter unfollowed and slice to the intended count
+        const unfollowed = players.filter((p) => !followed.has(p.id)).slice(0, targetLimit);
+        setSuggestedPlayers(unfollowed);
       } else {
         setSuggestedPlayers([]);
       }
