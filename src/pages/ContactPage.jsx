@@ -10,13 +10,11 @@ import {
   Stack,
   Text,
   Group,
-  ActionIcon,
   FileInput,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
-import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs';
 import IconPaperclip from '@tabler/icons-react/dist/esm/icons/IconPaperclip.mjs';
 import { contactService } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -78,13 +76,10 @@ const ContactPage = () => {
   };
 
   return (
-    <Container size="sm" py="xl">
+    <Container size="xl" py="xl">
       <Paper p="xl" withBorder radius="md">
         <Stack gap="lg">
           <Group>
-            <ActionIcon variant="subtle" onClick={() => navigate('/')}>
-              <IconArrowLeft size={18} />
-            </ActionIcon>
             <Title order={2}>Contact Us</Title>
           </Group>
 
@@ -132,9 +127,6 @@ const ContactPage = () => {
               />
 
               <Group justify="flex-end" mt="md">
-                <Button variant="light" onClick={() => navigate('/')}>
-                  Cancel
-                </Button>
                 <Button type="submit" loading={loading}>
                   Submit Report
                 </Button>

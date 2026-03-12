@@ -1,5 +1,7 @@
 import { supabase } from './client';
 import { validateData, queueEntrySchema } from '../../utils/validation';
+import { TABLES } from '../../constants/database';
+import { QUEUE_STATUSES } from '../../constants/queue';
 
 // Queue service functions
 export const queueService = {
@@ -11,9 +13,9 @@ export const queueService = {
     today.setHours(0, 0, 0, 0);
 
     let query = supabase
-      .from('queue_entries')
+      .from(TABLES.QUEUE_ENTRIES)
       .select('id, player1, player2, order_position, status, branch_id, cabinet_num, created_at, started_at, created_by_profile:created_by(display_photo_url)')
-      .in('status', ['waiting', 'playing'])
+      .in('status', [QUEUE_STATUSES.WAITING, QUEUE_STATUSES.PLAYING])
       .gte('created_at', today.toISOString());
     
     if (branchId) {
@@ -45,18 +47,18 @@ export const queueService = {
     if (!validation.success) throw new Error(validation.error);
 
     const { count, error: countError } = await supabase
-        .from('queue_entries')
+        .from(TABLES.QUEUE_ENTRIES)
         .select('id', { count: 'exact', head: true })
         .eq('branch_id', branchId)
         .eq('cabinet_num', cabinetNum)
-        .eq('status', 'playing');
+        .eq('status', QUEUE_STATUSES.PLAYING);
     
     if (countError) throw countError;
 
-    const initialStatus = count === 0 ? 'playing' : 'waiting';
+    const initialStatus = count === 0 ? QUEUE_STATUSES.PLAYING : QUEUE_STATUSES.WAITING;
 
     const { data, error } = await supabase
-      .from('queue_entries')
+      .from(TABLES.QUEUE_ENTRIES)
       .insert([
         {
           player1: player1.trim(),
@@ -66,7 +68,7 @@ export const queueService = {
           created_by: userId || null,
           branch_id: branchId,
           cabinet_num: cabinetNum,
-          started_at: initialStatus === 'playing' ? new Date().toISOString() : null
+          started_at: initialStatus === QUEUE_STATUSES.PLAYING ? new Date().toISOString() : null
         }
       ])
       .select()
@@ -86,7 +88,7 @@ export const queueService = {
     if (!validation.success) throw new Error(validation.error);
 
     const { data, error } = await supabase
-      .from('queue_entries')
+      .from(TABLES.QUEUE_ENTRIES)
       .update({
         player1: player1.trim(),
         player2: player2.trim()
@@ -102,9 +104,9 @@ export const queueService = {
   // Remove a queue entry (cancel it)
   async removeQueueEntry(id) {
     const { error } = await supabase
-      .from('queue_entries')
+      .from(TABLES.QUEUE_ENTRIES)
       .update({ 
-        status: 'cancelled',
+        status: QUEUE_STATUSES.CANCELLED,
         ended_at: new Date().toISOString()
       })
       .eq('id', id);
@@ -117,7 +119,7 @@ export const queueService = {
     const results = [];
     for (const update of updates) {
       const { data, error } = await supabase
-        .from('queue_entries')
+        .from(TABLES.QUEUE_ENTRIES)
         .update({ order_position: update.order_position })
         .eq('id', update.id)
         .select()
@@ -136,13 +138,13 @@ export const queueService = {
     }
 
     let query = supabase
-      .from('queue_entries')
+      .from(TABLES.QUEUE_ENTRIES)
       .update({ 
-        status: 'completed',
+        status: QUEUE_STATUSES.COMPLETED,
         ended_at: new Date().toISOString()
       })
       .eq('branch_id', branchId)
-      .in('status', ['waiting', 'playing']);
+      .in('status', [QUEUE_STATUSES.WAITING, QUEUE_STATUSES.PLAYING]);
     
     if (cabinetNum !== null) {
       query = query.eq('cabinet_num', cabinetNum);
@@ -156,9 +158,9 @@ export const queueService = {
   async finishGame(currentPlayingId, nextWaitingId) {
     if (currentPlayingId) {
         const { error: completeError } = await supabase
-            .from('queue_entries')
+            .from(TABLES.QUEUE_ENTRIES)
             .update({ 
-                status: 'completed',
+                status: QUEUE_STATUSES.COMPLETED,
                 ended_at: new Date().toISOString()
             })
             .eq('id', currentPlayingId);
@@ -168,9 +170,9 @@ export const queueService = {
 
     if (nextWaitingId) {
         const { error: startError } = await supabase
-            .from('queue_entries')
+            .from(TABLES.QUEUE_ENTRIES)
             .update({ 
-                status: 'playing',
+                status: QUEUE_STATUSES.PLAYING,
                 started_at: new Date().toISOString()
             })
             .eq('id', nextWaitingId);
@@ -182,9 +184,9 @@ export const queueService = {
   // Legacy/Helper to manually mark as playing
   async markAsPlaying(id) {
     const { data, error } = await supabase
-      .from('queue_entries')
+      .from(TABLES.QUEUE_ENTRIES)
       .update({ 
-          status: 'playing',
+          status: QUEUE_STATUSES.PLAYING,
           started_at: new Date().toISOString()
       })
       .eq('id', id)
@@ -203,9 +205,9 @@ export const queueService = {
     today.setHours(0, 0, 0, 0);
 
     const { data, error } = await supabase
-      .from('queue_entries')
+      .from(TABLES.QUEUE_ENTRIES)
       .select('player1, player2')
-      .in('status', ['completed', 'cancelled'])
+      .in('status', [QUEUE_STATUSES.COMPLETED, QUEUE_STATUSES.CANCELLED])
       .eq('branch_id', branchId)
       .gte('created_at', today.toISOString())
       .order('ended_at', { ascending: false });
@@ -219,7 +221,7 @@ export const queueService = {
     if (!branchId) return [];
 
     let query = supabase
-      .from('queue_entries')
+      .from(TABLES.QUEUE_ENTRIES)
       .select('id, player1, player2, status, cabinet_num, created_at, started_at, ended_at, created_by_profile:created_by(display_photo_url)')
       .eq('branch_id', branchId)
       .order('created_at', { ascending: false });
@@ -254,7 +256,7 @@ export const subscribeToQueueChanges = (callback, branchId = null) => {
   const config = {
     event: '*',
     schema: 'public',
-    table: 'queue_entries'
+    table: TABLES.QUEUE_ENTRIES
   };
 
   if (branchId) {
@@ -287,7 +289,7 @@ export const subscribeToSessionChanges = (callback) => {
       {
         event: '*',
         schema: 'public',
-        table: 'game_sessions'
+        table: TABLES.GAME_SESSIONS
       },
       (payload) => {
         if (callback && typeof callback === 'function') {

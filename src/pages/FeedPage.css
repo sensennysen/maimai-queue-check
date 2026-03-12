@@ -1,0 +1,193 @@
+.community-feed-page {
+  --community-surface: color-mix(in srgb, var(--theme-surface) 85%, transparent);
+  --community-border: color-mix(in srgb, var(--theme-primary) 45%, transparent);
+  --community-glow: color-mix(in srgb, var(--theme-primary) 25%, transparent);
+  --community-text: var(--theme-text-primary);
+  --community-muted: var(--theme-text-muted);
+  --community-bg-a: color-mix(in srgb, var(--theme-background) 80%, var(--theme-secondary) 20%);
+  --community-bg-b: color-mix(in srgb, var(--theme-background) 85%, var(--theme-primary) 15%);
+  color: var(--community-text);
+}
+
+body[data-theme='dark'] .community-feed-page {
+  --community-surface: color-mix(in srgb, var(--theme-surface) 88%, transparent);
+  --community-border: color-mix(in srgb, var(--theme-primary) 55%, transparent);
+  --community-glow: color-mix(in srgb, var(--theme-primary) 35%, transparent);
+  --community-bg-a: color-mix(in srgb, var(--theme-background) 70%, var(--theme-secondary) 30%);
+  --community-bg-b: color-mix(in srgb, var(--theme-background) 75%, var(--theme-primary) 25%);
+}
+
+.community-feed-page::before {
+  content: none;
+}
+
+.community-page-title {
+  color: var(--community-text);
+  letter-spacing: 0.02em;
+}
+
+.community-panel {
+  border: 1px solid color-mix(in srgb, var(--community-border) 70%, transparent) !important;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--community-surface) 70%, var(--theme-background) 30%),
+    color-mix(in srgb, var(--community-surface) 88%, var(--theme-background) 12%)
+  ) !important;
+  box-shadow: 0 16px 45px color-mix(in srgb, var(--theme-primary) 12%, transparent);
+}
+
+.community-panel-title {
+  color: var(--community-text);
+  font-size: 1.8rem;
+  letter-spacing: 0.01em;
+}
+
+.community-trending-panel {
+  border-color: var(--community-border) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--theme-primary) 25%, transparent),
+    0 18px 40px color-mix(in srgb, var(--theme-background) 60%, transparent),
+    0 0 30px var(--community-glow);
+}
+
+.community-trending-card {
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 45%, transparent) !important;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--community-surface) 85%, var(--theme-primary) 15%),
+    color-mix(in srgb, var(--community-surface) 88%, var(--theme-secondary) 12%)
+  ) !important;
+}
+
+/* .community-trending-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--theme-primary) 28%, transparent);
+} */
+
+.community-release-row {
+  padding: 2px 2px 6px;
+}
+
+.community-release-card {
+  width: 150px;
+  min-width: 150px;
+  cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent) !important;
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--community-surface) 80%, var(--theme-secondary) 20%),
+    color-mix(in srgb, var(--community-surface) 90%, var(--theme-background) 10%)
+  ) !important;
+}
+
+.community-release-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--theme-primary) 55%, transparent) !important;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--theme-primary) 20%, transparent);
+}
+
+.community-release-image-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.community-release-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.community-release-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    140deg,
+    color-mix(in srgb, var(--theme-primary) 55%, transparent),
+    color-mix(in srgb, var(--theme-secondary) 55%, transparent)
+  );
+  color: var(--theme-text-primary);
+}
+
+.community-playlist-strip {
+  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent) !important;
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--community-surface) 85%, var(--theme-primary) 15%),
+    color-mix(in srgb, var(--community-surface) 92%, var(--theme-background) 8%)
+  ) !important;
+}
+
+.community-following-activity-row {
+  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent) !important;
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--community-surface) 88%, var(--theme-secondary) 12%),
+    color-mix(in srgb, var(--community-surface) 94%, var(--theme-background) 6%)
+  ) !important;
+}
+
+.community-sidebar {
+  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent) !important;
+  background: linear-gradient(
+    170deg,
+    color-mix(in srgb, var(--community-surface) 92%, var(--theme-primary) 8%),
+    color-mix(in srgb, var(--community-surface) 96%, var(--theme-background) 4%)
+  ) !important;
+}
+
+.community-sidebar-header h3 {
+  font-size: 1.55rem;
+}
+
+.community-player-row {
+  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent) !important;
+  background: linear-gradient(
+    130deg,
+    color-mix(in srgb, var(--community-surface) 88%, var(--theme-secondary) 12%),
+    color-mix(in srgb, var(--community-surface) 95%, var(--theme-background) 5%)
+  ) !important;
+}
+
+.community-sidebar-empty {
+  background: color-mix(in srgb, var(--community-surface) 75%, transparent) !important;
+}
+
+.community-feed-page .mantine-Text-root {
+  color: inherit;
+}
+
+.community-feed-page .mantine-Text-root[data-dimmed] {
+  color: var(--community-muted) !important;
+}
+
+@media (max-width: 62em) {
+  .community-feed-layout {
+    gap: 1rem;
+  }
+
+  .community-panel-title {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 48em) {
+  .community-trending-jacket {
+    width: 104px !important;
+    height: 104px !important;
+  }
+
+  .community-release-card {
+    width: 130px;
+    min-width: 130px;
+  }
+
+  .community-feed-page::before {
+    background:
+      radial-gradient(circle at 15% 8%, color-mix(in srgb, var(--theme-primary) 25%, transparent), transparent 28%),
+      radial-gradient(circle at 88% 24%, color-mix(in srgb, var(--theme-secondary) 25%, transparent), transparent 34%),
+      linear-gradient(130deg, var(--community-bg-a), var(--community-bg-b));
+  }
+}

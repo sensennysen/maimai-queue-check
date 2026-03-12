@@ -3,6 +3,7 @@ import { supabase } from '../services/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { getDefaultFeatureFlags } from '../constants/featureFlags';
 import { notifications } from '@mantine/notifications';
+import { TABLES } from '../constants/database';
 
 import { FeatureFlagContext } from './FeatureFlagContextDef';
 
@@ -26,7 +27,7 @@ export const FeatureFlagProvider = ({ children }) => {
       setIsLoading(true);
       try {
         const { data, error } = await supabase
-          .from('user_profiles')
+          .from(TABLES.USER_PROFILES)
           .select('experimental_features_enabled, experimental_flags')
           .eq('id', user.id)
           .single();
@@ -64,7 +65,7 @@ export const FeatureFlagProvider = ({ children }) => {
 
     try {
       const { error } = await supabase
-        .from('user_profiles')
+        .from(TABLES.USER_PROFILES)
         .update({ experimental_features_enabled: enabled })
         .eq('id', user.id);
 
@@ -105,7 +106,7 @@ export const FeatureFlagProvider = ({ children }) => {
 
     try {
       const { error } = await supabase
-        .from('user_profiles')
+        .from(TABLES.USER_PROFILES)
         .update({ experimental_flags: newFlags })
         .eq('id', user.id);
 

@@ -223,7 +223,7 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
                   </Group>
                 </Stack>
               </Box>
-            )
+            );
           })}
         </Stack>
       ) : (

@@ -4,6 +4,7 @@
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { branchService, supabase } from '../services/supabase';
 import { requestUserLocation, getDistance } from '../services/geolocation';
+import { TABLES } from '../constants/database';
 
 const BranchContext = createContext(null);
 
@@ -177,7 +178,7 @@ export const BranchProvider = ({ children }) => {
         {
           event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
           schema: 'public',
-          table: 'allowed_places',
+          table: TABLES.ALLOWED_PLACES,
         },
         (payload) => {
           handleBranchChange(payload);
@@ -201,7 +202,7 @@ export const BranchProvider = ({ children }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [handleBranchChange]);
+  }, [handleBranchChange, loadBranches]);
 
   // Refresh user location
   const refreshLocation = async () => {

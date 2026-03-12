@@ -19,31 +19,29 @@ import {
   Grid,
   JsonInput,
 } from '@mantine/core';
-import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs';
 import IconDownload from '@tabler/icons-react/dist/esm/icons/IconDownload.mjs';
 import IconEye from '@tabler/icons-react/dist/esm/icons/IconEye.mjs';
 import { DatePickerInput } from '@mantine/dates';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { auditService } from '../services/supabase/audit';
+import { TABLES as DB_TABLES } from '../constants/database';
 import './AuditLogsPage.css';
 
 const OPERATIONS = ['INSERT', 'UPDATE', 'DELETE'];
 const TABLES = [
-  'queue_entries',
-  'user_roles',
-  'user_profiles',
-  'allowed_places',
-  'playlist_posts',
-  'song_comments',
-  'playlist_comments',
-  'access_requests',
-  'queue_rules'
+  DB_TABLES.QUEUE_ENTRIES,
+  DB_TABLES.USER_ROLES,
+  DB_TABLES.USER_PROFILES,
+  DB_TABLES.ALLOWED_PLACES,
+  DB_TABLES.PLAYLIST_POSTS,
+  DB_TABLES.SONG_COMMENTS,
+  DB_TABLES.PLAYLIST_COMMENTS,
+  DB_TABLES.ACCESS_REQUESTS,
+  DB_TABLES.QUEUE_RULES
 ];
 
 const AuditLogsPage = () => {
   const { userRoles } = useAuth();
-  const navigate = useNavigate();
   const isSuperAdmin = userRoles?.is_super_admin || false;
 
   // State
@@ -111,12 +109,11 @@ const AuditLogsPage = () => {
   // Permission check
   if (!isSuperAdmin) {
     return (
-      <Container size="sm" py="xl">
+      <Container size="xl" py="xl">
         <Paper p="xl" withBorder>
           <Stack align="center" gap="md">
             <Title order={3}>Access Denied</Title>
             <Text>Only super admins can view audit logs.</Text>
-            <Button onClick={() => navigate('/')}>Go Back</Button>
           </Stack>
         </Paper>
       </Container>
@@ -161,14 +158,6 @@ const AuditLogsPage = () => {
         <Paper p="md" radius="md" withBorder>
           <Group justify="space-between" align="center">
             <Group gap="md">
-              <ActionIcon
-                variant="subtle"
-                size="lg"
-                onClick={() => navigate('/admin')}
-                title="Back to Admin Panel"
-              >
-                <IconArrowLeft size={20} />
-              </ActionIcon>
               <Title order={2}>Audit Logs</Title>
             </Group>
             <Group gap="sm">

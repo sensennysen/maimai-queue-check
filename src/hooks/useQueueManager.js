@@ -3,6 +3,7 @@ import { useQueueData } from './useQueueData';
 import { useQueueActions } from './useQueueActions';
 import { useLocationVerification } from './useLocationVerification';
 import { useCabinetManager } from './useCabinetManager';
+import { TABLES } from '../constants/database';
 
 /**
  * Main queue manager hook - composes smaller hooks for queue functionality
@@ -71,7 +72,7 @@ export const useQueueManager = () => {
   // Test real-time connection
   const testRealTimeConnection = async () => {
     try {
-      const { error } = await supabase.from('queue_entries').select('id').limit(1);
+      const { error } = await supabase.from(TABLES.QUEUE_ENTRIES).select('id').limit(1);
       
       if (error) {
         return false;
@@ -79,7 +80,7 @@ export const useQueueManager = () => {
       
       const testChannel = supabase
         .channel('test_channel')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'queue_entries' }, 
+        .on('postgres_changes', { event: '*', schema: 'public', table: TABLES.QUEUE_ENTRIES }, 
           () => {})
         .subscribe(() => {});
       
@@ -137,4 +138,4 @@ export const useQueueManager = () => {
     testRealTimeConnection,
     verifyLocation
   };
-};
+};

@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { TABLES } from '../../constants/database';
 
 /**
  * Import sessions: the app creates a row (pending), the bookmarklet POSTs payload to the
@@ -39,7 +40,7 @@ export async function createImportSession(userId) {
   const expiresAt = new Date(Date.now() + SESSION_TTL_MINUTES * 60 * 1000).toISOString();
 
   const { error } = await supabase
-    .from('import_sessions')
+    .from(TABLES.IMPORT_SESSIONS)
     .insert({
       id: token,
       user_id: userId,
@@ -59,7 +60,7 @@ export async function createImportSession(userId) {
  */
 export async function getImportSession(token) {
   const { data, error } = await supabase
-    .from('import_sessions')
+    .from(TABLES.IMPORT_SESSIONS)
     .select('status, payload')
     .eq('id', token)
     .maybeSingle();
@@ -78,7 +79,7 @@ export async function getImportSession(token) {
  */
 export async function deleteImportSession(token) {
   const { error } = await supabase
-    .from('import_sessions')
+    .from(TABLES.IMPORT_SESSIONS)
     .delete()
     .eq('id', token);
 

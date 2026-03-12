@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { TABLES } from '../constants/database';
 
 /**
  * Check if geolocation permission is already granted
@@ -89,7 +90,7 @@ export const requestUserLocation = () => {
  */
 export const findNearestBranch = async (userLocation) => {
   const { data: places, error } = await supabase
-    .from('allowed_places')
+    .from(TABLES.ALLOWED_PLACES)
     .select('*')
     .eq('enabled', true);
 
@@ -139,7 +140,7 @@ export const findNearestBranch = async (userLocation) => {
  */
 export const checkUserProximity = async (userLocation, maxDistance = 100, branchId = null) => {
   let query = supabase
-    .from('allowed_places')
+    .from(TABLES.ALLOWED_PLACES)
     .select('*')
     .eq('enabled', true);
 
@@ -204,7 +205,7 @@ export const checkUserProximity = async (userLocation, maxDistance = 100, branch
 export const checkEditPermissions = async (userId) => {
   try {
     const { data: roles, error } = await supabase
-      .from('user_roles')
+      .from(TABLES.USER_ROLES)
       .select('can_edit, can_edit_on')
       .eq('user_id', userId)
       .single();

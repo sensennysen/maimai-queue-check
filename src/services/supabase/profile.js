@@ -1,5 +1,8 @@
 import { supabase } from './client';
+import { feedService } from './feed';
 import { validateData, userProfileSchema } from '../../utils/validation';
+import { TABLES, BUCKETS } from '../../constants/database';
+import { LIMITS } from '../../constants/limits';
 
 // User service functions
 export const userService = {
@@ -32,7 +35,7 @@ export const userService = {
     let profileData = null;
     if (Object.keys(profileUpdateData).length > 0) {
       const { data, error: profileError } = await supabase
-        .from('user_profiles')
+        .from(TABLES.USER_PROFILES)
         .update({ 
           ...profileUpdateData, 
           updated_at: new Date().toISOString()
@@ -47,7 +50,7 @@ export const userService = {
     // Save queue_name directly to user_roles
     if (queue_name !== undefined) {
       await supabase
-        .from('user_roles')
+        .from(TABLES.USER_ROLES)
         .update({ queue_name: queue_name || null })
         .eq('user_id', userId);
     }
@@ -67,7 +70,7 @@ export const userService = {
     if (circle_name !== undefined) updates.circle_name = circle_name;
 
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from(TABLES.USER_PROFILES)
       .upsert(updates)
       .select()
       .maybeSingle();
@@ -79,7 +82,7 @@ export const userService = {
   // Update maimai best scores (Calculated Top 50)
   async updateMaimaiBestScores(userId, best_scores) {
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from(TABLES.USER_PROFILES)
       .upsert({
         id: userId,
         maimai_best_scores: best_scores,
@@ -98,7 +101,7 @@ export const userService = {
     if (!userId || !Array.isArray(recentPlays)) return;
 
     const { error } = await supabase
-      .from('user_profiles')
+      .from(TABLES.USER_PROFILES)
       .update({ 
         recent_plays: recentPlays,
         updated_at: new Date().toISOString()
@@ -111,7 +114,7 @@ export const userService = {
   // Get recent play history (from JSON storage)
   async getRecentPlays(userId) {
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from(TABLES.USER_PROFILES)
       .select('recent_plays')
       .eq('id', userId)
       .single();
@@ -123,7 +126,7 @@ export const userService = {
   // Save all raw scores from import
   async saveUserAllScores(userId, allScores) {
     const { data, error } = await supabase
-      .from('user_all_scores')
+      .from(TABLES.USER_ALL_SCORES)
       .upsert({
         user_id: userId,
         all_scores: allScores,
@@ -141,8 +144,8 @@ export const userService = {
     if (!branchId) return [];
 
     const { data: profiles, error } = await supabase
-        .from('user_profiles')
-        .select('id, user_roles(queue_name)')
+        .from(TABLES.USER_PROFILES)
+        .select(`id, ${TABLES.USER_ROLES}(queue_name)`)
         .contains('preferred_branches', [branchId]);
     
     if (error) throw error;
@@ -155,13 +158,30 @@ export const userService = {
     if (!slug) return null;
 
     const { data, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('id, display_name, user_roles(queue_name), maimai_dx_name, circle_name, maimai_best_scores, maimai_scores_updated_at, recent_plays, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction, user_attributions(attributions)')
+      .from(TABLES.USER_PROFILES)
+      .select(`id, display_name, ${TABLES.USER_ROLES}(queue_name), maimai_dx_name, circle_name, maimai_best_scores, maimai_scores_updated_at, recent_plays, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction, user_attributions(attributions)`)
       .eq('slug', slug.toLowerCase())
       .maybeSingle();
 
     if (profileError) throw profileError;
     return data;
+  },
+
+  // Search public profiles by display name or slug
+  async searchPublicProfiles(query, limit = LIMITS.FEED_ACTIVITY) {
+    const trimmed = query?.trim();
+    if (!trimmed) return [];
+
+    const search = `%${trimmed}%`;
+    const { data, error } = await supabase
+      .from(TABLES.USER_PROFILES)
+      .select('id, display_name, slug, display_photo_url, dx_display_photo_url, is_public')
+      .eq('is_public', true)
+      .or(`display_name.ilike.${search},slug.ilike.${search}`)
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
   },
 
   // Update profile slug (once every 60 days)
@@ -174,7 +194,7 @@ export const userService = {
 
     // 2. Fetch current profile to check last update
     const { data: existingProfile, error: errorFetch } = await supabase
-      .from('user_profiles')
+      .from(TABLES.USER_PROFILES)
       .select('slug, slug_updated_at')
       .eq('id', userId)
       .maybeSingle();
@@ -197,7 +217,7 @@ export const userService = {
     const normalizedSlug = slug.toLowerCase();
     if (normalizedSlug !== existingProfile?.slug) {
       const { data: existing } = await supabase
-        .from('user_profiles')
+        .from(TABLES.USER_PROFILES)
         .select('id')
         .eq('slug', normalizedSlug)
         .maybeSingle();
@@ -209,7 +229,7 @@ export const userService = {
 
     // 4. Update
     const { data: updated, error } = await supabase
-      .from('user_profiles')
+      .from(TABLES.USER_PROFILES)
       .upsert({
         id: userId,
         slug: normalizedSlug,
@@ -228,7 +248,7 @@ export const userService = {
     if (!userId) throw new Error('User ID is required');
 
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from(TABLES.USER_PROFILES)
       .upsert({
         id: userId,
         privacy_settings: settings,
@@ -247,7 +267,7 @@ export const userService = {
 
     // 1. Clear profile fields
     const { error: profileError } = await supabase
-      .from('user_profiles')
+      .from(TABLES.USER_PROFILES)
       .update({
         maimai_best_scores: null,
         maimai_scores_updated_at: null,
@@ -262,7 +282,7 @@ export const userService = {
 
     // 2. Delete from user_most_played_songs
     const { error: mostPlayedError } = await supabase
-      .from('user_most_played_songs')
+      .from(TABLES.USER_MOST_PLAYED_SONGS)
       .delete()
       .eq('user_id', userId);
 
@@ -272,7 +292,7 @@ export const userService = {
 
     // 3. Delete from user_all_scores
     const { error: allScoresError } = await supabase
-      .from('user_all_scores')
+      .from(TABLES.USER_ALL_SCORES)
       .delete()
       .eq('user_id', userId);
 
@@ -288,8 +308,8 @@ export const userService = {
     if (!userId) return null;
 
     const { data, error } = await supabase
-      .from('user_profiles')
-      .select('id, display_name, user_roles(queue_name), maimai_dx_name, circle_name, recent_plays, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction')
+      .from(TABLES.USER_PROFILES)
+      .select(`id, display_name, ${TABLES.USER_ROLES}(queue_name), maimai_dx_name, circle_name, recent_plays, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction`)
       .eq('id', userId)
       .maybeSingle();
 
@@ -302,7 +322,7 @@ export const userService = {
     if (!userId) throw new Error('User ID is required');
 
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from(TABLES.USER_PROFILES)
       .update({
         display_photo_url: photoUrl,
         updated_at: new Date().toISOString()
@@ -325,7 +345,7 @@ export const userService = {
     const filePath = `${fileName}`;
 
     const { error } = await supabase.storage
-      .from('profile-pictures')
+      .from(BUCKETS.PROFILE_PICTURES)
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: true
@@ -335,7 +355,7 @@ export const userService = {
 
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
-      .from('profile-pictures')
+      .from(BUCKETS.PROFILE_PICTURES)
       .getPublicUrl(filePath);
 
     return publicUrl;
@@ -344,7 +364,7 @@ export const userService = {
   // Extract storage path from public URL
   extractStoragePath(url) {
     if (!url) return null;
-    const bucketName = 'profile-pictures';
+    const bucketName = BUCKETS.PROFILE_PICTURES;
     const marker = `/public/${bucketName}/`;
     if (url.includes(marker)) {
       return url.split(marker).pop().split('?')[0];
@@ -368,7 +388,7 @@ export const userService = {
     if (!validation.success) throw new Error(validation.error);
 
     const { data, error } = await supabase
-      .from('user_profiles')
+      .from(TABLES.USER_PROFILES)
       .update({
         introduction: text || null,
         updated_at: new Date().toISOString()
@@ -385,7 +405,7 @@ export const userService = {
   async deleteProfilePictureFile(path) {
     if (!path) return;
     const { error } = await supabase.storage
-      .from('profile-pictures')
+      .from(BUCKETS.PROFILE_PICTURES)
       .remove([path]);
     
     if (error) {
@@ -399,7 +419,7 @@ export const favoritesService = {
   // Get all favorite songs for a user
   async getFavorites(userId) {
     const { data, error } = await supabase
-      .from('user_favorite_songs')
+      .from(TABLES.USER_FAVORITE_SONGS)
       .select('song_id, created_at, comment')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
@@ -411,7 +431,7 @@ export const favoritesService = {
   // Add a favorite song
   async addFavorite(userId, songId, comment = null) {
     const { data, error } = await supabase
-      .from('user_favorite_songs')
+      .from(TABLES.USER_FAVORITE_SONGS)
       .insert([{ user_id: userId, song_id: songId, comment }])
       .select()
       .maybeSingle();
@@ -426,7 +446,7 @@ export const favoritesService = {
   // Remove a favorite song
   async removeFavorite(userId, songId) {
     const { error } = await supabase
-      .from('user_favorite_songs')
+      .from(TABLES.USER_FAVORITE_SONGS)
       .delete()
       .eq('user_id', userId)
       .eq('song_id', songId);
@@ -437,7 +457,7 @@ export const favoritesService = {
   // Update a favorite song comment
   async updateFavoriteComment(userId, songId, comment) {
     const { data, error } = await supabase
-      .from('user_favorite_songs')
+      .from(TABLES.USER_FAVORITE_SONGS)
       .update({ comment })
       .eq('user_id', userId)
       .eq('song_id', songId)
@@ -454,10 +474,10 @@ export const playlistService = {
   // Fetch all playlists for a user
   async getPlaylists(userId) {
     const { data, error } = await supabase
-      .from('user_playlists')
+      .from(TABLES.USER_PLAYLISTS)
       .select(`
         *,
-        songs:playlist_songs(
+        songs:${TABLES.PLAYLIST_SONGS}(
           song_id,
           level,
           order_index
@@ -485,7 +505,7 @@ export const playlistService = {
 
     if (!finalPlaylistId) {
       const { data, error } = await supabase
-        .from('user_playlists')
+        .from(TABLES.USER_PLAYLISTS)
         .insert({
           user_id: userId,
           title: title || 'New Playlist',
@@ -504,7 +524,7 @@ export const playlistService = {
       if (is_public !== undefined) updates.is_public = is_public;
       
       const { error } = await supabase
-        .from('user_playlists')
+        .from(TABLES.USER_PLAYLISTS)
         .update(updates)
         .eq('id', finalPlaylistId);
 
@@ -512,7 +532,7 @@ export const playlistService = {
     }
 
     const { error: deleteError } = await supabase
-      .from('playlist_songs')
+      .from(TABLES.PLAYLIST_SONGS)
       .delete()
       .eq('playlist_id', finalPlaylistId);
 
@@ -527,7 +547,7 @@ export const playlistService = {
       }));
 
       const { error: insertError } = await supabase
-        .from('playlist_songs')
+        .from(TABLES.PLAYLIST_SONGS)
         .insert(songEntries);
 
       if (insertError) throw insertError;
@@ -540,7 +560,7 @@ export const playlistService = {
       }));
 
       const { error: insertError } = await supabase
-        .from('playlist_songs')
+        .from(TABLES.PLAYLIST_SONGS)
         .insert(songEntries);
 
       if (insertError) throw insertError;
@@ -556,10 +576,10 @@ export const playlistService = {
   async getDraft(userId) {
     if (!userId) return null;
     const { data, error } = await supabase
-      .from('user_playlists')
+      .from(TABLES.USER_PLAYLISTS)
       .select(`
         *,
-        songs:playlist_songs(
+        songs:${TABLES.PLAYLIST_SONGS}(
           song_id,
           level,
           order_index
@@ -594,7 +614,7 @@ export const playlistService = {
   async discardDraft(draftId) {
     if (!draftId) return;
     const { error } = await supabase
-      .from('user_playlists')
+      .from(TABLES.USER_PLAYLISTS)
       .update({ deleted: true })
       .eq('id', draftId);
     if (error) throw error;
@@ -606,7 +626,7 @@ export const playlistService = {
   async deletePlaylist(playlistId) {
     // 1. Soft delete the playlist
     const { error: playlistError } = await supabase
-      .from('user_playlists')
+      .from(TABLES.USER_PLAYLISTS)
       .update({ deleted: true })
       .eq('id', playlistId);
 
@@ -624,7 +644,7 @@ export const playlistService = {
   // Soft delete all posts for a specific playlist
   async softDeletePostsByPlaylist(playlistId) {
     const { error } = await supabase
-      .from('playlist_posts')
+      .from(TABLES.PLAYLIST_POSTS)
       .update({ deleted: true })
       .eq('playlist_id', playlistId);
 
@@ -638,7 +658,7 @@ export const playlistService = {
   // Share a playlist
   async sharePlaylist(userId, playlistId, content, commentsEnabled = true) {
     const { data, error } = await supabase
-      .from('playlist_posts')
+      .from(TABLES.PLAYLIST_POSTS)
       .insert({
         user_id: userId,
         playlist_id: playlistId,
@@ -658,20 +678,20 @@ export const playlistService = {
   // Get shared playlists (feed)
   async getSharedPlaylists() {
     const { data, error } = await supabase
-      .from('playlist_posts')
+      .from(TABLES.PLAYLIST_POSTS)
       .select(`
         id,
         content,
         created_at,
         comments_enabled,
-      author:user_profiles!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
-      playlist:user_playlists!playlist_id(
+      author:${TABLES.USER_PROFILES}!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
+      playlist:${TABLES.USER_PLAYLISTS}!playlist_id(
         id,
         title,
         comment,
         is_public,
         updated_at,
-        songs:playlist_songs(
+        songs:${TABLES.PLAYLIST_SONGS}(
             song_id,
             level,
             order_index
@@ -697,10 +717,68 @@ export const playlistService = {
     });
   },
 
+  // Get public playlists that contain the target song IDs
+  async getPublicPlaylistsBySongIds(songIds, limit = LIMITS.FEED_ACTIVITY) {
+    if (!Array.isArray(songIds) || songIds.length === 0) return [];
+
+    // 1. Get playlist IDs that contain these songs, ensuring they are public and not deleted
+    const { data: idData, error: idError } = await supabase
+      .from(TABLES.PLAYLIST_SONGS)
+      .select(`playlist_id, ${TABLES.USER_PLAYLISTS}!inner(is_public, deleted, is_draft)`)
+      .in('song_id', songIds)
+      .eq(`${TABLES.USER_PLAYLISTS}.is_public`, true)
+      .eq(`${TABLES.USER_PLAYLISTS}.deleted`, false)
+      .eq(`${TABLES.USER_PLAYLISTS}.is_draft`, false);
+
+    if (idError) {
+      console.error('Error fetching matching playlist IDs:', idError);
+      throw idError;
+    }
+
+    const uniqueIds = Array.from(new Set((idData || []).map(d => d.playlist_id))).slice(0, limit);
+    if (uniqueIds.length === 0) return [];
+
+    // 2. Fetch full playlists for these IDs (to avoid child filtering in PostgREST)
+    const { data, error } = await supabase
+      .from(TABLES.USER_PLAYLISTS)
+      .select(`
+        id,
+        title,
+        comment,
+        is_public,
+        updated_at,
+        user_id,
+        songs:${TABLES.PLAYLIST_SONGS}(
+          song_id,
+          level,
+          order_index
+        ),
+        author:${TABLES.USER_PROFILES}!user_id(
+          id,
+          display_name,
+          slug,
+          display_photo_url,
+          dx_display_photo_url
+        )
+      `)
+      .in('id', uniqueIds)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching full public playlists:', error);
+      throw error;
+    }
+
+    return (data || []).map((playlist) => ({
+      ...playlist,
+      songs: (playlist.songs || []).sort((a, b) => a.order_index - b.order_index)
+    }));
+  },
+
   // Get comments for a shared post
   async getPostComments(postId) {
     const { data, error } = await supabase
-      .from('playlist_comments')
+      .from(TABLES.PLAYLIST_COMMENTS)
       .select(`
         id,
         content,
@@ -741,6 +819,32 @@ export const playlistService = {
       console.error('Error adding post comment:', error);
       throw error;
     }
+
+    // Notify other commenters (thread activity)
+    try {
+      const { data: others } = await supabase
+        .from('playlist_comments')
+        .select('user_id')
+        .eq('post_id', postId)
+        .neq('user_id', userId)
+        .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .limit(10);
+      
+      const uniqueOthers = [...new Set(others?.map(o => o.user_id) || [])];
+      await Promise.all(uniqueOthers.map(recipientId => 
+        feedService.createActivityNotification({
+          recipientId,
+          actorId: userId,
+          type: 'thread_activity',
+          entityId: data.id,
+          entityType: 'playlist_comment',
+          postId: postId
+        })
+      ));
+    } catch (notifErr) {
+      console.error('Thread notification failed:', notifErr);
+    }
+
     return data;
   },
 
@@ -782,6 +886,31 @@ export const playlistService = {
         .select();
         
       if (error) throw error;
+
+      // Notify owner of upvote
+      if (voteType === 1) {
+        try {
+          const { data: comment } = await supabase
+            .from('playlist_comments')
+            .select('user_id, post_id')
+            .eq('id', commentId)
+            .single();
+
+          if (comment && comment.user_id !== userId) {
+            await feedService.createActivityNotification({
+              recipientId: comment.user_id,
+              actorId: userId,
+              type: 'playlist_comment_upvote',
+              entityId: commentId,
+              entityType: 'playlist_comment',
+              postId: comment.post_id
+            });
+          }
+        } catch (notifErr) {
+          console.error('Upvote notification failed:', notifErr);
+        }
+      }
+
       return data;
     }
   },

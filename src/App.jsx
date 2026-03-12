@@ -1,5 +1,5 @@
-import { useState, lazy, Suspense, useMemo } from 'react';
-import { MantineProvider, Container, Title, Paper, Stack, Group, Loader, createTheme } from '@mantine/core';
+import { lazy, Suspense, useMemo } from 'react';
+import { MantineProvider, Container, Stack, Loader, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
@@ -14,12 +14,9 @@ import { SongDatabaseProvider } from './contexts/SongDatabaseContext';
 import { useAuth } from './hooks/useAuth';
 import { theme as mantineTheme, themes } from './config/theme';
 import QueueManager from './features/queue/components/QueueManager';
-// import LoginForm from './components/LoginForm'; // Assuming this stayed, if not update
-import ThemeToggle from './components/layout/ThemeToggle';
-import BranchSelector from './components/layout/BranchSelector';
 import Footer from './components/layout/Footer';
-import PreferencesModal from './components/modals/PreferencesModal';
-import NotificationCenter from './components/layout/NotificationCenter';
+import GlobalNavbar from './components/layout/GlobalNavbar';
+import BranchSelector from './components/layout/BranchSelector';
 import './App.css';
 
 // Lazy load pages
@@ -30,58 +27,25 @@ const ExportBest50Page = lazy(() => import('./pages/ExportBest50Page'));
 const ViewPage = lazy(() => import('./pages/ViewPage'));
 const SongsPage = lazy(() => import('./pages/SongsPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
-import LoginForm from './components/LoginForm';
+const SearchPage = lazy(() => import('./pages/SearchPage'));
 
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
 const SongDiscussionPage = lazy(() => import('./pages/SongDiscussionPage'));
 const SharedPlaylistsPage = lazy(() => import('./pages/SharedPlaylistsPage'));
+const FeedPage = lazy(() => import('./pages/FeedPage'));
 
 // The main application content (Queue check, Login, etc.)
 function MainApp() {
-  const { user } = useAuth();
-  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
-
   return (
     <div className="App">
-      <Container size="lg" py="xl">
+      <Container size="xl" py="xl">
         <Stack gap="lg">
-          <Paper p="md" radius="md" withBorder className="app-header animate-fade-in">
-            <Group justify="space-between" align="center" gap="md" wrap="wrap">
-              <Group gap="md">
-                <Title order={1} className="app-title">
-                  maiPaQueueCheck PH
-                </Title>
-              </Group>
-            </Group>
-          </Paper>
-
-          <Group justify="space-between" gap="sm" className="animate-fade-in delay-100">
-            <BranchSelector />
-            <Group gap="sm">
-              {user && <NotificationCenter />}
-              <ThemeToggle />
-              <LoginForm
-                onOpenPreferences={() => setShowPreferencesModal(true)}
-              />
-            </Group>
-          </Group>
-
-          <main className="animate-fade-in delay-200">
+          <BranchSelector />
+          <main className="animate-fade-in delay-100">
             <QueueManager />
           </main>
-
-          <div className="animate-fade-in delay-300">
-            <Footer />
-          </div>
         </Stack>
       </Container>
-
-      {user && (
-        <PreferencesModal
-          opened={showPreferencesModal}
-          onClose={() => setShowPreferencesModal(false)}
-        />
-      )}
     </div>
   );
 }
@@ -115,11 +79,19 @@ function AppProviders() {
     return <Navigate to="/" replace />;
   };
 
+  const ProtectedRoute = ({ children }) => {
+    const { user, loading: authLoading } = useAuth();
+    if (authLoading) return null;
+    if (!user) return <Navigate to="/" replace />;
+    return children;
+  };
+
   return (
     <MantineProvider theme={dynamicTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
       <Notifications position="top-right" />
+      <GlobalNavbar />
       <Suspense fallback={
-        <Container size="lg" py="xl">
+        <Container size="xl" py="xl">
           <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
             <Loader size="xl" color="pink" type="bars" />
           </Stack>
@@ -131,7 +103,9 @@ function AppProviders() {
           <Route path="/view" element={<ViewPage />} />
           <Route path="/songs" element={<SongsPage />} />
           <Route path="/songs/:id" element={<SongDiscussionPage />} />
-          <Route path="/shared-playlists" element={<SharedPlaylistsPage />} />
+          <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+          <Route path="/shared-playlists" element={<ProtectedRoute><SharedPlaylistsPage /></ProtectedRoute>} />
+          <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/audit-logs" element={<AuditLogsPage />} />
@@ -140,6 +114,7 @@ function AppProviders() {
           <Route path="*" element={<MainApp />} />
         </Routes>
       </Suspense>
+      <Footer />
       <Analytics />
     </MantineProvider>
   );

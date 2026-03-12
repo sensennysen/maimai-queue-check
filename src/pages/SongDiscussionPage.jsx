@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, Alert, Rating, Autocomplete, ActionIcon, Textarea, Center, Flex, Grid, Table, ScrollArea, Box, Avatar, Modal, HoverCard, Tooltip } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconArrowLeft, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh, IconWorld, IconPlaylistAdd, IconBook, IconX } from '@tabler/icons-react';
+import { IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh, IconWorld, IconPlaylistAdd, IconBook, IconX } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
@@ -13,7 +13,6 @@ import { getRelativeTime, getProfileImageUrl } from '../utils/formatters';
 
 export default function SongDiscussionPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { songs, songMapById, loading: songsLoading } = useSongDatabaseContext();
 
   const getRelativeTimeCb = useCallback((dateString) => getRelativeTime(dateString), []);
@@ -75,7 +74,7 @@ export default function SongDiscussionPage() {
 
   if (songsLoading) {
     return (
-      <Container size="md" py="xl">
+      <Container size="xl" py="xl">
         <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
           <Loader size="xl" color="pink" type="bars" />
           <Text c="dimmed">Loading song details...</Text>
@@ -87,12 +86,9 @@ export default function SongDiscussionPage() {
   if (!song) {
     // If not loading and no song found, either redirect or show not found
     return (
-      <Container size="md" py="xl">
+      <Container size="xl" py="xl">
         <Stack align="center" gap="md">
           <Title order={2}>Song Not Found</Title>
-          <Button onClick={() => navigate(-1)} leftSection={<IconArrowLeft size={16} />}>
-            Go Back
-          </Button>
         </Stack>
       </Container>
     );
@@ -103,9 +99,6 @@ export default function SongDiscussionPage() {
       <Stack gap="xl">
         {/* Navigation */}
         <Group justify="space-between">
-          <Button onClick={() => navigate(-1)} variant="subtle" leftSection={<IconArrowLeft size={16} />}>
-            Go Back
-          </Button>
           <Button
             variant="light"
             color="teal"

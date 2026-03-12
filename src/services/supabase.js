@@ -17,3 +17,5 @@ export * from './supabase/contact';
 export * from './supabase/import';
 export * from './supabase/discussion';
 export * from './supabase/audit';
+export * from './supabase/follow';
+export * from './supabase/feed';

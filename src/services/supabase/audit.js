@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { TABLES } from '../../constants/database';
 
 /**
  * Audit Service
@@ -62,7 +63,7 @@ export const auditService = {
       } = options;
 
       let query = supabase
-        .from('audit_logs')
+        .from(TABLES.AUDIT_LOGS)
         .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
 
@@ -110,7 +111,7 @@ export const auditService = {
   async getAuditLog(logId) {
     try {
       const { data, error } = await supabase
-        .from('audit_logs')
+        .from(TABLES.AUDIT_LOGS)
         .select('*')
         .eq('id', logId)
         .single();
@@ -134,7 +135,7 @@ export const auditService = {
   async getAuditTrailForEntity(recordId, tableName = null) {
     try {
       let query = supabase
-        .from('audit_logs')
+        .from(TABLES.AUDIT_LOGS)
         .select('*')
         .eq('record_id', recordId)
         .order('created_at', { ascending: true });
