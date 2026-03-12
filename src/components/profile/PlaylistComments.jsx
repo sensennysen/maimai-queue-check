@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { playlistService } from '../../services/supabase';
 import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
 import { useNavigate } from 'react-router-dom';
+import { VoterListModal } from '../common/VoterListModal';
 
 export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
   const { user, userRoles } = useAuth();
@@ -14,6 +15,9 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [votersOpened, setVotersOpened] = useState(false);
+  const [selectedCommentId, setSelectedCommentId] = useState(null);
+  const [initialVoterTab, setInitialVoterTab] = useState('likes');
 
   const fetchComments = useCallback(async () => {
     if (!postId) return;
@@ -130,30 +134,12 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
                     {comment.content}
                   </Text>
 
-                  <Group gap="xs" mt={4}>
-                    <Tooltip
-                      label={
-                        upvotes.length > 0 ? (
-                          <Stack gap={4}>
-                            {upvotes.slice(0, 10).map((v, i) => (
-                              <Group key={i} gap="xs">
-                                <Avatar src={getProfileImageUrl(v.user_profiles)} size={20} radius="xl" />
-                                <Text size="xs">{v.user_profiles?.display_name || 'Unknown'}</Text>
-                              </Group>
-                            ))}
-                            {upvotes.length > 10 && <Text size="xs" c="dimmed">+{upvotes.length - 10} more</Text>}
-                          </Stack>
-                        ) : null
-                      }
-                      disabled={upvotes.length === 0}
-                      position="top"
-                      withArrow
-                    >
-                      <Button
+                  <Group gap={8} mt={4}>
+                    <Group gap={4}>
+                      <ActionIcon
                         variant={myVote === 1 ? 'light' : 'subtle'}
                         color={myVote === 1 ? 'blue' : 'gray'}
-                        size="compact-xs"
-                        leftSection={<IconThumbUp size={14} />}
+                        size="sm"
                         disabled={!user}
                         onClick={async () => {
                           try {
@@ -172,33 +158,30 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
                           }
                         }}
                       >
-                        {upvotes.length > 0 ? upvotes.length : ''}
-                      </Button>
-                    </Tooltip>
+                        <IconThumbUp size={16} />
+                      </ActionIcon>
+                      {upvotes.length > 0 && (
+                        <Text
+                          size="sm"
+                          c="dimmed"
+                          fw={myVote === 1 ? 700 : 400}
+                          onClick={() => {
+                            setSelectedCommentId(comment.id);
+                            setInitialVoterTab('likes');
+                            setVotersOpened(true);
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {upvotes.length}
+                        </Text>
+                      )}
+                    </Group>
 
-                    <Tooltip
-                      label={
-                        downvotes.length > 0 ? (
-                          <Stack gap={4}>
-                            {downvotes.slice(0, 10).map((v, i) => (
-                              <Group key={i} gap="xs">
-                                <Avatar src={getProfileImageUrl(v.user_profiles)} size={20} radius="xl" />
-                                <Text size="xs">{v.user_profiles?.display_name || 'Unknown'}</Text>
-                              </Group>
-                            ))}
-                            {downvotes.length > 10 && <Text size="xs" c="dimmed">+{downvotes.length - 10} more</Text>}
-                          </Stack>
-                        ) : null
-                      }
-                      disabled={downvotes.length === 0}
-                      position="top"
-                      withArrow
-                    >
-                      <Button
+                    <Group gap={4}>
+                      <ActionIcon
                         variant={myVote === -1 ? 'light' : 'subtle'}
                         color={myVote === -1 ? 'red' : 'gray'}
-                        size="compact-xs"
-                        leftSection={<IconThumbDown size={14} />}
+                        size="sm"
                         disabled={!user}
                         onClick={async () => {
                           try {
@@ -217,9 +200,24 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
                           }
                         }}
                       >
-                        {downvotes.length > 0 ? downvotes.length : ''}
-                      </Button>
-                    </Tooltip>
+                        <IconThumbDown size={16} />
+                      </ActionIcon>
+                      {downvotes.length > 0 && (
+                        <Text
+                          size="sm"
+                          c="dimmed"
+                          fw={myVote === -1 ? 700 : 400}
+                          onClick={() => {
+                            setSelectedCommentId(comment.id);
+                            setInitialVoterTab('dislikes');
+                            setVotersOpened(true);
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {downvotes.length}
+                        </Text>
+                      )}
+                    </Group>
                   </Group>
                 </Stack>
               </Box>
@@ -259,6 +257,13 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
           <Text size="sm" ta="center" c="dimmed">Log in to leave a comment.</Text>
         </Paper>
       )}
+      <VoterListModal
+        opened={votersOpened}
+        onClose={() => setVotersOpened(false)}
+        title="Comment Voters"
+        fetchVoters={() => playlistService.getPlaylistCommentVoters(selectedCommentId)}
+        initialTab={initialVoterTab}
+      />
     </Stack >
   );
 }

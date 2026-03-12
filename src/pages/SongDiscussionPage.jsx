@@ -2,13 +2,14 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { Container, Stack, Group, Title, Text, Button, Loader, Paper, Image, Badge, Alert, Rating, Autocomplete, ActionIcon, Textarea, Center, Flex, Grid, Table, ScrollArea, Box, Avatar, Modal, HoverCard, Tooltip } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh, IconWorld, IconPlaylistAdd, IconBook, IconX } from '@tabler/icons-react';
+import { IconThumbUpFilled, IconAlertCircle, IconPlus, IconTrash, IconThumbUp, IconThumbDown, IconRefresh, IconWorld, IconPlaylistAdd, IconBook, IconX } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { discussionService } from '../services/supabase';
 import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty } from '../config/maimai-constants';
 import { AddToPlaylistModal } from '../components/modals/AddToPlaylistModal';
+import { VoterListModal } from '../components/common/VoterListModal';
 import { getRelativeTime, getProfileImageUrl } from '../utils/formatters';
 
 export default function SongDiscussionPage() {
@@ -27,6 +28,9 @@ export default function SongDiscussionPage() {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [addToPlaylistOpened, setAddToPlaylistOpened] = useState(false);
   const [glossaryOpened, setGlossaryOpened] = useState(false);
+  const [votersOpened, setVotersOpened] = useState(false);
+  const [selectedCommentId, setSelectedCommentId] = useState(null);
+  const [initialVoterTab, setInitialVoterTab] = useState('likes');
   const { user, userRoles } = useAuth();
   const location = useLocation();
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -744,30 +748,12 @@ export default function SongDiscussionPage() {
                             {comment.content}
                           </Text>
 
-                          <Group gap="xs" mt="sm">
-                            <Tooltip
-                              label={
-                                upvotes.length > 0 ? (
-                                  <Stack gap={4}>
-                                    {upvotes.slice(0, 10).map((v, i) => (
-                                      <Group key={i} gap="xs">
-                                        <Avatar src={getProfileImageUrl(v.user_profiles)} size={20} radius="xl" />
-                                        <Text size="xs">{v.user_profiles?.display_name || 'Unknown'}</Text>
-                                      </Group>
-                                    ))}
-                                    {upvotes.length > 10 && <Text size="xs" c="dimmed">+{upvotes.length - 10} more</Text>}
-                                  </Stack>
-                                ) : null
-                              }
-                              disabled={upvotes.length === 0}
-                              position="top"
-                              withArrow
-                            >
-                              <Button
+                          <Group gap={8} mt="sm">
+                            <Group gap={4}>
+                              <ActionIcon
                                 variant={myVote === 1 ? 'light' : 'subtle'}
                                 color={myVote === 1 ? 'blue' : 'gray'}
-                                size="compact-xs"
-                                leftSection={<IconThumbUp size={14} />}
+                                size="md"
                                 disabled={!user}
                                 onClick={async () => {
                                   try {
@@ -789,33 +775,30 @@ export default function SongDiscussionPage() {
                                   }
                                 }}
                               >
-                                {upvotes.length > 0 ? upvotes.length : ''}
-                              </Button>
-                            </Tooltip>
+                                {myVote === 1 ? <IconThumbUpFilled size={20} /> : <IconThumbUp size={20} />}
+                              </ActionIcon>
+                              {upvotes.length > 0 && (
+                                <Text
+                                  size="sm"
+                                  c="dimmed"
+                                  fw={myVote === 1 ? 700 : 400}
+                                  onClick={() => {
+                                    setSelectedCommentId(comment.id);
+                                    setInitialVoterTab('likes');
+                                    setVotersOpened(true);
+                                  }}
+                                  style={{ cursor: 'pointer' }}
+                                >
+                                  {upvotes.length}
+                                </Text>
+                              )}
+                            </Group>
 
-                            <Tooltip
-                              label={
-                                downvotes.length > 0 ? (
-                                  <Stack gap={4}>
-                                    {downvotes.slice(0, 10).map((v, i) => (
-                                      <Group key={i} gap="xs">
-                                        <Avatar src={getProfileImageUrl(v.user_profiles)} size={20} radius="xl" />
-                                        <Text size="xs">{v.user_profiles?.display_name || 'Unknown'}</Text>
-                                      </Group>
-                                    ))}
-                                    {downvotes.length > 10 && <Text size="xs" c="dimmed">+{downvotes.length - 10} more</Text>}
-                                  </Stack>
-                                ) : null
-                              }
-                              disabled={downvotes.length === 0}
-                              position="top"
-                              withArrow
-                            >
-                              <Button
+                            <Group gap={4}>
+                              <ActionIcon
                                 variant={myVote === -1 ? 'light' : 'subtle'}
                                 color={myVote === -1 ? 'red' : 'gray'}
-                                size="compact-xs"
-                                leftSection={<IconThumbDown size={14} />}
+                                size="md"
                                 disabled={!user}
                                 onClick={async () => {
                                   try {
@@ -837,9 +820,24 @@ export default function SongDiscussionPage() {
                                   }
                                 }}
                               >
-                                {downvotes.length > 0 ? downvotes.length : ''}
-                              </Button>
-                            </Tooltip>
+                                {myVote === -1 ? <IconThumbDownFilled size={20} /> : <IconThumbDown size={20} />}
+                              </ActionIcon>
+                              {downvotes.length > 0 && (
+                                <Text
+                                  size="sm"
+                                  c="dimmed"
+                                  fw={myVote === -1 ? 700 : 400}
+                                  onClick={() => {
+                                    setSelectedCommentId(comment.id);
+                                    setInitialVoterTab('dislikes');
+                                    setVotersOpened(true);
+                                  }}
+                                  style={{ cursor: 'pointer' }}
+                                >
+                                  {downvotes.length}
+                                </Text>
+                              )}
+                            </Group>
                           </Group>
                         </Paper>
                       );
@@ -872,6 +870,14 @@ export default function SongDiscussionPage() {
           title: song.title,
           imageUrl: import.meta.env.VITE_SONG_JACKETS_URL + song.imageName
         }}
+      />
+
+      <VoterListModal
+        opened={votersOpened}
+        onClose={() => setVotersOpened(false)}
+        title="Comment Voters"
+        fetchVoters={() => discussionService.getSongCommentVoters(selectedCommentId)}
+        initialTab={initialVoterTab}
       />
 
       {/* Tag Glossary Modal */}

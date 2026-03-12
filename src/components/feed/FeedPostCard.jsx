@@ -22,6 +22,7 @@ import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
 import { FeedPostComments } from './FeedPostComments';
 import { FeedSongCard } from './FeedSongCard';
 import { FeedPlaylistCard } from './FeedPlaylistCard';
+import { VoterListModal } from '../common/VoterListModal';
 import { feedService } from '../../services/supabase';
 
 
@@ -43,6 +44,8 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
   const [dislikes, setDislikes] = useState(post.dislike_count ?? 0);
   const [userVote, setUserVote] = useState(post.user_vote ?? 0);
   const [voting, setVoting] = useState(false);
+  const [votersOpened, setVotersOpened] = useState(false);
+  const [initialVoterTab, setInitialVoterTab] = useState('likes');
 
   const isOwn = currentUser && post.author?.id === currentUser.id;
   const editRemaining = MAX_CHARS - editContent.length;
@@ -259,25 +262,45 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
               <ActionIcon 
                 variant={userVote === 1 ? 'light' : 'subtle'} 
                 color={userVote === 1 ? 'blue' : 'gray'} 
-                size="sm"
+                size="md"
                 onClick={() => handleVote(1)}
                 loading={voting && userVote === 1}
               >
-                {userVote === 1 ? <IconThumbUpFilled size={16} /> : <IconThumbUp size={16} />}
+                {userVote === 1 ? <IconThumbUpFilled size={20} /> : <IconThumbUp size={20} />}
               </ActionIcon>
-              {likes > 0 && <Text size="xs" c="dimmed" fw={userVote === 1 ? 700 : 400}>{likes}</Text>}
+              {likes > 0 && (
+                <Text 
+                  size="sm" 
+                  c="dimmed" 
+                  fw={userVote === 1 ? 700 : 400}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => { setInitialVoterTab('likes'); setVotersOpened(true); }}
+                >
+                  {likes}
+                </Text>
+              )}
 
               <ActionIcon 
                 variant={userVote === -1 ? 'light' : 'subtle'} 
                 color={userVote === -1 ? 'red' : 'gray'} 
-                size="sm"
+                size="md"
                 onClick={() => handleVote(-1)}
                 loading={voting && userVote === -1}
                 ml={4}
               >
-                {userVote === -1 ? <IconThumbDownFilled size={16} /> : <IconThumbDown size={16} />}
+                {userVote === -1 ? <IconThumbDownFilled size={20} /> : <IconThumbDown size={20} />}
               </ActionIcon>
-              {dislikes > 0 && <Text size="xs" c="dimmed" fw={userVote === -1 ? 700 : 400}>{dislikes}</Text>}
+              {dislikes > 0 && (
+                <Text 
+                  size="sm" 
+                  c="dimmed" 
+                  fw={userVote === -1 ? 700 : 400}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => { setInitialVoterTab('dislikes'); setVotersOpened(true); }}
+                >
+                  {dislikes}
+                </Text>
+              )}
             </Group>
           </Group>
 
@@ -293,6 +316,14 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
           )}
         </Box>
       </Stack>
+
+      <VoterListModal
+        opened={votersOpened}
+        onClose={() => setVotersOpened(false)}
+        title="Post Voters"
+        fetchVoters={() => feedService.getFeedPostVoters(post.id)}
+        initialTab={initialVoterTab}
+      />
     </Paper>
   );
 }

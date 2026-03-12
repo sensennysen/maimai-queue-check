@@ -585,19 +585,34 @@ export const feedService = {
   /**
    * Get comments for a feed post.
    */
-  async getFeedPostComments(postId, limit = LIMITS.COMMENT_POOL) {
+  async getFeedPostComments(postId, userId = null, limit = LIMITS.COMMENT_POOL) {
     const { data, error } = await supabase
       .from(TABLES.FEED_POST_COMMENTS)
       .select(`
         id, content, created_at,
-        author:${TABLES.USER_PROFILES}!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url)
+        author:${TABLES.USER_PROFILES}!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        votes:${TABLES.FEED_POST_COMMENT_VOTES}(vote_type, user_id)
       `)
       .eq('post_id', postId)
       .order('created_at', { ascending: true })
       .limit(limit);
 
     if (error) throw error;
-    return data || [];
+    
+    return (data || []).map(c => {
+      const votes = c.votes || [];
+      const like_count = votes.filter(v => v.vote_type === 1).length;
+      const dislike_count = votes.filter(v => v.vote_type === -1).length;
+      const user_vote = userId ? (votes.find(v => v.user_id === userId)?.vote_type || 0) : 0;
+      
+      return {
+        ...c,
+        like_count,
+        dislike_count,
+        user_vote,
+        votes: undefined
+      };
+    });
   },
 
   /**
@@ -686,6 +701,95 @@ export const feedService = {
 
       return data;
     }
+  },
+
+  /**
+   * Vote on a community feed post comment (like, dislike, or remove).
+   */
+  async voteFeedPostComment(commentId, userId, voteType) {
+    if (voteType === 0) {
+      // Remove vote
+      const { error } = await supabase
+        .from(TABLES.FEED_POST_COMMENT_VOTES)
+        .delete()
+        .eq('comment_id', commentId)
+        .eq('user_id', userId);
+        
+      if (error) throw error;
+      return { vote_type: 0 };
+    } else {
+      // Upsert vote
+      const { data, error } = await supabase
+        .from(TABLES.FEED_POST_COMMENT_VOTES)
+        .upsert(
+          { comment_id: commentId, user_id: userId, vote_type: voteType },
+          { onConflict: 'comment_id,user_id' }
+        )
+        .select('vote_type')
+        .single();
+        
+      if (error) throw error;
+
+      // Notify owner of comment like
+      if (voteType === 1) {
+        try {
+          const { data: comment } = await supabase
+            .from(TABLES.FEED_POST_COMMENTS)
+            .select('user_id, post_id')
+            .eq('id', commentId)
+            .single();
+
+          if (comment && comment.user_id !== userId) {
+            await this.createActivityNotification({
+              recipientId: comment.user_id,
+              actorId: userId,
+              type: 'comment_like',
+              entityId: commentId,
+              entityType: 'feed_post_comment',
+              postId: comment.post_id
+            });
+          }
+        } catch (notifErr) {
+          console.error('Comment like notification failed:', notifErr);
+        }
+      }
+
+      return data;
+    }
+  },
+
+  /**
+   * Get profiles of users who voted on a feed post.
+   */
+  async getFeedPostVoters(postId) {
+    const { data, error } = await supabase
+      .from(TABLES.FEED_POST_VOTES)
+      .select(`
+        vote_type,
+        user:${TABLES.USER_PROFILES}!user_id(id, display_name, slug, display_photo_url, dx_display_photo_url)
+      `)
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Get profiles of users who voted on a feed post comment.
+   */
+  async getFeedPostCommentVoters(commentId) {
+    const { data, error } = await supabase
+      .from(TABLES.FEED_POST_COMMENT_VOTES)
+      .select(`
+        vote_type,
+        user:${TABLES.USER_PROFILES}!user_id(id, display_name, slug, display_photo_url, dx_display_photo_url)
+      `)
+      .eq('comment_id', commentId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   },
 
   /**

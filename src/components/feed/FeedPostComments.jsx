@@ -7,7 +7,12 @@ import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import IconSend from '@tabler/icons-react/dist/esm/icons/IconSend.mjs';
+import IconThumbUp from '@tabler/icons-react/dist/esm/icons/IconThumbUp.mjs';
+import IconThumbDown from '@tabler/icons-react/dist/esm/icons/IconThumbDown.mjs';
+import IconThumbUpFilled from '@tabler/icons-react/dist/esm/icons/IconThumbUpFilled.mjs';
+import IconThumbDownFilled from '@tabler/icons-react/dist/esm/icons/IconThumbDownFilled.mjs';
 import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
+import { VoterListModal } from '../common/VoterListModal';
 import { feedService } from '../../services/supabase';
 
 /**
@@ -20,11 +25,15 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [votingId, setVotingId] = useState(null);
+  const [votersOpened, setVotersOpened] = useState(false);
+  const [selectedCommentId, setSelectedCommentId] = useState(null);
+  const [initialVoterTab, setInitialVoterTab] = useState('likes');
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await feedService.getFeedPostComments(postId);
+      const data = await feedService.getFeedPostComments(postId, currentUser?.id);
       setComments(data);
       onCountChange?.(data.length);
     } catch {
@@ -32,7 +41,7 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
     } finally {
       setLoading(false);
     }
-  }, [postId, onCountChange]);
+  }, [postId, currentUser?.id, onCountChange]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -59,6 +68,50 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
       onCountChange?.(cnt => Math.max(0, cnt - 1));
     } catch {
       notifications.show({ title: 'Error', message: 'Failed to delete comment.', color: 'red' });
+    }
+  };
+
+  const handleVote = async (commentId, type) => {
+    if (!currentUser) {
+      notifications.show({ title: 'Login required', message: 'Please log in to vote on comments.', color: 'blue' });
+      return;
+    }
+    if (votingId) return;
+
+    const comment = comments.find(c => c.id === commentId);
+    if (!comment) return;
+
+    const oldVote = comment.user_vote;
+    const newVote = oldVote === type ? 0 : type;
+
+    // Optimistic UI update
+    setComments(prev => prev.map(c => {
+      if (c.id !== commentId) return c;
+      const updated = { ...c, user_vote: newVote };
+      if (oldVote === 1) updated.like_count--;
+      if (oldVote === -1) updated.dislike_count--;
+      if (newVote === 1) updated.like_count++;
+      if (newVote === -1) updated.dislike_count++;
+      return updated;
+    }));
+
+    setVotingId(commentId);
+    try {
+      await feedService.voteFeedPostComment(commentId, currentUser.id, newVote);
+    } catch {
+      // Rollback
+      setComments(prev => prev.map(c => {
+        if (c.id !== commentId) return c;
+        const rolledBack = { ...c, user_vote: oldVote };
+        if (oldVote === 1) rolledBack.like_count++;
+        if (oldVote === -1) rolledBack.dislike_count++;
+        if (newVote === 1) rolledBack.like_count--;
+        if (newVote === -1) rolledBack.dislike_count--;
+        return rolledBack;
+      }));
+      notifications.show({ title: 'Error', message: 'Failed to update vote.', color: 'red' });
+    } finally {
+      setVotingId(null);
     }
   };
 
@@ -100,6 +153,54 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
                   <Text size="xs" c="dimmed">{getRelativeTime(c.created_at)}</Text>
                 </Group>
                 <Text size="xs" style={{ wordBreak: 'break-word' }}>{c.content}</Text>
+                
+                <Group gap={8} mt={4}>
+                  <Group gap={4}>
+                      <ActionIcon 
+                        variant={c.user_vote === 1 ? 'light' : 'subtle'} 
+                        color={c.user_vote === 1 ? 'blue' : 'gray'} 
+                        size="sm"
+                        onClick={() => handleVote(c.id, 1)}
+                        loading={votingId === c.id && c.user_vote === 1}
+                      >
+                        {c.user_vote === 1 ? <IconThumbUpFilled size={16} /> : <IconThumbUp size={16} />}
+                      </ActionIcon>
+                      {c.like_count > 0 && (
+                        <Text 
+                          size="sm" 
+                          c="dimmed" 
+                          fw={c.user_vote === 1 ? 700 : 400}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => { setSelectedCommentId(c.id); setInitialVoterTab('likes'); setVotersOpened(true); }}
+                        >
+                          {c.like_count}
+                        </Text>
+                      )}
+                  </Group>
+
+                  <Group gap={4}>
+                      <ActionIcon 
+                        variant={c.user_vote === -1 ? 'light' : 'subtle'} 
+                        color={c.user_vote === -1 ? 'red' : 'gray'} 
+                        size="sm"
+                        onClick={() => handleVote(c.id, -1)}
+                        loading={votingId === c.id && c.user_vote === -1}
+                      >
+                        {c.user_vote === -1 ? <IconThumbDownFilled size={16} /> : <IconThumbDown size={16} />}
+                      </ActionIcon>
+                      {c.dislike_count > 0 && (
+                        <Text 
+                          size="sm" 
+                          c="dimmed" 
+                          fw={c.user_vote === -1 ? 700 : 400}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => { setSelectedCommentId(c.id); setInitialVoterTab('dislikes'); setVotersOpened(true); }}
+                        >
+                          {c.dislike_count}
+                        </Text>
+                      )}
+                  </Group>
+                </Group>
               </Box>
               {currentUser && c.author?.id === currentUser.id && (
                 <ActionIcon
@@ -153,6 +254,14 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
       ) : (
         <Text size="xs" c="dimmed" ta="center">Log in to comment.</Text>
       )}
+
+      <VoterListModal
+        opened={votersOpened}
+        onClose={() => setVotersOpened(false)}
+        title="Comment Voters"
+        fetchVoters={() => feedService.getFeedPostCommentVoters(selectedCommentId)}
+        initialTab={initialVoterTab}
+      />
     </Stack>
   );
 }
