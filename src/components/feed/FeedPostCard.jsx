@@ -239,7 +239,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
                   playlist: post.attached_playlist,
                   created_at: post.created_at
                 }}
-                onClick={() => navigate(`/shared-playlists?post=${post.attached_playlist.id}`)}
+                onClick={() => navigate(`/shared-playlists?playlist=${post.attached_playlist.id}`)}
               />
             )}
           </Box>

@@ -512,7 +512,10 @@ export default function FeedPage() {
                         key={item.key}
                         post={item.post}
                         latestComment={item.latestComment}
-                        onClick={() => navigate('/shared-playlists')}
+                        onClick={() => {
+                          if (item.post?.id) navigate(`/shared-playlists?post=${item.post.id}`);
+                          else navigate('/shared-playlists');
+                        }}
                         layout="strip"
                         className="community-playlist-strip"
                       />
