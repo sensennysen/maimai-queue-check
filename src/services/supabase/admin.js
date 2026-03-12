@@ -48,6 +48,18 @@ export const branchService = {
 
     if (error) throw error;
     return data || [];
+  },
+
+  // Fetch all enabled branches regardless of coordinates or schedules
+  async getAllEnabledBranches() {
+    const { data, error } = await supabase
+      .from(TABLES.ALLOWED_PLACES)
+      .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled')
+      .eq('enabled', true)
+      .order('arcade_name', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
   }
 };
 

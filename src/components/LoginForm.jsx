@@ -22,7 +22,7 @@ import './LoginForm.css';
 
 const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
   const { user, loading, signInWithProvider, signOut, userRoles, refreshUserRoles } = useAuth();
-  const { branches } = useBranch();
+  const { branches, allEnabledBranches } = useBranch();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -94,12 +94,13 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
 
   // Helper to render preferred branch badges
   const renderPreferredBranches = () => {
-    if (!userRoles?.preferred_branches?.length || !branches.length) return null;
+    const activeBranches = allEnabledBranches.length > 0 ? allEnabledBranches : branches;
+    if (!userRoles?.preferred_branches?.length || !activeBranches.length) return null;
 
     return (
       <Group gap={4} mt={4} style={{ flexWrap: 'wrap', maxWidth: '100%' }}>
         {userRoles.preferred_branches.map(branchId => {
-          const branch = branches.find(b => b.id === branchId);
+          const branch = activeBranches.find(b => b.id === branchId);
           if (!branch) return null;
           return (
             <Badge key={branchId} size="xs" variant="light" color="blue">
@@ -233,7 +234,7 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
           onClose={() => setProfileSettingsOpen(false)}
           userId={user.id}
           initialData={profileData}
-          allBranches={branches}
+          allBranches={allEnabledBranches.length > 0 ? allEnabledBranches : branches}
           onSuccess={refreshProfileData}
         />
         <PrivacySettingsModal
