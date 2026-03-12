@@ -8,6 +8,7 @@ export const TABLES = {
   PLAYLIST_POSTS: 'playlist_posts',
   FEED_POSTS: 'feed_posts',
   FEED_POST_COMMENTS: 'feed_post_comments',
+  FEED_POST_VOTES: 'feed_post_votes',
   SONG_RATINGS: 'song_ratings',
   SONG_COMMENTS: 'song_comments',
   SONG_COMMENT_VOTES: 'song_comment_votes',

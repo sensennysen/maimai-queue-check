@@ -445,6 +445,7 @@ export const feedService = {
       .select(`
         id, content, visibility, attached_song_id, attached_playlist_id, image_url, created_at, updated_at,
         author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        votes:${TABLES.FEED_POST_VOTES}(vote_type, user_id),
         attached_playlist:${TABLES.USER_PLAYLISTS}!attached_playlist_id(
           id, title, comment, is_public,
           songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
@@ -453,7 +454,14 @@ export const feedService = {
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Process votes
+    const votes = data.votes || [];
+    const like_count = votes.filter(v => v.vote_type === 1).length;
+    const dislike_count = votes.filter(v => v.vote_type === -1).length;
+    const user_vote = votes.find(v => v.user_id === userId)?.vote_type || 0;
+
+    return { ...data, like_count, dislike_count, user_vote, votes: undefined };
   },
 
   /**
@@ -465,6 +473,7 @@ export const feedService = {
       .select(`
         id, content, visibility, attached_song_id, attached_playlist_id, image_url, created_at, updated_at,
         author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        votes:${TABLES.FEED_POST_VOTES}(vote_type, user_id),
         comments:${TABLES.FEED_POST_COMMENTS}(id),
         attached_playlist:${TABLES.USER_PLAYLISTS}!attached_playlist_id(
           id, title, comment, is_public,
@@ -484,7 +493,22 @@ export const feedService = {
       .limit(limit);
 
     if (error) throw error;
-    return (data || []).map(p => ({ ...p, comment_count: p.comments?.length ?? 0, comments: undefined }));
+    return (data || []).map(p => {
+      const votes = p.votes || [];
+      const like_count = votes.filter(v => v.vote_type === 1).length;
+      const dislike_count = votes.filter(v => v.vote_type === -1).length;
+      const user_vote = userId ? (votes.find(v => v.user_id === userId)?.vote_type || 0) : 0;
+      
+      return { 
+        ...p, 
+        comment_count: p.comments?.length ?? 0, 
+        like_count,
+        dislike_count,
+        user_vote,
+        comments: undefined,
+        votes: undefined
+      };
+    });
   },
 
   /**
@@ -496,6 +520,7 @@ export const feedService = {
       .select(`
         id, content, visibility, attached_song_id, attached_playlist_id, image_url, created_at, updated_at,
         author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        votes:${TABLES.FEED_POST_VOTES}(vote_type, user_id),
         comments:${TABLES.FEED_POST_COMMENTS}(id),
         attached_playlist:${TABLES.USER_PLAYLISTS}!attached_playlist_id(
           id, title, comment, is_public,
@@ -508,7 +533,22 @@ export const feedService = {
       .limit(limit);
 
     if (error) throw error;
-    return (data || []).map(p => ({ ...p, comment_count: p.comments?.length ?? 0, comments: undefined }));
+    return (data || []).map(p => {
+      const votes = p.votes || [];
+      const like_count = votes.filter(v => v.vote_type === 1).length;
+      const dislike_count = votes.filter(v => v.vote_type === -1).length;
+      const user_vote = userId ? (votes.find(v => v.user_id === userId)?.vote_type || 0) : 0;
+
+      return { 
+        ...p, 
+        comment_count: p.comments?.length ?? 0, 
+        like_count,
+        dislike_count,
+        user_vote,
+        comments: undefined, 
+        votes: undefined
+      };
+    });
   },
 
   /**
@@ -588,6 +628,64 @@ export const feedService = {
       .eq('user_id', userId);
 
     if (error) throw error;
+  },
+
+  /**
+   * Vote on a community feed post (like, dislike, or remove).
+   * @param {string} postId
+   * @param {string} userId
+   * @param {number} voteType - 1 for like, -1 for dislike, 0 to remove
+   */
+  async voteFeedPost(postId, userId, voteType) {
+    if (voteType === 0) {
+      // Remove vote
+      const { error } = await supabase
+        .from(TABLES.FEED_POST_VOTES)
+        .delete()
+        .eq('post_id', postId)
+        .eq('user_id', userId);
+        
+      if (error) throw error;
+      return { vote_type: 0 };
+    } else {
+      // Upsert vote
+      const { data, error } = await supabase
+        .from(TABLES.FEED_POST_VOTES)
+        .upsert(
+          { post_id: postId, user_id: userId, vote_type: voteType },
+          { onConflict: 'post_id,user_id' }
+        )
+        .select('vote_type')
+        .single();
+        
+      if (error) throw error;
+
+      // Notify owner of like
+      if (voteType === 1) {
+        try {
+          const { data: post } = await supabase
+            .from(TABLES.FEED_POSTS)
+            .select('user_id')
+            .eq('id', postId)
+            .single();
+
+          if (post && post.user_id !== userId) {
+            await this.createActivityNotification({
+              recipientId: post.user_id,
+              actorId: userId,
+              type: 'post_like',
+              entityId: postId,
+              entityType: 'feed_post',
+              postId: postId
+            });
+          }
+        } catch (notifErr) {
+          console.error('Post like notification failed:', notifErr);
+        }
+      }
+
+      return data;
+    }
   },
 
   /**

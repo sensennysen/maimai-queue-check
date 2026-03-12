@@ -14,6 +14,10 @@ import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 import IconMessage from '@tabler/icons-react/dist/esm/icons/IconMessage.mjs';
 import IconWorld from '@tabler/icons-react/dist/esm/icons/IconWorld.mjs';
 import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
+import IconThumbUp from '@tabler/icons-react/dist/esm/icons/IconThumbUp.mjs';
+import IconThumbDown from '@tabler/icons-react/dist/esm/icons/IconThumbDown.mjs';
+import IconThumbUpFilled from '@tabler/icons-react/dist/esm/icons/IconThumbUpFilled.mjs';
+import IconThumbDownFilled from '@tabler/icons-react/dist/esm/icons/IconThumbDownFilled.mjs';
 import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
 import { FeedPostComments } from './FeedPostComments';
 import { FeedSongCard } from './FeedSongCard';
@@ -35,6 +39,10 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
   const [saving, setSaving] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(post.comment_count ?? 0);
+  const [likes, setLikes] = useState(post.like_count ?? 0);
+  const [dislikes, setDislikes] = useState(post.dislike_count ?? 0);
+  const [userVote, setUserVote] = useState(post.user_vote ?? 0);
+  const [voting, setVoting] = useState(false);
 
   const isOwn = currentUser && post.author?.id === currentUser.id;
   const editRemaining = MAX_CHARS - editContent.length;
@@ -64,6 +72,39 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
       notifications.show({ title: 'Error', message: 'Failed to delete post.', color: 'red' });
     }
   }, [post.id, currentUser?.id, onDelete]);
+
+  const handleVote = useCallback(async (type) => {
+    if (!currentUser) {
+      notifications.show({ title: 'Login required', message: 'Please log in to vote on posts.', color: 'blue' });
+      return;
+    }
+    if (voting) return;
+
+    const oldVote = userVote;
+    const newVote = oldVote === type ? 0 : type;
+
+    // Optimistic UI update
+    setUserVote(newVote);
+    if (oldVote === 1) setLikes(prev => prev - 1);
+    if (oldVote === -1) setDislikes(prev => prev - 1);
+    if (newVote === 1) setLikes(prev => prev + 1);
+    if (newVote === -1) setDislikes(prev => prev + 1);
+
+    setVoting(true);
+    try {
+      await feedService.voteFeedPost(post.id, currentUser.id, newVote);
+    } catch {
+      // Rollback on error
+      setUserVote(oldVote);
+      if (oldVote === 1) setLikes(prev => prev + 1);
+      if (oldVote === -1) setDislikes(prev => prev + 1);
+      if (newVote === 1) setLikes(prev => prev - 1);
+      if (newVote === -1) setDislikes(prev => prev - 1);
+      notifications.show({ title: 'Error', message: 'Failed to update vote.', color: 'red' });
+    } finally {
+      setVoting(false);
+    }
+  }, [post.id, currentUser, userVote, voting]);
 
   return (
     <Paper
@@ -203,15 +244,42 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
 
         {/* Comment toggle */}
         <Box>
-          <Button
-            variant="subtle"
-            size="xs"
-            color="gray"
-            leftSection={<IconMessage size={14} />}
-            onClick={() => setCommentsOpen(p => !p)}
-          >
-            {commentsOpen ? 'Hide' : 'Show'} comments{commentCount > 0 ? ` (${commentCount})` : ''}
-          </Button>
+          <Group gap="xs">
+            <Button
+              variant="subtle"
+              size="xs"
+              color="gray"
+              leftSection={<IconMessage size={14} />}
+              onClick={() => setCommentsOpen(p => !p)}
+            >
+              {commentsOpen ? 'Hide' : 'Show'} comments{commentCount > 0 ? ` (${commentCount})` : ''}
+            </Button>
+
+            <Group gap={4}>
+              <ActionIcon 
+                variant={userVote === 1 ? 'light' : 'subtle'} 
+                color={userVote === 1 ? 'blue' : 'gray'} 
+                size="sm"
+                onClick={() => handleVote(1)}
+                loading={voting && userVote === 1}
+              >
+                {userVote === 1 ? <IconThumbUpFilled size={16} /> : <IconThumbUp size={16} />}
+              </ActionIcon>
+              {likes > 0 && <Text size="xs" c="dimmed" fw={userVote === 1 ? 700 : 400}>{likes}</Text>}
+
+              <ActionIcon 
+                variant={userVote === -1 ? 'light' : 'subtle'} 
+                color={userVote === -1 ? 'red' : 'gray'} 
+                size="sm"
+                onClick={() => handleVote(-1)}
+                loading={voting && userVote === -1}
+                ml={4}
+              >
+                {userVote === -1 ? <IconThumbDownFilled size={16} /> : <IconThumbDown size={16} />}
+              </ActionIcon>
+              {dislikes > 0 && <Text size="xs" c="dimmed" fw={userVote === -1 ? 700 : 400}>{dislikes}</Text>}
+            </Group>
+          </Group>
 
           {commentsOpen && (
             <Box mt="xs">
