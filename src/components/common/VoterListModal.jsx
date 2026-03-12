@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { 
   Modal, Stack, Group, Avatar, Text, 
-  Loader, ScrollArea, Tabs, Center, Box
+  Loader, ScrollArea, Tabs, Center
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import IconThumbUp from '@tabler/icons-react/dist/esm/icons/IconThumbUp.mjs';
