@@ -14,3 +14,9 @@
 ## Next Steps
 Use \/new-milestone\ or \/plan\ to define the next goal.
 
+## Accumulated Context
+
+### Roadmap Evolution
+- Phase 1 added: Navbar for the app
+
+
