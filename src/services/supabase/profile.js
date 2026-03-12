@@ -785,7 +785,7 @@ export const playlistService = {
         created_at,
         user_id,
         user_profiles:user_id(display_name, display_photo_url, dx_display_photo_url, slug),
-        playlist_comment_votes(vote_type, user_id, user_profiles(display_name, display_photo_url, dx_display_photo_url))
+        ${TABLES.PLAYLIST_COMMENT_VOTES}(vote_type, user_id, user_profiles(display_name, display_photo_url, dx_display_photo_url))
       `)
       .eq('post_id', postId)
       .order('created_at', { ascending: false });
@@ -861,6 +861,35 @@ export const playlistService = {
       throw error;
     }
     return true;
+  },
+
+  // Get voters for a playlist comment
+  async getPlaylistCommentVoters(commentId) {
+    try {
+      const { data, error } = await supabase
+        .from(TABLES.PLAYLIST_COMMENT_VOTES)
+        .select(`
+          vote_type,
+          user_id,
+          user_profiles:user_id(
+            id,
+            display_name,
+            slug,
+            display_photo_url,
+            dx_display_photo_url
+          )
+        `)
+        .eq('comment_id', commentId);
+
+      if (error) throw error;
+      return (data || []).map(v => ({
+        vote_type: v.vote_type,
+        user: v.user_profiles
+      }));
+    } catch (err) {
+      console.error('Error fetching playlist comment voters:', err);
+      throw err;
+    }
   },
 
   // Vote on a playlist comment

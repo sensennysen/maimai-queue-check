@@ -277,6 +277,23 @@ export const discussionService = {
       return data;
     }
   },
+
+  /**
+   * Get profiles of users who voted on a song comment.
+   */
+  async getSongCommentVoters(commentId) {
+    const { data, error } = await supabase
+      .from(TABLES.SONG_COMMENT_VOTES)
+      .select(`
+        vote_type,
+        user:${TABLES.USER_PROFILES}!user_id(id, display_name, slug, display_photo_url, dx_display_photo_url)
+      `)
+      .eq('comment_id', commentId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
   
   // Delete user's comment
   async deleteComment(commentId, userId) {

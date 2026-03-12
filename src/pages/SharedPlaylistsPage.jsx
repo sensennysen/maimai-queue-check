@@ -37,6 +37,11 @@ export default function SharedPlaylistsPage() {
     return params.get('post');
   }, [location.search]);
 
+  const focusPlaylistId = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('playlist');
+  }, [location.search]);
+
   const fetchPosts = async () => {
     try {
       setLoading(true);
@@ -56,16 +61,27 @@ export default function SharedPlaylistsPage() {
   }, []);
 
   useEffect(() => {
-    if (!focusPostId || loading || posts.length === 0) return;
-    if (scrolledToPostRef.current === focusPostId) return;
+    if ((!focusPostId && !focusPlaylistId) || loading || posts.length === 0) return;
 
-    const targetId = `playlist-post-${focusPostId}`;
-    const el = document.getElementById(targetId);
+    let targetPostId = focusPostId;
+    let scrollKey = focusPostId;
+
+    if (!targetPostId && focusPlaylistId) {
+      const targetPost = posts.find(p => p.playlist?.id === focusPlaylistId);
+      if (targetPost) {
+        targetPostId = targetPost.id;
+        scrollKey = `pl-${focusPlaylistId}`;
+      }
+    }
+
+    if (!targetPostId || scrolledToPostRef.current === scrollKey) return;
+
+    const el = document.getElementById(`playlist-post-${targetPostId}`);
     if (!el) return;
 
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    scrolledToPostRef.current = focusPostId;
-  }, [focusPostId, loading, posts]);
+    scrolledToPostRef.current = scrollKey;
+  }, [focusPostId, focusPlaylistId, loading, posts]);
 
   const getPlaylistSongs = useCallback((playlist) => {
     if (!playlist || !playlist.songs) return [];
@@ -178,7 +194,11 @@ export default function SharedPlaylistsPage() {
                   radius="md"
                   withBorder
                   className="glass-effect-hover"
-                  style={focusPostId === String(post.id) ? { borderColor: 'var(--theme-primary)', boxShadow: '0 0 0 1px rgba(255, 40, 169, 0.45)' } : undefined}
+                  style={
+                    (focusPostId === String(post.id) || (focusPlaylistId && post.playlist?.id === focusPlaylistId))
+                      ? { borderColor: 'var(--theme-primary)', boxShadow: '0 0 0 1px rgba(255, 40, 169, 0.45)' }
+                      : undefined
+                  }
                 >
                   <Stack gap="md">
                     {/* Author Header */}
