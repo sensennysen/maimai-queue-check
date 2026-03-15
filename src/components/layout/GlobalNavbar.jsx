@@ -118,7 +118,7 @@ export default function GlobalNavbar() {
 
   const hasSuggestions = profileSuggestions.length > 0 || songSuggestions.length > 0 || profileLoading;
 
-  if (location.pathname === '/view') return null;
+  if (location.pathname === '/view' || location.pathname === '/profile/export') return null;
 
   return (
     <>

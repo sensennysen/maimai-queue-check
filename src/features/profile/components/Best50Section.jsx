@@ -1,5 +1,5 @@
 import { Paper, Alert, Group, Stack, Title, Badge, Button, SimpleGrid } from '@mantine/core';
-import { IconAlertCircle, IconTrophy, IconUpload } from '@tabler/icons-react';
+import { IconAlertCircle, IconTrophy, IconUpload, IconCamera } from '@tabler/icons-react';
 import { ScoreCard } from '../../../components/maimai/ScoreCard';
 
 /**
@@ -47,6 +47,15 @@ export function Best50Section({
         {isOwner && (
           <Group gap="xs" wrap="nowrap">
             <Button
+              leftSection={<IconCamera size={18} />}
+              variant="outline"
+              color="teal"
+              size="sm"
+              onClick={() => window.open('/profile/export', '_blank')}
+            >
+              Export Image
+            </Button>
+            <Button
               leftSection={<IconUpload size={18} />}
               variant="outline"
               size="sm"
@@ -62,7 +71,7 @@ export function Best50Section({
         {/* Best New */}
         <Stack gap="md">
           <Badge size="xl" variant="light" color="primary">Best 15 (Current Version)</Badge>
-          <SimpleGrid cols={{ base: 1, xs: 2, sm: 3, md: 4, lg: 5 }} gutter="md">
+          <SimpleGrid cols={{ base: 1, xs: 2, md: 3 }} gutter="md">
             {scores.best_new?.songs?.map((score, index) => (
               <ScoreCard
                 key={`new-${index}`}
@@ -77,7 +86,7 @@ export function Best50Section({
         {/* Best Old */}
         <Stack gap="md">
           <Badge size="xl" variant="light" color="secondary">Best 35 (Past Versions)</Badge>
-          <SimpleGrid cols={{ base: 1, xs: 2, sm: 3, md: 4, lg: 5 }} gutter="md">
+          <SimpleGrid cols={{ base: 1, xs: 2, md: 3 }} gutter="md">
             {scores.best_old?.songs?.map((score, index) => (
               <ScoreCard
                 key={`old-${index}`}

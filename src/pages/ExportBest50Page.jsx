@@ -74,49 +74,34 @@ const ExportBest50Page = () => {
           originalSrc.startsWith('blob:') ||
           originalSrc.includes(window.location.host)) return;
 
-        // Try multiple proxies in sequence until one works
-        // Priority: 1. Local Vercel Proxy (server-to-server, no CSP issues)
-        //           2. External Public Proxies (fallback)
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const proxies = [
-          (url) => isLocalhost
-            ? `https://www.thebugging.com/api/proxy?url=${encodeURIComponent(url)}` // Localhost: Use external proxy
-            : `/api/proxy?url=${encodeURIComponent(url)}`,                       // Production: Use serverless function
-          (url) => `https://www.thebugging.com/api/proxy?url=${encodeURIComponent(url)}`,
-          (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
-        ];
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(originalSrc)}`;
 
-        for (const getProxyUrl of proxies) {
-          try {
-            const proxyUrl = getProxyUrl(originalSrc);
-            const response = await fetch(proxyUrl);
-            if (!response.ok) continue; // Try next proxy
+        try {
+          const response = await fetch(proxyUrl);
+          if (!response.ok) return;
 
-            const blob = await response.blob();
-            if (blob.type.startsWith('text/')) continue; // Skip if proxy returns HTML/Text (error page)
+          const blob = await response.blob();
+          if (blob.type.startsWith('text/')) return;
 
-            // Convert blob → base64 data URL so html-to-image can inline it without fetch()
-            const localDataUrl = await new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            });
-            img.src = localDataUrl;
+          // Convert blob → base64 data URL so html-to-image can inline it without fetch()
+          const localDataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          img.src = localDataUrl;
 
-            await new Promise((resolve) => {
-              if (img.complete) resolve();
-              else {
-                img.onload = resolve;
-                img.onerror = resolve;
-              }
-            });
-            return; // Success!
-          } catch (e) {
-            console.warn(`Proxy failed: ${getProxyUrl(originalSrc)}`, e);
-          }
+          await new Promise((resolve) => {
+            if (img.complete) resolve();
+            else {
+              img.onload = resolve;
+              img.onerror = resolve;
+            }
+          });
+        } catch (e) {
+          console.warn(`Proxy failed for: ${originalSrc}`, e);
         }
-        console.warn(`All proxies failed for: ${originalSrc}`);
       }));
 
       // Larger delay to ensure layout/fonts are fully settled
@@ -250,30 +235,6 @@ const ExportBest50Page = () => {
 
   return (
     <Container size="xl" py="md" px="md">
-      {/* Controls - not captured */}
-      <Group justify="space-between" mb="lg">
-        <Group gap="md">
-          <Title order={2}>Best 50 Export Preview</Title>
-          {exportDone && (
-            <Text size="sm" c="teal" fw={500}>
-              <IconCheck size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-              Image downloaded!
-            </Text>
-          )}
-        </Group>
-        <Group gap="md">
-          <Button
-            leftSection={<IconCamera size={18} />}
-            color="teal"
-            onClick={handleDownload}
-            loading={isExporting}
-            disabled={!hasScores}
-            size="lg"
-          >
-            Download as Image
-          </Button>
-        </Group>
-      </Group>
 
       {/* Capturable area */}
       <Box pos="relative">
