@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Stack, Text, Button, Textarea, Group, Box, Paper, Avatar, ActionIcon, Loader, Center, Divider } from '@mantine/core';
-import { IconTrash, IconMessageCircle, IconAlertCircle, IconThumbUp, IconThumbDown } from '@tabler/icons-react';
+import { IconTrash, IconMessageCircle, IconAlertCircle, IconThumbUp, IconThumbDown, IconSend } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../../hooks/useAuth';
 import { playlistService } from '../../services/supabase';
@@ -104,37 +104,35 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
             const myVote = comment.playlist_comment_votes?.find(v => v.user_id === user?.id)?.vote_type || 0;
 
             return (
-              <Box key={comment.id} p="xs" radius="sm" bg="var(--mantine-color-default-hover)" style={{ borderLeft: '3px solid var(--mantine-color-blue-filled)', borderRadius: '4px' }}>
-                <Stack gap={4}>
-                  <Group justify="space-between" align="flex-start" wrap="nowrap">
-                    <Group gap="xs"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => navigate(`/p/${comment.user_profiles?.slug || comment.user_id}`)}>
-                      <Avatar src={getProfileImageUrl(comment.user_profiles)} size={32} radius="xl" />
-                      <Stack gap={0}>
-                        <Group gap={6} align="baseline">
-                          <Text size="xs" fw={700}>{comment.user_profiles?.display_name || 'Anonymous'}</Text>
-                          <Text size="xs" c="dimmed">{getRelativeTime(comment.created_at)}</Text>
-                        </Group>
-                      </Stack>
-                    </Group>
-
-                    {(user?.id === comment.user_id || user?.id === ownerId) && (
-                      <ActionIcon
-                        variant="subtle"
-                        color="red"
-                        size="xs"
-                        onClick={() => handleDeleteComment(comment.id)}
+              <Box key={comment.id}>
+                <Group gap="xs" wrap="nowrap" align="flex-start">
+                  <Avatar
+                    src={getProfileImageUrl(comment.user_profiles)}
+                    size={36}
+                    radius="xl"
+                    color="primary"
+                    style={{ flexShrink: 0, cursor: 'pointer', marginTop: 2 }}
+                    onClick={() => navigate(`/p/${comment.user_profiles?.slug || comment.user_id}`)}
+                  >
+                    {(comment.user_profiles?.display_name || 'A').charAt(0)}
+                  </Avatar>
+                  <Box style={{ flex: 1 }}>
+                    <Group gap={6} align="baseline">
+                      <Text
+                        size="sm"
+                        fw={700}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => navigate(`/p/${comment.user_profiles?.slug || comment.user_id}`)}
                       >
-                        <IconTrash size={14} />
-                      </ActionIcon>
-                    )}
-                  </Group>
-                  <Text size="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', paddingLeft: '2px' }}>
-                    {comment.content}
-                  </Text>
+                        {comment.user_profiles?.display_name || 'Anonymous'}
+                      </Text>
+                      <Text size="xs" c="dimmed">{getRelativeTime(comment.created_at)}</Text>
+                    </Group>
+                    <Text size="md" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {comment.content}
+                    </Text>
 
-                  <Group gap={8} mt={4}>
+                    <Group gap={8} mt={4}>
                     <Group gap={4}>
                       <ActionIcon
                         variant={myVote === 1 ? 'light' : 'subtle'}
@@ -219,7 +217,18 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
                       )}
                     </Group>
                   </Group>
-                </Stack>
+                  </Box>
+                  {(user?.id === comment.user_id || user?.id === ownerId) && (
+                    <ActionIcon
+                      variant="subtle"
+                      color="red"
+                      size="xs"
+                      onClick={() => handleDeleteComment(comment.id)}
+                    >
+                      <IconTrash size={12} />
+                    </ActionIcon>
+                  )}
+                </Group>
               </Box>
             );
           })}
@@ -231,31 +240,41 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
       )}
 
       {user ? (
-        <Stack gap="xs" mt="xs">
-          <Textarea
-            placeholder="Write a comment..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.currentTarget.value)}
-            disabled={submitting}
-            minRows={2}
-            autosize
-            maxLength={500}
-          />
-          <Group justify="flex-end">
-            <Button
-              size="sm"
+        <>
+          <Divider variant="dotted" mt="xs" />
+          <Group gap="xs" wrap="nowrap" align="flex-end" mt="xs">
+            <Avatar src={getProfileImageUrl(userRoles || user)} size={36} radius="xl" color="primary" style={{ flexShrink: 0 }}>
+              {(userRoles?.display_name || '?').charAt(0)}
+            </Avatar>
+            <Textarea
+              placeholder="Write a comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.currentTarget.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(); } }}
+              disabled={submitting}
+              minRows={1}
+              autosize
+              maxRows={4}
+              maxLength={500}
+              style={{ flex: 1 }}
+              radius="md"
+              styles={{ input: { fontSize: '1.1rem' } }}
+            />
+            <ActionIcon
+              variant="filled"
+              color="primary"
+              size="md"
               onClick={handleAddComment}
               loading={submitting}
               disabled={!newComment.trim()}
+              style={{ flexShrink: 0 }}
             >
-              Post Comment
-            </Button>
+              <IconSend size={14} />
+            </ActionIcon>
           </Group>
-        </Stack>
+        </>
       ) : (
-        <Paper p="sm" radius="md" bg="var(--mantine-color-default-hover)" withBorder mt="xs">
-          <Text size="sm" ta="center" c="dimmed">Log in to leave a comment.</Text>
-        </Paper>
+        <Text size="xs" c="dimmed" ta="center" mt="sm">Log in to leave a comment.</Text>
       )}
       <VoterListModal
         opened={votersOpened}
