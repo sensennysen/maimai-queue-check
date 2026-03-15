@@ -12,6 +12,7 @@ const STORAGE_KEY = 'maimai-selected-branch';
 
 export const BranchProvider = ({ children }) => {
   const [branches, setBranches] = useState([]);
+  const [allEnabledBranches, setAllEnabledBranches] = useState([]);
   const [selectedBranch, setSelectedBranchState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,9 +25,13 @@ export const BranchProvider = ({ children }) => {
       setError(null);
 
       // Load branches ONLY, do not request location automatically on app load
-      const allBranches = await branchService.getAllBranches();
+      const [allBranches, allEnabled] = await Promise.all([
+        branchService.getAllBranches(),
+        branchService.getAllEnabledBranches()
+      ]);
 
       setBranches(allBranches);
+      setAllEnabledBranches(allEnabled);
 
       if (allBranches.length === 0) {
         setError('No branches found');
@@ -66,6 +71,12 @@ export const BranchProvider = ({ children }) => {
     const { eventType, new: newRecord, old: oldRecord } = payload;
 
     if (eventType === 'INSERT') {
+      // Add to allEnabledBranches if enabled
+      if (newRecord.enabled) {
+        setAllEnabledBranches(prev => [...prev, newRecord].sort((a, b) =>
+          a.arcade_name.localeCompare(b.arcade_name)
+        ));
+      }
       // New branch added - only add if enabled and has coordinates
       if (newRecord.enabled && newRecord.latitude != null && newRecord.longitude != null) {
         // Note: we can't easily verify mall_schedule here, but coordinate presence is a good proxy 
@@ -75,6 +86,24 @@ export const BranchProvider = ({ children }) => {
         ));
       }
     } else if (eventType === 'UPDATE') {
+      // Update allEnabledBranches
+      setAllEnabledBranches(prev => {
+        const updated = prev.map(branch =>
+          branch.id === newRecord.id ? newRecord : branch
+        );
+        if (!newRecord.enabled) {
+          return updated.filter(b => b.id !== newRecord.id);
+        }
+        if (newRecord.enabled && !prev.find(b => b.id === newRecord.id)) {
+          return [...updated, newRecord].sort((a, b) =>
+            a.arcade_name.localeCompare(b.arcade_name)
+          );
+        }
+        return updated.sort((a, b) =>
+          a.arcade_name.localeCompare(b.arcade_name)
+        );
+      });
+
       // Branch updated
       setBranches(prev => {
         const updated = prev.map(branch =>
@@ -122,6 +151,9 @@ export const BranchProvider = ({ children }) => {
         });
       }
     } else if (eventType === 'DELETE') {
+      // Update allEnabledBranches
+      setAllEnabledBranches(prev => prev.filter(b => b.id !== oldRecord.id));
+
       // Branch deleted
       setBranches(prev => prev.filter(b => b.id !== oldRecord.id));
 
@@ -217,6 +249,7 @@ export const BranchProvider = ({ children }) => {
 
   const value = {
     branches,
+    allEnabledBranches,
     selectedBranch,
     setSelectedBranch,
     loading,
