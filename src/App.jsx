@@ -22,7 +22,7 @@ import './App.css';
 
 // Lazy load pages
 const AdminPage = lazy(() => import('./pages/AdminPage'));
-const AuditLogsPage = lazy(() => import('./pages/AuditLogsPage'));
+const AuditLogsPage = lazy(() => import('./features/admin/pages/AuditLogsPage'));
 const ExportBest50Page = lazy(() => import('./pages/ExportBest50Page'));
 const ViewPage = lazy(() => import('./pages/ViewPage'));
 const SongsPage = lazy(() => import('./pages/SongsPage'));

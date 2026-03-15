@@ -22,9 +22,9 @@ import {
 import IconDownload from '@tabler/icons-react/dist/esm/icons/IconDownload.mjs';
 import IconEye from '@tabler/icons-react/dist/esm/icons/IconEye.mjs';
 import { DatePickerInput } from '@mantine/dates';
-import { useAuth } from '../hooks/useAuth';
-import { auditService } from '../services/supabase/audit';
-import { TABLES as DB_TABLES } from '../constants/database';
+import { useAuth } from '../../../hooks/useAuth';
+import { auditService } from '../../../services/supabase/audit';
+import { TABLES as DB_TABLES } from '../../../constants/database';
 import './AuditLogsPage.css';
 
 const OPERATIONS = ['INSERT', 'UPDATE', 'DELETE'];

@@ -197,6 +197,20 @@ export const postsService = {
     }
   },
 
+  async getFeedPostCommentVoters(commentId) {
+    const { data, error } = await supabase
+      .from(TABLES.FEED_POST_COMMENT_VOTES)
+      .select(`
+        vote_type,
+        user:${TABLES.USER_PROFILES}!user_id(id, display_name, slug, display_photo_url, dx_display_photo_url)
+      `)
+      .eq('comment_id', commentId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
   // Image upload
   async uploadPostImage(userId, file) {
     const fileExt = file.name.split('.').pop();

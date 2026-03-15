@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Paper, Title, Button, Text, Group, LoadingOverlay, Stack, Box, Alert } from '@mantine/core';
 import { IconPlus, IconHeart, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { favoritesService } from '../../services/supabase';
+import { useFavorites } from '../../features/profile/hooks/useFavorites';
 import { TextInput, Modal as MantineModal } from '@mantine/core';
 import FavoriteSongCard from './FavoriteSongCard';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
@@ -12,57 +12,31 @@ import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 
 export function FavoriteSongsSection({ userId, isOwnProfile }) {
   const { loading: songsLoading, songMapById } = useSongDatabaseContext();
-  const [favorites, setFavorites] = useState([]); // [{ song_id, created_at }]
-  const [loading, setLoading] = useState(true); // Loading for favorites data
+  const {
+    favorites,
+    loading,
+    isAdding,
+    addFavorite,
+    removeFavorite,
+    updateComment
+  } = useFavorites(userId);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSongDetails, setSelectedSongDetails] = useState(null);
   const [selectedSongComment, setSelectedSongComment] = useState(null);
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [pendingSong, setPendingSong] = useState(null);
   const [comment, setComment] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
-
 
   const { scrollRef, isDragging } = useMouseDragScroll();
-  // const isMobile = useMediaQuery('(max-width: 48em)'); // Removed per requirement
-
-  // Fetch favorites data
-  useEffect(() => {
-    let mounted = true;
-    const fetchFavorites = async () => {
-      try {
-        setLoading(true);
-        const favsData = await favoritesService.getFavorites(userId);
-        if (mounted) {
-          setFavorites(favsData);
-        }
-      } catch (error) {
-        console.error("Error loading favorites:", error);
-        notifications.show({
-          title: 'Error',
-          message: 'Failed to load favorite songs',
-          color: 'red'
-        });
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    if (userId) {
-      fetchFavorites();
-    }
-
-    return () => { mounted = false; };
-  }, [userId]);
 
   const favoriteSongsMap = useMemo(() => {
-    // Map favorite song IDs to full song objects + the favorite comment metadata preserving order of favorites (newest first)
     return favorites
       .map(fav => {
         const songData = songMapById?.get(fav.song_id);
         if (!songData) return null;
         return {
-          song: { ...songData, favoriteId: fav.song_id }, // Inject original DB ID (handles cardId or old songId)
+          song: { ...songData, favoriteId: fav.song_id },
           comment: fav.comment
         };
       })
@@ -70,9 +44,6 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
   }, [songMapById, favorites]);
 
   const handleSongSelect = (song) => {
-    // Limit removed per requirement
-    // if (favorites.length >= 5) { ... }
-
     const songKey = song.cardId || song.songId;
     if (favorites.some(f => f.song_id === songKey)) {
       notifications.show({
@@ -86,108 +57,31 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
     setPendingSong(song);
     setComment('');
     setCommentModalOpen(true);
-    setIsModalOpen(false); // Close selection modal
+    setIsModalOpen(false);
   };
 
   const confirmAddFavorite = async () => {
     if (!pendingSong) return;
-
-    setIsAdding(true);
-    const pendingSongKey = pendingSong.cardId || pendingSong.songId;
-    try {
-      // Optimistic update
-      const newFav = {
-        song_id: pendingSongKey,
-        created_at: new Date().toISOString(),
-        comment: comment.trim() || null
-      };
-
-      setFavorites(prev => [newFav, ...prev]);
-
-      await favoritesService.addFavorite(userId, pendingSongKey, comment.trim() || null);
-
-      notifications.show({
-        title: 'Added',
-        message: `Added ${pendingSong.title} to favorites`,
-        color: 'green'
-      });
-
+    const success = await addFavorite(pendingSong, comment);
+    if (success) {
       setCommentModalOpen(false);
       setPendingSong(null);
       setComment('');
-    } catch (error) {
-      console.error(error);
-      // Revert on error
-      setFavorites(prev => prev.filter(f => f.song_id !== pendingSongKey));
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to add favorite',
-        color: 'red'
-      });
-    } finally {
-      setIsAdding(false);
     }
   };
 
-
   const handleUpdateComment = async (songId, newComment) => {
-    try {
-      // Optimistic update
-      setFavorites(prev => prev.map(f =>
-        f.song_id === songId ? { ...f, comment: newComment } : f
-      ));
-
-      await favoritesService.updateFavoriteComment(userId, songId, newComment);
-
-      notifications.show({
-        title: 'Updated',
-        message: 'Comment updated successfully',
-        color: 'green'
-      });
-
-      // Update selected comment if modal is open
+    const success = await updateComment(songId, newComment);
+    if (success) {
       if ((selectedSongDetails?.cardId || selectedSongDetails?.songId) === songId) {
         setSelectedSongComment(newComment);
       }
-    } catch (error) {
-      console.error(error);
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to update comment',
-        color: 'red'
-      });
-      // We should ideally revert but it's complex without original state. 
-      // User can just refresh.
     }
   };
 
   const handleRemoveFavorite = async (song) => {
-    const songId = song.favoriteId || song.cardId || song.songId;
-    const songTitle = song.title;
-    if (!confirm(`Remove ${songTitle} from favorites?`)) return;
-
-    try {
-      // Optimistic update
-      setFavorites(prev => prev.filter(f => f.song_id !== songId));
-
-      await favoritesService.removeFavorite(userId, songId);
-
-      notifications.show({
-        title: 'Removed',
-        message: `Removed ${songTitle} from favorites`,
-        color: 'green'
-      });
-    } catch (error) {
-      console.error(error);
-      // Revert
-      // We need to fetch again or just trust the previous state copy if we kept it
-      // For simplicity, just refetch or let it be (user can retry)
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to remove favorite',
-        color: 'red'
-      });
-    }
+    if (!confirm(`Remove ${song.title} from favorites?`)) return;
+    await removeFavorite(song);
   };
 
   const isEverythingLoading = loading || songsLoading;
