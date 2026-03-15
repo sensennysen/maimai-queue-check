@@ -1,50 +1,63 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useMediaQuery } from '@mantine/hooks';
 import {
-  Container, Paper, Stack, Group, Title, Text, Avatar,
-  Badge, SimpleGrid, Loader, Button, Alert,
-  Divider, ThemeIcon, Box, ActionIcon, Image, Tooltip
+  Container, Paper, Stack, Group, Title, Text,
+  Loader, Button, Alert, ThemeIcon, ActionIcon, Tooltip
 } from '@mantine/core';
 import {
-  IconUser, IconTrophy, IconMapPin, IconAlertCircle,
-  IconStar, IconLock, IconLogin,
-  IconUpload, IconCamera, IconTrash,
-  IconShare, IconCode, IconBug, IconGitPullRequest, IconListDetails
+  IconLock, IconLogin, IconAlertCircle, IconShare
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
+
+// Modals
 import MaimaiImportModal from '../components/profile/MaimaiImportModal';
 import ProfileSettingsModal from '../components/profile/ProfileSettingsModal';
 import PrivacySettingsModal from '../components/profile/PrivacySettingsModal';
 import ProfilePictureUploadModal from '../components/profile/ProfilePictureUploadModal';
 import MaimaiSongDetailModal from '../components/profile/MaimaiSongDetailModal';
-import { useAuth } from '../hooks/useAuth';
-import { userService, branchService, mostPlayedService, followService } from '../services/supabase';
+
+// Components & Services
 import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection';
 import { PlaylistSection } from '../components/profile/PlaylistSection';
 import { ProfilePostsSection } from '../components/profile/ProfilePostsSection';
 import { RecentPlaysSection } from '../components/profile/RecentPlaysSection';
 import { IntroductionCard } from '../components/profile/IntroductionCard';
-import { ScoreCard } from '../components/maimai/ScoreCard';
+import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { useMouseDragScroll } from '../hooks/useMouseDragScroll';
-import { DIFFICULTY_COLORS, BASE_JACKET_URL } from '../config/maimai-constants';
 import Footer from '../components/layout/Footer';
+
+// Feature Modular Pieces
+import { usePublicProfile } from '../features/profile/hooks/usePublicProfile';
+import { ProfileHeaderCard } from '../features/profile/components/ProfileHeaderCard';
+import { MostPlayedSection } from '../features/profile/components/MostPlayedSection';
+import { Best50Section } from '../features/profile/components/Best50Section';
 
 const PublicProfilePage = () => {
   const { slug } = useParams();
-  const [profile, setProfile] = useState(null);
-  const [branches, setBranches] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isRestricted, setIsRestricted] = useState(false);
-  const { user, refreshUserRoles } = useAuth();
+  const { user } = useAuth();
   const isMobile = useMediaQuery('(max-width: 640px)');
-  const navigate = useNavigate();
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const { requestFetch, songMapByTitle } = useSongDatabaseContext();
+  const { scrollRef, isDragging } = useMouseDragScroll();
 
+  // Profile data and logic
+  const {
+    profile,
+    branches,
+    loading,
+    error,
+    isRestricted,
+    isFollowing,
+    followLoading,
+    introduction,
+    setIntroduction,
+    toggleFollow,
+    fetchData
+  } = usePublicProfile(slug, user);
+
+  // Modal states
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -52,103 +65,11 @@ const PublicProfilePage = () => {
   const [selectedMostPlayedSong, setSelectedMostPlayedSong] = useState(null);
   const [selectedBest50Song, setSelectedBest50Song] = useState(null);
   const [selectedBest50Score, setSelectedBest50Score] = useState(null);
-  const [introduction, setIntroduction] = useState(null);
   const [viewAsPublic, setViewAsPublic] = useState(false);
 
-  const { requestFetch, songMapByTitle } = useSongDatabaseContext();
-  const { scrollRef, isDragging } = useMouseDragScroll();
-  const isMounted = useRef(true);
-
   useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (profile) {
-      requestFetch();
-    }
+    if (profile) requestFetch();
   }, [profile, requestFetch]);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const [profileData, branchesData] = await Promise.all([
-        userService.getProfileBySlug(slug),
-        branchService.getBranchesForResolution()
-      ]);
-
-      if (!profileData) {
-        if (isMounted.current) setError('Profile not found');
-      } else {
-        const isOwner = user && profileData.id === user.id;
-        // FRAG-11: Allow viewing if user is owner or if profile is public OR if a user is logged in
-        if (!profileData.is_public && !isOwner && !user) {
-          if (isMounted.current) setIsRestricted(true);
-        } else {
-          const mostPlayedData = await mostPlayedService.getMostPlayed(profileData.id);
-          if (profileData.maimai_best_scores) {
-            profileData.maimai_best_scores.most_played = mostPlayedData || [];
-          } else if (mostPlayedData && mostPlayedData.length > 0) {
-            profileData.maimai_best_scores = { most_played: mostPlayedData };
-          }
-
-          if (isMounted.current) {
-            setProfile(profileData);
-            setBranches(branchesData);
-            setIntroduction(profileData.introduction || null);
-          }
-
-          // Fetch follow status if viewer is logged in and not the owner
-          if (user && profileData.id !== user.id) {
-            try {
-              const following = await followService.isFollowing(user.id, profileData.id);
-              if (isMounted.current) setIsFollowing(following);
-            } catch (followErr) {
-              console.error('Error fetching follow status:', followErr);
-            }
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching public profile:', err);
-      if (isMounted.current) setError('Failed to load profile');
-    } finally {
-      if (isMounted.current) setLoading(false);
-    }
-    // user?.id is the correct dep — avoids re-creating fetchData on every user object re-render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, user?.id]);
-
-  useEffect(() => {
-    if (slug) {
-      // Use a ref-less check or just rely on slug for initial loading state
-      if (!profile || profile.slug !== slug) {
-        setLoading(true);
-      }
-      fetchData();
-    }
-    // profile is intentionally excluded: including it would cause an infinite loop
-    // (fetch sets profile → profile change triggers fetch again)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, fetchData]);
-
-  const handleClearData = async () => {
-    if (!window.confirm('Are you sure you want to clear your Best 50 scores, maimai DX name, and maimai profile photo? This will NOT remove your custom profile picture. This action cannot be undone.')) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await userService.clearMaimaiData(user.id);
-      await fetchData();
-    } catch (err) {
-      console.error('Error clearing data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const isRealOwner = profile?.id === user?.id;
   const isOwner = isRealOwner && !viewAsPublic;
@@ -156,13 +77,9 @@ const PublicProfilePage = () => {
   useEffect(() => {
     if (!isRealOwner) return;
     const settingsTarget = searchParams.get('settings');
-    if (settingsTarget === 'profile') {
-      setIsSettingsModalOpen(true);
-    }
-    if (settingsTarget === 'privacy') {
-      setIsPrivacyModalOpen(true);
-    }
-  }, [isRealOwner, searchParams]);
+    if (settingsTarget === 'profile') setIsSettingsModalOpen(true);
+    else if (settingsTarget === 'privacy') setIsPrivacyModalOpen(true);
+  }, [isRealOwner, searchParams]); // eslint-disable-line
 
   const clearSettingsParam = useCallback(() => {
     const nextParams = new URLSearchParams(searchParams);
@@ -193,25 +110,13 @@ const PublicProfilePage = () => {
             <Text size="lg" c="dimmed" mb="xl" style={{ lineHeight: 1.6 }}>
               This profile is only visible to logged-in users.
             </Text>
-
             <Stack gap="sm">
               {!user && (
-                <Button
-                  component={Link}
-                  to="/login"
-                  size="lg"
-                  leftSection={<IconLogin size={20} />}
-                  variant="filled"
-                  color="primary"
-                  radius="md"
-                  fullWidth
-                >
+                <Button component={Link} to="/login" size="lg" leftSection={<IconLogin size={20} />} variant="filled" color="primary" radius="md" fullWidth>
                   Log In to View
                 </Button>
               )}
-              <Text size="sm" c="dimmed">
-                Sign in with an account that has access to continue.
-              </Text>
+              <Text size="sm" c="dimmed">Sign in with an account that has access to continue.</Text>
             </Stack>
           </Paper>
         </Stack>
@@ -228,9 +133,7 @@ const PublicProfilePage = () => {
               <IconAlertCircle size={40} />
             </ThemeIcon>
             <Title order={2} mb="sm" fw={800}>Oops!</Title>
-            <Text size="lg" c="dimmed" mb="xl">
-              {error || 'Profile not found'}
-            </Text>
+            <Text size="lg" c="dimmed" mb="xl">{error || 'Profile not found'}</Text>
           </Paper>
         </Stack>
       </Container>
@@ -238,758 +141,170 @@ const PublicProfilePage = () => {
   }
 
   const privacy = profile?.privacy_settings || {
-    show_dx_rating: true,
-    show_best_50: true,
-    show_best_50_details: true,
-    show_most_played: true,
-    show_most_played_details: true,
-    show_favorite_songs: true,
-    show_playlists: true,
-    show_main_branch: true,
-    show_preferred_branches: true,
-    show_introduction: true,
-    show_play_count: true,
-    show_maimai_name: true,
-    show_circle: true,
-    show_recent_plays: true,
-    show_posts: true
+    show_dx_rating: true, show_best_50: true, show_best_50_details: true,
+    show_most_played: true, show_most_played_details: true, show_favorite_songs: true,
+    show_playlists: true, show_main_branch: true, show_preferred_branches: true,
+    show_introduction: true, show_play_count: true, show_maimai_name: true,
+    show_circle: true, show_recent_plays: true, show_posts: true
   };
 
   const getBranchName = (id, useAcronym = false) => {
     if (!id) return null;
     const branch = branches.find(b => String(b.id) === String(id));
     if (!branch) return 'Unknown Branch';
-    if (useAcronym && branch.acronym) return branch.acronym;
-    return branch.short_name || branch.arcade_name;
+    return useAcronym ? (branch.acronym || branch.short_name) : (branch.short_name || branch.arcade_name);
   };
 
   const mainBranchName = profile.main_branch ? getBranchName(profile.main_branch) : null;
   const preferredBranchNames = profile.preferred_branches?.map(id => getBranchName(id, true)) || [];
 
   const isMalformedBest50 = profile?.maimai_best_scores && (
-    !profile.maimai_best_scores.best_new ||
-    !profile.maimai_best_scores.best_old ||
-    !Array.isArray(profile.maimai_best_scores.best_new?.songs) ||
-    !Array.isArray(profile.maimai_best_scores.best_old?.songs) ||
-    !profile.maimai_best_scores.most_played ||
-    typeof profile.maimai_best_scores.total_play_count === 'undefined'
+    !profile.maimai_best_scores.best_new || !profile.maimai_best_scores.best_old
   );
 
   return (
     <Container size="xl" py="xl">
       <Stack gap="lg">
-        {/* View as Public Banner */}
         {viewAsPublic && isRealOwner && (
-          <Alert
-            icon={<IconLogin size={16} />}
-            title="Viewing as Public"
-            color="primary"
-            variant="light"
-            className="animate-fade-in"
-          >
+          <Alert icon={<IconLogin size={16} />} title="Viewing as Public" color="primary" variant="light" className="animate-fade-in">
             <Group justify="space-between" align="center">
-              <Text size="sm">
-                You are currently viewing your profile as a public guest. All your privacy settings are applied.
-              </Text>
-              <Button size="xs" variant="filled" onClick={() => setViewAsPublic(false)}>
-                Exit Preview
-              </Button>
+              <Text size="sm">You are currently viewing your profile as a public guest.</Text>
+              <Button size="xs" variant="filled" onClick={() => setViewAsPublic(false)}>Exit Preview</Button>
             </Group>
           </Alert>
         )}
 
         <Group justify="flex-end">
-          {/* Action Buttons only for owner */}
           {isRealOwner && !viewAsPublic && (
             <Group gap="xs">
-              {isMobile ? (
-                <Tooltip label="View as Public" withArrow>
-                  <ActionIcon
-                    variant="light"
-                    color="gray"
-                    size="lg"
-                    onClick={() => setViewAsPublic(true)}
-                    className="animate-fade-in"
-                    aria-label="View as Public"
-                  >
-                    <IconLogin size={18} />
-                  </ActionIcon>
-                </Tooltip>
-              ) : (
-                <Button
-                  variant="light"
-                  color="gray"
-                  leftSection={<IconLogin size={18} />}
+              <Tooltip label="View as Public" withArrow>
+                <Button 
+                  variant="light" color="gray" 
+                  leftSection={<IconLogin size={18} />} 
                   onClick={() => setViewAsPublic(true)}
-                  className="animate-fade-in"
                 >
-                  View as Public
+                  {isMobile ? '' : 'View as Public'}
                 </Button>
-              )}
-              {isMobile ? (
-                <Tooltip label="Share Profile" withArrow>
-                  <ActionIcon
-                    variant="light"
-                    color="secondary"
-                    size="lg"
-                    onClick={() => {
-                      const url = window.location.href;
-                      navigator.clipboard.writeText(url);
-                      notifications.show({
-                        title: 'Link Copied',
-                        message: 'Profile link copied to clipboard!',
-                        color: 'blue',
-                      });
-                    }}
-                    className="animate-fade-in"
-                    aria-label="Share Profile"
-                  >
-                    <IconShare size={18} />
-                  </ActionIcon>
-                </Tooltip>
-              ) : (
-                <Button
-                  variant="light"
-                  color="secondary"
-                  leftSection={<IconShare size={18} />}
-                  onClick={() => {
-                    const url = window.location.href;
-                    navigator.clipboard.writeText(url);
-                    notifications.show({
-                      title: 'Link Copied',
-                      message: 'Profile link copied to clipboard!',
-                      color: 'blue',
-                    });
-                  }}
-                  className="animate-fade-in"
-                >
-                  Share Profile
-                </Button>
-              )}
+              </Tooltip>
+              <Button
+                variant="light" color="secondary"
+                leftSection={<IconShare size={18} />}
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  notifications.show({ title: 'Link Copied', message: 'Profile link copied to clipboard!', color: 'blue' });
+                }}
+              >
+                {isMobile ? '' : 'Share Profile'}
+              </Button>
             </Group>
           )}
 
-          {/* Follow Button for authenticated non-owners */}
           {user && profile && profile.id !== user.id && (
             <Button
               variant={isFollowing ? 'light' : 'filled'}
               color={isFollowing ? 'gray' : 'primary'}
-              leftSection={isFollowing ? <IconUser size={18} /> : <IconUser size={18} />}
               loading={followLoading}
-              onClick={async () => {
-                const targetId = profile.id;
-                const wasFollowing = isFollowing;
-
-                // Optimistic update
-                setIsFollowing(!wasFollowing);
-                setFollowLoading(true);
-
-                try {
-                  if (wasFollowing) {
-                    await followService.unfollow(user.id, targetId);
-                  } else {
-                    await followService.follow(user.id, targetId);
-                    notifications.show({
-                      title: 'Followed!',
-                      message: `You are now following ${profile.display_name || 'this player'}.`,
-                      color: 'green',
-                      autoClose: 2000
-                    });
-                  }
-                } catch {
-                  // Revert on error
-                  setIsFollowing(wasFollowing);
-                  notifications.show({
-                    title: 'Error',
-                    message: 'Failed to update follow status.',
-                    color: 'red'
-                  });
-                } finally {
-                  setFollowLoading(false);
-                }
-              }}
-              className="animate-fade-in"
+              onClick={toggleFollow}
             >
               {isFollowing ? 'Following' : 'Follow'}
             </Button>
           )}
         </Group>
 
-        {/* Profile Header Card */}
-        <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-100">
-          <Group wrap="nowrap" justify="space-between" align="flex-start">
-            <Group wrap="nowrap" style={{ flex: 1 }}>
-              <div
-                style={{
-                  position: 'relative',
-                  cursor: isOwner ? 'pointer' : 'default',
-                  transition: 'transform 0.1s ease'
-                }}
-                className={isOwner ? 'hover-scale' : ''}
-                onClick={() => isOwner && setIsUploadModalOpen(true)}
-              >
-                <Avatar
-                  src={profile.display_photo_url || profile.dx_display_photo_url}
-                  size={90}
-                  radius={90}
-                  color="primary"
-                >
-                  <IconUser size={45} />
-                </Avatar>
-                {isOwner && (
-                  <Box
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      right: 0,
-                      background: 'var(--theme-primary)',
-                      color: 'var(--theme-primary-contrast)',
-                      borderRadius: '50%',
-                      width: 28,
-                      height: 28,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: '2px solid white',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                    }}
-                  >
-                    <IconCamera size={16} />
-                  </Box>
-                )}
-              </div>
+        <ProfileHeaderCard 
+          profile={profile}
+          privacy={privacy}
+          isOwner={isOwner}
+          mainBranchName={mainBranchName}
+          preferredBranchNames={preferredBranchNames}
+          onAvatarClick={() => isOwner && setIsUploadModalOpen(true)}
+        />
 
-              <Stack gap={4}>
-                <Group gap="xs" align="center">
-                  <Title order={1} style={{ fontSize: '1.75rem', lineHeight: 1.2 }}>
-                    {profile.display_name || 'Anonymous Player'}
-                  </Title>
+        {(privacy.show_introduction !== false || isOwner) && (
+          <IntroductionCard introduction={introduction} isOwnProfile={isOwner} userId={profile.id} onUpdate={setIntroduction} />
+        )}
 
-                  {profile.user_attributions?.attributions?.length > 0 && (
-                    <Group gap={6} align="center" mt={4}>
-                      {profile.user_attributions.attributions.includes('DEVELOPER') && (
-                        <Tooltip label="Developer" withArrow position="top">
-                          <Badge variant="light" color="primary" leftSection={<IconCode size={14} />}>
-                            Developer
-                          </Badge>
-                        </Tooltip>
-                      )}
-                      {profile.user_attributions.attributions.includes('CONTRIBUTOR') && (
-                        <Tooltip label="Contributor" withArrow position="top">
-                          <Badge variant="light" color="accent" leftSection={<IconGitPullRequest size={14} />}>
-                            Contributor
-                          </Badge>
-                        </Tooltip>
-                      )}
-                      {profile.user_attributions.attributions.includes('TESTER') && (
-                        <Tooltip label="Tester" withArrow position="top">
-                          <Badge variant="light" color="var(--theme-success)" leftSection={<IconBug size={14} />}>
-                            Tester
-                          </Badge>
-                        </Tooltip>
-                      )}
-                    </Group>
-                  )}
+        {(privacy.show_posts !== false || isOwner) && (
+          <ProfilePostsSection userId={profile.id} currentUser={user} isOwnProfile={isOwner} />
+        )}
 
-                  {/* Old Settings button was here */}
-                </Group>
+        {(privacy.show_favorite_songs || isOwner) && (
+          <FavoriteSongsSection userId={profile.id} isOwnProfile={isOwner} />
+        )}
 
-                {(privacy.show_main_branch || isOwner) && mainBranchName && (
-                  <Group gap={4} align="center">
-                    <IconMapPin size={14} style={{ color: 'var(--theme-primary)' }} />
-                    <Text size="sm" fw={500}>Main Branch: {mainBranchName}</Text>
-                  </Group>
-                )}
+        {(privacy.show_playlists || isOwner) && (
+          <PlaylistSection userId={profile.id} isOwnProfile={isOwner} />
+        )}
 
-                {(privacy.show_preferred_branches || isOwner) && preferredBranchNames.length > 0 && (
-                  <Group gap={6} align="center" wrap="wrap">
-                    <IconStar size={14} style={{ color: 'var(--theme-accent)' }} />
-                    <Text size="sm">Preferred:</Text>
-                    {preferredBranchNames.map((name, i) => (
-                      <Badge key={i} size="sm" variant="light" color="secondary">{name}</Badge>
-                    ))}
-                  </Group>
-                )}
+        {(privacy.show_most_played !== false || isOwner) && (
+          <MostPlayedSection 
+            profile={profile} 
+            privacy={privacy} 
+            isOwner={isOwner} 
+            songMapByTitle={songMapByTitle} 
+            scrollRef={scrollRef} 
+            isDragging={isDragging} 
+            onSongClick={(song, matched) => setSelectedMostPlayedSong({...matched, ...song})}
+          />
+        )}
 
-                {profile.user_roles?.queue_name && (
-                  <Group gap={4} align="center">
-                    <IconListDetails size={14} style={{ color: 'var(--mantine-color-blue-5)' }} />
-                    <Text size="sm">Queue Name: <Text component="span" fw={600}>{profile.user_roles.queue_name}</Text></Text>
-                  </Group>
-                )}
+        {(privacy.show_best_50 || isOwner) && (
+          <Best50Section 
+            profile={profile} 
+            privacy={privacy} 
+            isOwner={isOwner} 
+            isMalformedBest50={isMalformedBest50} 
+            onImportClick={() => setIsImportModalOpen(true)}
+            onScoreClick={(score) => {
+              setSelectedBest50Song(songMapByTitle?.get(score.title));
+              setSelectedBest50Score(score);
+            }}
+          />
+        )}
 
-                {/* Mobile: DX Name + Rating inline */}
-                <Stack gap={2} hiddenFrom="sm">
-                  {(privacy.show_maimai_name || isOwner) && profile.maimai_dx_name && (
-                    <Group gap={4} align="center">
-                      <Text size="sm" fw={600}>DX Name:</Text>
-                      <Text size="sm">{profile.maimai_dx_name}</Text>
-                    </Group>
-                  )}
-                  {(privacy.show_dx_rating || isOwner) && profile.maimai_best_scores?.total_rating && (
-                    <Group gap={4} align="center">
-                      <Text size="sm" fw={600}>Rating:</Text>
-                      <Text size="sm" fw={700} c="primary">{profile.maimai_best_scores.total_rating}</Text>
-                    </Group>
-                  )}
-                  {(privacy.show_circle !== false || isOwner) && profile.circle_name && (
-                    <Group gap={4} align="center">
-                      <Text size="sm" fw={600}>Circle:</Text>
-                      <Text size="sm">{profile.circle_name}</Text>
-                    </Group>
-                  )}
-                </Stack>
-              </Stack>
-            </Group>
+        {(privacy.show_recent_plays !== false || isOwner) && (
+          <RecentPlaysSection userId={profile.id} isOwnProfile={isOwner} />
+        )}
+      </Stack>
 
-            <Stack gap={0} align="flex-end" visibleFrom="sm">
-              {(privacy.show_maimai_name || isOwner) && profile.maimai_dx_name && (
-                <Group gap={4}>
-                  <Text size="sm" c="secondary" fw={500}>maimai DX Name:</Text>
-                  <Text size="sm" fw={600}>{profile.maimai_dx_name}</Text>
-                </Group>
-              )}
-              {(privacy.show_dx_rating || isOwner) && profile.maimai_best_scores?.total_rating && (
-                <Stack gap={0} align="flex-end" mt={4}>
-                  <Text size="xs" fw={700} c="secondary" tt="uppercase" lts={1}>Rating</Text>
-                  <Text size="xl" fw={900} c="primary" style={{ fontSize: '2.5rem', lineHeight: 1 }}>
-                    {profile.maimai_best_scores.total_rating}
-                  </Text>
-                </Stack>
-              )}
-              {(privacy.show_circle !== false || isOwner) && profile.circle_name && (
-                <Group gap={4} mt={4}>
-                  <Text size="sm" c="secondary" fw={500}>Circle:</Text>
-                  <Text size="sm" fw={600}>{profile.circle_name}</Text>
-                </Group>
-              )}
-            </Stack>
-          </Group>
-        </Paper>
+      <Footer />
 
-        {/* Introduction Card */}
-        {
-          (privacy.show_introduction !== false || isOwner) && (
-            <div className="animate-fade-in delay-200">
-              <IntroductionCard
-                introduction={introduction}
-                isOwnProfile={isOwner}
-                userId={profile.id}
-                onUpdate={setIntroduction}
-              />
-            </div>
-          )
-        }
-
-        {/* Community Posts Section */}
-        {
-          (privacy.show_posts !== false || isOwner) && (
-            <div className="animate-fade-in delay-250">
-              <ProfilePostsSection 
-                userId={profile.id} 
-                currentUser={user} 
-                isOwnProfile={isOwner} 
-              />
-            </div>
-          )
-        }
-
-        {/* Favorite Songs Section */}
-        {
-          (privacy.show_favorite_songs || isOwner) && (
-            <div className="animate-fade-in delay-300">
-              <FavoriteSongsSection userId={profile.id} isOwnProfile={isOwner} />
-            </div>
-          )
-        }
-
-        {/* Playlist Section */}
-        {
-          (privacy.show_playlists || isOwner) && (
-            <div className="animate-fade-in delay-350">
-              <PlaylistSection userId={profile.id} isOwnProfile={isOwner} />
-            </div>
-          )
-        }
-
-        {/* Most Played Songs Section */}
-        {
-          (privacy.show_most_played !== false || isOwner) && profile.maimai_best_scores?.most_played?.length > 0 && (
-            <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-400">
-              <Group gap="xs" mb="md">
-                <IconStar size={24} style={{ color: 'var(--mantine-color-pink-5)' }} />
-                <Title order={2}>Most Played Songs</Title>
-              </Group>
-              <div
-                className="hide-scrollbar"
-                ref={scrollRef}
-                style={{
-                  overflowX: 'auto',
-                  display: 'flex',
-                  gap: '12px',
-                  paddingBottom: '12px', // Increased from 2px
-                  paddingTop: '8px',     // Added to prevent clipping
-                  cursor: 'grab'
-                }}
-              >
-                {profile.maimai_best_scores.most_played.map((song, index) => {
-                  const matchedSong = songMapByTitle?.get(song.title);
-                  return (
-                    <Paper
-                      key={index}
-                      p={0}
-                      radius="lg"
-                      className="hologram-card favorite-song-card"
-                      style={{
-                        minWidth: 160,
-                        width: 160,
-                        flexShrink: 0,
-                        height: 160,
-                        overflow: 'hidden',
-                        position: 'relative',
-                        cursor: (isOwner || privacy.show_most_played_details === true) ? 'pointer' : 'default',
-                        transition: 'transform 0.1s ease, box-shadow 0.2s ease', // Added box-shadow transition
-                        border: `2px solid ${DIFFICULTY_COLORS[song.difficulty] || 'transparent'}`,
-                        contentVisibility: 'auto',
-                        containIntrinsicSize: 'auto 160px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-4px)';
-                        e.currentTarget.style.boxShadow = '0 12px 24px -8px rgba(0, 0, 0, 0.2)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '';
-                      }}
-                      onClick={() => {
-                        if (!isDragging) {
-                          const canViewDetails = isOwner || privacy.show_most_played_details === true;
-                          if (!canViewDetails) return;
-                          if (!matchedSong) {
-                            notifications.show({
-                              title: 'Song not found',
-                              message: 'This song could not be found in the database.',
-                              color: 'red',
-                            });
-                            return;
-                          }
-                          setSelectedMostPlayedSong({
-                            ...matchedSong,
-                            play_count: song.play_count,
-                            title: song.title,
-                            difficulty: song.difficulty
-                          });
-                        }
-                      }}
-                    >
-                      <Box style={{ position: 'relative', width: '100%', height: '100%' }}>
-                        {/* Difficulty Badge */}
-                        {song.difficulty && (
-                          <Box
-                            style={{
-                              position: 'absolute',
-                              top: 6,
-                              right: 6,
-                              zIndex: 10,
-                              background: DIFFICULTY_COLORS[song.difficulty] || 'gray',
-                              color: 'white',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontSize: '9px',
-                              fontWeight: 900,
-                              textTransform: 'uppercase',
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                              textShadow: 'none'
-                            }}
-                          >
-                            {song.difficulty}
-                          </Box>
-                        )}
-
-                        <Image
-                          src={matchedSong?.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
-                          alt={song.title}
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover'
-                          }}
-                          fallbackSrc="https://placehold.co/160x160?text=No+Image"
-                        />
-
-                        {/* Dark Overlay */}
-                        <Box
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%)',
-                            zIndex: 1
-                          }}
-                        />
-
-                        {/* Content */}
-                        <Box
-                          p="xs"
-                          style={{
-                            position: 'absolute',
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            zIndex: 5
-                          }}
-                        >
-                          <Text size="xs" c="white" fw={700} lineClamp={1} mb={2} style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                            {song.title}
-                          </Text>
-                          <Group gap={4} align="baseline">
-                            <Text size="lg" fw={900} c="white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)', lineHeight: 1 }}>
-                              {song.play_count}
-                            </Text>
-                            <Text size="xs" fw={700} c="white" style={{ opacity: 0.8, textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                              plays
-                            </Text>
-                          </Group>
-                        </Box>
-                      </Box>
-                    </Paper>
-                  );
-                })}
-              </div>
-            </Paper>
-          )
-        }
-
-        {/* Best 50 Section */}
-        {
-          (privacy.show_best_50 || isOwner) && (
-            <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-450">
-              {isOwner && isMalformedBest50 && (
-                <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light" mb="md" title="Action Required">
-                  Data and Bookmark is out of date. Please create a new bookmark from the Import message and reimport
-                </Alert>
-              )}
-              <Group justify="space-between" mb="xl">
-                <Stack gap={0}>
-                  <Group gap="xs">
-                    <IconTrophy size={24} style={{ color: 'var(--mantine-color-yellow-6)' }} />
-                    <Title order={2}>Best 50</Title>
-                    {isOwner && privacy.show_play_count === false && (
-                      <Badge variant="subtle" color="gray" size="xs">Hidden to public</Badge>
-                    )}
-                  </Group>
-                  {profile.maimai_best_scores?.total_play_count && (privacy.show_play_count !== false || isOwner) && (
-                    <Group gap="xs" mt={4}>
-                      <Badge variant="subtle" color="pink" size="lg">
-                        Version: {profile.maimai_best_scores.current_version_play_count || 0} plays
-                      </Badge>
-                      <Badge variant="subtle" color="cyan" size="lg">
-                        Total: {profile.maimai_best_scores.total_play_count} plays
-                      </Badge>
-                    </Group>
-                  )}
-                </Stack>
-                {isOwner && (
-                  <Group gap="xs" wrap="nowrap">
-                    <Button
-                      leftSection={<IconUpload size={18} />}
-                      variant="light"
-                      size="sm"
-                      onClick={() => setIsImportModalOpen(true)}
-                    >
-                      {isMobile ? 'Import' : 'Import Scores'}
-                    </Button>
-                    {profile.maimai_best_scores && (
-                      <>
-                        <Button
-                          leftSection={<IconCamera size={18} />}
-                          variant="light"
-                          color="secondary"
-                          size="sm"
-                          onClick={() => window.open('/profile/export', '_blank')}
-                        >
-                          {isMobile ? 'Export' : 'Export Image'}
-                        </Button>
-                        <Button
-                          leftSection={<IconTrash size={18} />}
-                          variant="light"
-                          color="red"
-                          size="sm"
-                          onClick={handleClearData}
-                        >
-                          {isMobile ? 'Clear' : 'Clear Data'}
-                        </Button>
-                      </>
-                    )}
-                  </Group>
-                )}
-              </Group>
-
-              {profile.maimai_best_scores ? (
-                <Stack gap="md">
-                  <div>
-                    <Title order={3} mb="md">Best 15 (New)</Title>
-                    {profile.maimai_best_scores.best_new?.songs?.length > 0 ? (
-                      <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                        {profile.maimai_best_scores.best_new.songs.map((score, index) => (
-                          <ScoreCard
-                            key={`new-${index}`}
-                            score={score}
-                            onClick={(isOwner || privacy.show_best_50_details === true) ? () => {
-                              const matchedSong = songMapByTitle?.get(score.title);
-                              if (!matchedSong) {
-                                notifications.show({
-                                  title: 'Song not found',
-                                  message: 'This song could not be found in the database.',
-                                  color: 'red',
-                                });
-                                return;
-                              }
-                              setSelectedBest50Song(matchedSong);
-                              setSelectedBest50Score(score);
-                            } : undefined}
-                          />
-                        ))}
-                      </SimpleGrid>
-                    ) : (
-                      <Alert icon={<IconAlertCircle size={16} />} color="gray" variant="light">
-                        The user hasn't played new songs yet
-                      </Alert>
-                    )}
-                  </div>
-
-                  <div>
-                    <Divider my="md" />
-                    <Title order={3} mb="md">Best 35 (Old)</Title>
-                    {profile.maimai_best_scores.best_old?.songs?.length > 0 ? (
-                      <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                        {profile.maimai_best_scores.best_old.songs.map((score, index) => (
-                          <ScoreCard
-                            key={`old-${index}`}
-                            score={score}
-                            onClick={(isOwner || privacy.show_best_50_details === true) ? () => {
-                              const matchedSong = songMapByTitle?.get(score.title);
-                              if (!matchedSong) {
-                                notifications.show({
-                                  title: 'Song not found',
-                                  message: 'This song could not be found in the database.',
-                                  color: 'red',
-                                });
-                                return;
-                              }
-                              setSelectedBest50Song(matchedSong);
-                              setSelectedBest50Score(score);
-                            } : undefined}
-                          />
-                        ))}
-                      </SimpleGrid>
-                    ) : (
-                      <Alert icon={<IconAlertCircle size={16} />} color="gray" variant="light">
-                        The user hasn't played old songs yet
-                      </Alert>
-                    )}
-                  </div>
-                </Stack>
-              ) : (
-                <Alert icon={<IconAlertCircle size={16} />} title="No Best 50" color="gray" variant="light">
-                  {isOwner
-                    ? "Display your Best 50 starting by clicking on the import button"
-                    : "This user hasn't imported their Best 50 yet"}
-                </Alert>
-              )}
-            </Paper>
-          )
-        }
-
-        {/* Recent Plays Section */}
-        {
-          (privacy.show_recent_plays !== false || isOwner) && (
-            <div className="animate-fade-in delay-450">
-              <RecentPlaysSection userId={profile.id} initialData={profile.recent_plays} />
-            </div>
-          )
-        }
-
-        <Footer />
-      </Stack >
-
-      {/* Modals for Owner */}
-      {
-        isOwner && (
-          <>
-            <MaimaiImportModal
-              opened={isImportModalOpen}
-              onClose={() => setIsImportModalOpen(false)}
-              userId={user.id}
-              onSuccess={fetchData}
-            />
-            <ProfilePictureUploadModal
-              opened={isUploadModalOpen}
-              onClose={() => setIsUploadModalOpen(false)}
-              userId={user.id}
-              currentPhotoUrl={profile.display_photo_url || profile.dx_display_photo_url}
-              onSuccess={fetchData}
-            />
-            <ProfileSettingsModal
-              opened={isSettingsModalOpen}
-              onClose={() => {
-                setIsSettingsModalOpen(false);
-                clearSettingsParam();
-              }}
-              userId={user.id}
-              initialData={profile}
-              allBranches={branches}
-              onSuccess={async (newSlug) => {
-                if (newSlug && newSlug !== slug) {
-                  await refreshUserRoles();
-                  navigate(`/p/${newSlug}`, { replace: true });
-                } else {
-                  await refreshUserRoles();
-                  fetchData();
-                }
-              }}
-            />
-            <PrivacySettingsModal
-              opened={isPrivacyModalOpen}
-              onClose={() => {
-                setIsPrivacyModalOpen(false);
-                clearSettingsParam();
-              }}
-              userId={user.id}
-              initialData={profile}
-              onSuccess={fetchData}
-            />
-          </>
-        )
-      }
-
-      {/* Song detail modals — available to visitors when owner enables details */}
-      <MaimaiSongDetailModal
-        song={selectedMostPlayedSong}
-        opened={!!selectedMostPlayedSong}
-        onClose={() => setSelectedMostPlayedSong(null)}
-        playCount={selectedMostPlayedSong?.play_count}
-        difficulty={selectedMostPlayedSong?.difficulty}
-        title="Most Played Details"
+      {/* Modals */}
+      <ProfileSettingsModal 
+        opened={isSettingsModalOpen} 
+        onClose={() => { setIsSettingsModalOpen(false); clearSettingsParam(); }} 
+        userId={user?.id} 
+        initialData={profile} 
+        allBranches={branches} 
+        onSuccess={fetchData} 
       />
-      <MaimaiSongDetailModal
-        song={selectedBest50Song}
-        opened={!!selectedBest50Song}
-        onClose={() => {
-          setSelectedBest50Song(null);
-          setSelectedBest50Score(null);
-        }}
-        playCount={selectedBest50Score?.playCount ?? selectedBest50Score?.play_count}
-        difficulty={selectedBest50Score?.difficulty}
-        title="Best 50 Details"
-        best50Score={selectedBest50Score}
+      <PrivacySettingsModal 
+        opened={isPrivacyModalOpen} 
+        onClose={() => { setIsPrivacyModalOpen(false); clearSettingsParam(); }} 
+        userId={user?.id} 
+        initialData={privacy} 
+        onSuccess={fetchData} 
       />
-    </Container >
+      <ProfilePictureUploadModal 
+        opened={isUploadModalOpen} 
+        onClose={() => setIsUploadModalOpen(false)} 
+        userId={user?.id} 
+        currentPhotoUrl={profile?.display_photo_url || profile?.dx_display_photo_url}
+        onSuccess={fetchData} 
+      />
+      <MaimaiImportModal 
+        opened={isImportModalOpen} 
+        onClose={() => setIsImportModalOpen(false)} 
+        userId={user?.id} 
+        onSuccess={fetchData} 
+      />
+      <MaimaiSongDetailModal 
+        opened={!!selectedMostPlayedSong || !!selectedBest50Song} 
+        onClose={() => { setSelectedMostPlayedSong(null); setSelectedBest50Song(null); setSelectedBest50Score(null); }} 
+        song={selectedMostPlayedSong || selectedBest50Song} 
+        userBestScore={selectedBest50Score}
+      />
+    </Container>
   );
 };
 
