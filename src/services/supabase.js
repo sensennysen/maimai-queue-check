@@ -19,3 +19,4 @@ export * from './supabase/discussion';
 export * from './supabase/audit';
 export * from './supabase/follow';
 export * from './supabase/feed';
+export * from './supabase/playlist';
