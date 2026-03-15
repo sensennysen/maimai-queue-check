@@ -439,15 +439,24 @@ function QueueManager() {
 
       {/* Cabinet Tabs - Only show when there are multiple cabinets */}
       {hasMultipleCabinets && (
-        <Tabs value={String(selectedCabinet)} onChange={(value) => setSelectedCabinet(Number(value))}>
-          <Tabs.List>
-            {Array.from({ length: cabinetCount }, (_, i) => i + 1).map((cabNum) => (
-              <Tabs.Tab key={cabNum} value={String(cabNum)}>
+        <Group gap="sm" mb="md" className="cabinet-toggles">
+          {Array.from({ length: cabinetCount }, (_, i) => i + 1).map((cabNum) => {
+            const isActive = selectedCabinet === cabNum;
+            return (
+              <Button
+                key={cabNum}
+                variant={isActive ? "filled" : "light"}
+                color={isActive ? "primary" : "gray"}
+                onClick={() => setSelectedCabinet(cabNum)}
+                className={`cabinet-toggle-btn ${isActive ? 'is-active' : ''}`}
+                size="md"
+                radius="xl"
+              >
                 Cabinet {cabNum}
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
-        </Tabs>
+              </Button>
+            );
+          })}
+        </Group>
       )}
 
       {/* Add/Edit Queue Form Modal */}

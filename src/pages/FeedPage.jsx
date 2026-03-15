@@ -435,7 +435,6 @@ export default function FeedPage() {
                     <Button
                       variant="subtle"
                       size="xs"
-                      px={0}
                       rightSection={<IconChevronRight size={14} />}
                       onClick={() => navigate('/songs')}
                     >
@@ -492,7 +491,6 @@ export default function FeedPage() {
                     <Button
                       variant="subtle"
                       size="xs"
-                      px={0}
                       rightSection={<IconChevronRight size={14} />}
                       onClick={() => navigate('/shared-playlists')}
                     >
@@ -528,7 +526,7 @@ export default function FeedPage() {
           </Grid.Col>
 
           <Grid.Col span={{ base: 12, md: 4 }}>
-            <Paper p="md" radius="xl" withBorder className="community-sidebar" style={{ position: 'sticky', top: '1rem' }}>
+            <Paper p="md" radius="xl" className="community-sidebar" style={{ position: 'sticky', top: '1rem' }}>
               <PanelHeader
                 title="Suggested Players"
                 subtitle="People you may want to follow"

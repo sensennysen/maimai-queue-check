@@ -47,87 +47,74 @@ body {
   padding: 0;
   font-family: var(--font-body);
   background-color: var(--theme-background);
-  background-image:
-    radial-gradient(at 0% 0%, rgba(255, 40, 169, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(0, 210, 255, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(255, 210, 0, 0.1) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(255, 40, 169, 0.1) 0px, transparent 50%);
-  background-attachment: scroll;
-  /* Changed from fixed for mobile performance */
-  background-size: 100% 100%;
-
-  /* Noise overlay */
+  /* Claymorphism prefers a clean, solid or very softly gradated background */
   position: relative;
   min-height: 100vh;
   color: var(--theme-text-primary);
   overflow-x: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.15;
-  /* Adjusted opacity to compensate for missing mix-blend */
-  /* mix-blend-mode: overlay; -> Disabled for GPU composite speed */
-}
+/* Removed noise and complex radial gradients to let the 3D clay elements pop against a clean surface */
 
-/* Glassmorphism / Hologram Look */
-/* Glassmorphism / Hologram Look */
+/* Claymorphism / 3D Tactile Look */
 .hologram-card,
 .mantine-Paper-root,
 .mantine-Modal-content,
 .mantine-Card-root,
 .mantine-Menu-dropdown {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.4)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  background: var(--theme-surface) !important;
+  border: none !important;
+  /* Signature Claymorphism Shadow: Double outer drop + double inner highlight/shadow */
   box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 10px 15px -3px rgba(0, 0, 0, 0.05),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.5) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border-radius: 20px !important;
+    8px 8px 16px rgba(0, 0, 0, 0.06),
+    -8px -8px 16px rgba(255, 255, 255, 0.8),
+    inset 2px 2px 6px rgba(255, 255, 255, 0.8),
+    inset -2px -2px 6px rgba(0, 0, 0, 0.03) !important;
+  border-radius: 24px !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Dark mode adjustment for glassmorphism */
+/* Dark mode adjustment for claymorphism */
 [data-mantine-color-scheme="dark"] .hologram-card,
 [data-mantine-color-scheme="dark"] .mantine-Paper-root,
 [data-mantine-color-scheme="dark"] .mantine-Modal-content,
 [data-mantine-color-scheme="dark"] .mantine-Card-root,
 [data-mantine-color-scheme="dark"] .mantine-Menu-dropdown {
-  background: linear-gradient(135deg, rgba(20, 20, 30, 0.6), rgba(20, 20, 30, 0.4)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: var(--theme-surface) !important;
   box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.2),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+    8px 8px 16px rgba(0, 0, 0, 0.4),
+    -8px -8px 16px rgba(255, 255, 255, 0.02),
+    inset 2px 2px 6px rgba(255, 255, 255, 0.05),
+    inset -2px -2px 6px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Mobile glassmorphism fallback (Disable backdrop blur to fix scroll lag) */
+/* Mobile adjustments */
 @media (max-width: 768px) {
-
   .hologram-card,
   .mantine-Paper-root,
   .mantine-Modal-content,
   .mantine-Card-root,
   .mantine-Menu-dropdown {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: var(--theme-background) !important;
-    /* Maintain border and shadow but replace blur with solid/semi-solid background */
+    /* Slightly smaller shadows on mobile */
+    box-shadow:
+      4px 4px 10px rgba(0, 0, 0, 0.06),
+      -4px -4px 10px rgba(255, 255, 255, 0.8),
+      inset 1px 1px 4px rgba(255, 255, 255, 0.8),
+      inset -1px -1px 4px rgba(0, 0, 0, 0.03) !important;
+    border-radius: 20px !important;
   }
 
+  [data-mantine-color-scheme="dark"] .mantine-Paper-root,
   [data-mantine-color-scheme="dark"] .mantine-Modal-content,
   [data-mantine-color-scheme="dark"] .mantine-Card-root,
-  [data-mantine-color-scheme="dark"] .mantine-Menu-dropdown {
-    background: var(--theme-background) !important;
+  [data-mantine-color-scheme="dark"] .mantine-Menu-dropdown,
+  [data-mantine-color-scheme="dark"] .hologram-card {
+    box-shadow:
+      4px 4px 10px rgba(0, 0, 0, 0.4),
+      -4px -4px 10px rgba(255, 255, 255, 0.02),
+      inset 1px 1px 4px rgba(255, 255, 255, 0.05),
+      inset -1px -1px 4px rgba(0, 0, 0, 0.2) !important;
   }
 
   /* Fix for overly long modals on mobile */
@@ -150,19 +137,8 @@ body::before {
 .rendering-export .mantine-Paper-root,
 .rendering-export .mantine-Modal-content,
 .rendering-export .mantine-Card-root,
-.rendering-export .mantine-Menu-dropdown,
-.rendering-export .mantine-Card-root {
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.4)) !important;
-}
-
-[data-mantine-color-scheme="dark"] .rendering-export .hologram-card,
-[data-mantine-color-scheme="dark"] .rendering-export .mantine-Paper-root,
-[data-mantine-color-scheme="dark"] .rendering-export .mantine-Modal-content,
-[data-mantine-color-scheme="dark"] .rendering-export .mantine-Card-root,
-[data-mantine-color-scheme="dark"] .rendering-export .mantine-Menu-dropdown {
-  background: linear-gradient(135deg, rgba(20, 20, 30, 0.6), rgba(20, 20, 30, 0.4)) !important;
+.rendering-export .mantine-Menu-dropdown {
+  border-radius: 24px !important;
 }
 
 @media (max-width: 768px) {
@@ -320,22 +296,71 @@ html {
 }
 
 /* Override Mantine Button colors to match theme */
-/* Override Mantine Button colors to match theme */
+/* Override Mantine Button colors to match theme with Clay effect */
 .mantine-Button-root {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, box-shadow 0.2s ease;
-  border-radius: 999px !important;
-  /* Pill shape */
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, background-color 0.15s ease;
+  border-radius: 999px !important; /* Pill shape */
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  font-family: var(--font-heading);
+  border: none !important;
+  /* Default padding for all buttons to ensure clay look has room */
+  padding-left: 1.25rem !important;
+  padding-right: 1.25rem !important;
+  box-shadow:
+    4px 4px 8px rgba(0, 0, 0, 0.15),
+    -2px -2px 6px rgba(255, 255, 255, 0.3),
+    inset 0px 4px 4px rgba(255, 255, 255, 0.3),
+    inset 0px -4px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Subtle buttons shouldn't be puffy by default as they are often used in tight spots */
+.mantine-Button-root[data-variant="subtle"] {
+  box-shadow: none !important;
+  background: transparent !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+
+.mantine-Button-root[data-variant="subtle"]:hover {
+  background: var(--theme-surface-hover) !important;
+  box-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0px 2px 2px rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-mantine-color-scheme="dark"] .mantine-Button-root {
+  box-shadow:
+    4px 4px 8px rgba(0, 0, 0, 0.6),
+    -2px -2px 6px rgba(255, 255, 255, 0.05),
+    inset 0px 2px 4px rgba(255, 255, 255, 0.1),
+    inset 0px -4px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
 .mantine-Button-root:hover {
-  transform: scale(1.05);
-  /* Bouncy effect */
+  transform: translateY(-2px);
+  box-shadow:
+    6px 6px 12px rgba(0, 0, 0, 0.12),
+    -2px -2px 6px rgba(255, 255, 255, 0.35),
+    inset 0px 4px 4px rgba(255, 255, 255, 0.4),
+    inset 0px -4px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
 .mantine-Button-root:active {
-  transform: scale(0.95);
+  transform: translateY(2px) scale(0.98);
+  /* Reverse the inner shadows to make it look physically pressed */
+  box-shadow:
+    1px 1px 2px rgba(0, 0, 0, 0.1),
+    -1px -1px 2px rgba(255, 255, 255, 0.1),
+    inset 2px 4px 8px rgba(0, 0, 0, 0.2),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-mantine-color-scheme="dark"] .mantine-Button-root:active {
+  box-shadow:
+    1px 1px 2px rgba(0, 0, 0, 0.4),
+    inset 2px 4px 8px rgba(0, 0, 0, 0.5),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.05) !important;
 }
 
 /* Ensure proper text contrast in different themes */

@@ -62,3 +62,8 @@ docs/token-optimization-guide.md
 .codex/*
 .gemini/*
 .opencode/*
+skills-lock.json
+.agents/skills/frontend-design/LICENSE.txt
+.agents/skills/frontend-design/SKILL.md
+skills/frontend-design/LICENSE.txt
+skills/frontend-design/SKILL.md

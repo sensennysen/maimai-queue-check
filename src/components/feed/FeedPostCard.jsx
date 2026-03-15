@@ -230,6 +230,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
                 song={songMapById?.get(post.attached_song_id)}
                 songId={post.attached_song_id}
                 onClick={() => navigate(`/songs/${post.attached_song_id}`)}
+                className="clay-sub-card"
               />
             )}
             {post.attached_playlist && (
@@ -240,6 +241,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
                   created_at: post.created_at
                 }}
                 onClick={() => navigate(`/shared-playlists?playlist=${post.attached_playlist.id}`)}
+                className="clay-sub-card"
               />
             )}
           </Box>

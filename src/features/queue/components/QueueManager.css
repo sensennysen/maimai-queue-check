@@ -305,3 +305,19 @@
 .now-playing.now-playing-updated {
   animation: now-playing-pulse 0.6s ease-out;
 }
+
+.cabinet-toggles {
+  background: var(--theme-surface);
+  padding: 0.5rem;
+  border-radius: 999px;
+  box-shadow: 
+    inset 2px 4px 6px rgba(0, 0, 0, 0.05),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.4);
+  width: fit-content;
+}
+
+[data-mantine-color-scheme='dark'] .cabinet-toggles {
+  box-shadow: 
+    inset 2px 4px 6px rgba(0, 0, 0, 0.4),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.05);
+}

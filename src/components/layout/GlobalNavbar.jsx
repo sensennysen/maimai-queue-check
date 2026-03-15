@@ -127,29 +127,18 @@ export default function GlobalNavbar() {
           <Group justify="space-between" align="center" gap="md" wrap="nowrap" className="global-top-nav-inner">
             <Text fw={800} className="global-top-brand">mPQCheckPH</Text>
 
-            <Group gap={4} wrap="nowrap" className="global-top-links">
-              {!isMenu && visibleNavItems.map((item) => {
+            <Group gap={8} wrap="nowrap" className="global-top-links desktop-only">
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon;
-                return isCompact ? (
-                  <Tooltip key={item.path} label={item.label} position="bottom" withArrow>
-                    <ActionIcon
-                      variant="subtle"
-                      size="lg"
-                      onClick={() => navigate(item.path)}
-                      aria-current={activePath === item.path ? 'page' : undefined}
-                      className={`global-top-link compact ${activePath === item.path ? 'is-active' : ''}`}
-                    >
-                      <Icon size={20} />
-                    </ActionIcon>
-                  </Tooltip>
-                ) : (
+                return (
                   <Button
                     key={item.path}
                     variant="subtle"
-                    size="compact-sm"
+                    size="md"
                     onClick={() => navigate(item.path)}
                     aria-current={activePath === item.path ? 'page' : undefined}
                     className={`global-top-link ${activePath === item.path ? 'is-active' : ''}`}
+                    leftSection={<Icon size={18} />}
                   >
                     {item.label}
                   </Button>
@@ -159,151 +148,147 @@ export default function GlobalNavbar() {
 
             <Group gap="xs" wrap="nowrap" className="global-top-controls">
               {user && (
-                <Popover
-                  opened={suggestionsOpen && hasSuggestions && (!isCompact || showSearch)}
-                  onClose={() => setSuggestionsOpen(false)}
-                  position="bottom-end"
-                  width={230}
-                  withinPortal
-                  shadow="md"
-                  radius="md"
-                >
-                  <Popover.Target>
-                    <Box component="form" onSubmit={handleSearchSubmit} className={`global-top-search-wrap ${showSearch ? 'is-open' : ''} ${isCompact ? 'compact' : ''}`}>
-                      {(!isCompact || showSearch) && (
-                        <TextInput
-                          value={searchTerm}
-                          onChange={(event) => setSearchTerm(event.currentTarget.value)}
-                          placeholder="Search players or songs..."
-                          leftSection={<IconSearch size={16} />}
-                          rightSection={
-                            isCompact && (
-                              <ActionIcon size="sm" variant="subtle" onClick={() => setShowSearch(false)} aria-label="Close search">
-                                <IconX size={14} />
+                <div className="global-search-container">
+                  <Popover
+                    opened={suggestionsOpen && hasSuggestions && !showSearch}
+                    onClose={() => setSuggestionsOpen(false)}
+                    position="bottom-end"
+                    width={230}
+                    withinPortal
+                    shadow="md"
+                    radius="md"
+                  >
+                    <Popover.Target>
+                      <Box component="form" onSubmit={handleSearchSubmit} className={`global-top-search-wrap ${isCompact ? 'compact' : ''}`}>
+                        {!isCompact ? (
+                          <TextInput
+                            value={searchTerm}
+                            onChange={(event) => setSearchTerm(event.currentTarget.value)}
+                            placeholder="Search players or songs..."
+                            leftSection={<IconSearch size={16} />}
+                            className="global-top-search"
+                            onFocus={() => {
+                              if (hasSuggestions) setSuggestionsOpen(true);
+                            }}
+                          />
+                        ) : (
+                          <ActionIcon
+                            variant="subtle"
+                            size="lg"
+                            className="global-search-icon"
+                            aria-label="Open search"
+                            onClick={() => setShowSearch(true)}
+                          >
+                            <IconSearch size={22} />
+                          </ActionIcon>
+                        )}
+                      </Box>
+                    </Popover.Target>
+                    <Popover.Dropdown p="sm">
+                      <Stack gap="xs" align="stretch">
+                        <Group gap={6} justify="flex-start" align="center">
+                          <IconUsersGroup size={14} />
+                          <Text size="xs" fw={700}>Profiles</Text>
+                        </Group>
+                        {profileLoading && <Text size="xs" c="dimmed">Searching profiles...</Text>}
+                        {!profileLoading && profileSuggestions.length === 0 && (
+                          <Text size="xs" c="dimmed">No profile matches.</Text>
+                        )}
+                        {profileSuggestions.map((profile) => (
+                          <Button
+                            key={profile.id}
+                            variant="subtle"
+                            size="sm"
+                            fullWidth
+                            styles={{
+                              root: { justifyContent: 'flex-start' },
+                              inner: { justifyContent: 'flex-start', width: '100%' },
+                              label: { width: '100%', textAlign: 'left' },
+                            }}
+                            onClick={() => {
+                              if (profile.slug) navigate(`/p/${profile.slug}`);
+                              setSuggestionsOpen(false);
+                            }}
+                            leftSection={
+                              <Avatar
+                                src={profile.display_photo_url || profile.dx_display_photo_url || undefined}
+                                radius="xl"
+                                size={32}
+                              >
+                                {(profile.display_name || profile.slug || '?').slice(0, 2).toUpperCase()}
+                              </Avatar>
+                            }
+                          >
+                            {profile.display_name || profile.slug || 'Unnamed'}
+                          </Button>
+                        ))}
+
+                        <Divider />
+
+                        <Group gap={6} justify="flex-start" align="center">
+                          <IconMusic size={14} />
+                          <Text size="xs" fw={700}>Songs</Text>
+                        </Group>
+                        {songSuggestions.length === 0 && (
+                          <Text size="xs" c="dimmed">No song matches.</Text>
+                        )}
+                        {songSuggestions.map((song) => (
+                          <Button
+                            key={song.songId}
+                            variant="subtle"
+                            size="sm"
+                            fullWidth
+                            styles={{
+                              root: { justifyContent: 'flex-start' },
+                              inner: { justifyContent: 'flex-start', width: '100%' },
+                              label: { width: '100%', textAlign: 'left' },
+                            }}
+                            onClick={() => {
+                              navigate(`/search?query=${encodeURIComponent(song.title)}&type=song`);
+                              setSuggestionsOpen(false);
+                            }}
+                            leftSection={
+                              <Avatar
+                                src={song.imageUrl || undefined}
+                                radius="sm"
+                                size={32}
+                              />
+                            }
+                          >
+                            {song.title}
+                          </Button>
+                        ))}
+                      </Stack>
+                    </Popover.Dropdown>
+                  </Popover>
+
+                  {/* Mobile/Compact Search Overlay */}
+                  {isCompact && showSearch && (
+                    <Box className="global-mobile-search-overlay animate-fade-in">
+                      <Group gap="xs" wrap="nowrap" w="100%">
+                        <Box component="form" onSubmit={handleSearchSubmit} style={{ flex: 1 }}>
+                          <TextInput
+                            value={searchTerm}
+                            onChange={(event) => setSearchTerm(event.currentTarget.value)}
+                            placeholder="Search songs, players..."
+                            leftSection={<IconSearch size={18} />}
+                            rightSection={
+                              <ActionIcon size="sm" variant="subtle" onClick={() => setShowSearch(false)}>
+                                <IconX size={16} />
                               </ActionIcon>
-                            )
-                          }
-                          className="global-top-search"
-                          autoFocus={isCompact && showSearch}
-                          onFocus={() => {
-                            if (hasSuggestions) setSuggestionsOpen(true);
-                          }}
-                        />
-                      )}
-                      {isCompact && !showSearch && (
-                        <ActionIcon
-                          variant="subtle"
-                          size="lg"
-                          className="global-search-icon"
-                          aria-label="Open search"
-                          onClick={() => setShowSearch(true)}
-                        >
-                          <IconSearch size={18} />
-                        </ActionIcon>
-                      )}
+                            }
+                            autoFocus
+                            radius="xl"
+                            size="md"
+                            className="mobile-search-input"
+                          />
+                        </Box>
+                      </Group>
                     </Box>
-                  </Popover.Target>
-                  <Popover.Dropdown p="sm">
-                    <Stack gap="xs" align="stretch">
-                      <Group gap={6} justify="flex-start" align="center">
-                        <IconUsersGroup size={14} />
-                        <Text size="xs" fw={700}>Profiles</Text>
-                      </Group>
-                      {profileLoading && <Text size="xs" c="dimmed">Searching profiles...</Text>}
-                      {!profileLoading && profileSuggestions.length === 0 && (
-                        <Text size="xs" c="dimmed">No profile matches.</Text>
-                      )}
-                      {profileSuggestions.map((profile) => (
-                        <Button
-                          key={profile.id}
-                          variant="subtle"
-                          size="sm"
-                          fullWidth
-                          styles={{
-                            root: { justifyContent: 'flex-start' },
-                            inner: { justifyContent: 'flex-start', width: '100%' },
-                            label: { width: '100%', textAlign: 'left' },
-                          }}
-                          onClick={() => {
-                            if (profile.slug) navigate(`/p/${profile.slug}`);
-                            setSuggestionsOpen(false);
-                          }}
-                          leftSection={
-                            <Avatar
-                              src={profile.display_photo_url || profile.dx_display_photo_url || undefined}
-                              radius="xl"
-                              size={32}
-                            >
-                              {(profile.display_name || profile.slug || '?').slice(0, 2).toUpperCase()}
-                            </Avatar>
-                          }
-                        >
-                          {profile.display_name || profile.slug || 'Unnamed'}
-                        </Button>
-                      ))}
-
-                      <Divider />
-
-                      <Group gap={6} justify="flex-start" align="center">
-                        <IconMusic size={14} />
-                        <Text size="xs" fw={700}>Songs</Text>
-                      </Group>
-                      {songSuggestions.length === 0 && (
-                        <Text size="xs" c="dimmed">No song matches.</Text>
-                      )}
-                      {songSuggestions.map((song) => (
-                        <Button
-                          key={song.songId}
-                          variant="subtle"
-                          size="sm"
-                          fullWidth
-                          styles={{
-                            root: { justifyContent: 'flex-start' },
-                            inner: { justifyContent: 'flex-start', width: '100%' },
-                            label: { width: '100%', textAlign: 'left' },
-                          }}
-                          onClick={() => {
-                            navigate(`/search?query=${encodeURIComponent(song.title)}&type=song`);
-                            setSuggestionsOpen(false);
-                          }}
-                          leftSection={
-                            <Avatar
-                              src={song.imageUrl || undefined}
-                              radius="sm"
-                              size={32}
-                            />
-                          }
-                        >
-                          {song.title}
-                        </Button>
-                      ))}
-                    </Stack>
-                  </Popover.Dropdown>
-                </Popover>
+                  )}
+                </div>
               )}
-              {isMenu && (
-                <Menu shadow="md" width={220} position="bottom-end">
-                  <Menu.Target>
-                    <ActionIcon variant="subtle" size="lg" aria-label="Open navigation">
-                      <IconMenu2 size={20} />
-                    </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    {visibleNavItems.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <Menu.Item
-                          key={item.path}
-                          leftSection={<Icon size={16} />}
-                          onClick={() => navigate(item.path)}
-                        >
-                          {item.label}
-                        </Menu.Item>
-                      );
-                    })}
-                  </Menu.Dropdown>
-                </Menu>
-              )}
+              {/* Mobile menu removed in favor of floating bottom dock */}
               {user && <NotificationCenter />}
               {!isMenu && <ThemeToggle />}
               <LoginForm
@@ -314,6 +299,29 @@ export default function GlobalNavbar() {
           </Group>
         </Paper>
       </Container>
+
+      {/* Floating Bottom Dock for Mobile */}
+      <Box className="global-bottom-dock-wrap mobile-only">
+        <Paper p="xs" radius="xl" className="global-bottom-dock">
+          <Group justify="center" gap={8} wrap="nowrap">
+            {visibleNavItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <ActionIcon
+                  key={item.path}
+                  variant="subtle"
+                  size="xl"
+                  onClick={() => navigate(item.path)}
+                  aria-current={activePath === item.path ? 'page' : undefined}
+                  className={`global-bottom-link ${activePath === item.path ? 'is-active' : ''}`}
+                >
+                  <Icon size={24} />
+                </ActionIcon>
+              );
+            })}
+          </Group>
+        </Paper>
+      </Box>
 
       {user && (
         <PreferencesModal

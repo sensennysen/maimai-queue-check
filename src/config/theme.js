@@ -6,7 +6,8 @@ import { createTheme } from '@mantine/core';
 // Duplicate import removed
 
 // Base constants
-export const FONT_FAMILY = "'Poppins', system-ui, -apple-system, sans-serif";
+export const FONT_FAMILY = "'Nunito', system-ui, -apple-system, sans-serif";
+export const HEADING_FONT_FAMILY = "'Fredoka', sans-serif";
 
 // Theme Palettes
 export const themes = {
@@ -119,7 +120,7 @@ export const themes = {
       light: {
         // SUNNY ENERGY.
         background: '#FFF9DB', // Very light warm yellow/cream
-        surface: 'rgba(255, 255, 255, 0.9)', 
+        surface: '#FFF4E6', // Solid light orange/cream 
         primary: '#FF922B', // Orange
         secondary: '#339AF0', // Blue
         accent: '#51CF66', // Green
@@ -131,7 +132,7 @@ export const themes = {
       dark: { 
         // NIGHT ENERGY.
         background: '#101418', // Dark grey/blue
-        surface: 'rgba(33, 37, 41, 0.8)', 
+        surface: '#212529', // Solid dark grey 
         primary: '#FF922B', // Orange glows
         secondary: '#339AF0', // Blue
         accent: '#69DB7C', // Green
@@ -161,7 +162,7 @@ export const theme = createTheme({
   },
   fontFamily: FONT_FAMILY,
   headings: {
-    fontFamily: FONT_FAMILY,
+    fontFamily: HEADING_FONT_FAMILY,
     fontWeight: 600,
   },
   components: {
