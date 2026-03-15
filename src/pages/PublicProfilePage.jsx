@@ -26,9 +26,6 @@ import { IntroductionCard } from '../components/profile/IntroductionCard';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { useMouseDragScroll } from '../hooks/useMouseDragScroll';
-import Footer from '../components/layout/Footer';
-
-// Feature Modular Pieces
 import { usePublicProfile } from '../features/profile/hooks/usePublicProfile';
 import { ProfileHeaderCard } from '../features/profile/components/ProfileHeaderCard';
 import { MostPlayedSection } from '../features/profile/components/MostPlayedSection';
@@ -266,8 +263,6 @@ const PublicProfilePage = () => {
           <RecentPlaysSection userId={profile.id} isOwnProfile={isOwner} />
         )}
       </Stack>
-
-      <Footer />
 
       {/* Modals */}
       <ProfileSettingsModal 
