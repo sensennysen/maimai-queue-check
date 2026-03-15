@@ -271,7 +271,7 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
                 setActivePage(p);
                 setOpenedIndex(null);
               }}
-              color="blue"
+              color="secondary"
               radius="md"
               withEdges
             />

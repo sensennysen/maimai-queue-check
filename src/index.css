@@ -15,10 +15,10 @@
   --theme-text-muted: #7B5A78;
 
   /* Derived colors */
-  --theme-primary-hover: #FF4CC3;
-  --theme-secondary-hover: #1ADDFF;
-  --theme-accent-hover: #FFEB3B;
-  --theme-surface-hover: rgba(248, 240, 248, 0.8);
+  --theme-primary-hover: color-mix(in srgb, var(--theme-primary), black 10%);
+  --theme-secondary-hover: color-mix(in srgb, var(--theme-secondary), black 10%);
+  --theme-accent-hover: color-mix(in srgb, var(--theme-accent), black 10%);
+  --theme-surface-hover: color-mix(in srgb, var(--theme-surface), white 10%);
   --theme-border: rgba(255, 168, 225, 0.5);
   --theme-error: #D63352;
   --theme-success: #2DA74F;
@@ -227,6 +227,39 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Badges - 3D tactile look */
+.mantine-Badge-root {
+  text-transform: none !important;
+  letter-spacing: 0.02em !important;
+  font-weight: 600 !important;
+  height: auto !important;
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}
+
+.mantine-Badge-filled {
+  border: none !important;
+  box-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.1),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-palette] .mantine-Badge-filled[data-color="blue"],
+[data-palette] .mantine-Badge-filled[data-color="var(--theme-primary)"] {
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-primary-hover)) !important;
+  color: var(--theme-primary-contrast) !important;
+}
+
+.mantine-Badge-light {
+  background: color-mix(in srgb, var(--theme-primary), transparent 85%) !important;
+  color: var(--theme-primary) !important;
+  box-shadow: inset 0px 0px 4px rgba(255, 255, 255, 0.5) !important;
+}
+
+[data-mantine-color-scheme="dark"] .mantine-Badge-light {
+  background: color-mix(in srgb, var(--theme-primary), transparent 80%) !important;
+}
+
 /* Custom scrollbar for webkit browsers */
 ::-webkit-scrollbar {
   width: 8px;
@@ -307,11 +340,25 @@ html {
   /* Default padding for all buttons to ensure clay look has room */
   padding-left: 1.25rem !important;
   padding-right: 1.25rem !important;
+}
+
+.mantine-Button-root[data-variant="filled"] {
+  background-color: var(--theme-primary) !important;
+  color: var(--theme-primary-contrast) !important;
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-primary-hover)) !important;
   box-shadow:
-    4px 4px 8px rgba(0, 0, 0, 0.15),
-    -2px -2px 6px rgba(255, 255, 255, 0.3),
-    inset 0px 4px 4px rgba(255, 255, 255, 0.3),
-    inset 0px -4px 4px rgba(0, 0, 0, 0.1) !important;
+    6px 6px 12px rgba(0, 0, 0, 0.12),
+    -4px -4px 12px rgba(255, 255, 255, 0.2),
+    inset 0px 4px 6px rgba(255, 255, 255, 0.3),
+    inset 0px -4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-mantine-color-scheme="dark"] .mantine-Button-root[data-variant="filled"] {
+  box-shadow:
+    4px 4px 8px rgba(0, 0, 0, 0.6),
+    -2px -2px 6px rgba(255, 255, 255, 0.05),
+    inset 0px 2px 4px rgba(255, 255, 255, 0.1),
+    inset 0px -4px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Subtle buttons shouldn't be puffy by default as they are often used in tight spots */
@@ -320,6 +367,34 @@ html {
   background: transparent !important;
   padding-left: 0.75rem !important;
   padding-right: 0.75rem !important;
+  color: var(--theme-primary) !important;
+}
+
+.mantine-Button-root[data-variant="subtle"][data-color="gray"] {
+  color: var(--theme-text-muted) !important;
+}
+
+.mantine-Button-root[data-variant="light"] {
+  background: color-mix(in srgb, var(--theme-primary), transparent 85%) !important;
+  color: var(--theme-primary) !important;
+  box-shadow: inset 0px 0px 4px rgba(255, 255, 255, 0.5) !important;
+}
+
+[data-mantine-color-scheme="dark"] .mantine-Button-root[data-variant="light"] {
+  background: color-mix(in srgb, var(--theme-primary), transparent 80%) !important;
+}
+
+.mantine-Button-root:hover {
+  transform: translateY(-3px) scale(1.02);
+  filter: brightness(1.05);
+}
+
+.mantine-Button-root[data-variant="filled"]:hover {
+  box-shadow:
+    8px 8px 16px rgba(0, 0, 0, 0.15),
+    -4px -4px 12px rgba(255, 255, 255, 0.3),
+    inset 0px 4px 6px rgba(255, 255, 255, 0.4),
+    inset 0px -4px 6px rgba(0, 0, 0, 0.1) !important;
 }
 
 .mantine-Button-root[data-variant="subtle"]:hover {
@@ -329,25 +404,11 @@ html {
     inset 0px 2px 2px rgba(255, 255, 255, 0.3) !important;
 }
 
-[data-mantine-color-scheme="dark"] .mantine-Button-root {
-  box-shadow:
-    4px 4px 8px rgba(0, 0, 0, 0.6),
-    -2px -2px 6px rgba(255, 255, 255, 0.05),
-    inset 0px 2px 4px rgba(255, 255, 255, 0.1),
-    inset 0px -4px 4px rgba(0, 0, 0, 0.2) !important;
-}
-
-.mantine-Button-root:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    6px 6px 12px rgba(0, 0, 0, 0.12),
-    -2px -2px 6px rgba(255, 255, 255, 0.35),
-    inset 0px 4px 4px rgba(255, 255, 255, 0.4),
-    inset 0px -4px 4px rgba(0, 0, 0, 0.1) !important;
-}
-
 .mantine-Button-root:active {
   transform: translateY(2px) scale(0.98);
+}
+
+.mantine-Button-root[data-variant="filled"]:active {
   /* Reverse the inner shadows to make it look physically pressed */
   box-shadow:
     1px 1px 2px rgba(0, 0, 0, 0.1),
@@ -356,12 +417,13 @@ html {
     inset -2px -2px 4px rgba(255, 255, 255, 0.2) !important;
 }
 
-[data-mantine-color-scheme="dark"] .mantine-Button-root:active {
+[data-mantine-color-scheme="dark"] .mantine-Button-root[data-variant="filled"]:active {
   box-shadow:
     1px 1px 2px rgba(0, 0, 0, 0.4),
     inset 2px 4px 8px rgba(0, 0, 0, 0.5),
     inset -2px -2px 4px rgba(255, 255, 255, 0.05) !important;
 }
+
 
 /* Ensure proper text contrast in different themes */
 /* .mantine-Text-root {

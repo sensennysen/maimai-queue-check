@@ -15,43 +15,69 @@ export const themes = {
     name: 'Circle',
     type: 'light',
     colors: {
-      primary: [ // Maimai Pink - Bright and Punchy
-        '#FFF0F9', '#FFD6F0', '#FFA8E1', '#FF7AD2', '#FF4CC3', 
-        '#FF28A9', '#D9168B', '#B30E70', '#8D0856', '#66043D'
+      primary: [
+        '#FFE3F3',
+        '#FFC1E6',
+        '#FF9ED8',
+        '#FF7ACA',
+        '#FF57BC',
+        '#FF1493', // main logo pink
+        '#E01284',
+        '#C80F75',
+        '#B00C66',
+        '#8F084F'
       ],
-      secondary: [ // Electric Blue
-        '#E0FBFF', '#B3F4FF', '#80ECFF', '#4DE5FF', '#1ADDFF', 
-        '#00D2FF', '#00A8CC', '#007E99', '#005466', '#002A33'
+
+      secondary: [
+        '#E3F6FF',
+        '#BCE9FF',
+        '#91DAFF',
+        '#66CAFF',
+        '#3BB9FF',
+        '#00A6FF', // cyan from logo outline
+        '#0093E0',
+        '#007DBF',
+        '#00679E',
+        '#004A73'
       ],
-      accent: [ // Star Yellow
-        '#FFFDE7', '#FFF9C4', '#FFF59D', '#FFF176', '#FFEE58', 
-        '#FFD200', '#FBC02D', '#F9A825', '#F57F17', '#E65100'
+
+      accent: [
+        '#F3FFE3',
+        '#E2FFC2',
+        '#CEFF9F',
+        '#BAFF7C',
+        '#A6FF59',
+        '#8BFF2E', // lime highlight from logo
+        '#73E026',
+        '#5DC01F',
+        '#479F18',
+        '#317310'
       ],
     },
+
     css: {
       light: {
-        // WARM PINK FOUNDATION. No longer just "off-white".
-        background: '#FFF0F5', // A distinct light pink background
-        surface: '#FFFFFF', // Pure white cards pop against the pink BG
-        primary: '#FF28A9',
-        secondary: '#00D2FF',
-        accent: '#FFD200',
-        textPrimary: '#4A0E2E', // Deep Plum text for warmth
-        textMuted: '#9E7C92',
-        border: '#FFB6C1', // Light pink border
-        tabHighlight: '#FF28A9', // Primary
+        background: '#FFF6FB',
+        surface: '#FFFFFF',
+        primary: '#FF1493',
+        secondary: '#00A6FF',
+        accent: '#8BFF2E',
+        textPrimary: '#2B0A1F',
+        textMuted: '#7A5A6D',
+        border: 'rgba(255, 20, 147, 0.25)',
+        tabHighlight: '#FF1493',
       },
-      dark: { 
-        // PURE NEON ARCADE BLACK. High contrast.
-        background: '#000000', // Pure black for max neon contrast
-        surface: '#121212', // Very dark grey surface
-        primary: '#FF4CC3', // Brighter neon pink
-        secondary: '#00D2FF',
-        accent: '#88FF00', // Neon Lime
+
+      dark: {
+        background: '#0F0510',
+        surface: '#1B0B1C',
+        primary: '#FF1493',
+        secondary: '#3BB9FF',
+        accent: '#8BFF2E',
         textPrimary: '#FFFFFF',
-        textMuted: '#B0B0B0',
-        border: '#FF28A9', // Pink border glows against the black
-        tabHighlight: '#FF4CC3', // Primary
+        textMuted: '#B8A9B2',
+        border: 'rgba(255, 20, 147, 0.35)',
+        tabHighlight: '#FF1493',
       }
     }
   },
@@ -59,43 +85,69 @@ export const themes = {
     name: 'Prism',
     type: 'light',
     colors: {
-      primary: [ // Prism Purple - Softer and dreamier
-        '#F3F0FF', '#E5DBFF', '#D0BFFF', '#B197FC', '#9775FA', 
-        '#845EF7', '#7950F2', '#7048E8', '#6741D9', '#5F3DC4'
+      primary: [
+        '#E0F8FF',
+        '#B9EEFF',
+        '#8FE3FF',
+        '#66D8FF',
+        '#3BCCFF',
+        '#03A9F4', // primary anchor (kept)
+        '#0097DB',
+        '#0083C0',
+        '#006FA4',
+        '#005680'
       ],
-      secondary: [ // Mint Sky - Cool and airy
-        '#E3FAFC', '#C5F6FA', '#99E9F2', '#66D9E8', '#3BC9DB', 
-        '#22B8CF', '#15AABF', '#1098AD', '#0C8599', '#0B7285'
+
+      secondary: [
+        '#F1E6FF',
+        '#E0CFFF',
+        '#CDB6FF',
+        '#BA9EFF',
+        '#A885FF',
+        '#9570FF', // lavender outline tone
+        '#8260E0',
+        '#6E50BF',
+        '#5A409E',
+        '#46317A'
       ],
-      accent: [ // Soft Gold
-        '#FFFFF0', '#FFFACD', '#FFF8DC', '#FFEC8B', '#FFD700',
-        '#FFC125', '#FFB90F', '#CD950C', '#8B6508', '#553D05'
-      ]
+
+      accent: [
+        '#E8FBFF',
+        '#CFF5FF',
+        '#B6EEFF',
+        '#9DE7FF',
+        '#84E0FF',
+        '#6BD9FF',
+        '#54C5EA',
+        '#3FB0D3',
+        '#2A9BBC',
+        '#1686A5'
+      ],
     },
+
     css: {
       light: {
-        // COOL SKY FOUNDATION. Instantly different from Circle.
-        background: '#E6F7FF', // A distinct light sky-blue background
-        surface: '#F0F8FF', // Alice Blue cards blend with the sky
-        primary: '#5C4B99',
-        secondary: '#22B8CF', // A clearer mint/cyan
-        accent: '#FFD700',
-        textPrimary: '#1A233B', // Deep Navy text for coolness
+        background: '#F3FBFF',
+        surface: '#FFFFFF',
+        primary: '#03A9F4',
+        secondary: '#9570FF',
+        accent: '#66D8FF',
+        textPrimary: '#13223A',
         textMuted: '#6E7A8F',
-        border: '#BEE3F8', // Light blue border
-        tabHighlight: '#22B8CF', // Secondary (Clear Mint)
+        border: 'rgba(3, 169, 244, 0.25)',
+        tabHighlight: '#03A9F4',
       },
-      dark: { 
-        // DEEP MIDNIGHT INDIGO. Not black.
-        background: '#0A0E29', // Rich, deep indigo background
-        surface: '#1A1B41', // Slightly lighter indigo surface
-        primary: '#9775FA', // Lighter glowing purple
-        secondary: '#99E9F2', // Glowing mint
-        accent: '#FFFACD', // Soft lemon glow
-        textPrimary: '#E6E6FA', // Lavender text
-        textMuted: '#A9A9E0',
-        border: '#5C4B99', // Purple border
-        tabHighlight: '#99E9F2', // Secondary (Glowing Mint)
+
+      dark: {
+        background: '#07131F',
+        surface: '#0F1E2D',
+        primary: '#4FC3F7',
+        secondary: '#A885FF',
+        accent: '#66D8FF',
+        textPrimary: '#E6F4FF',
+        textMuted: '#94A3B8',
+        border: 'rgba(79, 195, 247, 0.25)',
+        tabHighlight: '#4FC3F7',
       }
     }
   },
@@ -103,47 +155,216 @@ export const themes = {
     name: 'Buddies',
     type: 'light',
     colors: {
-      primary: [ // Energy Orange
-        '#FFF4E6', '#FFE8CC', '#FFD8A8', '#FFC078', '#FFA94D', 
-        '#FF922B', '#FD7E14', '#F76707', '#E8590C', '#D9480F'
+      primary: [
+        '#FFFDE7',
+        '#FFF9C4',
+        '#FFF59D',
+        '#FFF176',
+        '#FFEE58',
+        '#FFD700', // primary anchor (kept)
+        '#FBC02D',
+        '#F9A825',
+        '#F57F17',
+        '#E65100'
       ],
-      secondary: [ // Splash Blue
-        '#E7F5FF', '#D0EBFF', '#A5D8FF', '#74C0FC', '#4DABF7', 
-        '#339AF0', '#228BE6', '#1C7ED6', '#1971C2', '#1864AB'
+
+      secondary: [
+        '#FFF0E6',
+        '#FFD9C2',
+        '#FFC39D',
+        '#FFAD78',
+        '#FF9753',
+        '#FF7A2F', // buddies orange tone
+        '#E66726',
+        '#CC551E',
+        '#B34316',
+        '#8F310F'
       ],
-      accent: [ // Bud Green (Lime-ish)
-        '#F4FCE3', '#E9FAC8', '#D8F5A2', '#C0EB75', '#A9E34B', 
-        '#8CE99A', '#69DB7C', '#51CF66', '#40C057', '#37B24D'
-      ]
+
+      accent: [
+        '#FFE4EC',
+        '#FFC8D9',
+        '#FFABC6',
+        '#FF8FB3',
+        '#FF729F',
+        '#FF4A8A', // pink accents found in logo sparkles
+        '#E63F79',
+        '#CC3568',
+        '#B32A57',
+        '#8F1E3E'
+      ],
     },
+
     css: {
       light: {
-        // SUNNY ENERGY.
-        background: '#FFF9DB', // Very light warm yellow/cream
-        surface: '#FFF4E6', // Solid light orange/cream 
-        primary: '#FF922B', // Orange
-        secondary: '#339AF0', // Blue
-        accent: '#51CF66', // Green
-        textPrimary: '#495057', // Dark Grey
-        textMuted: '#868E96',
-        border: '#FFD8A8', // Light orange border
-        tabHighlight: '#FF922B', // Primary
+        background: '#FFF8E6',
+        surface: '#FFFFFF',
+        primary: '#FFD700',
+        secondary: '#FF7A2F',
+        accent: '#FF4A8A',
+        textPrimary: '#3E2723',
+        textMuted: '#8D6E63',
+        border: 'rgba(255, 183, 0, 0.35)',
+        tabHighlight: '#FFD700',
       },
-      dark: { 
-        // NIGHT ENERGY.
-        background: '#101418', // Dark grey/blue
-        surface: '#212529', // Solid dark grey 
-        primary: '#FF922B', // Orange glows
-        secondary: '#339AF0', // Blue
-        accent: '#69DB7C', // Green
+
+      dark: {
+        background: '#1A1208',
+        surface: '#2A1B10',
+        primary: '#FFD700',
+        secondary: '#FF9753',
+        accent: '#FF729F',
+        textPrimary: '#FFF8E1',
+        textMuted: '#D7CCC8',
+        border: 'rgba(255, 183, 0, 0.25)',
+        tabHighlight: '#FFD700',
+      }
+    }
+  },
+  festival: {
+    name: 'Festival',
+    type: 'light',
+    colors: {
+      primary: [
+        '#F3E5F5',
+        '#E1BEE7',
+        '#CE93D8',
+        '#BA68C8',
+        '#AB47BC',
+        '#9C27B0', // primary anchor (kept)
+        '#8E24AA',
+        '#7B1FA2',
+        '#6A1B9A',
+        '#4A148C'
+      ],
+
+      secondary: [
+        '#FFF3E0',
+        '#FFE0B2',
+        '#FFCC80',
+        '#FFB74D',
+        '#FFA726',
+        '#FF9800', // festival lantern / fireworks orange
+        '#FB8C00',
+        '#F57C00',
+        '#EF6C00',
+        '#E65100'
+      ],
+
+      accent: [
+        '#FFE9F6',
+        '#FFC7E6',
+        '#FFA4D6',
+        '#FF82C6',
+        '#FF5FB6',
+        '#FF3CA6', // bright spark highlight
+        '#E63296',
+        '#CC2885',
+        '#B31F74',
+        '#8F1458'
+      ],
+    },
+
+    css: {
+      light: {
+        background: '#FAF5FF',
+        surface: '#FFFFFF',
+        primary: '#9C27B0',
+        secondary: '#FF9800',
+        accent: '#FF3CA6',
+        textPrimary: '#2D0A3D',
+        textMuted: '#7D5A8A',
+        border: 'rgba(156, 39, 176, 0.3)',
+        tabHighlight: '#9C27B0',
+      },
+
+      dark: {
+        background: '#16081E',
+        surface: '#2D113D',
+        primary: '#BA68C8',
+        secondary: '#FFB74D',
+        accent: '#FF82C6',
         textPrimary: '#F8F9FA',
         textMuted: '#ADB5BD',
-        border: '#FD7E14',
-        tabHighlight: '#FF922B', // Primary
+        border: 'rgba(186, 104, 200, 0.35)',
+        tabHighlight: '#BA68C8',
+      }
+    }
+  },
+  universe: {
+    name: 'Universe',
+    type: 'light',
+    colors: {
+      primary: [
+        '#E3F2FD',
+        '#BBDEFB',
+        '#90CAF9',
+        '#64B5F6',
+        '#42A5F5',
+        '#1E90FF', // primary anchor (kept)
+        '#1E88E5',
+        '#1976D2',
+        '#1565C0',
+        '#0D47A1'
+      ],
+
+      secondary: [
+        '#FFE4F1',
+        '#FFC6E0',
+        '#FFA8CF',
+        '#FF8ABE',
+        '#FF6CAD',
+        '#F06292', // nebula magenta tone
+        '#E05282',
+        '#C84371',
+        '#B03460',
+        '#8C234A'
+      ],
+
+      accent: [
+        '#FFFDE7',
+        '#FFF9C4',
+        '#FFF59D',
+        '#FFF176',
+        '#FFEE58',
+        '#FFD54F', // star highlight color
+        '#FBC02D',
+        '#F9A825',
+        '#F57F17',
+        '#E65100'
+      ],
+    },
+
+    css: {
+      light: {
+        background: '#F0F7FF',
+        surface: '#FFFFFF',
+        primary: '#1E90FF',
+        secondary: '#F06292',
+        accent: '#FFD54F',
+        textPrimary: '#0A192F',
+        textMuted: '#4A5568',
+        border: 'rgba(30, 144, 255, 0.3)',
+        tabHighlight: '#1E90FF',
+      },
+
+      dark: {
+        background: '#040C18',
+        surface: '#0A192F',
+        primary: '#1E90FF',
+        secondary: '#FF6CAD',
+        accent: '#FFD54F',
+        textPrimary: '#E2E8F0',
+        textMuted: '#94A3B8',
+        border: 'rgba(30, 144, 255, 0.25)',
+        tabHighlight: '#1E90FF',
       }
     }
   }
 };
+
+
+
 
 export const getSubtitleColor = (weight) => {
   if (weight === 10) return undefined;

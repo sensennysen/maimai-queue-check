@@ -95,7 +95,7 @@ function IntroductionEditor({ initialContent, onSave, onCancel }) {
             loading={isSaving}
             disabled={isOverLimit}
             size="sm"
-            color={isOverLimit ? 'red' : 'blue'}
+            color={isOverLimit ? 'var(--theme-error)' : 'primary'}
           >
             Save
           </Button>
@@ -129,7 +129,7 @@ export function IntroductionCard({ introduction, isOwnProfile, userId, onUpdate 
     <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-200">
       <Group justify="space-between" mb={isEditing || hasContent ? 'md' : 0}>
         <Group gap="xs">
-          <IconQuote size={24} style={{ color: 'var(--mantine-color-pink-5)' }} />
+          <IconQuote size={24} style={{ color: 'var(--theme-accent)' }} />
           <Title order={2}>Introduction</Title>
         </Group>
 

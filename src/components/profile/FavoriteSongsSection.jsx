@@ -204,7 +204,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
     <Paper shadow="sm" p="lg" radius="md" withBorder pos="relative">
       <Group justify="space-between" mb="lg">
         <Group gap="xs">
-          <IconHeart size={24} style={{ color: 'var(--mantine-color-red-6)' }} />
+          <IconHeart size={24} style={{ color: 'var(--theme-primary)' }} />
           <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>Favorite Songs</Title>
         </Group>
 
@@ -212,6 +212,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
           <Button
             leftSection={<IconPlus size={18} />}
             variant="light"
+            color="primary"
             onClick={() => setIsModalOpen(true)}
           >
             Add Favorite

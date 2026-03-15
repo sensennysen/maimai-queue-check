@@ -22,6 +22,8 @@ const PreferencesModal = ({ opened, onClose }) => {
               { label: 'Circle', value: 'circle' },
               { label: 'Prism', value: 'prism' },
               { label: 'Buddies', value: 'buddies' },
+              { label: 'Festival', value: 'festival' },
+              { label: 'Universe', value: 'universe' },
             ]}
             fullWidth
           />

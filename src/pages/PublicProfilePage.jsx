@@ -174,7 +174,7 @@ const PublicProfilePage = () => {
     return (
       <Container size="xl" py="xl">
         <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
-          <Loader size="xl" color="pink" type="bars" />
+          <Loader size="xl" color="var(--theme-primary)" type="bars" />
           <Text size="lg" fw={500} mt="md">Loading profile...</Text>
         </Stack>
       </Container>
@@ -186,7 +186,7 @@ const PublicProfilePage = () => {
       <Container size="xl" py="xl">
         <Stack align="center" justify="center" style={{ minHeight: '70vh' }} gap="xl">
           <Paper shadow="xl" p={40} radius="lg" withBorder style={{ maxWidth: 500, width: '100%', textAlign: 'center', backgroundColor: 'var(--mantine-color-body)' }}>
-            <ThemeIcon size={80} radius={80} variant="light" color="blue" mb="md">
+            <ThemeIcon size={80} radius={80} variant="light" color="primary" mb="md">
               <IconLock size={40} />
             </ThemeIcon>
             <Title order={2} mb="sm" fw={800}>Profile is Private</Title>
@@ -202,7 +202,7 @@ const PublicProfilePage = () => {
                   size="lg"
                   leftSection={<IconLogin size={20} />}
                   variant="filled"
-                  color="blue"
+                  color="primary"
                   radius="md"
                   fullWidth
                 >
@@ -224,7 +224,7 @@ const PublicProfilePage = () => {
       <Container size="xl" py="xl">
         <Stack align="center" justify="center" style={{ minHeight: '70vh' }} gap="xl">
           <Paper shadow="xl" p={40} radius="lg" withBorder style={{ maxWidth: 500, width: '100%', textAlign: 'center' }}>
-            <ThemeIcon size={80} radius={80} variant="light" color="red" mb="md">
+            <ThemeIcon size={80} radius={80} variant="light" color="var(--theme-error)" mb="md">
               <IconAlertCircle size={40} />
             </ThemeIcon>
             <Title order={2} mb="sm" fw={800}>Oops!</Title>
@@ -283,7 +283,7 @@ const PublicProfilePage = () => {
           <Alert
             icon={<IconLogin size={16} />}
             title="Viewing as Public"
-            color="blue"
+            color="primary"
             variant="light"
             className="animate-fade-in"
           >
@@ -330,7 +330,7 @@ const PublicProfilePage = () => {
                 <Tooltip label="Share Profile" withArrow>
                   <ActionIcon
                     variant="light"
-                    color="blue"
+                    color="secondary"
                     size="lg"
                     onClick={() => {
                       const url = window.location.href;
@@ -350,7 +350,7 @@ const PublicProfilePage = () => {
               ) : (
                 <Button
                   variant="light"
-                  color="blue"
+                  color="secondary"
                   leftSection={<IconShare size={18} />}
                   onClick={() => {
                     const url = window.location.href;
@@ -442,8 +442,8 @@ const PublicProfilePage = () => {
                       position: 'absolute',
                       bottom: 0,
                       right: 0,
-                      background: 'var(--mantine-color-blue-6)',
-                      color: 'white',
+                      background: 'var(--theme-primary)',
+                      color: 'var(--theme-primary-contrast)',
                       borderRadius: '50%',
                       width: 28,
                       height: 28,
@@ -469,21 +469,21 @@ const PublicProfilePage = () => {
                     <Group gap={6} align="center" mt={4}>
                       {profile.user_attributions.attributions.includes('DEVELOPER') && (
                         <Tooltip label="Developer" withArrow position="top">
-                          <Badge variant="light" color="blue" leftSection={<IconCode size={14} />}>
+                          <Badge variant="light" color="primary" leftSection={<IconCode size={14} />}>
                             Developer
                           </Badge>
                         </Tooltip>
                       )}
                       {profile.user_attributions.attributions.includes('CONTRIBUTOR') && (
                         <Tooltip label="Contributor" withArrow position="top">
-                          <Badge variant="light" color="pink" leftSection={<IconGitPullRequest size={14} />}>
+                          <Badge variant="light" color="accent" leftSection={<IconGitPullRequest size={14} />}>
                             Contributor
                           </Badge>
                         </Tooltip>
                       )}
                       {profile.user_attributions.attributions.includes('TESTER') && (
                         <Tooltip label="Tester" withArrow position="top">
-                          <Badge variant="light" color="green" leftSection={<IconBug size={14} />}>
+                          <Badge variant="light" color="var(--theme-success)" leftSection={<IconBug size={14} />}>
                             Tester
                           </Badge>
                         </Tooltip>

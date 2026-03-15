@@ -27,8 +27,8 @@ export const ThemeProvider = ({ children }) => {
   // Selected Theme: Circle, Prism, etc.
   const [currentTheme, setCurrentTheme] = useState(() => {
     const stored = localStorage.getItem('app-theme');
-    // Default to 'circle' if not set or invalid
-    return (stored && themes[stored]) ? stored : 'circle';
+    // Default to 'universe' or first available if not set or invalid
+    return (stored && themes[stored]) ? stored : 'universe';
   });
 
   useEffect(() => {
@@ -84,6 +84,21 @@ export const ThemeProvider = ({ children }) => {
     // Player specific
     root.style.setProperty('--theme-player1', cssVars.primary);
     root.style.setProperty('--theme-player2', cssVars.secondary);
+
+    // Calculate contrast for primary color
+    const primaryLum = getLuminance(cssVars.primary);
+    const contrastColor = primaryLum > 0.5 ? '#1A233B' : '#FFFFFF';
+    root.style.setProperty('--theme-primary-contrast', contrastColor);
+
+    // Set hover variations (slightly darker for light mode, lighter for dark mode)
+    root.style.setProperty('--theme-primary-hover', isDark ? 
+      `color-mix(in srgb, ${cssVars.primary}, white 15%)` : 
+      `color-mix(in srgb, ${cssVars.primary}, black 15%)`
+    );
+    root.style.setProperty('--theme-secondary-hover', isDark ? 
+      `color-mix(in srgb, ${cssVars.secondary}, white 15%)` : 
+      `color-mix(in srgb, ${cssVars.secondary}, black 15%)`
+    );
 
     document.body.setAttribute('data-theme', mode); // still needed for some CSS selectors
     document.body.setAttribute('data-palette', currentTheme); // helpful for debug or specific overrides

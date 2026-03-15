@@ -416,7 +416,7 @@ export default function SongDiscussionPage() {
                               <HoverCard.Target>
                                 <Badge
                                   variant={tagObj.hasAdded ? "filled" : "light"}
-                                  color="blue"
+                                  color="var(--theme-primary)"
                                   size="lg"
                                   style={{ cursor: user ? 'pointer' : 'default', paddingRight: tagObj.hasAdded ? 0 : undefined }}
                                   onClick={async () => {
@@ -450,7 +450,7 @@ export default function SongDiscussionPage() {
                                   }}
                                   rightSection={
                                     tagObj.hasAdded ? (
-                                      <ActionIcon size="xs" color="blue" radius="xl" variant="transparent"
+                                      <ActionIcon size="xs" color="var(--theme-primary-contrast)" radius="xl" variant="transparent"
                                         onClick={async (e) => {
                                           e.stopPropagation();
                                           setIsTaggingLoading(true);
@@ -474,7 +474,7 @@ export default function SongDiscussionPage() {
                                     ) : null
                                   }
                                 >
-                                  {tagObj.tagName} <Text span size="xs" c={tagObj.hasAdded ? "white" : "dimmed"} ml={4}>({tagObj.count})</Text>
+                                  {tagObj.tagName} <Text span size="xs" c={tagObj.hasAdded ? "var(--theme-primary-contrast)" : "dimmed"} ml={4} opacity={tagObj.hasAdded ? 0.8 : 1}>({tagObj.count})</Text>
                                 </Badge>
                               </HoverCard.Target>
                               <HoverCard.Dropdown>
