@@ -51,8 +51,8 @@ export default function GlobalNavbar() {
   const [showSearch, setShowSearch] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const activePath = getActivePath(location.pathname);
-  const isCompact = useMediaQuery('(max-width: 1000px)');
-  const isMenu = useMediaQuery('(max-width: 690px)');
+  const isCompact = useMediaQuery('(max-width: 1150px)');
+  const isMenu = useMediaQuery('(max-width: 768px)');
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
@@ -122,7 +122,7 @@ export default function GlobalNavbar() {
 
   return (
     <>
-      <Container size="xl" pt="xl" className="global-top-nav-wrap">
+      <Container size="xl" pt="xl" className="global-top-nav-wrap" style={{ overflow: 'hidden' }}>
         <Paper p={0} radius="xl" withBorder className="global-top-nav">
           <Group justify="space-between" align="center" gap="md" wrap="nowrap" className="global-top-nav-inner">
             <Text fw={800} className="global-top-brand">mPQCheckPH</Text>
