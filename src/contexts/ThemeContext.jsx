@@ -6,6 +6,12 @@ const ThemeContext = createContext();
 // The hook and provider are co-located intentionally (standard React context pattern).
 // Splitting into separate files would add indirection without benefit.
 // eslint-disable-next-line react-refresh/only-export-components
+/**
+ * Custom hook to access the global Theme context.
+ * Provides current theme settings, mode, and color transformation utilities.
+ * @returns {Object} The Theme context value.
+ * @throws {Error} If used outside of a ThemeProvider.
+ */
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
@@ -16,6 +22,13 @@ export const useTheme = () => {
 
 
 // Theme Context provider
+/**
+ * Provider component for the global Theme context.
+ * Manages theme mode (light/dark), color palettes, and synchronization with CSS variables.
+ * @param {Object} props - Component props.
+ * @param {React.ReactNode} props.children - Child components to be wrapped by the provider.
+ * @returns {JSX.Element} The rendered context provider.
+ */
 export const ThemeProvider = ({ children }) => {
   // Theme Mode: Light/Dark
   const [isDark, setIsDark] = useState(() => {

@@ -28,6 +28,15 @@ const statusColors = {
   cancelled: 'red',
 };
 
+/**
+ * Modal component for viewing historical queue activity logs.
+ * Supports filtering by time range and status.
+ * @param {Object} props - Component props.
+ * @param {boolean} props.opened - Whether the modal is visible.
+ * @param {Function} props.onClose - Callback to close the modal.
+ * @param {string} props.branchId - The ID of the branch to fetch logs for.
+ * @returns {JSX.Element} The rendered logs modal.
+ */
 const QueueLogsModal = ({ opened, onClose, branchId }) => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);

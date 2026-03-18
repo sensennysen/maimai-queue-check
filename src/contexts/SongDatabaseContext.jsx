@@ -3,6 +3,13 @@ import { notifications } from '@mantine/notifications';
 import { songsService } from '../services/songs';
 import { SongDatabaseContext } from './SongDatabaseContextDef';
 
+/**
+ * Provider component for the global Song Database context.
+ * Manages fetching, caching, and indexing of the maimai song database.
+ * @param {Object} props - Component props.
+ * @param {React.ReactNode} props.children - Child components to be wrapped by the provider.
+ * @returns {JSX.Element} The rendered context provider.
+ */
 export function SongDatabaseProvider({ children }) {
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -47,10 +54,16 @@ export function SongDatabaseProvider({ children }) {
     return [byId, byTitle];
   }, [songs]);
 
-  // Stable callbacks — extracted from useMemo so their references don't change
-  // when songs/loading/error state updates. This prevents downstream useEffect
-  // hooks that depend on these functions from firing on every context update.
+  /**
+   * Sets the request flag to true, triggering the initial database fetch.
+   * @returns {void}
+   */
   const requestFetch = useCallback(() => setIsRequested(true), []);
+
+  /**
+   * Clears the song database cache and re-triggers a fresh fetch from the server.
+   * @returns {void}
+   */
   const refresh = useCallback(() => {
     songsService.clearCache();
     setIsRequested(prev => {

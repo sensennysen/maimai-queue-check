@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import './PlayTimer.css';
 
+/**
+ * Component for displaying a real-time elapsed timer for active game sessions.
+ * @param {Object} props - Component props.
+ * @param {string} props.startTime - ISO timestamp representing when the session started.
+ * @returns {JSX.Element} The rendered timer display.
+ */
 function PlayTimer({ startTime }) {
   // Calculate initial elapsed time
   const calculateElapsed = useCallback(() => {

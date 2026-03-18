@@ -6,6 +6,16 @@ import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDiff
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
 
+/**
+ * Component for displaying a single song card with its metadata and difficulty bars.
+ * @param {Object} props - Component props.
+ * @param {Object} props.song - The song data object.
+ * @param {Function} props.onClick - Handler for card click events.
+ * @param {boolean} [props.hideDifficulties=false] - Whether to hide difficulty level badges.
+ * @param {boolean} [props.hideTags=false] - Whether to hide version and category tags.
+ * @param {Object} [props.style] - Optional CSS styles for the container.
+ * @returns {JSX.Element} The rendered song card.
+ */
 export const SongCard = React.memo(function SongCard({ song, onClick, hideDifficulties = false, hideTags = false, style }) {
   // Sort sheets by difficulty
   const sortedSheets = useMemo(() => {

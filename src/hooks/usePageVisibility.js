@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 
 /**
- * Hook to track page visibility and execute a callback when it changes
- * @param {Function} onVisible - Callback to run when page becomes visible
+ * Hook to track whether the document/page is currently visible and active.
+ * Executes a provided callback whenever the visibility state transitions to 'visible'.
+ * @param {Function} onVisible - Callback function to run when the page becomes visible.
+ * @returns {boolean} The current visibility status (true if visible).
  */
 export const usePageVisibility = (onVisible) => {
   const [isVisible, setIsVisible] = useState(!document.hidden);

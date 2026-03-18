@@ -75,10 +75,11 @@ export const contactReportSchema = z.object({
 });
 
 /**
- * Helper to validate data against a schema
- * @param {z.ZodSchema} schema 
- * @param {any} data 
- * @returns {{success: boolean, data?: any, error?: string}}
+ * Validates a data object against a provided Zod schema.
+ * Handles ZodError specifically to return user-friendly error messages.
+ * @param {z.ZodSchema} schema - The Zod schema to validate against.
+ * @param {any} data - The data to be validated.
+ * @returns {Object} A result object {success: boolean, data?: any, error?: string}.
  */
 export const validateData = (schema, data) => {
   try {

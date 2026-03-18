@@ -6,6 +6,11 @@ import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import IconCopy from '@tabler/icons-react/dist/esm/icons/IconCopy.mjs';
 import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
 
+/**
+ * Component providing instructions and code for the maimai score export bookmarklet.
+ * Supports desktop (drag-and-drop) and mobile (copy-paste) installation methods.
+ * @returns {JSX.Element} The rendered instructions view.
+ */
 export const BookmarkletInstructions = () => {
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://maipaqueuecheck.ph';
   const bookmarkletCode = `javascript:!function(){var s=document.createElement("script");s.src="${origin}/bookmarklet.js?v=" + Date.now();document.head.appendChild(s)}();`;

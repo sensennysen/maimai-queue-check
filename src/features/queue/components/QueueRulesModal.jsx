@@ -5,6 +5,14 @@ import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mj
 import { rulesService } from '../../../services/supabase';
 import DOMPurify from 'dompurify';
 
+/**
+ * Modal component for displaying the rules and guidelines for a specific branch.
+ * @param {Object} props - Component props.
+ * @param {boolean} props.opened - Whether the modal is visible.
+ * @param {Function} props.onClose - Callback to close the modal.
+ * @param {string} [props.branchId] - The ID of the branch to fetch rules for.
+ * @returns {JSX.Element} The rendered rules modal.
+ */
 const QueueRulesModal = ({ opened, onClose, branchId }) => {
   const [loading, setLoading] = useState(false);
   const [rules, setRules] = useState(null);

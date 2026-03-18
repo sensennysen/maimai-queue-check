@@ -6,6 +6,12 @@ import IconChevronDown from '@tabler/icons-react/dist/esm/icons/IconChevronDown.
 import { Skeleton, ActionIcon, Tooltip } from '@mantine/core';
 import './QueueItem.css';
 
+/**
+ * Component representing a single entry in the queue.
+ * Provides controls for editing, removing, and reordering entries based on permissions.
+ * @param {Object} props - Component props.
+ * @returns {JSX.Element} The rendered queue item.
+ */
 const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false, readOnly = false, isAdded = false, isMoved = false, isRemoving = false }) {
   const handleEdit = () => {
     if (readOnly) return;

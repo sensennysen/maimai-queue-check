@@ -28,6 +28,11 @@ import QueueLogsModal from './QueueLogsModal';
 import './QueueManager.css';
 
 
+/**
+ * The primary container for the entire queue management feature.
+ * Coordinates data fetching, mutations, location verification, and all child UI components.
+ * @returns {JSX.Element} The complete queue management interface.
+ */
 function QueueManager() {
   const { selectedBranch } = useBranch();
 

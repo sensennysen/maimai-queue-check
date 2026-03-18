@@ -5,6 +5,13 @@ import { notifications } from '@mantine/notifications';
 import { AuthContext } from './AuthContextProvider';
 import { TABLES } from '../constants/database';
 
+/**
+ * Provider component for the global Authentication context.
+ * Manages user session, role-based permissions, and synchronization with the database.
+ * @param {Object} props - Component props.
+ * @param {React.ReactNode} props.children - Child components to be wrapped by the provider.
+ * @returns {JSX.Element} The rendered context provider.
+ */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userRoles, setUserRoles] = useState(null);
@@ -12,10 +19,15 @@ export const AuthProvider = ({ children }) => {
 
   const { selectedBranch } = useBranch();
 
-  // Helper to manage local storage cache
+  /**
+   * Retrieves cached user roles from local storage.
+   * Supports both legacy and current SMAD-specific cache keys.
+   * @param {string} uid - The unique identifier of the user.
+   * @returns {Object|null} The parsed role object from cache or null if missing/invalid.
+   */
   const getCachedRoles = (uid) => {
     try {
-      // SEC-04: Try new key first, fall back to old key for backward compatibility
+      // Try new key first, fall back to old key for backward compatibility
       let cached = localStorage.getItem(`user_roles_${uid}`);
       if (!cached) {
         cached = localStorage.getItem(`smf_user_roles_${uid}`);
@@ -26,16 +38,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Stores current user roles in local storage for performance optimization.
+   * @param {string} uid - The unique identifier of the user.
+   * @param {Object} roles - The roles object to be serialized and cached.
+   * @returns {void}
+   */
   const cacheRoles = (uid, roles) => {
     try {
-      // SEC-04: write using new key
+      // write using new key
       localStorage.setItem(`user_roles_${uid}`, JSON.stringify(roles));
     } catch (e) {
       console.warn('Failed to cache user roles', e);
     }
   };
 
-  // Define fetch roles logic as a reusable function
+  /**
+   * Triggers a fresh fetch of user roles and permissions from the service layer.
+   * Includes a 5-second timeout safety and background caching.
+   * @returns {Promise<Object|null>} A promise resolving to the refreshed roles or null on failure.
+   */
   const refreshUserRoles = useCallback(async () => {
     if (!user) return null;
 
@@ -62,7 +84,7 @@ export const AuthProvider = ({ children }) => {
         }
       );
 
-      // Surface UI notification per FRAG-03 requirement
+      // Surface UI notification for error handling
       notifications.show({
         title: 'Roles could not be loaded',
         message: 'There was a problem loading your permissions. Some actions may be temporarily unavailable.',
@@ -175,7 +197,7 @@ export const AuthProvider = ({ children }) => {
         },
         () => {
           // Profile changed/added/deleted
-          // Just re-fetch the merged world state
+          // Just re-fetch the world state
           refreshUserRoles();
         }
       )
@@ -187,6 +209,11 @@ export const AuthProvider = ({ children }) => {
     };
   }, [user, refreshUserRoles]);
 
+  /**
+   * Initiates an external OAuth sign-in flow (e.g., Discord, Google).
+   * @param {string} provider - The case-sensitive name of the OAuth provider.
+   * @returns {Promise<void>} A promise that resolves when the flow is initiated.
+   */
   const signInWithProvider = async (provider) => {
     setLoading(true);
     try {
@@ -196,10 +223,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Terminates the current session and clears all local auth/role caches.
+   * @returns {Promise<void>} A promise that resolves when the sign-out is complete.
+   */
   const signOut = async () => {
     setLoading(true);
     try {
-      // SEC-01: Clear role cache before signing out
+      // Clear role cache before signing out
       if (user?.id) {
         localStorage.removeItem(`user_roles_${user.id}`);
         localStorage.removeItem(`smf_user_roles_${user.id}`);

@@ -4,16 +4,15 @@ import PlayTimer from './PlayTimer';
 import './QueueManager.css';
 
 /**
- * Component displaying the currently playing game session
- * @param {Object} props
- * @param {Object} props.nowPlaying - Current playing queue entry
- * @param {string} props.nowPlaying.player1 - First player name
- * @param {string} props.nowPlaying.player2 - Second player name
- * @param {string} props.nowPlaying.started_at - ISO timestamp when game started
- * @param {boolean} props.canActuallyEdit - Whether user can edit
- * @param {boolean} props.isBusy - Whether mutation is in progress
- * @param {() => void} props.onFinishGame - Handler for finishing game
- * @param {boolean} props.isLoggedIn - Whether user is logged in
+ * Component for displaying the currently playing game session.
+ * @param {Object} props - Component props.
+ * @param {Object} props.nowPlaying - Current playing queue entry.
+ * @param {boolean} props.canActuallyEdit - Whether the user has permissions to modify the entry.
+ * @param {boolean} props.isBusy - Whether a mutation is currently in progress.
+ * @param {Function} props.onFinishGame - Handler for completing the current game session.
+ * @param {boolean} props.isLoggedIn - Whether the user is authenticated.
+ * @param {boolean} [props.justUpdated=false] - Whether the card was recently updated (triggers animation).
+ * @returns {JSX.Element|null} The rendered card or null if no session is active.
  */
 function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isLoggedIn, justUpdated = false }) {
   if (!nowPlaying) return null;

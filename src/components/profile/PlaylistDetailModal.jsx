@@ -11,6 +11,20 @@ import { playlistService } from '../../services/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { PlaylistProtectionModal } from '../modals/PlaylistProtectionModal';
 
+/**
+ * Modal component for viewing and interacting with a shared playlist.
+ * Displays song list, playback controls (if applicable), and user comments.
+ * @param {Object} props - Component props.
+ * @param {Object|null} props.playlist - The playlist data object being viewed.
+ * @param {Array} props.songs - Array of songs in the playlist.
+ * @param {boolean} props.opened - Whether the modal is currently visible.
+ * @param {Function} props.onClose - Callback to close the modal.
+ * @param {boolean} props.isOwnProfile - True if the playlist belongs to the current user.
+ * @param {Function} props.onEdit - Callback function when the edit button is clicked.
+ * @param {Function} props.onDelete - Callback function when the delete button is clicked.
+ * @param {boolean} props.hideShareDelete - If true, hides the share and delete buttons.
+ * @returns {JSX.Element} The rendered playlist detail modal.
+ */
 export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isOwnProfile, onEdit, onDelete, hideShareDelete = false }) {
   const [selectedSongDetails, setSelectedSongDetails] = useState(null);
   const [isSharing, setIsSharing] = useState(false);

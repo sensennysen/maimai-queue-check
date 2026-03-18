@@ -8,7 +8,17 @@ import { activityNotificationService } from './notifications';
  * Service for community feed posts
  */
 export const postsService = {
-  // Create a new feed post
+  /**
+   * Creates a new community feed post in the database.
+   * Handles optional attachments for songs, playlists, and images.
+   * @param {string} userId - The unique identifier of the posting user.
+   * @param {string} content - The text content of the post.
+   * @param {string} [visibility=APP_CONFIG.DEFAULT_VISIBILITY] - Post visibility level ('public', etc.).
+   * @param {string} [songId=null] - Optional ID of a song to attach.
+   * @param {string} [playlistId=null] - Optional ID of a playlist to attach.
+   * @param {string} [imageUrl=null] - Optional URL of an image to attach.
+   * @returns {Promise<Object>} A promise resolving to the created post with normalized counts.
+   */
   async createFeedPost(userId, content, visibility = APP_CONFIG.DEFAULT_VISIBILITY, songId = null, playlistId = null, imageUrl = null) {
     const { data, error } = await supabase
       .from(TABLES.FEED_POSTS)
@@ -41,7 +51,12 @@ export const postsService = {
     return { ...data, like_count, dislike_count, user_vote, votes: undefined };
   },
 
-  // Get latest posts
+  /**
+   * Retrieves a list of the latest feed posts with user-specific voting context.
+   * @param {string} [userId=null] - The ID of the user viewing the feed (to determine visibility and votes).
+   * @param {number} [limit=LIMITS.FEED_POSTS] - The maximum number of posts to return.
+   * @returns {Promise<Array<Object>>} A promise resolving to an array of post objects.
+   */
   async getFeedPosts(userId = null, limit = LIMITS.FEED_POSTS) {
     let query = supabase
       .from(TABLES.FEED_POSTS)
@@ -76,7 +91,12 @@ export const postsService = {
     });
   },
 
-  // Get posts for a user
+  /**
+   * Retrieves all feed posts authored by a specific user.
+   * @param {string} userId - The author's unique identifier.
+   * @param {number} [limit=LIMITS.PROFILE_POSTS] - The maximum number of posts to return.
+   * @returns {Promise<Array<Object>>} A promise resolving to an array of the user's posts.
+   */
   async getUserFeedPosts(userId, limit = LIMITS.PROFILE_POSTS) {
     const { data, error } = await supabase
       .from(TABLES.FEED_POSTS)
@@ -106,18 +126,37 @@ export const postsService = {
     });
   },
 
+  /**
+   * Updates the text content of an existing feed post.
+   * @param {string} postId - The ID of the post to update.
+   * @param {string} userId - The ID of the user (for ownership verification).
+   * @param {string} content - The new text content.
+   * @returns {Promise<Object>} A promise resolving to the updated post fragment.
+   */
   async updateFeedPost(postId, userId, content) {
     const { data, error } = await supabase.from(TABLES.FEED_POSTS).update({ content: content.trim(), updated_at: new Date().toISOString() }).eq('id', postId).eq('user_id', userId).select('id, content, updated_at').single();
     if (error) throw error;
     return data;
   },
 
+  /**
+   * Performs a soft delete on a feed post by setting its 'deleted' flag to true.
+   * @param {string} postId - The ID of the post to delete.
+   * @param {string} userId - The ID of the user (for ownership verification).
+   * @returns {Promise<void>} A promise that resolves when the post is deleted.
+   */
   async deleteFeedPost(postId, userId) {
     const { error } = await supabase.from(TABLES.FEED_POSTS).update({ deleted: true }).eq('id', postId).eq('user_id', userId);
     if (error) throw error;
   },
 
-  // Comments logic
+  /**
+   * Retrieves all comments associated with a specific feed post.
+   * @param {string} postId - The ID of the parent post.
+   * @param {string} [userId=null] - The ID of the user viewing (to determine votes).
+   * @param {number} [limit=LIMITS.COMMENT_POOL] - The maximum number of comments to return.
+   * @returns {Promise<Array<Object>>} A promise resolving to an array of comment objects.
+   */
   async getFeedPostComments(postId, userId = null, limit = LIMITS.COMMENT_POOL) {
     const { data, error } = await supabase
       .from(TABLES.FEED_POST_COMMENTS)
@@ -141,6 +180,13 @@ export const postsService = {
     });
   },
 
+  /**
+   * Adds a new comment to a feed post.
+   * @param {string} postId - The ID of the post being commented on.
+   * @param {string} userId - The ID of the comment author.
+   * @param {string} content - The text content of the comment.
+   * @returns {Promise<Object>} A promise resolving to the newly created comment object.
+   */
   async addFeedPostComment(postId, userId, content) {
     const { data, error } = await supabase
       .from(TABLES.FEED_POST_COMMENTS)
@@ -151,12 +197,26 @@ export const postsService = {
     return data;
   },
 
+  /**
+   * Deletes a specific comment from a feed post.
+   * @param {string} commentId - The ID of the comment to delete.
+   * @param {string} userId - The ID of the user (for ownership verification).
+   * @returns {Promise<void>} A promise that resolves when the comment is deleted.
+   */
   async deleteFeedPostComment(commentId, userId) {
-    const { error } = await supabase.from(TABLES.FEED_POST_COMMENTS).delete().eq('id', commentId).eq('user_id', userId);
+    const { error } = await supabase.from(TABLES.FEED_POSTS_COMMENTS).delete().eq('id', commentId).eq('user_id', userId);
     if (error) throw error;
   },
 
-  // Voting logic
+  /**
+   * Registers or removes a vote (like/dislike) on a feed post.
+   * Automatically triggers a notification for the post author if it's a new like.
+```
+   * @param {string} postId - The ID of the post being voted on.
+   * @param {string} userId - The ID of the voting user.
+   * @param {number} voteType - The type of vote (1: like, -1: dislike, 0: remove).
+   * @returns {Promise<Object>} A promise resolving to the final vote state.
+   */
   async voteFeedPost(postId, userId, voteType) {
     if (voteType === 0) {
       const { error } = await supabase.from(TABLES.FEED_POST_VOTES).delete().eq('post_id', postId).eq('user_id', userId);
@@ -177,6 +237,13 @@ export const postsService = {
     }
   },
 
+  /**
+   * Registers or removes a vote on a feed post comment.
+   * @param {string} commentId - The ID of the comment.
+   * @param {string} userId - The ID of the voter.
+   * @param {number} voteType - The type of vote (1: like, -1: dislike, 0: remove).
+   * @returns {Promise<Object>} A promise resolving to the final vote state.
+   */
   async voteFeedPostComment(commentId, userId, voteType) {
     if (voteType === 0) {
       const { error } = await supabase.from(TABLES.FEED_POST_COMMENT_VOTES).delete().eq('comment_id', commentId).eq('user_id', userId);
@@ -197,6 +264,11 @@ export const postsService = {
     }
   },
 
+  /**
+   * Retrieves profiles of all users who have voted on a specific comment.
+   * @param {string} commentId - The ID of the comment to audit.
+   * @returns {Promise<Array<Object>>} A promise resolving to a list of voter profiles and types.
+   */
   async getFeedPostCommentVoters(commentId) {
     const { data, error } = await supabase
       .from(TABLES.FEED_POST_COMMENT_VOTES)
@@ -211,7 +283,12 @@ export const postsService = {
     return data || [];
   },
 
-  // Image upload
+  /**
+   * Uploads an image file to the post images storage bucket.
+   * @param {string} userId - The ID of the user uploading the image.
+   * @param {File} file - The file object to upload.
+   * @returns {Promise<string>} A promise resolving to the public URL of the uploaded image.
+   */
   async uploadPostImage(userId, file) {
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/${Date.now()}.${fileExt}`;

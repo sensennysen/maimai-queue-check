@@ -20,6 +20,14 @@ import PrivacySettingsModal from './profile/PrivacySettingsModal';
 import ChangelogModal from './modals/ChangelogModal';
 import './LoginForm.css';
 
+/**
+ * Component for user authentication and profile management.
+ * Provides social login buttons, a user menu with profile settings, and theme toggling.
+ * @param {Object} props - Component props.
+ * @param {Function} props.onOpenPreferences - Callback to open the app preferences modal.
+ * @param {boolean} [props.showThemeToggleInMenu=false] - Whether to show the theme toggle within the user menu.
+ * @returns {JSX.Element} The rendered login form or user menu.
+ */
 const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
   const { user, loading, signInWithProvider, signOut, userRoles, refreshUserRoles } = useAuth();
   const { branches, allEnabledBranches } = useBranch();

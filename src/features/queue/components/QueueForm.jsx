@@ -7,6 +7,21 @@ import './QueueForm.css';
 import { usePlayerSuggestions } from '../../../hooks/usePlayerSuggestions';
 import { useBranch } from '../../../hooks/useBranch';
 
+/**
+ * Form component for adding or editing queue entries.
+ * Handles player name entry, solo preference, and proximity validation.
+ * @param {Object} props - Component props.
+ * @param {Function} props.onSubmit - Handler for form submission.
+ * @param {string|null} [props.editingId] - ID of the entry being edited, if any.
+ * @param {Object} [props.editingData] - Initial data for the entry being edited.
+ * @param {boolean} [props.isBusy=false] - Whether a mutation is in progress.
+ * @param {boolean} [props.locationVerified=false] - Whether the user's location is verified.
+ * @param {string|null} [props.locationError=null] - Description of any location verification errors.
+ * @param {boolean} [props.isSuperAdmin=false] - Whether the user has super-admin privileges.
+ * @param {Array<Object>} [props.queue=[]] - The current list of waiting queue entries.
+ * @param {Object|null} [props.nowPlaying=null] - The currently playing entry.
+ * @returns {JSX.Element} The rendered queue form.
+ */
 function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationVerified = false, locationError = null, isSuperAdmin = false, queue = [], nowPlaying = null }) {
   const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : '';
   const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : '';

@@ -10,6 +10,13 @@ const BranchContext = createContext(null);
 
 const STORAGE_KEY = 'maimai-selected-branch';
 
+/**
+ * Provider component for the global Branch context.
+ * Manages the list of available arcade branches, location-based auto-selection, and real-time updates.
+ * @param {Object} props - Component props.
+ * @param {React.ReactNode} props.children - Child components to be wrapped by the provider.
+ * @returns {JSX.Element} The rendered context provider.
+ */
 export const BranchProvider = ({ children }) => {
   const [branches, setBranches] = useState([]);
   const [allEnabledBranches, setAllEnabledBranches] = useState([]);
@@ -19,6 +26,11 @@ export const BranchProvider = ({ children }) => {
   const [userLocation, setUserLocation] = useState(null);
   const [hasManuallySelected, setHasManuallySelected] = useState(false);
 
+  /**
+   * Loads the initial list of branches and enabled branches from the database.
+   * Handles restoration of the user's previously selected branch from local storage.
+   * @returns {Promise<void>} A promise that resolves when the branches are loaded.
+   */
   const loadBranches = useCallback(async () => {
     try {
       setLoading(true);
@@ -61,12 +73,23 @@ export const BranchProvider = ({ children }) => {
     }
   }, []); // Static loader
 
+  /**
+   * Sets the currently active branch and persists the selection to local storage.
+   * @param {Object} branch - The branch object to select.
+   * @returns {void}
+   */
   const setSelectedBranch = useCallback((branch) => {
     setSelectedBranchState(branch);
     setHasManuallySelected(true);
     localStorage.setItem(STORAGE_KEY, String(branch.id));
   }, []);
 
+  /**
+   * Handles real-time database change payloads for the branches table.
+   * Updates local state (INSERT/UPDATE/DELETE) while maintaining sorting and selection consistency.
+   * @param {Object} payload - The Supabase real-time change payload.
+   * @returns {void}
+   */
   const handleBranchChange = useCallback((payload) => {
     const { eventType, new: newRecord, old: oldRecord } = payload;
 
@@ -237,6 +260,10 @@ export const BranchProvider = ({ children }) => {
   }, [handleBranchChange, loadBranches]);
 
   // Refresh user location
+  /**
+   * Requests the user's current geographical coordinates and updates the context state.
+   * @returns {Promise<Object|null>} A promise resolving to the location object or null on failure.
+   */
   const refreshLocation = async () => {
     try {
       const location = await requestUserLocation();
@@ -267,6 +294,12 @@ export const BranchProvider = ({ children }) => {
   );
 };
 
+/**
+ * Custom hook to access the global Branch context.
+ * Provides access to available branches, the selected branch, and location-related utilities.
+ * @returns {Object} The Branch context value.
+ * @throws {Error} If used outside of a BranchProvider.
+ */
 export const useBranch = () => {
   const context = useContext(BranchContext);
   if (!context) {

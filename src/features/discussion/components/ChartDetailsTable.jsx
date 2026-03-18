@@ -3,9 +3,12 @@ import { IconWorld } from '@tabler/icons-react';
 import { DIFFICULTY_COLORS, normalizeDifficulty } from '../../../config/maimai-constants';
 
 /**
- * ChartDetailsTable component to display difficulty stats
- * @param {Array} currentSheets - List of chart versions/sheets
- * @param {boolean} isMobile - Media query state
+ * Component for displaying the detailed stats and difficulty breakdown of a song.
+ * Includes region availability and internal values.
+ * @param {Object} props - Component props.
+ * @param {Array<Object>} props.currentSheets - List of chart versions/sheets for the song.
+ * @param {boolean} props.isMobile - Whether the viewer is on a mobile device.
+ * @returns {JSX.Element|null} The rendered chart details table or null if no sheets available.
  */
 export function ChartDetailsTable({ currentSheets, isMobile }) {
   if (!currentSheets || currentSheets.length === 0) return null;

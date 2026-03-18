@@ -3,6 +3,13 @@ import IconUserPlus from '@tabler/icons-react/dist/esm/icons/IconUserPlus.mjs';
 import { notifications } from '@mantine/notifications';
 import { requestService, notificationService, feedService, followService, supabase } from '../services/supabase';
 
+/**
+ * Hook for managing user notifications, including admin access requests, general system alerts, and social activity.
+ * Sets up real-time subscriptions and provides handlers for marking items as read and social actions.
+ * @param {Object} user - The current authenticated user object.
+ * @param {Object} userRoles - The current user's role and permission object.
+ * @returns {Object} A comprehensive notification state and action interface.
+ */
 export function useNotifications(user, userRoles) {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [generalNotifications, setGeneralNotifications] = useState([]);
