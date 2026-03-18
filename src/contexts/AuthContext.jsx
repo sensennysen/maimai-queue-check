@@ -36,7 +36,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Define fetch roles logic as a reusable function
-  // Define fetch roles logic as a reusable function
   const refreshUserRoles = useCallback(async () => {
     if (!user) return null;
 
@@ -234,4 +233,4 @@ export const AuthProvider = ({ children }) => {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+};
