@@ -30,6 +30,17 @@ export const useTheme = () => {
  * @returns {JSX.Element} The rendered context provider.
  */
 export const ThemeProvider = ({ children }) => {
+  // Compute relative luminance from a hex color string
+  const getLuminance = (hex) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return 0;
+    const [r, g, b] = [1, 2, 3].map((i) => {
+      const c = parseInt(result[i], 16) / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+
   // Theme Mode: Light/Dark
   const [isDark, setIsDark] = useState(() => {
     const stored = localStorage.getItem('theme-mode');
@@ -119,17 +130,6 @@ export const ThemeProvider = ({ children }) => {
 
   const toggleTheme = () => setIsDark(!isDark);
   const setTheme = (themeName) => setCurrentTheme(themeName);
-
-  // Compute relative luminance from a hex color string
-  const getLuminance = (hex) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) return 0;
-    const [r, g, b] = [1, 2, 3].map((i) => {
-      const c = parseInt(result[i], 16) / 255;
-      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-    });
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  };
 
   // Expose resolved theme info for component consumption
   const themeColors = useMemo(() => {

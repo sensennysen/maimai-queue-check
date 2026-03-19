@@ -9,7 +9,6 @@ export function TagSection({
   discussionData, 
   loading, 
   user, 
-  userRoles,
   availableTags, 
   isTaggingLoading,
   newTagValue,

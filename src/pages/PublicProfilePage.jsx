@@ -3,7 +3,7 @@ import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useMediaQuery } from '@mantine/hooks';
 import {
   Container, Paper, Stack, Group, Title, Text,
-  Loader, Button, Alert, ThemeIcon, ActionIcon, Tooltip
+  Loader, Button, Alert, ThemeIcon, Tooltip
 } from '@mantine/core';
 import {
   IconLock, IconLogin, IconAlertCircle, IconShare

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Paper, Title, Button, Text, Group, LoadingOverlay, Stack, Box, Alert } from '@mantine/core';
 import { IconPlus, IconHeart, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';

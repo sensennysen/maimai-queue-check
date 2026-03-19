@@ -1,11 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import {
-  Stack, Group, Avatar, Text, Box, Textarea,
+  Stack, Group, Avatar, Text, Textarea,
   ActionIcon, Divider, Skeleton
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import IconSend from '@tabler/icons-react/dist/esm/icons/IconSend.mjs';
-import { notifications } from '@mantine/notifications';
 import { getProfileImageUrl } from '../../utils/formatters';
 import { usePostComments } from '../../features/feed/hooks/usePostComments';
 import { CommentRow } from './CommentRow';

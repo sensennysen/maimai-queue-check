@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Alert, Modal, Skeleton, Tabs, LoadingOverlay, TextInput } from '@mantine/core';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Alert, Modal, Skeleton, LoadingOverlay, TextInput } from '@mantine/core';
 import { useOs } from '@mantine/hooks';
 import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';

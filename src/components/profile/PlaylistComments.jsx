@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Stack, Text, Button, Textarea, Group, Box, Paper, Avatar, ActionIcon, Loader, Center, Divider } from '@mantine/core';
+import { Stack, Text, Textarea, Group, Box, Paper, Avatar, ActionIcon, Loader, Center, Divider } from '@mantine/core';
 import { IconTrash, IconMessageCircle, IconAlertCircle, IconThumbUp, IconThumbDown, IconSend } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../../hooks/useAuth';

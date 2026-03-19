@@ -1,10 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Modal, Stack, Text, Textarea, Button, Group, ActionIcon, Paper, Image, Box, Divider, Loader, TextInput, Badge, Switch, Alert } from '@mantine/core';
-import { IconPlus, IconTrash, IconArrowUp, IconArrowDown, IconPlaylistAdd, IconDeviceFloppy, IconFileAlert } from '@tabler/icons-react';
-import { notifications } from '@mantine/notifications';
+import { useState } from 'react';
+import { Modal, Stack, Text, Textarea, Button, Group, Box, Divider, Loader, TextInput, Switch, Alert } from '@mantine/core';
+import { IconPlus, IconTrash, IconPlaylistAdd, IconDeviceFloppy, IconFileAlert } from '@tabler/icons-react';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
-import { playlistService } from '../../services/supabase';
-import { DIFFICULTY_COLORS } from '../../config/maimai-constants';
 import { PlaylistProtectionModal } from '../modals/PlaylistProtectionModal';
 import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 import { usePlaylistEditor } from '../../features/playlists/hooks/usePlaylistEditor';

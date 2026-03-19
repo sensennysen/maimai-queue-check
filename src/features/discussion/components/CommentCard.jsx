@@ -9,7 +9,6 @@ import { getProfileImageUrl } from '../../../utils/formatters';
 export function CommentCard({ 
   comment, 
   user, 
-  userRoles, 
   getRelativeTimeCb, 
   onDelete, 
   onVote, 

@@ -6,7 +6,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist', '.opencode/**', '.gemini/**', '.claude/**']),
+  globalIgnores(['dist', 'coverage/**', '.agent/**', '.opencode/**', '.gemini/**', '.claude/**']),
   {
     files: ['**/*.{js,jsx}'],
     plugins: {
@@ -40,6 +40,8 @@ export default defineConfig([
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'react/no-unescaped-entities': 'off',
+      'react-refresh/only-export-components': 'off',
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
   {

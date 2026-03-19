@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Container, Title, Text, Group, Stack, SimpleGrid, Box, Button, Divider, Alert, Loader, Overlay, Avatar } from '@mantine/core';
-import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
+import { Container, Title, Text, Group, Stack, SimpleGrid, Box, Divider, Alert, Loader, Overlay, Avatar } from '@mantine/core';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
-import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import { toPng } from 'html-to-image';
 import { notifications } from '@mantine/notifications';
 import { ScoreCard } from '../components/maimai/ScoreCard';
@@ -18,7 +16,6 @@ const ExportBest50Page = () => {
   const exportRef = useRef(null);
   const hasFetched = useRef(false);
   const hasAutoDownloaded = useRef(false);
-  const [isExporting, setIsExporting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [exportDone, setExportDone] = useState(false);
   const [profileData, setProfileData] = useState(null);
@@ -51,7 +48,6 @@ const ExportBest50Page = () => {
     const originalRootFontSize = document.documentElement.style.fontSize;
 
     try {
-      setIsExporting(true);
       document.body.classList.add('rendering-export');
 
       // Force root font size to 16px during export to ensure consistent rem-based scaling
@@ -148,8 +144,6 @@ const ExportBest50Page = () => {
       // --- Cleanup ---
       document.body.classList.remove('rendering-export');
       document.documentElement.style.fontSize = originalRootFontSize;
-
-      setIsExporting(false);
     }
   }, [isDark, profileData?.maimai_dx_name]);
 

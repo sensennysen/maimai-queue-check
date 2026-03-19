@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Paper, Group, Text, Button, Box, TextInput, Container, ActionIcon, Tooltip, Menu, Popover, Stack, Divider, Avatar } from '@mantine/core';
+import { Paper, Group, Text, Button, Box, TextInput, Container, ActionIcon, Popover, Stack, Divider, Avatar } from '@mantine/core';
 import { useDebouncedValue, useMediaQuery } from '@mantine/hooks';
 import { useLocation, useNavigate } from 'react-router-dom';
 import IconSearch from '@tabler/icons-react/dist/esm/icons/IconSearch.mjs';
@@ -8,7 +8,6 @@ import IconListDetails from '@tabler/icons-react/dist/esm/icons/IconListDetails.
 import IconUsersGroup from '@tabler/icons-react/dist/esm/icons/IconUsersGroup.mjs';
 import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
 import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
-import IconMenu2 from '@tabler/icons-react/dist/esm/icons/IconMenu2.mjs';
 import { useAuth } from '../../hooks/useAuth';
 import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 import { userService } from '../../services/supabase';
