@@ -6,14 +6,14 @@ current_phase: 0
 current_phase_name: Test Harness (Baseline)
 current_plan: 1
 status: completed
-stopped_at: Completed 00-00-PLAN.md
-last_updated: "2026-03-19T03:13:59.314Z"
+stopped_at: Completed 00-01-PLAN.md
+last_updated: "2026-03-19T03:45:35.631Z"
 last_activity: 2026-03-19
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 2
+  completed_plans: 2
   percent: 100
 ---
 
@@ -54,6 +54,7 @@ Last Activity: 2026-03-19
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 0 | 1 | (not tracked) | (not tracked) |
+| Phase 00 P01 | 10min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,8 @@ Last Activity: 2026-03-19
 
 - [Phase 0] Vitest + v8 coverage runner, with `--passWithNoTests` to keep verification deterministic as the suite grows.
 - [Phase 0] Central sanitizer boundary introduced (`src/utils/sanitizeHtml.js`) using DOMPurify + JSDOM with pinned regression tests.
+- [Phase 00]: Block localhost/private/loopback/link-local targets in /api/proxy, including via DNS resolution, and return 403 for blocked targets.
+- [Phase 00]: Escape user-controlled values in /api/profile-meta and switch redirect to window.location.assign() with a JSON-stringified target.
 
 ### Blockers/Concerns
 
@@ -69,6 +72,6 @@ Last Activity: 2026-03-19
 
 ## Session Continuity
 
-Last session: 2026-03-19T03:12:46.417Z
-Stopped at: Completed 00-00-PLAN.md
+Last session: 2026-03-19T03:45:35.628Z
+Stopped at: Completed 00-01-PLAN.md
 Resume file: None
