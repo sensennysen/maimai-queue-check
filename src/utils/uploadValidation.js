@@ -4,6 +4,22 @@
 export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
+export const VALID_MIME_EXTENSIONS = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+};
+
+/**
+ * Returns the normalized file extension for a given MIME type.
+ * @param {string} mimeType - The MIME type to check.
+ * @returns {string|null} The extension or null if not supported.
+ */
+export function getNormalizedFileExtension(mimeType) {
+  return VALID_MIME_EXTENSIONS[mimeType] || null;
+}
+
 export function validateImageUpload(file) {
   if (!file) throw new Error('File is required');
 
@@ -17,7 +33,7 @@ export function validateImageUpload(file) {
     throw new Error('File too large');
   }
 
-  if (!ALLOWED_IMAGE_TYPES.includes(type)) {
+  if (!ALLOWED_IMAGE_TYPES.includes(type) || !getNormalizedFileExtension(type)) {
     throw new Error('Unsupported file type');
   }
 

@@ -3,7 +3,7 @@ import { TABLES, BUCKETS } from '../../constants/database';
 import { LIMITS } from '../../constants/limits';
 import { APP_CONFIG } from '../../constants/config';
 import { activityNotificationService } from './notifications';
-import { validateImageUpload } from '../../utils/uploadValidation';
+import { validateImageUpload, getNormalizedFileExtension } from '../../utils/uploadValidation';
 
 /**
  * Service for community feed posts
@@ -293,14 +293,9 @@ export const postsService = {
   async uploadPostImage(userId, file) {
     validateImageUpload(file);
 
-    const extensionByMimeType = {
-      'image/jpeg': 'jpg',
-      'image/png': 'png',
-      'image/gif': 'gif',
-      'image/webp': 'webp',
-    };
-
-    const fileExt = extensionByMimeType[file.type];
+    const fileExt = getNormalizedFileExtension(file.type);
+    if (!fileExt) throw new Error('Unsupported image extension');
+    
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
 
     const { error } = await supabase.storage.from(BUCKETS.POST_IMAGES).upload(fileName, file, {

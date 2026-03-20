@@ -39,4 +39,5 @@ export const BUCKETS = {
   SONG_JACKETS: 'song_jackets',
   PROFILE_PICTURES: 'profile-pictures',
   CONTACT_UPLOADS: 'contact_uploads',
+  POST_IMAGES: 'community-media',
 };

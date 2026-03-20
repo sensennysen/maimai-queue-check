@@ -1,6 +1,6 @@
 import { supabase } from './client';
 import { validateData, userProfileSchema } from '../../utils/validation';
-import { validateImageUpload } from '../../utils/uploadValidation';
+import { validateImageUpload, getNormalizedFileExtension } from '../../utils/uploadValidation';
 import { TABLES, BUCKETS } from '../../constants/database';
 import { LIMITS } from '../../constants/limits';
 
@@ -320,13 +320,9 @@ export const userService = {
     
     validateImageUpload(file);
 
-    const extensionByMimeType = {
-      'image/jpeg': 'jpg',
-      'image/png': 'png',
-      'image/gif': 'gif',
-      'image/webp': 'webp',
-    };
-    const fileExt = extensionByMimeType[file.type];
+    const fileExt = getNormalizedFileExtension(file.type);
+    if (!fileExt) throw new Error('Unsupported image extension');
+
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
     const filePath = fileName;
 
