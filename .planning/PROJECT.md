@@ -7,16 +7,18 @@ The single most important thing this project must do perfectly for its users:
 
 ---
 
-## Current Milestone: v1.3 — Operational Stability & Safe Hardening
+## Current Milestone: v1.4 Codebase Hardening & Optimization
 
-**Goal:** Close remaining security and reliability gaps from `CONCERNS.md` with a "Safely Additive" approach that protects the active deployment.
+**Goal:** Address persistent security and performance considerations documented in CONCERNS.md, specifically targeting Supabase optimizations, rendering bottlenecks, and XSS hardening.
 
 **Target features:**
-- App-level `ErrorBoundary` for graceful failure handling
-- Adaptive polling (visibility-gated) to reduce background load
-- Service-layer file upload hardening (MIME/size/extension)
-- Additive, backwards-compatible Queue RPCs for atomicity (optional/gradual)
-- Incremental CSP tightening (removing `unsafe-*` dependencies)
+- Cookie-based authentication persistence and strict role caching security
+- Edge Function RLS enforcement and ownership boundaries
+- Content Security Policy (CSP) hardening (prevent unsafe-eval/unsafe-inline)
+- Efficient realtime queue refresh via targeted state deltas
+- Concurrency limits and graceful degradation for Best 50 export image proxying
+- Supabase JS dependency pinning and dedicated realtime smoke tests
+- Shift toward bulk/RPC operations for high-scale queue data
 
 ---
 
@@ -39,12 +41,21 @@ The single most important thing this project must do perfectly for its users:
 - ✓ **SEC-05**: CSP tightening (CSS Modules) — v1.3
 - ✓ **QUEUE-01**: Atomic finishGame RPC — v1.3
 
+### Active (v1.4)
+- [ ] **AUTH-03**: Role management and session persistence securely migrate to HttpOnly cookies or sanitized contexts
+- [ ] **SEC-06**: Strict CSP enforcement with restrictive script-src policies
+- [ ] **SEC-07**: Edge Function boundary validation for score imports
+- [ ] **PERF-03**: Realtime subscriptions constrained to discrete queue deltas
+- [ ] **PERF-04**: Export rendering flow enforces proxy concurrency limits and graceful asset degradation
+- [ ] **PERF-05**: Linear queue updates refactored to utilize batch-oriented RPC
+- [ ] **TEST-02**: Formal smoke testing suite established for realtime behavior regressions
+
 ### Future / Next Steps
 - [ ] **PERF-02**: Implement optimistic UI for `finishGame` transition (Ref: `.planning/todos/pending/2026-03-20-implement-optimistic-ui-for-finishgame-transition.md`)
 
 ### Out of Scope
-- New product features unrelated to stability/security hardening
-- Large UI redesign or re-architecture beyond the minimum needed to enforce invariants and safety
+- New product capabilities beyond the documented optimizations.
+- Client-side visual design overhauls.
 
 ---
 

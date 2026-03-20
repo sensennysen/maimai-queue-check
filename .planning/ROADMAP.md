@@ -1,38 +1,32 @@
-# Roadmap: smf-queue-check
+# Milestone v1.4 Roadmap: Codebase Hardening & Optimization
 
-## Milestones
+## Phase 8: Core Security & Auth Hardening
+**Goal:** Secure the session caching layer and score import boundary against XSS and unauthorized access.
+**Requirements:** [AUTH-03], [SEC-07]
+**Success Criteria:**
+1. Authentication tokens and roles are cleared from local storage and exclusively maintained in memory or secure contexts.
+2. The score import Edge Function explicitly rejects requests without valid RLS scoping on the `import_sessions` table.
+3. User sessions maintain continuity without client-side cache resilience vulnerability.
 
-- ✅ **v1.3 Operational Stability** — Phases 0-7 (shipped 2026-03-20)
-- 📋 **v1.4 Performance & Polish** — Phases 8-10 (planned)
+## Phase 9: Client Strict CSP & Rendering Resilience
+**Goal:** Prevent injection attack vectors while ensuring heavy canvas renders degrade gracefully without locking the browser.
+**Requirements:** [SEC-06], [PERF-04]
+**Success Criteria:**
+1. Document headers and Vercel configuration enforce strict Content-Security-Policy disallowing `unsafe-eval` and reducing `unsafe-inline`.
+2. The core application boots and operates normally with zero CSP violations in the browser console.
+3. The Best 50 Image proxy task respects a strict concurrency pool limit with timeouts yielding graceful placeholders instead of blocking.
 
-## Phases
+## Phase 10: High-Scale Queue Data Refactoring
+**Goal:** Decouple realtime queue performance from total queue length to support scaling.
+**Requirements:** [PERF-03], [PERF-05]
+**Success Criteria:**
+1. Client components monitor real-time subscriptions and update local state incrementally rather than executing full network `SELECT` re-fetches.
+2. Queue reordering limits redundant network traffic by utilizing database RPC and batch transitions.
+3. Traffic profiling confirms significantly mitigated payload volume during concurrent queue interactions.
 
-<details>
-<summary>✅ v1.3 Operational Stability (Phases 0-7) — SHIPPED 2026-03-20</summary>
-
-- [x] Phase 0: Test Harness — completed 2026-03-19
-- [x] Phase 1: Safety Rails — completed 2026-03-20
-- [x] Phase 2: Queue Integrity — completed 2026-03-20
-- [x] Phase 3: Client-Side Hardening — completed 2026-03-20
-- [x] Phase 5: Operational visibility — completed 2026-03-20
-- [x] Phase 6: Service-layer Upload Validation — completed 2026-03-20
-- [x] Phase 7: CSP Tightening & Additive RPCs — completed 2026-03-20
-
-</details>
-
-### 📋 v1.4 Performance & Polish (Planned)
-
-- [ ] Phase 8: [TBD]
-- [ ] Phase 9: [TBD]
-
-## Progress
-
-| Phase             | Milestone | Plans Complete | Status      | Completed  |
-| ----------------- | --------- | -------------- | ----------- | ---------- |
-| 0. Test Harness   | v1.3      | 2/2            | Complete    | 2026-03-19 |
-| 1. Safety Rails   | v1.3      | 3/3            | Complete    | 2026-03-20 |
-| 2. Queue Integrity| v1.3      | 3/3            | Complete    | 2026-03-20 |
-| 3. Hardening      | v1.3      | 1/1            | Complete    | 2026-03-20 |
-| 5. Visibility     | v1.3      | 2/2            | Complete    | 2026-03-20 |
-| 6. Upload Valid.  | v1.3      | 1/1            | Complete    | 2026-03-20 |
-| 7. CSP & RPCs     | v1.3      | 2/2            | Complete    | 2026-03-20 |
+## Phase 11: Realtime Smoke Validation
+**Goal:** Formally ensure real-time behavior stability to anticipate library dependency upgrades.
+**Requirements:** [TEST-02]
+**Success Criteria:**
+1. A new test configuration explicitly asserts subscription channels, connection lifecycles, and cache synchronization accuracy.
+2. The test suite successfully guards against regression when iterating `supabase-js` versions.
