@@ -55,8 +55,42 @@ This roadmap prioritizes changes that keep the existing app stable while introdu
 
 ---
 
+---
+
+## Milestone v1.3: Operational Stability & Safe Hardening
+**Goal:** Close security and reliability gaps with additive, backwards-compatible changes.
+
+- [x] **Phase 5: Operational Visibility & Resource Optimization** (v1.3 P1)
+- [x] **Phase 6: Service-layer Upload Validation** (v1.3 P2, `SEC-04`)
+- [x] **Phase 7: CSP Tightening & Additive RPCs** (v1.3 P3, `SEC-05`, `QUEUE-01`)
+---
+
+## Phase 5: Operational Visibility & Resource Optimization (v1.3 P1)
+**Goal:** Improve app resilience and reduce server load via ErrorBoundaries and visibility gating.
+
+- [x] **App-level Error Boundary** (`OBS-01`)
+- [x] **Gate background polling** (`PERF-01`)
+
+---
+
+## Phase 6: Service-layer Upload Validation (v1.3 P2)
+**Goal:** Harden file uploads via centralized service-layer validation.
+
+- [x] **Harden Supabase storage uploads** (`SEC-04`)
+
+---
+
+## Phase 7: CSP Tightening & Additive RPCs (v1.3 P3)
+**Goal:** Further tighten security and introduce server-side queue transitions.
+
+- [x] **Incremental CSP Tightening** (`SEC-05`)
+- [x] **Additive RPC for finishGame** (`QUEUE-01`)
+
+---
+
+
 ## Summary
-- **Total Phases:** 5 (0–4)
-- **Total Requirements:** 10 (QUEUE/SEC/OBS/TEST)
+- **Total Phases:** 8 (0–7)
+- **Total Requirements:** 15+
 - **Compatibility Stance:** Backwards-compatible, dual-path migrations where needed
-- **Status:** Planned
+- **Status:** Complete (v1.3)

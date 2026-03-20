@@ -107,56 +107,84 @@ export const useQueueActions = ({
     requireLocationVerification();
 
     try {
-      setIsMutating(true);
-      const waitingItems = queue.filter(item => item.status === 'waiting');
-      const index = waitingItems.findIndex(item => item.id === id);
-      
+      const waitingItems = queue.filter((item) => item.status === 'waiting');
+      const index = waitingItems.findIndex((item) => item.id === id);
+
       if (index > 0) {
         const itemA = waitingItems[index - 1];
         const itemB = waitingItems[index];
 
+        // Optimistic UI update: swap order positions in local state for instant feedback
+        setQueue((prev) => {
+          const newQueue = [...prev];
+          const idxA = newQueue.findIndex((i) => i.id === itemA.id);
+          const idxB = newQueue.findIndex((i) => i.id === itemB.id);
+
+          if (idxA !== -1 && idxB !== -1) {
+            const posA = newQueue[idxA].order_position;
+            const posB = newQueue[idxB].order_position;
+            newQueue[idxA] = { ...newQueue[idxA], order_position: posB };
+            newQueue[idxB] = { ...newQueue[idxB], order_position: posA };
+            return newQueue.sort((a, b) => a.order_position - b.order_position);
+          }
+          return prev;
+        });
+
+        // Perform the actual database update in the background
         await queueService.updateOrderPositions([
           { id: itemA.id, order_position: itemB.order_position },
           { id: itemB.id, order_position: itemA.order_position }
         ]);
-
-        await refreshData();
       }
     } catch (err) {
       setError(err.message);
+      // Revert to server state on error
+      await refreshData();
       throw err;
-    } finally {
-      setIsMutating(false);
     }
-  }, [requireLocationVerification, queue, refreshData, setError]);
+  }, [requireLocationVerification, queue, setQueue, refreshData, setError]);
 
   // Move entry down in queue
   const moveDown = useCallback(async (id) => {
     requireLocationVerification();
 
     try {
-      setIsMutating(true);
-      const waitingItems = queue.filter(item => item.status === 'waiting');
-      const index = waitingItems.findIndex(item => item.id === id);
-      
+      const waitingItems = queue.filter((item) => item.status === 'waiting');
+      const index = waitingItems.findIndex((item) => item.id === id);
+
       if (index < waitingItems.length - 1) {
         const itemA = waitingItems[index];
         const itemB = waitingItems[index + 1];
 
+        // Optimistic UI update: swap order positions in local state for instant feedback
+        setQueue((prev) => {
+          const newQueue = [...prev];
+          const idxA = newQueue.findIndex((i) => i.id === itemA.id);
+          const idxB = newQueue.findIndex((i) => i.id === itemB.id);
+
+          if (idxA !== -1 && idxB !== -1) {
+            const posA = newQueue[idxA].order_position;
+            const posB = newQueue[idxB].order_position;
+            newQueue[idxA] = { ...newQueue[idxA], order_position: posB };
+            newQueue[idxB] = { ...newQueue[idxB], order_position: posA };
+            return newQueue.sort((a, b) => a.order_position - b.order_position);
+          }
+          return prev;
+        });
+
+        // Perform the actual database update in the background
         await queueService.updateOrderPositions([
           { id: itemA.id, order_position: itemB.order_position },
           { id: itemB.id, order_position: itemA.order_position }
         ]);
-        
-        await refreshData();
       }
     } catch (err) {
       setError(err.message);
+      // Revert to server state on error
+      await refreshData();
       throw err;
-    } finally {
-      setIsMutating(false);
     }
-  }, [requireLocationVerification, queue, refreshData, setError]);
+  }, [requireLocationVerification, queue, setQueue, refreshData, setError]);
 
   // Clear entire queue
   const clearQueue = useCallback(async () => {

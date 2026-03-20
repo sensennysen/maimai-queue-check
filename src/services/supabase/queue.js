@@ -155,32 +155,14 @@ export const queueService = {
 
     if (sanitizedUpdates.length === 0) return [];
 
-    const tableQuery = supabase.from(TABLES.QUEUE_ENTRIES);
+    // Use a dedicated RPC for batch reordering to ensure atomicity and high performance.
+    // This replaces the separate update calls, reducing network overhead.
+    const { data, error } = await supabase.rpc('reorder_queue_entries', {
+      p_updates: sanitizedUpdates
+    });
 
-    if (typeof tableQuery.upsert === 'function') {
-      const { data, error } = await tableQuery
-        .upsert(sanitizedUpdates, { onConflict: 'id' })
-        .select('id, order_position');
-
-      if (!error) {
-        return data || [];
-      }
-    }
-
-    const fallbackResults = [];
-    for (const update of sanitizedUpdates) {
-      const { data: rowData, error: rowError } = await supabase
-        .from(TABLES.QUEUE_ENTRIES)
-        .update({ order_position: update.order_position })
-        .eq('id', update.id)
-        .select()
-        .single();
-
-      if (rowError) throw rowError;
-      fallbackResults.push(rowData);
-    }
-
-    return fallbackResults;
+    if (error) throw error;
+    return sanitizedUpdates;
   },
 
   /**
@@ -214,6 +196,7 @@ export const queueService = {
 
   /**
    * Atomically finishes the current game and marks the next waiting entry as playing.
+   * Uses a Postgres RPC to ensure both updates occur in a single transaction.
    * @param {string} [currentPlayingId] - The ID of the entry currently in the 'playing' state.
    * @param {string} [nextWaitingId] - The ID of the entry to be transitioned to 'playing'.
    * @returns {Promise<void>} A promise that resolves when both operations complete.
@@ -225,31 +208,12 @@ export const queueService = {
       throw new Error('Cannot finish and start the same entry in one transition.');
     }
 
-    const transitionTime = new Date().toISOString();
+    const { error } = await supabase.rpc('finish_game', {
+      p_current_playing_id: currentPlayingId || null,
+      p_next_waiting_id: nextWaitingId || null
+    });
 
-    if (currentPlayingId) {
-      const { error: completeError } = await supabase
-        .from(TABLES.QUEUE_ENTRIES)
-        .update({
-          status: QUEUE_STATUSES.COMPLETED,
-          ended_at: transitionTime
-        })
-        .eq('id', currentPlayingId);
-
-      if (completeError) throw completeError;
-    }
-
-    if (nextWaitingId) {
-      const { error: startError } = await supabase
-        .from(TABLES.QUEUE_ENTRIES)
-        .update({
-          status: QUEUE_STATUSES.PLAYING,
-          started_at: transitionTime
-        })
-        .eq('id', nextWaitingId);
-
-      if (startError) throw startError;
-    }
+    if (error) throw error;
   },
 
   /**

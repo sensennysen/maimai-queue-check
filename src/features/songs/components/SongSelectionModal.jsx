@@ -1,9 +1,4 @@
-import { Modal, Box, LoadingOverlay, Button, Group, Text } from '@mantine/core';
-import { IconCheck } from '@tabler/icons-react';
-import { useState, useEffect } from 'react';
-import { useSongDatabase } from '../../../hooks/useSongDatabase';
-import SongFilters from './SongFilters';
-import SongList from './SongList';
+import styles from './SongSelectionModal.module.css';
 
 function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initialSelectedSongs = [], onSelectionChange }) {
   const [selectedSongs, setSelectedSongs] = useState(initialSelectedSongs);
@@ -77,62 +72,37 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
       <Box pos="relative">
         <LoadingOverlay visible={loading} zIndex={100} overlayProps={{ radius: "sm", blur: 2 }} />
 
-        {/* Layout Grid - Copied from SongDatabase for consistency */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gap: '2rem',
-          alignItems: 'start',
-          marginTop: '2rem'
-        }}>
-          {/* Desktop: standard grid, Mobile: Stack */}
-          <style dangerouslySetInnerHTML={{
-            __html: `
-                    @media (min-width: 992px) {
-                        .song-modal-grid {
-                            grid-template-columns: 280px 1fr !important;
-                        }
-                    }
-                 `}} />
+        {/* Layout Grid */}
+        <div className={styles.songModalGrid} style={{ marginTop: '2rem' }}>
+          <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
+            <SongFilters
+              filters={filters}
+              onFilterChange={setFilters}
+              categories={categories}
+              versions={versions}
+              levels={levels}
+              internalLevels={internalLevels}
+            />
+          </div>
 
-          <div className="song-modal-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1fr)', // Use minmax to prevent overflow
-            gap: '2rem',
-            alignItems: 'start',
-            width: '100%',
-            maxWidth: '100%'
-          }}>
-            <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
-              <SongFilters
-                filters={filters}
-                onFilterChange={setFilters}
-                categories={categories}
-                versions={versions}
-                levels={levels}
-                internalLevels={internalLevels}
-              />
-            </div>
-
-            <div style={{ minWidth: 0, maxWidth: '100%' }}>
-              <SongList
-                key={JSON.stringify(filters)}
-                songs={filteredSongs}
-                loading={loading}
-                error={error}
-                onSongSelect={(song) => {
-                  if (multiple) {
-                    // Handled via onSelectionChange
-                  } else {
-                    onSelect(song);
-                    onClose();
-                  }
-                }}
-                multiple={multiple}
-                selectedSongs={selectedSongs}
-                onSelectionChange={handleSelectionChange}
-              />
-            </div>
+          <div style={{ minWidth: 0, maxWidth: '100%' }}>
+            <SongList
+              key={JSON.stringify(filters)}
+              songs={filteredSongs}
+              loading={loading}
+              error={error}
+              onSongSelect={(song) => {
+                if (multiple) {
+                  // Handled via onSelectionChange
+                } else {
+                  onSelect(song);
+                  onClose();
+                }
+              }}
+              multiple={multiple}
+              selectedSongs={selectedSongs}
+              onSelectionChange={handleSelectionChange}
+            />
           </div>
         </div>
       </Box>

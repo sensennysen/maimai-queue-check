@@ -1,81 +1,73 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-const { fromMock } = vi.hoisted(() => ({
-  fromMock: vi.fn(),
+const { rpcMock } = vi.hoisted(() => ({
+  rpcMock: vi.fn(),
 }));
 
 vi.mock('../services/supabase/client', () => ({
   supabase: {
-    from: fromMock,
+    rpc: rpcMock,
   },
 }));
 
 import { queueService } from '../services/supabase/queue';
-import { TABLES } from '../constants/database';
-import { QUEUE_STATUSES } from '../constants/queue';
-
-function createUpdateQuery({ error = null } = {}) {
-  const query = {
-    update: vi.fn(() => query),
-    eq: vi.fn(async () => ({ error })),
-  };
-  return query;
-}
 
 describe('queueService.finishGame', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('transitions current playing to completed and next waiting to playing', async () => {
-    const completeQuery = createUpdateQuery();
-    const startQuery = createUpdateQuery();
+  it('batch updates positions via the reorder_queue_entries RPC', async () => {
+    rpcMock.mockResolvedValueOnce({ error: null });
 
-    fromMock.mockReturnValueOnce(completeQuery).mockReturnValueOnce(startQuery);
+    const updates = [
+      { id: '1001', order_position: 2 },
+      { id: '1002', order_position: 1 }
+    ];
 
-    await queueService.finishGame('playing-123', 'waiting-456');
+    await queueService.updateOrderPositions(updates);
 
-    expect(fromMock).toHaveBeenNthCalledWith(1, TABLES.QUEUE_ENTRIES);
-    expect(fromMock).toHaveBeenNthCalledWith(2, TABLES.QUEUE_ENTRIES);
-
-    expect(completeQuery.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: QUEUE_STATUSES.COMPLETED,
-        ended_at: expect.any(String),
-      })
-    );
-    expect(completeQuery.eq).toHaveBeenCalledWith('id', 'playing-123');
-
-    expect(startQuery.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: QUEUE_STATUSES.PLAYING,
-        started_at: expect.any(String),
-      })
-    );
-    expect(startQuery.eq).toHaveBeenCalledWith('id', 'waiting-456');
+    expect(rpcMock).toHaveBeenCalledWith('reorder_queue_entries', {
+      p_updates: updates
+    });
   });
 
-  it('only transitions current playing when no next waiting id is provided', async () => {
-    const completeQuery = createUpdateQuery();
-    fromMock.mockReturnValueOnce(completeQuery);
+  it('atomically transitions via the finish_game RPC', async () => {
+    rpcMock.mockResolvedValueOnce({ error: null });
 
-    await queueService.finishGame('playing-123', null);
+    await queueService.finishGame('1001', '1002');
 
-    expect(fromMock).toHaveBeenCalledTimes(1);
-    expect(completeQuery.eq).toHaveBeenCalledWith('id', 'playing-123');
+    expect(rpcMock).toHaveBeenCalledWith('finish_game', {
+      p_current_playing_id: '1001',
+      p_next_waiting_id: '1002',
+    });
   });
 
-  it('only transitions next waiting when no current playing id is provided', async () => {
-    const startQuery = createUpdateQuery();
-    fromMock.mockReturnValueOnce(startQuery);
+  it('passes null values to the RPC when IDs are missing', async () => {
+    rpcMock.mockResolvedValueOnce({ error: null });
 
-    await queueService.finishGame(null, 'waiting-456');
+    await queueService.finishGame('1001', null);
 
-    expect(fromMock).toHaveBeenCalledTimes(1);
-    expect(startQuery.eq).toHaveBeenCalledWith('id', 'waiting-456');
+    expect(rpcMock).toHaveBeenCalledWith('finish_game', {
+      p_current_playing_id: '1001',
+      p_next_waiting_id: null,
+    });
+  });
+
+  it('only calls the RPC if at least one ID is provided', async () => {
+    await queueService.finishGame(null, null);
+    expect(rpcMock).not.toHaveBeenCalled();
+  });
+
+  it('throws error when RPC returns an error', async () => {
+    const error = { message: 'DB Error' };
+    rpcMock.mockResolvedValueOnce({ error });
+
+    await expect(queueService.finishGame('playing-123', 'waiting-456')).rejects.toThrow('DB Error');
   });
 
   it('throws when both ids are the same to prevent invalid state transitions', async () => {
     await expect(queueService.finishGame('same-id', 'same-id')).rejects.toThrow(/same entry/i);
   });
 });
+

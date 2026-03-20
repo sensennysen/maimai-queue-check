@@ -1,8 +1,6 @@
 import { Container, Group, Stack, Text } from '@mantine/core';
 import { IconBrandGithub, IconBrandTwitter } from '@tabler/icons-react';
-import SongFilters from './SongFilters';
-import SongList from './SongList';
-import { useSongDatabase } from '../../../hooks/useSongDatabase';
+import styles from './SongDatabase.module.css';
 
 function SongDatabase() {
   const {
@@ -47,44 +45,22 @@ function SongDatabase() {
         </Group>
         
         {/* Layout Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gap: '2rem',
-          alignItems: 'start'
-        }}>
-          {/* Desktop: standard grid, Mobile: Stack */}
-          <style dangerouslySetInnerHTML={{
-            __html: `
-                    @media (min-width: 992px) {
-                        .song-db-grid {
-                            grid-template-columns: 300px 1fr !important;
-                        }
-                    }
-                 `}} />
+        <div className={styles.songDbGrid}>
+          <div style={{ position: 'relative', height: '100%' }}>
+            {/* This container ensures sticky works if parent has height */}
+            <SongFilters
+              filters={filters}
+              onFilterChange={setFilters}
+              categories={categories}
+              versions={versions}
+              levels={levels}
+              internalLevels={internalLevels}
+              artists={artists}
+            />
+          </div>
 
-          <div className="song-db-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr',
-            gap: '2rem',
-            alignItems: 'start',
-          }}>
-            <div style={{ position: 'relative', height: '100%' }}>
-              {/* This container ensures sticky works if parent has height */}
-              <SongFilters
-                filters={filters}
-                onFilterChange={setFilters}
-                categories={categories}
-                versions={versions}
-                levels={levels}
-                internalLevels={internalLevels}
-                artists={artists}
-              />
-            </div>
-
-            <div style={{ minWidth: 0 }}>
-              <SongList key={JSON.stringify(filters)} songs={filteredSongs} loading={loading} error={error} />
-            </div>
+          <div style={{ minWidth: 0 }}>
+            <SongList key={JSON.stringify(filters)} songs={filteredSongs} loading={loading} error={error} />
           </div>
         </div>
       </Stack>

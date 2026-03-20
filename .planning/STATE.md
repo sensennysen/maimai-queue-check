@@ -1,20 +1,20 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: milestone
-current_phase: 2
-current_phase_name: Queue Integrity Migrations (Dual-Path Rollout)
+milestone: v1.3
+milestone_name: Operational Stability & Safe Hardening
+current_phase: 7
+current_phase_name: CSP Tightening & Additive RPCs
 current_plan: 0
 status: completed
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-03-20T13:55:00.000Z"
+stopped_at: Completed Milestone v1.3
+last_updated: "2026-03-20T14:30:00.000Z"
 last_activity: 2026-03-20
 progress:
-  total_phases: 5
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
-  percent: 60
+  total_phases: 8
+  completed_phases: 8
+  total_plans: 12
+  completed_plans: 12
+  percent: 100
 ---
 
 # Project State
@@ -23,38 +23,16 @@ progress:
 
 See: `.planning/PROJECT.md` (updated 2026-03-19)
 
-**Current focus:** Phase 2 - Queue Integrity Migrations (Dual-Path Rollout)
+**Current focus:** Milestone v1.3 Complete
 
 ## Current Position
 
-Phase: 2 of 5 (Queue Integrity Migrations (Dual-Path Rollout))
-Plan: 0 of 0 (completed)
-Status: Phase complete
+Phase: 7 (CSP Tightening & Additive RPCs)
+Plan: All complete
+Status: Milestone complete
 Last activity: 2026-03-20
 
 Progress: [██████████] 100%
-
-Current Phase: 2
-Current Phase Name: Queue Integrity Migrations (Dual-Path Rollout)
-Total Phases: 5
-Current Plan: 0
-Total Plans in Phase: 3
-Status: Phase complete
-Last Activity: 2026-03-20
-
-## Performance Metrics
-
-**Velocity:**
-- Total plans completed: 1
-- Average duration: (not tracked yet)
-- Total execution time: (not tracked yet)
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 0 | 1 | (not tracked) | (not tracked) |
-| Phase 00 P01 | 10min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -62,18 +40,21 @@ Last Activity: 2026-03-20
 
 - [Phase 0] Vitest + v8 coverage runner, with `--passWithNoTests` to keep verification deterministic as the suite grows.
 - [Phase 0] Central sanitizer boundary introduced (`src/utils/sanitizeHtml.js`) using DOMPurify + JSDOM with pinned regression tests.
-- [Phase 00]: Block localhost/private/loopback/link-local targets in /api/proxy, including via DNS resolution, and return 403 for blocked targets.
-- [Phase 00]: Escape user-controlled values in /api/profile-meta and switch redirect to window.location.assign() with a JSON-stringified target.
+- [Phase 5] App-level Error Boundary and visibility-gated polling implemented to reduce server load.
+- [Phase 6] Service-layer upload validation adds MIME/size/extension hardening for Supabase storage.
+- [Phase 7] Refactored inline style injection to support strict CSP.
+- [Phase 7] Atomic queue transitions implemented via Postgres RPC `finish_game`.
 
 ### Blockers/Concerns
 
-- Queue operations have concurrency/atomicity risks (finish/start and reorder).
-- `/api/proxy` has SSRF and overbroad CORS risk; `/api/profile-meta` has HTML injection risk.
+- All prioritized v1.3 security and stability gaps from `CONCERNS.md` are closed.
+
+### Pending Todos
+
+- [ ] Implement optimistic UI for finishGame transition (Area: ui)
 
 ## Session Continuity
 
-Last session: 2026-03-19T03:45:35.628Z
-Stopped at: Completed 00-01-PLAN.md
+Last session: 2026-03-20T14:30:00.00Z
+Stopped at: Completed Milestone v1.3
 Resume file: None
-
-
