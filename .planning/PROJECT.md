@@ -33,11 +33,11 @@ The single most important thing this project must do perfectly for its users:
 - ✓ **ADMIN-08**: Branch administration and audit logging
 
   - ✓ **TEST-01**: Test framework configuration + critical regression tests for queue invariants and API endpoint hardening (Complete in v1.2)
-- [x] **OBS-01**: Add an app-level error boundary and baseline error reporting hooks
-- [x] **PERF-01**: Gate background polling (`MaimaiImportModal`, `useMallSchedule`) behind `usePageVisibility`
-- [x] **SEC-04**: Add service-layer file upload validation (type/size/extension normalization)
-- [x] **SEC-05**: Tighten CSP by refactoring components that depend on `unsafe-inline` styles
-- [x] **QUEUE-01**: Add additive RPC for `finishGame` atomicity (deployable in parallel with old logic)
+- ✓ **OBS-01**: App-level Error Boundary — v1.3
+- ✓ **PERF-01**: Visibility-gated polling — v1.3
+- ✓ **SEC-04**: Service-layer upload validation — v1.3
+- ✓ **SEC-05**: CSP tightening (CSS Modules) — v1.3
+- ✓ **QUEUE-01**: Atomic finishGame RPC — v1.3
 
 ### Future / Next Steps
 - [ ] **PERF-02**: Implement optimistic UI for `finishGame` transition (Ref: `.planning/todos/pending/2026-03-20-implement-optimistic-ui-for-finishgame-transition.md`)
@@ -52,10 +52,12 @@ The single most important thing this project must do perfectly for its users:
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Local-only Planning | User requested planning docs to be local-only and not committed to git. | `.planning/` added to gitignore. |
-| Browser Geolocation | Critical for "perfect" queue experience; auto-selects nearest branch on load. | Implemented in `BranchContext`. |
-| Supabase Realtime | Essential for live queue state across multiple clients. | Implemented via CDC subscriptions. |
-| Backwards-compatible Hardening | Keep the old codebase operating while changes ship. | Prefer additive RPCs/guards, feature flags, and safe fallbacks until fully migrated. |
+| Local-only Planning | User requested planning docs to be local-only and not committed to git. | ✓ Good |
+| Browser Geolocation | Critical for "perfect" queue experience; auto-selects nearest branch on load. | ✓ Good |
+| Supabase Realtime | Essential for live queue state across multiple clients. | ✓ Good |
+| Backwards-compatible Hardening | Keep the old codebase operating while changes ship. | ✓ Good |
+| Atomic Queue RPCs | Prevent race conditions and inconsistent 'playing' states. | ✓ Good (v1.3) |
+| Optimistic Reordering | Restore fast UI feel while maintaining transactional safety. | ✓ Good (v1.3) |
 
 ---
-*Last updated: 2026-03-18 after initial project setup*
+*Last updated: 2026-03-20 after v1.3 milestone completion*
