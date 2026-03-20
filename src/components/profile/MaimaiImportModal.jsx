@@ -4,6 +4,7 @@ import { IconCheck, IconAlertCircle } from '@tabler/icons-react';
 import { BookmarkletInstructions } from '../BookmarkletInstructions';
 import { userService, mostPlayedService, createImportSession, getImportSession, deleteImportSession } from '../../services/supabase';
 import { fetchSongConstants, calculateBest50 } from '../../utils/maimai-calc';
+import { usePageVisibility } from '../../hooks/usePageVisibility';
 
 const POLL_INTERVAL_MS = 2500;
 
@@ -13,6 +14,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
   const [sessionExpiresAt, setSessionExpiresAt] = useState(null);
   const [validationResult, setValidationResult] = useState(null);
   const pollRef = useRef(null);
+  const isVisible = usePageVisibility();
 
   const processPayload = useCallback(async (data) => {
     if (!data.scores || !Array.isArray(data.scores)) {
@@ -164,12 +166,17 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
       }
     };
 
+    if (!isVisible) {
+      if (pollRef.current) clearInterval(pollRef.current);
+      return;
+    }
+
     check();
     pollRef.current = setInterval(check, POLL_INTERVAL_MS);
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [step, sessionToken, sessionExpiresAt, processPayload, onSuccess, onClose]);
+  }, [step, sessionToken, sessionExpiresAt, processPayload, onSuccess, onClose, isVisible]);
 
   const handleClose = useCallback(() => {
     if (pollRef.current) clearInterval(pollRef.current);

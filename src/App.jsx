@@ -18,6 +18,7 @@ import QueueManager from './features/queue/components/QueueManager';
 import Footer from './components/layout/Footer';
 import GlobalNavbar from './components/layout/GlobalNavbar';
 import BranchSelector from './components/layout/BranchSelector';
+import ErrorBoundary from './components/layout/ErrorBoundary';
 import './App.css';
 
 // Lazy load pages
@@ -110,7 +111,9 @@ function App() {
           <AuthProvider>
             <SongDatabaseProvider>
               <FeatureFlagProvider>
-                <AppProviders />
+                <ErrorBoundary>
+                  <AppProviders />
+                </ErrorBoundary>
               </FeatureFlagProvider>
             </SongDatabaseProvider>
           </AuthProvider>
