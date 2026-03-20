@@ -3,7 +3,7 @@ import { Modal, Text, Box, Loader, Stack, Group, ThemeIcon, ScrollArea, Typograp
 import IconFileText from '@tabler/icons-react/dist/esm/icons/IconFileText.mjs';
 import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
 import { rulesService } from '../../../services/supabase';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '../../../utils/sanitizeHtml';
 
 /**
  * Modal component for displaying the rules and guidelines for a specific branch.
@@ -43,7 +43,7 @@ const QueueRulesModal = ({ opened, onClose, branchId }) => {
   }, [opened, branchId, fetchRules]);
 
   const sanitizedContent = rules?.rules
-    ? DOMPurify.sanitize(rules.rules)
+    ? sanitizeHtml(rules.rules, { mode: 'rich' })
     : null;
 
   return (

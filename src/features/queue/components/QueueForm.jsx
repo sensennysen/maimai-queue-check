@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Group, Button, Stack, Alert, Checkbox, Modal, Text, Autocomplete, Loader } from '@mantine/core';
 import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
 import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '../../../utils/sanitizeHtml';
 import './QueueForm.css';
 import { usePlayerSuggestions } from '../../../hooks/usePlayerSuggestions';
 import { useBranch } from '../../../hooks/useBranch';
@@ -83,9 +83,9 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
   };
 
   const executeSubmit = () => {
-    const sanitize = (text) => DOMPurify.sanitize(text.trim(), { ALLOWED_TAGS: [] });
-    const cleanP1 = sanitize(player1);
-    const cleanP2 = sanitize(player2);
+    // Plain-text rendering for player names to prevent HTML injection.
+    const cleanP1 = sanitizeHtml(player1.trim(), { mode: 'text' });
+    const cleanP2 = sanitizeHtml(player2.trim(), { mode: 'text' });
 
     if (editingId) {
       onSubmit(editingId, cleanP1, cleanP2);

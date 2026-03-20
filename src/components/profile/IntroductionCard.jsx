@@ -4,16 +4,10 @@ import { IconQuote, IconPencil, IconX, IconCheck } from '@tabler/icons-react';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import DOMPurify from 'dompurify';
 import { notifications } from '@mantine/notifications';
 import { userService } from '../../services/supabase';
 
-const ALLOWED_TAGS = ['p', 'strong', 'em', 's', 'ul', 'ol', 'li', 'a', 'br', 'blockquote'];
-const ALLOWED_ATTR = ['href', 'target', 'rel'];
-
-function sanitize(html) {
-  return DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR });
-}
+import { sanitizeHtml } from '../../utils/sanitizeHtml';
 
 function IntroductionEditor({ initialContent, onSave, onCancel }) {
   const [characterCount, setCharacterCount] = useState(0);
@@ -154,7 +148,7 @@ export function IntroductionCard({ introduction, isOwnProfile, userId, onUpdate 
       ) : hasContent ? (
         <div
           className="mantine-RichTextEditor-content"
-          dangerouslySetInnerHTML={{ __html: sanitize(introduction) }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(introduction, { mode: 'rich' }) }}
           style={{ lineHeight: 1.7 }}
         />
       ) : (

@@ -1,5 +1,6 @@
 import { supabase } from './client';
 import { validateData, userProfileSchema } from '../../utils/validation';
+import { validateImageUpload } from '../../utils/uploadValidation';
 import { TABLES, BUCKETS } from '../../constants/database';
 import { LIMITS } from '../../constants/limits';
 
@@ -317,13 +318,22 @@ export const userService = {
   async uploadProfilePicture(userId, file) {
     if (!userId) throw new Error('User ID is required');
     
-    const fileExt = file.name.split('.').pop();
+    validateImageUpload(file);
+
+    const extensionByMimeType = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/gif': 'gif',
+      'image/webp': 'webp',
+    };
+    const fileExt = extensionByMimeType[file.type];
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
-    const filePath = `${fileName}`;
+    const filePath = fileName;
 
     const { error } = await supabase.storage
       .from(BUCKETS.PROFILE_PICTURES)
       .upload(filePath, file, {
+        contentType: file.type,
         cacheControl: '3600',
         upsert: true
       });

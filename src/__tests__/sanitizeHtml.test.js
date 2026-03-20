@@ -24,5 +24,13 @@ describe('sanitizeHtml', () => {
     expect(out).not.toContain('javascript:');
     expect(out).not.toContain('alert(1)');
   });
+
+  it('strips all tags/attrs in text mode', () => {
+    const out = sanitizeHtml('<p>hi</p>', { mode: 'text' });
+    expect(out).toContain('hi');
+    // No HTML tags should remain
+    expect(out).not.toMatch(/<[^>]+>/);
+    expect(out).not.toContain('<p');
+  });
 });
 

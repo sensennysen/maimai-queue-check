@@ -3,6 +3,7 @@ import { TABLES, BUCKETS } from '../../constants/database';
 import { LIMITS } from '../../constants/limits';
 import { APP_CONFIG } from '../../constants/config';
 import { activityNotificationService } from './notifications';
+import { validateImageUpload } from '../../utils/uploadValidation';
 
 /**
  * Service for community feed posts
@@ -290,9 +291,23 @@ export const postsService = {
    * @returns {Promise<string>} A promise resolving to the public URL of the uploaded image.
    */
   async uploadPostImage(userId, file) {
-    const fileExt = file.name.split('.').pop();
+    validateImageUpload(file);
+
+    const extensionByMimeType = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/gif': 'gif',
+      'image/webp': 'webp',
+    };
+
+    const fileExt = extensionByMimeType[file.type];
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
-    const { error } = await supabase.storage.from(BUCKETS.POST_IMAGES).upload(fileName, file, { cacheControl: '3600', upsert: true });
+
+    const { error } = await supabase.storage.from(BUCKETS.POST_IMAGES).upload(fileName, file, {
+      contentType: file.type,
+      cacheControl: '3600',
+      upsert: true,
+    });
     if (error) throw error;
     return supabase.storage.from(BUCKETS.POST_IMAGES).getPublicUrl(fileName).data.publicUrl;
   }
