@@ -10,11 +10,8 @@ function escapeHtml(value) {
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
-
-function escapeUserControlled(value) {
-  return escapeHtml(value).replace(/onerror=/gi, 'onerror&#61;');
+    .replaceAll("'", '&#39;')
+    .replaceAll('=', '&#61;');
 }
 
 export default async function handler(req, res) {
@@ -41,20 +38,33 @@ export default async function handler(req, res) {
     }
 
     // 2. Prepare metadata
-    const host = req.headers.host || 'mpqcheckph.vercel.app';
-    const protocol = host.includes('localhost') ? 'http' : 'https';
-    const baseUrl = `${protocol}://${host}`;
+    // Use a fixed production domain if possible, or fall back to VERCEL_URL.
+    // Host headers are user-controlled and unsafe for canonical URLs.
+    const productionHost = 'mpqcheckph.vercel.app';
+    const currentHost = process.env.VERCEL_URL || productionHost;
+    const protocol = currentHost.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${currentHost}`;
     
-    const name = profile.display_name || 'Anonymous Player';
-    const photo = profile.display_photo_url || profile.dx_display_photo_url || `${baseUrl}/icon.png`;
+    const name = (profile.display_name || 'Anonymous Player').trim();
+    // photo validation: only allow http(s) or relative paths to prevent data URIs or large payloads
+    let photo = profile.display_photo_url || profile.dx_display_photo_url || `${baseUrl}/icon.png`;
+    try {
+        const photoUrl = new URL(photo, baseUrl);
+        if (photoUrl.protocol !== 'http:' && photoUrl.protocol !== 'https:') {
+            photo = `${baseUrl}/icon.png`;
+        }
+    } catch {
+        photo = `${baseUrl}/icon.png`;
+    }
+
     const title = `${name} | maiPaQueueCheck PH`;
     const description = `Check out ${name}'s maimai profile and best scores on maiPaQueueCheck PH.`;
     const safeSlug = encodeURIComponent(String(slug));
     const url = `${baseUrl}/p/${safeSlug}`;
     const siteName = 'maiPaQueueCheck PH';
 
-    const escTitle = escapeUserControlled(title);
-    const escDescription = escapeUserControlled(description);
+    const escTitle = escapeHtml(title);
+    const escDescription = escapeHtml(description);
     const escUrl = escapeHtml(url);
     const escPhoto = escapeHtml(photo);
     const escSiteName = escapeHtml(siteName);

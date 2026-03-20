@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { queueService, subscribeToQueueChanges } from '../services/supabase';
 import { useBranch } from './useBranch';
 import { QUEUE_STATUSES } from '../constants/queue';
@@ -14,10 +14,11 @@ export const useQueueData = (selectedCabinet = 1) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const requestIdRef = useRef(0);
 
   // Derived state
-  const nowPlaying = queue.find(item => item.status === QUEUE_STATUSES.PLAYING) || null;
-  const waitingQueue = queue.filter(item => item.status === QUEUE_STATUSES.WAITING);
+  const nowPlaying = (queue || []).find(item => item?.status === QUEUE_STATUSES.PLAYING) || null;
+  const waitingQueue = (queue || []).filter(item => item?.status === QUEUE_STATUSES.WAITING);
 
   // Load initial data
   const loadInitialData = useCallback(async () => {
@@ -25,17 +26,29 @@ export const useQueueData = (selectedCabinet = 1) => {
       return;
     }
 
+    const currentRequestId = ++requestIdRef.current;
+
     try {
       setLoading(true);
       const queueData = await queueService.getQueueEntries(selectedBranch.id, selectedCabinet);
+      
+      if (currentRequestId !== requestIdRef.current) {
+        return;
+      }
+
       setQueue(queueData);
       setError(null);
       setIsConnected(true);
     } catch (err) {
+      if (currentRequestId !== requestIdRef.current) {
+        return;
+      }
       if (err.name === 'AbortError') return;
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (currentRequestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, [selectedBranch?.id, selectedCabinet]);
 
@@ -66,10 +79,17 @@ export const useQueueData = (selectedCabinet = 1) => {
         (oldRow && oldRow.cabinet_num === selectedCabinet);
       
       if (isRelevantBranch && isRelevantCabinet) {
+        const currentRequestId = ++requestIdRef.current;
         queueService.getQueueEntries(selectedBranch.id, selectedCabinet)
-          .then(data => setQueue(data))
+          .then(data => {
+            if (currentRequestId === requestIdRef.current) {
+              setQueue(data);
+            }
+          })
           .catch(err => {
-            console.error('[useQueueData] Failed to refresh queue on subscription event:', err);
+            if (currentRequestId === requestIdRef.current) {
+              console.error('[useQueueData] Failed to refresh queue on subscription event:', err);
+            }
           });
       }
     };

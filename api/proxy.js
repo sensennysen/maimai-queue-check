@@ -42,6 +42,16 @@ async function resolvesToBlockedIp(hostname) {
   return results.some(({ address }) => isBlockedTargetHost(address));
 }
 
+const MAX_RESPONSE_SIZE = 5 * 1024 * 1024; // 5MB
+const FETCH_TIMEOUT = 5000; // 5 seconds
+const ALLOWED_CONTENT_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/svg+xml',
+];
+
 export default async function handler(req, res) {
   const { url } = req.query;
 
@@ -75,9 +85,14 @@ export default async function handler(req, res) {
     }
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
   try {
     // Use native fetch (available in Node.js 18+)
-    const response = await fetch(parsed.toString());
+    const response = await fetch(parsed.toString(), {
+      signal: controller.signal,
+    });
 
     if (!response.ok) {
       return res.status(response.status).send(`Failed to fetch image: ${response.statusText}`);
@@ -85,19 +100,40 @@ export default async function handler(req, res) {
 
     // Get the arrayBuffer and content type
     const contentType = response.headers.get('content-type');
+    
+    if (contentType && !ALLOWED_CONTENT_TYPES.some(type => contentType.startsWith(type))) {
+      return res.status(403).json({ error: 'Content type not allowed' });
+    }
+
+    const contentLength = response.headers.get('content-length');
+    if (contentLength && parseInt(contentLength, 10) > MAX_RESPONSE_SIZE) {
+      return res.status(413).json({ error: 'Response body too large' });
+    }
+
     const arrayBuffer = await response.arrayBuffer();
+    
+    if (arrayBuffer.byteLength > MAX_RESPONSE_SIZE) {
+        return res.status(413).json({ error: 'Response body too large' });
+    }
+
     const buffer = Buffer.from(arrayBuffer);
 
     // Set standard CORS headers (allowing YOUR app's domain to access it)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET');
     res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
-    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Type', contentType || 'application/octet-stream');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
 
     // Send the image data back to the browser
     return res.send(buffer);
   } catch (error) {
+    if (error.name === 'AbortError') {
+      return res.status(504).json({ error: 'Gateway Timeout' });
+    }
     console.error('Proxy error:', error);
-    return res.status(500).json({ error: 'Internal Server Error', message: error.message });
+    return res.status(500).json({ error: 'Internal server error' });
+  } finally {
+    clearTimeout(timeoutId);
   }
 }

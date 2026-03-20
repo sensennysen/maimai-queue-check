@@ -44,8 +44,64 @@ describe('/api/proxy', () => {
 
     expect(res._state.status).toBe(200);
     expect(res._state.headers['content-type']).toBe('image/png');
+    expect(res._state.headers['x-content-type-options']).toBe('nosniff');
     expect(res._state.body).toBeInstanceOf(Buffer);
     expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it('rejects disallowed content-types', async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      headers: {
+        get: (key) => (String(key).toLowerCase() === 'content-type' ? 'text/html' : null),
+      },
+    }));
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const req = createMockReq({ query: { url: 'https://example.com/exploit.html' } });
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res._state.status).toBe(403);
+    expect(res._state.body).toEqual({ error: 'Content type not allowed' });
+  });
+
+  it('rejects large payloads via content-length', async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      headers: {
+        get: (key) => ({
+          'content-type': 'image/png',
+          'content-length': '10000000' // 10MB
+        }[key.toLowerCase()]),
+      },
+    }));
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const req = createMockReq({ query: { url: 'https://example.com/huge.png' } });
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res._state.status).toBe(413);
+  });
+
+  it('terminates on timeout', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      const error = new Error('The operation was aborted');
+      error.name = 'AbortError';
+      throw error;
+    }));
+
+    const req = createMockReq({ query: { url: 'https://example.com/slow.png' } });
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res._state.status).toBe(504);
   });
 
   it('rejects non-http(s) schemes with 400', async () => {
