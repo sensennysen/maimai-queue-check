@@ -1,8 +1,7 @@
 /** @vitest-environment jsdom */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
-import { useQueueData } from '../hooks/useQueueData';
-import { queueService } from '../services/supabase/queue';
+import { useQueueData } from '../hooks/useQueueData';
 import { useBranch } from '../hooks/useBranch';
 
 // Mock the hooks and services
@@ -76,3 +75,4 @@ describe('useQueueData stale-request guard', () => {
     expect(result.current.queue).toEqual([{ id: 'entry-fast', status: 'WAITING' }]);
   });
 });
+

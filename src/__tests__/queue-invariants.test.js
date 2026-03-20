@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
 function createSupabaseMock() {
-  const updateMock = vi.fn(async () => ({ data: null, error: null }));
-  const eqMock = vi.fn(async () => ({ data: null, error: null }));
-  const selectMock = vi.fn(() => ({ single: singleMock }));
+  const updateMock = vi.fn();
+  const eqMock = vi.fn();
+  const selectMock = vi.fn();
+  const upsertMock = vi.fn();
   const singleMock = vi.fn(async () => ({ data: { id: 'x' }, error: null }));
 
   const builder = {
@@ -17,14 +18,29 @@ function createSupabaseMock() {
     },
     select: (...args) => {
       selectMock(...args);
+      if (upsertMock.mock.calls.length > 0) {
+        return Promise.resolve({
+          data: [
+            { id: 'a', order_position: 1 },
+            { id: 'b', order_position: 2 },
+            { id: 'c', order_position: 3 },
+          ],
+          error: null,
+        });
+      }
       return { single: singleMock };
+    },
+    single: singleMock,
+    upsert: (...args) => {
+      upsertMock(...args);
+      return builder;
     },
   };
 
   const fromMock = vi.fn(() => builder);
   const supabase = { from: fromMock };
 
-  return { supabase, fromMock, updateMock, eqMock, selectMock, singleMock };
+  return { supabase, fromMock, updateMock, eqMock, selectMock, singleMock, upsertMock };
 }
 
 vi.mock('../services/supabase/client.js', () => {
@@ -47,10 +63,10 @@ describe('queue invariants (service boundary, mocked)', () => {
     expect(eqMock).toHaveBeenCalledTimes(2);
   });
 
-  it('updateOrderPositions performs N sequential updates for N entries', async () => {
+  it('updateOrderPositions uses one upsert call when supported', async () => {
     vi.resetModules();
 
-    const { supabase, updateMock, eqMock, selectMock, singleMock } = createSupabaseMock();
+    const { supabase, upsertMock, selectMock } = createSupabaseMock();
     vi.doMock('../services/supabase/client.js', () => ({ supabase }));
 
     const { queueService } = await import('../services/supabase/queue.js');
@@ -61,12 +77,10 @@ describe('queue invariants (service boundary, mocked)', () => {
       { id: 'c', order_position: 3 },
     ];
 
-    await queueService.updateOrderPositions(updates);
+    const result = await queueService.updateOrderPositions(updates);
 
-    expect(updateMock).toHaveBeenCalledTimes(updates.length);
-    expect(eqMock).toHaveBeenCalledTimes(updates.length);
-    expect(selectMock).toHaveBeenCalledTimes(updates.length);
-    expect(singleMock).toHaveBeenCalledTimes(updates.length);
+    expect(upsertMock).toHaveBeenCalledTimes(1);
+    expect(selectMock).toHaveBeenCalledWith('id, order_position');
+    expect(result).toHaveLength(3);
   });
 });
-

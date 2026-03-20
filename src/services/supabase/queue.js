@@ -23,19 +23,19 @@ export const queueService = {
       .select('id, player1, player2, order_position, status, branch_id, cabinet_num, created_at, started_at, created_by_profile:created_by(display_photo_url)')
       .in('status', [QUEUE_STATUSES.WAITING, QUEUE_STATUSES.PLAYING])
       .gte('created_at', today.toISOString());
-    
+
     if (branchId) {
       query = query.eq('branch_id', branchId);
     }
-    
+
     if (cabinetNum !== null) {
       query = query.eq('cabinet_num', cabinetNum);
     }
-    
+
     query = query.order('order_position', { ascending: true });
 
     const { data, error } = await query;
-    
+
     if (error) throw error;
     return data || [];
   },
@@ -52,23 +52,23 @@ export const queueService = {
    * @returns {Promise<Object>} A promise resolving to the newly created queue entry.
    */
   async addQueueEntry(player1, player2, orderPosition, userId, branchId, cabinetNum = 1) {
-    const validation = validateData(queueEntrySchema, { 
-      player1, 
-      player2, 
-      order_position: orderPosition, 
-      branch_id: branchId, 
-      cabinet_num: cabinetNum 
+    const validation = validateData(queueEntrySchema, {
+      player1,
+      player2,
+      order_position: orderPosition,
+      branch_id: branchId,
+      cabinet_num: cabinetNum
     });
-    
+
     if (!validation.success) throw new Error(validation.error);
 
     const { count, error: countError } = await supabase
-        .from(TABLES.QUEUE_ENTRIES)
-        .select('id', { count: 'exact', head: true })
-        .eq('branch_id', branchId)
-        .eq('cabinet_num', cabinetNum)
-        .eq('status', QUEUE_STATUSES.PLAYING);
-    
+      .from(TABLES.QUEUE_ENTRIES)
+      .select('id', { count: 'exact', head: true })
+      .eq('branch_id', branchId)
+      .eq('cabinet_num', cabinetNum)
+      .eq('status', QUEUE_STATUSES.PLAYING);
+
     if (countError) throw countError;
 
     const initialStatus = count === 0 ? QUEUE_STATUSES.PLAYING : QUEUE_STATUSES.WAITING;
@@ -89,7 +89,7 @@ export const queueService = {
       ])
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -102,11 +102,11 @@ export const queueService = {
    * @returns {Promise<Object>} A promise resolving to the updated queue entry.
    */
   async updateQueueEntry(id, player1, player2) {
-    const validation = validateData(queueEntrySchema.pick({ player1: true, player2: true }), { 
-      player1, 
-      player2 
+    const validation = validateData(queueEntrySchema.pick({ player1: true, player2: true }), {
+      player1,
+      player2
     });
-    
+
     if (!validation.success) throw new Error(validation.error);
 
     const { data, error } = await supabase
@@ -118,7 +118,7 @@ export const queueService = {
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -131,12 +131,12 @@ export const queueService = {
   async removeQueueEntry(id) {
     const { error } = await supabase
       .from(TABLES.QUEUE_ENTRIES)
-      .update({ 
+      .update({
         status: QUEUE_STATUSES.CANCELLED,
         ended_at: new Date().toISOString()
       })
       .eq('id', id);
-    
+
     if (error) throw error;
   },
 
@@ -147,19 +147,40 @@ export const queueService = {
    * @returns {Promise<Array<Object>>} A promise resolving to the collection of updated entries.
    */
   async updateOrderPositions(updates) {
-    const results = [];
-    for (const update of updates) {
-      const { data, error } = await supabase
+    if (!Array.isArray(updates) || updates.length === 0) return [];
+
+    const sanitizedUpdates = updates
+      .filter((item) => item?.id !== undefined && item?.id !== null)
+      .map((item) => ({ id: item.id, order_position: item.order_position }));
+
+    if (sanitizedUpdates.length === 0) return [];
+
+    const tableQuery = supabase.from(TABLES.QUEUE_ENTRIES);
+
+    if (typeof tableQuery.upsert === 'function') {
+      const { data, error } = await tableQuery
+        .upsert(sanitizedUpdates, { onConflict: 'id' })
+        .select('id, order_position');
+
+      if (!error) {
+        return data || [];
+      }
+    }
+
+    const fallbackResults = [];
+    for (const update of sanitizedUpdates) {
+      const { data: rowData, error: rowError } = await supabase
         .from(TABLES.QUEUE_ENTRIES)
         .update({ order_position: update.order_position })
         .eq('id', update.id)
         .select()
         .single();
-      
-      if (error) throw error;
-      results.push(data);
+
+      if (rowError) throw rowError;
+      fallbackResults.push(rowData);
     }
-    return results;
+
+    return fallbackResults;
   },
 
   /**
@@ -176,13 +197,13 @@ export const queueService = {
 
     let query = supabase
       .from(TABLES.QUEUE_ENTRIES)
-      .update({ 
+      .update({
         status: QUEUE_STATUSES.COMPLETED,
         ended_at: new Date().toISOString()
       })
       .eq('branch_id', branchId)
       .in('status', [QUEUE_STATUSES.WAITING, QUEUE_STATUSES.PLAYING]);
-    
+
     if (cabinetNum !== null) {
       query = query.eq('cabinet_num', cabinetNum);
     }
@@ -195,31 +216,39 @@ export const queueService = {
    * Atomically finishes the current game and marks the next waiting entry as playing.
    * @param {string} [currentPlayingId] - The ID of the entry currently in the 'playing' state.
    * @param {string} [nextWaitingId] - The ID of the entry to be transitioned to 'playing'.
-   * @returns {Promise<void>} A promise that resolves when دونوں operations complete.
+   * @returns {Promise<void>} A promise that resolves when both operations complete.
    */
   async finishGame(currentPlayingId, nextWaitingId) {
+    if (!currentPlayingId && !nextWaitingId) return;
+
+    if (currentPlayingId && nextWaitingId && currentPlayingId === nextWaitingId) {
+      throw new Error('Cannot finish and start the same entry in one transition.');
+    }
+
+    const transitionTime = new Date().toISOString();
+
     if (currentPlayingId) {
-        const { error: completeError } = await supabase
-            .from(TABLES.QUEUE_ENTRIES)
-            .update({ 
-                status: QUEUE_STATUSES.COMPLETED,
-                ended_at: new Date().toISOString()
-            })
-            .eq('id', currentPlayingId);
-        
-        if (completeError) throw completeError;
+      const { error: completeError } = await supabase
+        .from(TABLES.QUEUE_ENTRIES)
+        .update({
+          status: QUEUE_STATUSES.COMPLETED,
+          ended_at: transitionTime
+        })
+        .eq('id', currentPlayingId);
+
+      if (completeError) throw completeError;
     }
 
     if (nextWaitingId) {
-        const { error: startError } = await supabase
-            .from(TABLES.QUEUE_ENTRIES)
-            .update({ 
-                status: QUEUE_STATUSES.PLAYING,
-                started_at: new Date().toISOString()
-            })
-            .eq('id', nextWaitingId);
-        
-        if (startError) throw startError;
+      const { error: startError } = await supabase
+        .from(TABLES.QUEUE_ENTRIES)
+        .update({
+          status: QUEUE_STATUSES.PLAYING,
+          started_at: transitionTime
+        })
+        .eq('id', nextWaitingId);
+
+      if (startError) throw startError;
     }
   },
 
@@ -231,14 +260,14 @@ export const queueService = {
   async markAsPlaying(id) {
     const { data, error } = await supabase
       .from(TABLES.QUEUE_ENTRIES)
-      .update({ 
-          status: QUEUE_STATUSES.PLAYING,
-          started_at: new Date().toISOString()
+      .update({
+        status: QUEUE_STATUSES.PLAYING,
+        started_at: new Date().toISOString()
       })
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -296,8 +325,6 @@ export const queueService = {
       query = query.gte('created_at', gteDate.toISOString());
     }
 
-    // Apply status filter (if provided and not empty array, else we don't filter to allow all)
-    // Actually, if statusFilter is provided, we use it. If it's empty, we might return nothing or everything. Let's assume it always has values if filtering by status.
     if (Array.isArray(statusFilter) && statusFilter.length > 0) {
       query = query.in('status', statusFilter);
     }
@@ -325,32 +352,24 @@ export const subscribeToQueueChanges = (callback, branchId = null) => {
     config.filter = `branch_id=eq.${branchId}`;
   }
 
-  const channelId = `queue_realtime:${branchId || 'all'}:${Date.now()}:${Math.random().toString(36).substring(7)}`;
-
-  const channel = supabase
-    .channel(channelId)
-    .on(
-      'postgres_changes',
-      config,
-      (payload) => {
-        if (callback && typeof callback === 'function') {
-          callback(payload);
-        }
+  return supabase
+    .channel('queue_changes')
+    .on('postgres_changes', config, (payload) => {
+      if (callback && typeof callback === 'function') {
+        callback(payload);
       }
-    )
+    })
     .subscribe();
-
-  return channel;
 };
 
 /**
- * Establishes a real-time subscription to changes in the user roles table.
- * @param {Function} callback - The function to call whenever a change occurs.
+ * Subscribes to real-time changes in user roles for admin/permission management.
+ * @param {Function} callback - Called with realtime payload when roles change.
  * @returns {Object} The Supabase Realtime channel subscription.
  */
 export const subscribeToUserRoleChanges = (callback) => {
-  const channel = supabase
-    .channel('user_roles_realtime')
+  return supabase
+    .channel('user_role_changes')
     .on(
       'postgres_changes',
       {
@@ -365,18 +384,16 @@ export const subscribeToUserRoleChanges = (callback) => {
       }
     )
     .subscribe();
-
-  return channel;
 };
 
 /**
- * Subscribes to real-time updates for game sessions.
- * @param {Function} callback - The function to call on state change.
+ * Subscribes to game session changes for live session tracking.
+ * @param {Function} callback - Called with session change payload.
  * @returns {Object} The Supabase Realtime channel subscription.
  */
-export const subscribeToSessionChanges = (callback) => {
-  const channel = supabase
-    .channel('session_realtime')
+export const subscribeToGameSessionChanges = (callback) => {
+  return supabase
+    .channel('game_session_changes')
     .on(
       'postgres_changes',
       {
@@ -391,6 +408,5 @@ export const subscribeToSessionChanges = (callback) => {
       }
     )
     .subscribe();
-
-  return channel;
 };
+
