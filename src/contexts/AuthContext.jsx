@@ -19,39 +19,6 @@ export const AuthProvider = ({ children }) => {
 
   const { selectedBranch } = useBranch();
 
-  /**
-   * Retrieves cached user roles from local storage.
-   * Supports both legacy and current SMAD-specific cache keys.
-   * @param {string} uid - The unique identifier of the user.
-   * @returns {Object|null} The parsed role object from cache or null if missing/invalid.
-   */
-  const getCachedRoles = (uid) => {
-    try {
-      // Try new key first, fall back to old key for backward compatibility
-      let cached = localStorage.getItem(`user_roles_${uid}`);
-      if (!cached) {
-        cached = localStorage.getItem(`smf_user_roles_${uid}`);
-      }
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
-    }
-  };
-
-  /**
-   * Stores current user roles in local storage for performance optimization.
-   * @param {string} uid - The unique identifier of the user.
-   * @param {Object} roles - The roles object to be serialized and cached.
-   * @returns {void}
-   */
-  const cacheRoles = (uid, roles) => {
-    try {
-      // write using new key
-      localStorage.setItem(`user_roles_${uid}`, JSON.stringify(roles));
-    } catch (e) {
-      console.warn('Failed to cache user roles', e);
-    }
-  };
 
   /**
    * Triggers a fresh fetch of user roles and permissions from the service layer.
@@ -71,7 +38,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const roles = await Promise.race([rolesPromise, timeoutPromise]);
       setUserRoles(roles);
-      cacheRoles(user.id, roles);
       return roles;
     } catch {
       // Set default permissions on error (keep existing permissions if available)
@@ -107,13 +73,6 @@ export const AuthProvider = ({ children }) => {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
 
-        // Optimistically set roles from cache if available
-        if (currentUser) {
-          const cached = getCachedRoles(currentUser.id);
-          if (cached) {
-            setUserRoles(cached);
-          }
-        }
 
         // Set loading to false immediately - don't wait for network fetch of roles
         setLoading(false);
@@ -230,21 +189,6 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     setLoading(true);
     try {
-      // Clear role cache before signing out
-      if (user?.id) {
-        localStorage.removeItem(`user_roles_${user.id}`);
-        localStorage.removeItem(`smf_user_roles_${user.id}`);
-      }
-
-      // Safety fallback: clear any lingering role caches from previous sessions
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('smf_user_roles_') || key.startsWith('user_roles_'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
 
       await authService.signOut();
       setUser(null);
