@@ -48,7 +48,7 @@ The single most important thing this project must do perfectly for its users:
 - ✓ **PERF-03**: Realtime subscriptions constrained to discrete queue deltas
 - [ ] **PERF-04**: Export rendering flow enforces proxy concurrency limits and graceful asset degradation
 - ✓ **PERF-05**: Linear queue updates refactored to utilize batch-oriented RPC
-- [ ] **TEST-02**: Formal smoke testing suite established for realtime behavior regressions
+- ✓ **TEST-02**: Formal smoke testing suite established for realtime behavior regressions
 
 ### Future / Next Steps
 - [ ] **PERF-02**: Implement optimistic UI for `finishGame` transition (Ref: `.planning/todos/pending/2026-03-20-implement-optimistic-ui-for-finishgame-transition.md`)
