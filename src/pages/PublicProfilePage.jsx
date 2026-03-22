@@ -76,7 +76,7 @@ const PublicProfilePage = () => {
     const settingsTarget = searchParams.get('settings');
     if (settingsTarget === 'profile') setIsSettingsModalOpen(true);
     else if (settingsTarget === 'privacy') setIsPrivacyModalOpen(true);
-  }, [isRealOwner, searchParams]); // eslint-disable-line
+  }, [isRealOwner, searchParams]);  
 
   const clearSettingsParam = useCallback(() => {
     const nextParams = new URLSearchParams(searchParams);

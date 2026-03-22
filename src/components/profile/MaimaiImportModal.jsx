@@ -103,7 +103,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
     if (!opened || !userId) return;
     let cancelled = false;
     // Reset state immediately so UI doesn't flash stale content while loading
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setValidationResult(null);
     setStep('loading');
     (async () => {

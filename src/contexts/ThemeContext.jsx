@@ -5,7 +5,7 @@ const ThemeContext = createContext();
 
 // The hook and provider are co-located intentionally (standard React context pattern).
 // Splitting into separate files would add indirection without benefit.
-// eslint-disable-next-line react-refresh/only-export-components
+ 
 /**
  * Custom hook to access the global Theme context.
  * Provides current theme settings, mode, and color transformation utilities.
