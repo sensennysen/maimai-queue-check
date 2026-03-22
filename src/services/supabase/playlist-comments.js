@@ -49,5 +49,39 @@ export const playlistCommentService = {
 
     if (error) throw error;
     return data;
+  },
+
+  /**
+   * Retrieves profiles of all users who have voted on a specific playlist comment.
+   * @param {string} commentId - The ID of the comment to audit.
+   * @returns {Promise<Array<Object>>} A promise resolving to a list of voter profiles.
+   */
+  async getPlaylistCommentVoters(commentId) {
+    const { data, error } = await supabase
+      .from(TABLES.PLAYLIST_COMMENT_VOTES)
+      .select(`
+        vote_type,
+        user:user_profiles!user_id(id, display_name, slug, display_photo_url, dx_display_photo_url)
+      `)
+      .eq('comment_id', commentId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Aliases to match PlaylistComments.jsx component expectations
+  async addPostComment(postId, userId, content) {
+    return this.postComment(userId, postId, content);
+  },
+
+  async deletePostComment(commentId, userId) {
+    // Note: service deleteComment didn't originally use userId, but we use it for safety if needed
+    // The component passed it, so we accept it but the current implementation doesn't use it.
+    return this.deleteComment(commentId);
+  },
+
+  async votePostComment(commentId, userId, voteType) {
+    return this.voteComment(userId, commentId, voteType);
   }
 };

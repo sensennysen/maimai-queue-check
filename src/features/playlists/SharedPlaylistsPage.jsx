@@ -4,6 +4,8 @@ import { useSharedPlaylists } from './hooks/useSharedPlaylists';
 import { PlaylistPostCard } from './components/PlaylistPostCard';
 import { useMediaQuery } from '@mantine/hooks';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { PlaylistDetailModal } from '../../components/profile/PlaylistDetailModal';
+import { useState } from 'react';
 
 const SharedPlaylistsPage = () => {
   const [searchParams] = useSearchParams();
@@ -12,6 +14,9 @@ const SharedPlaylistsPage = () => {
   
   const initialFocusPostId = searchParams.get('post');
   const initialFocusPlaylistId = searchParams.get('playlist');
+
+  const [detailPlaylist, setDetailPlaylist] = useState(null);
+  const [detailSongs, setDetailSongs] = useState([]);
 
   const {
     posts,
@@ -106,6 +111,10 @@ const SharedPlaylistsPage = () => {
                 onToggleComments={handleToggleComments}
                 onDeletePost={handlePostDelete}
                 onPlaylistDelete={handlePlaylistDelete}
+                onViewDetails={(data) => {
+                  setDetailPlaylist(data);
+                  setDetailSongs(data.fullSongs || []);
+                }}
                 hydratedSongs={getPlaylistSongs(post.playlist)}
                 focusPostId={initialFocusPostId}
                 focusPlaylistId={initialFocusPlaylistId}
@@ -114,6 +123,16 @@ const SharedPlaylistsPage = () => {
           </Stack>
         )}
       </Stack>
+
+      <PlaylistDetailModal
+        playlist={detailPlaylist}
+        songs={detailSongs}
+        opened={!!detailPlaylist}
+        onClose={() => setDetailPlaylist(null)}
+        isOwnProfile={detailPlaylist?.authorId === user?.id}
+        onEdit={handleStartEdit}
+        onDelete={handlePlaylistDelete}
+      />
     </Container>
   );
 };

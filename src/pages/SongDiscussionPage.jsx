@@ -22,6 +22,7 @@ import { useTagManagement } from '../features/discussion/hooks/useTagManagement'
 // Modals
 import { AddToPlaylistModal } from '../components/modals/AddToPlaylistModal';
 import { VoterListModal } from '../components/common/VoterListModal';
+import { discussionService } from '../services/supabase';
 
 export default function SongDiscussionPage() {
   const { id } = useParams();
@@ -209,9 +210,9 @@ export default function SongDiscussionPage() {
       <VoterListModal
         opened={votersOpened}
         onClose={() => setVotersOpened(false)}
-        commentId={selectedCommentId}
+        title="Comment Voters"
+        fetchVoters={() => discussionService.getSongCommentVoters(selectedCommentId)}
         initialTab={initialVoterTab}
-        discussionData={discussionData}
       />
     </Container>
   );

@@ -305,5 +305,24 @@ export const postsService = {
     });
     if (error) throw error;
     return supabase.storage.from(BUCKETS.POST_IMAGES).getPublicUrl(fileName).data.publicUrl;
+  },
+
+  /**
+   * Retrieves user profiles for anyone who has voted on a specific feed post.
+   * @param {string} postId - The ID of the post.
+   * @returns {Promise<Array<Object>>} A promise resolving to a list of voter profiles.
+   */
+  async getFeedPostVoters(postId) {
+    const { data, error } = await supabase
+      .from(TABLES.FEED_POST_VOTES)
+      .select(`
+        vote_type,
+        user:${TABLES.USER_PROFILES}!user_id(id, display_name, slug, display_photo_url, dx_display_photo_url)
+      `)
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   }
 };
