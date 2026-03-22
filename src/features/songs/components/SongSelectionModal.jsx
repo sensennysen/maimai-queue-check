@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, Group, Text, Button, Box, LoadingOverlay } from '@mantine/core';
 import { IconCheck } from '@tabler/icons-react';
-import { useSongDatabase } from '../../hooks/useSongDatabase';
+import { useSongDatabase } from '../../../hooks/useSongDatabase';
 import SongFilters from './SongFilters';
 import SongList from './SongList';
 import styles from './SongSelectionModal.module.css';

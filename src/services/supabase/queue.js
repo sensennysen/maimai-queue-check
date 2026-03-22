@@ -327,6 +327,37 @@ export const subscribeToQueueChanges = (callback, branchId = null) => {
 };
 
 /**
+ * Subscribes to real-time events for queue entries via V2 broadcasts.
+ * This provides incremental updates (INSERT, UPDATE, DELETE) for better scaling.
+ * @param {string} branchId - The unique identifier for the branch.
+ * @param {Object} handlers - An object containing event handlers: onInsert, onUpdate, onDelete.
+ * @param {Function} onSubscribed - Optional callback when the channel is successfully subscribed.
+ * @returns {Object} The Supabase Realtime channel subscription.
+ */
+export const subscribeToQueueV2 = (branchId, { onInsert, onUpdate, onDelete }, onSubscribed = null) => {
+  if (!branchId) return null;
+
+  const channel = supabase
+    .channel(`queue_v2_channel_${branchId}`)
+    .on('broadcast', { event: 'INSERT' }, (payload) => {
+      if (onInsert) onInsert(payload);
+    })
+    .on('broadcast', { event: 'UPDATE' }, (payload) => {
+      if (onUpdate) onUpdate(payload);
+    })
+    .on('broadcast', { event: 'DELETE' }, (payload) => {
+      if (onDelete) onDelete(payload);
+    })
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED' && onSubscribed) {
+        onSubscribed();
+      }
+    });
+
+  return channel;
+};
+
+/**
  * Subscribes to real-time changes in user roles for admin/permission management.
  * @param {Function} callback - Called with realtime payload when roles change.
  * @returns {Object} The Supabase Realtime channel subscription.

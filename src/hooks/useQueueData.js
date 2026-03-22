@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { queueService, subscribeToQueueChanges } from '../services/supabase';
+import { queueService, subscribeToQueueV2 } from '../services/supabase';
 import { useBranch } from './useBranch';
 import { QUEUE_STATUSES } from '../constants/queue';
 
@@ -59,52 +59,66 @@ export const useQueueData = (selectedCabinet = 1) => {
     }
   }, [loadInitialData, selectedBranch?.id]);
 
-  // Subscribe to real-time changes
+  // Subscribe to real-time changes using V2 Incremental Broadcasts (PERF-03)
   useEffect(() => {
     if (!selectedBranch?.id) {
       return;
     }
 
-    const handleQueueChange = (payload) => {
-      const newRow = payload.new;
-      const oldRow = payload.old;
-      
-      const isRelevantBranch = 
-        (newRow && newRow.branch_id === selectedBranch.id) ||
-        (oldRow && oldRow.branch_id === selectedBranch.id);
-      
-      // Check if this change is relevant to the selected cabinet
-      const isRelevantCabinet =
-        (newRow && newRow.cabinet_num === selectedCabinet) ||
-        (oldRow && oldRow.cabinet_num === selectedCabinet);
-      
-      if (isRelevantBranch && isRelevantCabinet) {
-        const currentRequestId = ++requestIdRef.current;
-        queueService.getQueueEntries(selectedBranch.id, selectedCabinet)
-          .then(data => {
-            if (currentRequestId === requestIdRef.current) {
-              setQueue(data);
-            }
-          })
-          .catch(err => {
-            if (currentRequestId === requestIdRef.current) {
-              console.error('[useQueueData] Failed to refresh queue on subscription event:', err);
-            }
+    const handlers = {
+      onInsert: (payload) => {
+        const newRow = payload.new;
+        if (newRow && newRow.cabinet_num === selectedCabinet) {
+          setQueue(current => {
+            // Avoid duplicates if multiple messages arrive
+            if (current.some(item => item.id === newRow.id)) return current;
+            return [...current, newRow].sort((a, b) => a.order_position - b.order_position);
           });
+        }
+      },
+      onUpdate: (payload) => {
+        const newRow = payload.new;
+        if (newRow) {
+          setQueue(current => {
+            // If it belongs to a different cabinet now, remove it
+            if (newRow.cabinet_num !== selectedCabinet) {
+              return current.filter(item => item.id !== newRow.id);
+            }
+            // If it was from a different cabinet and now belongs here, add it
+            if (!current.some(item => item.id === newRow.id)) {
+              return [...current, newRow].sort((a, b) => a.order_position - b.order_position);
+            }
+            // Normal update: merge changes
+            return current.map(item => 
+              item.id === newRow.id ? { ...item, ...newRow } : item
+            ).sort((a, b) => a.order_position - b.order_position);
+          });
+        }
+      },
+      onDelete: (payload) => {
+        const oldRow = payload.old;
+        if (oldRow) {
+          setQueue(current => current.filter(item => item.id !== oldRow.id));
+        }
       }
     };
 
-    const queueSubscription = subscribeToQueueChanges(handleQueueChange, selectedBranch.id);
+    const queueSubscription = subscribeToQueueV2(
+      selectedBranch.id, 
+      handlers,
+      () => {
+        // Fallback: full re-fetch to repair state on (re)connect
+        loadInitialData();
+      }
+    );
 
-    // Test connection removed
-    
     return () => {
       if (queueSubscription) {
         queueSubscription.unsubscribe();
       }
       setIsConnected(false);
     };
-  }, [selectedBranch?.id, selectedCabinet]);
+  }, [selectedBranch?.id, selectedCabinet, loadInitialData]);
 
   // Generate next order number
   const getNextOrder = useCallback(() => {

@@ -1,25 +1,5 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import crypto from 'node:crypto';
-
-function strictCspPlugin() {
-  return {
-    name: 'strict-csp',
-    transformIndexHtml(html) {
-      const scriptRegex = /<script(?:.*?)>(.*?)<\/script>/gs;
-      let match;
-      const hashes = [];
-      while ((match = scriptRegex.exec(html)) !== null) {
-        if (match[1].trim()) {
-          const hash = crypto.createHash('sha256').update(match[1]).digest('base64');
-          hashes.push(`'sha256-${hash}'`);
-        }
-      }
-      const csp = `default-src 'self'; script-src 'self' 'unsafe-inline' ${hashes.join(' ')} https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co /api/proxy;`;
-      return html.replace('<head>', `<head>\n  <meta http-equiv="Content-Security-Policy" content="${csp}">`);
-    }
-  };
-}
 import viteCompression from 'vite-plugin-compression';
 import { visualizer } from 'rollup-plugin-visualizer';
 
@@ -27,7 +7,6 @@ import { visualizer } from 'rollup-plugin-visualizer';
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
-    strictCspPlugin(),
     viteCompression({
       algorithm: 'gzip',
       ext: '.gz',

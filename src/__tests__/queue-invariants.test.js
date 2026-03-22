@@ -5,6 +5,7 @@ function createSupabaseMock() {
   const eqMock = vi.fn();
   const selectMock = vi.fn();
   const upsertMock = vi.fn();
+  const rpcMock = vi.fn(async () => ({ data: null, error: null }));
   const singleMock = vi.fn(async () => ({ data: { id: 'x' }, error: null }));
 
   const builder = {
@@ -38,9 +39,9 @@ function createSupabaseMock() {
   };
 
   const fromMock = vi.fn(() => builder);
-  const supabase = { from: fromMock };
+  const supabase = { from: fromMock, rpc: rpcMock };
 
-  return { supabase, fromMock, updateMock, eqMock, selectMock, singleMock, upsertMock };
+  return { supabase, fromMock, updateMock, eqMock, selectMock, singleMock, upsertMock, rpcMock };
 }
 
 vi.mock('../services/supabase/client.js', () => {
@@ -49,24 +50,26 @@ vi.mock('../services/supabase/client.js', () => {
 });
 
 describe('queue invariants (service boundary, mocked)', () => {
-  it('finishGame performs a two-step update sequence', async () => {
+  it('finishGame calls the finish_game RPC', async () => {
     vi.resetModules();
 
-    const { supabase, updateMock, eqMock } = createSupabaseMock();
+    const { supabase, rpcMock } = createSupabaseMock();
     vi.doMock('../services/supabase/client.js', () => ({ supabase }));
 
     const { queueService } = await import('../services/supabase/queue.js');
 
     await queueService.finishGame('playing-id', 'next-id');
 
-    expect(updateMock).toHaveBeenCalledTimes(2);
-    expect(eqMock).toHaveBeenCalledTimes(2);
+    expect(rpcMock).toHaveBeenCalledWith('finish_game', {
+      p_current_playing_id: 'playing-id',
+      p_next_waiting_id: 'next-id',
+    });
   });
 
-  it('updateOrderPositions uses one upsert call when supported', async () => {
+  it('updateOrderPositions calls the reorder_queue_entries RPC', async () => {
     vi.resetModules();
 
-    const { supabase, upsertMock, selectMock } = createSupabaseMock();
+    const { supabase, rpcMock } = createSupabaseMock();
     vi.doMock('../services/supabase/client.js', () => ({ supabase }));
 
     const { queueService } = await import('../services/supabase/queue.js');
@@ -79,8 +82,9 @@ describe('queue invariants (service boundary, mocked)', () => {
 
     const result = await queueService.updateOrderPositions(updates);
 
-    expect(upsertMock).toHaveBeenCalledTimes(1);
-    expect(selectMock).toHaveBeenCalledWith('id, order_position');
+    expect(rpcMock).toHaveBeenCalledWith('reorder_queue_entries', {
+      p_updates: updates,
+    });
     expect(result).toHaveLength(3);
   });
 });

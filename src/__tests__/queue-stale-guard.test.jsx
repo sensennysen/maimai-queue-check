@@ -17,6 +17,9 @@ vi.mock('../services/supabase', () => {
     subscribeToQueueChanges: vi.fn(() => ({
       unsubscribe: vi.fn(),
     })),
+    subscribeToQueueV2: vi.fn(() => ({
+      unsubscribe: vi.fn(),
+    })),
   };
 });
 

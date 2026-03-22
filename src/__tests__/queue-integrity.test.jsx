@@ -1,13 +1,15 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-const { fromMock, validateDataMock } = vi.hoisted(() => ({
+const { fromMock, rpcMock, validateDataMock } = vi.hoisted(() => ({
   fromMock: vi.fn(),
+  rpcMock: vi.fn(),
   validateDataMock: vi.fn(() => ({ success: true })),
 }));
 
 vi.mock('../services/supabase/client', () => ({
   supabase: {
     from: fromMock,
+    rpc: rpcMock,
   },
 }));
 
@@ -73,40 +75,30 @@ describe('queueService integrity invariants', () => {
     expect(insertPayload.status).toBe(QUEUE_STATUSES.WAITING);
   });
 
-  it('finishGame transitions playing to completed and waiting to playing', async () => {
-    const completeQuery = createUpdateQuery();
-    const startQuery = createUpdateQuery();
-
-    fromMock.mockReturnValueOnce(completeQuery).mockReturnValueOnce(startQuery);
+  it('finishGame calls the finish_game RPC', async () => {
+    rpcMock.mockResolvedValue({ error: null });
 
     await queueService.finishGame('playing-1', 'waiting-1');
 
-    expect(completeQuery.update).toHaveBeenCalledWith(
-      expect.objectContaining({ status: QUEUE_STATUSES.COMPLETED })
-    );
-    expect(startQuery.update).toHaveBeenCalledWith(
-      expect.objectContaining({ status: QUEUE_STATUSES.PLAYING })
-    );
+    expect(rpcMock).toHaveBeenCalledWith('finish_game', {
+      p_current_playing_id: 'playing-1',
+      p_next_waiting_id: 'waiting-1',
+    });
   });
 
-  it('updateOrderPositions sends all waiting reorder updates in one upsert call', async () => {
+  it('updateOrderPositions calls the reorder_queue_entries RPC', async () => {
     const updates = [
       { id: 'wait-1', order_position: 2 },
       { id: 'wait-2', order_position: 1 },
     ];
 
-    const upsertQuery = {
-      upsert: vi.fn(function () {
-        return this;
-      }),
-      select: vi.fn(async () => ({ data: updates, error: null })),
-    };
-
-    fromMock.mockReturnValueOnce(upsertQuery);
+    rpcMock.mockResolvedValue({ error: null });
 
     const result = await queueService.updateOrderPositions(updates);
 
-    expect(upsertQuery.upsert).toHaveBeenCalledWith(updates, { onConflict: 'id' });
+    expect(rpcMock).toHaveBeenCalledWith('reorder_queue_entries', {
+      p_updates: updates,
+    });
     expect(result).toEqual(updates);
   });
 });
