@@ -1,5 +1,8 @@
 import { Container, Group, Stack, Text } from '@mantine/core';
 import { IconBrandGithub, IconBrandTwitter } from '@tabler/icons-react';
+import { useSongDatabase } from '../../../hooks/useSongDatabase';
+import SongFilters from './SongFilters';
+import SongList from './SongList';
 import styles from './SongDatabase.module.css';
 
 function SongDatabase() {

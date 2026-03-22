@@ -157,7 +157,7 @@ export const queueService = {
 
     // Use a dedicated RPC for batch reordering to ensure atomicity and high performance.
     // This replaces the separate update calls, reducing network overhead.
-    const { data, error } = await supabase.rpc('reorder_queue_entries', {
+    const { error } = await supabase.rpc('reorder_queue_entries', {
       p_updates: sanitizedUpdates
     });
 

@@ -4,8 +4,7 @@ import {
   validateImageUpload, 
   ALLOWED_IMAGE_TYPES, 
   MAX_IMAGE_SIZE_BYTES,
-  getNormalizedFileExtension,
-  VALID_MIME_EXTENSIONS
+  getNormalizedFileExtension
 } from '../utils/uploadValidation.js';
 
 describe('validateImageUpload', () => {

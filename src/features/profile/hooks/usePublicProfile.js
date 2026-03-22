@@ -75,7 +75,7 @@ export function usePublicProfile(slug, user) {
     } finally {
       if (isMounted.current) setLoading(false);
     }
-  }, [slug, user?.id]);
+  }, [slug, user]);
 
   useEffect(() => {
     fetchData();
