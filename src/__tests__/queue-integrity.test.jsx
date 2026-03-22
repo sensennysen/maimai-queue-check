@@ -48,13 +48,6 @@ function createInsertQuery({ data, error = null } = {}) {
   return query;
 }
 
-function createUpdateQuery({ error = null } = {}) {
-  const query = {
-    update: vi.fn(() => query),
-    eq: vi.fn(async () => ({ error })),
-  };
-  return query;
-}
 
 describe('queueService integrity invariants', () => {
   beforeEach(() => {

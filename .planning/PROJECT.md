@@ -42,9 +42,9 @@ The single most important thing this project must do perfectly for its users:
 - ✓ **QUEUE-01**: Atomic finishGame RPC — v1.3
 
 ### Active (v1.4)
-- [ ] **AUTH-03**: Role management and session persistence securely migrate to HttpOnly cookies or sanitized contexts
+- [x] **AUTH-03**: Role management and session persistence securely migrate to HttpOnly cookies or sanitized contexts
 - [ ] **SEC-06**: Strict CSP enforcement with restrictive script-src policies
-- [ ] **SEC-07**: Edge Function boundary validation for score imports
+- [x] **SEC-07**: Edge Function boundary validation for score imports
 - ✓ **PERF-03**: Realtime subscriptions constrained to discrete queue deltas
 - [ ] **PERF-04**: Export rendering flow enforces proxy concurrency limits and graceful asset degradation
 - ✓ **PERF-05**: Linear queue updates refactored to utilize batch-oriented RPC

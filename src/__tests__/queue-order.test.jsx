@@ -13,28 +13,8 @@ vi.mock('../services/supabase/client', () => ({
 }));
 
 import { queueService } from '../services/supabase/queue';
-import { TABLES } from '../constants/database';
 
-function createUpsertQuery({ data = [], error = null } = {}) {
-  const query = {
-    upsert: vi.fn(() => query),
-    select: vi.fn(async () => ({ data, error })),
-  };
-  return query;
-}
 
-function createSingleUpdateQuery({ id, orderPosition, error = null } = {}) {
-  const query = {
-    update: vi.fn(() => query),
-    eq: vi.fn(() => query),
-    select: vi.fn(() => query),
-    single: vi.fn(async () => ({
-      data: id ? { id, order_position: orderPosition } : null,
-      error,
-    })),
-  };
-  return query;
-}
 
 describe('queueService.updateOrderPositions', () => {
   beforeEach(() => {

@@ -8,10 +8,10 @@ last_updated: "2026-03-22T10:25:00.000Z"
 last_activity: 2026-03-22 — Phase 11 (Realtime Smoke Validation) completed
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 4
-  completed_plans: 1
-  percent: 75
+  completed_plans: 2
+  percent: 85
 ---
 
 # Project State
@@ -24,12 +24,12 @@ See: `.planning/PROJECT.md` (updated 2026-03-22)
 
 ## Current Position
 
-Phase: 11 (Realtime Smoke Validation)
-Plan: 11-01
+Phase: 8 (Core Security & Auth Hardening)
+Plan: 08-01
 Status: Completed
-Last activity: 2026-03-22 — Phase 11 (Realtime Smoke Validation) completed
+Last activity: 2026-03-22 — Phase 8 (Core Security & Auth Hardening) backfilled and verified
 
-Progress: [#######   ] 75%
+Progress: [######### ] 85%
 
 ## Accumulated Context
 
