@@ -205,7 +205,7 @@ export const postsService = {
    * @returns {Promise<void>} A promise that resolves when the comment is deleted.
    */
   async deleteFeedPostComment(commentId, userId) {
-    const { error } = await supabase.from(TABLES.FEED_POSTS_COMMENTS).delete().eq('id', commentId).eq('user_id', userId);
+    const { error } = await supabase.from(TABLES.FEED_POST_COMMENTS).delete().eq('id', commentId).eq('user_id', userId);
     if (error) throw error;
   },
 

@@ -35,8 +35,8 @@ export const playlistCommentService = {
     return { ...data, playlist_comment_votes: [] };
   },
 
-  async deleteComment(commentId) {
-    const { error } = await supabase.from(TABLES.PLAYLIST_COMMENTS).delete().eq('id', commentId);
+  async deleteComment(commentId, userId) {
+    const { error } = await supabase.from(TABLES.PLAYLIST_COMMENTS).delete().eq('id', commentId).eq('user_id', userId);
     if (error) throw error;
   },
 
@@ -75,10 +75,8 @@ export const playlistCommentService = {
     return this.postComment(userId, postId, content);
   },
 
-  async deletePostComment(commentId) {
-    // Note: service deleteComment didn't originally use userId, but we use it for safety if needed
-    // The component passed it, so we accept it but the current implementation doesn't use it.
-    return this.deleteComment(commentId);
+  async deletePostComment(commentId, userId) {
+    return this.deleteComment(commentId, userId);
   },
 
   async votePostComment(commentId, userId, voteType) {
