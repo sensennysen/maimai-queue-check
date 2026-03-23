@@ -75,7 +75,7 @@ export const playlistCommentService = {
     return this.postComment(userId, postId, content);
   },
 
-  async deletePostComment(commentId, userId) {
+  async deletePostComment(commentId) {
     // Note: service deleteComment didn't originally use userId, but we use it for safety if needed
     // The component passed it, so we accept it but the current implementation doesn't use it.
     return this.deleteComment(commentId);
