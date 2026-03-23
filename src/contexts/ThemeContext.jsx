@@ -41,6 +41,22 @@ export const ThemeProvider = ({ children }) => {
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   };
 
+  const getContrastRatio = (hexA, hexB) => {
+    const lumA = getLuminance(hexA);
+    const lumB = getLuminance(hexB);
+    const lighter = Math.max(lumA, lumB);
+    const darker = Math.min(lumA, lumB);
+    return (lighter + 0.05) / (darker + 0.05);
+  };
+
+  const getReadableTextColor = (backgroundHex) => {
+    const lightText = '#FFFFFF';
+    const darkText = '#0B1324';
+    const lightContrast = getContrastRatio(backgroundHex, lightText);
+    const darkContrast = getContrastRatio(backgroundHex, darkText);
+    return darkContrast >= lightContrast ? darkText : lightText;
+  };
+
   // Theme Mode: Light/Dark
   const [isDark, setIsDark] = useState(() => {
     const stored = localStorage.getItem('theme-mode');
@@ -109,9 +125,8 @@ export const ThemeProvider = ({ children }) => {
     root.style.setProperty('--theme-player1', cssVars.primary);
     root.style.setProperty('--theme-player2', cssVars.secondary);
 
-    // Calculate contrast for primary color
-    const primaryLum = getLuminance(cssVars.primary);
-    const contrastColor = primaryLum > 0.5 ? '#1A233B' : '#FFFFFF';
+    // Pick the text color that has the better contrast ratio on primary buttons.
+    const contrastColor = getReadableTextColor(cssVars.primary);
     root.style.setProperty('--theme-primary-contrast', contrastColor);
 
     // Set hover variations (slightly darker for light mode, lighter for dark mode)

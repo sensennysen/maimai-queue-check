@@ -18,10 +18,10 @@ import PreferencesModal from '../modals/PreferencesModal';
 import './GlobalNavbar.css';
 
 const navItems = [
-  { label: 'Community Feed', path: '/feed', icon: IconUsersGroup },
-  { label: 'Queue', path: '/', icon: IconListDetails },
-  { label: 'Songs', path: '/songs', icon: IconMusic },
-  { label: 'Playlists', path: '/shared-playlists', icon: IconPlaylist },
+  { label: 'Community Feed', desktopLabel: 'Community', compactLabel: 'Feed', mobileLabel: 'Feed', path: '/feed', icon: IconUsersGroup },
+  { label: 'Queue', compactLabel: 'Queue', mobileLabel: 'Queue', path: '/', icon: IconListDetails },
+  { label: 'Songs', compactLabel: 'Songs', mobileLabel: 'Songs', path: '/songs', icon: IconMusic },
+  { label: 'Playlists', compactLabel: 'Lists', mobileLabel: 'Lists', path: '/shared-playlists', icon: IconPlaylist },
 ];
 
 function getActivePath(pathname) {
@@ -50,8 +50,10 @@ export default function GlobalNavbar() {
   const [showSearch, setShowSearch] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const activePath = getActivePath(location.pathname);
-  const isCompact = useMediaQuery('(max-width: 1150px)');
+  const isDense = useMediaQuery('(max-width: 1280px)');
+  const isCompact = useMediaQuery('(max-width: 1060px)');
   const isMenu = useMediaQuery('(max-width: 768px)');
+  const navMode = isMenu ? 'mobile' : isCompact ? 'compact' : isDense ? 'dense' : 'full';
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
@@ -126,9 +128,13 @@ export default function GlobalNavbar() {
           <Group justify="space-between" align="center" gap="md" wrap="nowrap" className="global-top-nav-inner">
             <Text fw={800} className="global-top-brand">mPQCheckPH</Text>
 
-            <Group gap={8} wrap="nowrap" className="global-top-links desktop-only">
+            <Group gap={8} wrap="nowrap" className={`global-top-links desktop-only nav-${navMode}`}>
               {visibleNavItems.map((item) => {
                 const Icon = item.icon;
+                const navLabel = navMode === 'compact'
+                  ? (item.compactLabel || item.desktopLabel || item.label)
+                  : (item.desktopLabel || item.label);
+
                 return (
                   <Button
                     key={item.path}
@@ -136,10 +142,10 @@ export default function GlobalNavbar() {
                     size="md"
                     onClick={() => navigate(item.path)}
                     aria-current={activePath === item.path ? 'page' : undefined}
-                    className={`global-top-link ${activePath === item.path ? 'is-active' : ''}`}
-                    leftSection={<Icon size={18} />}
+                    className={`global-top-link nav-${navMode} ${activePath === item.path ? 'is-active' : ''}`}
+                    leftSection={navMode === 'full' || navMode === 'compact' ? <Icon size={17} /> : null}
                   >
-                    {item.label}
+                    <span className="global-top-link-label">{navLabel}</span>
                   </Button>
                 );
               })}
@@ -149,7 +155,7 @@ export default function GlobalNavbar() {
               {user && (
                 <div className="global-search-container">
                   <Popover
-                    opened={suggestionsOpen && hasSuggestions && !showSearch}
+                    opened={suggestionsOpen && hasSuggestions}
                     onClose={() => setSuggestionsOpen(false)}
                     position="bottom-end"
                     width={230}
@@ -171,15 +177,44 @@ export default function GlobalNavbar() {
                             }}
                           />
                         ) : (
-                          <ActionIcon
-                            variant="subtle"
-                            size="lg"
-                            className="global-search-icon"
-                            aria-label="Open search"
-                            onClick={() => setShowSearch(true)}
-                          >
-                            <IconSearch size={22} />
-                          </ActionIcon>
+                          <>
+                            {!showSearch ? (
+                              <ActionIcon
+                                variant="subtle"
+                                size="lg"
+                                className="global-search-icon"
+                                aria-label="Open search"
+                                onClick={() => setShowSearch(true)}
+                              >
+                                <IconSearch size={22} />
+                              </ActionIcon>
+                            ) : (
+                              <TextInput
+                                value={searchTerm}
+                                onChange={(event) => setSearchTerm(event.currentTarget.value)}
+                                placeholder="Search..."
+                                leftSection={<IconSearch size={16} />}
+                                rightSection={
+                                  <ActionIcon
+                                    size="sm"
+                                    variant="subtle"
+                                    aria-label="Close search"
+                                    onClick={() => {
+                                      setShowSearch(false);
+                                      setSuggestionsOpen(false);
+                                    }}
+                                  >
+                                    <IconX size={16} />
+                                  </ActionIcon>
+                                }
+                                autoFocus
+                                className="global-top-search"
+                                onFocus={() => {
+                                  if (hasSuggestions) setSuggestionsOpen(true);
+                                }}
+                              />
+                            )}
+                          </>
                         )}
                       </Box>
                     </Popover.Target>
@@ -261,38 +296,14 @@ export default function GlobalNavbar() {
                     </Popover.Dropdown>
                   </Popover>
 
-                  {/* Mobile/Compact Search Overlay */}
-                  {isCompact && showSearch && (
-                    <Box className="global-mobile-search-overlay animate-fade-in">
-                      <Group gap="xs" wrap="nowrap" w="100%">
-                        <Box component="form" onSubmit={handleSearchSubmit} style={{ flex: 1 }}>
-                          <TextInput
-                            value={searchTerm}
-                            onChange={(event) => setSearchTerm(event.currentTarget.value)}
-                            placeholder="Search songs, players..."
-                            leftSection={<IconSearch size={18} />}
-                            rightSection={
-                              <ActionIcon size="sm" variant="subtle" onClick={() => setShowSearch(false)}>
-                                <IconX size={16} />
-                              </ActionIcon>
-                            }
-                            autoFocus
-                            radius="xl"
-                            size="md"
-                            className="mobile-search-input"
-                          />
-                        </Box>
-                      </Group>
-                    </Box>
-                  )}
                 </div>
               )}
               {/* Mobile menu removed in favor of floating bottom dock */}
               {user && <NotificationCenter />}
-              {!isMenu && <ThemeToggle />}
+              {!isCompact && <ThemeToggle />}
               <LoginForm
                 onOpenPreferences={() => setShowPreferencesModal(true)}
-                showThemeToggleInMenu={isMenu}
+                showThemeToggleInMenu={isCompact}
               />
             </Group>
           </Group>
@@ -306,16 +317,17 @@ export default function GlobalNavbar() {
             {visibleNavItems.map((item) => {
               const Icon = item.icon;
               return (
-                <ActionIcon
+                <button
                   key={item.path}
-                  variant="subtle"
-                  size="xl"
+                  type="button"
                   onClick={() => navigate(item.path)}
+                  aria-label={item.label}
                   aria-current={activePath === item.path ? 'page' : undefined}
                   className={`global-bottom-link ${activePath === item.path ? 'is-active' : ''}`}
                 >
-                  <Icon size={24} />
-                </ActionIcon>
+                  <Icon size={20} />
+                  <span className="global-bottom-link-label">{item.mobileLabel || item.label}</span>
+                </button>
               );
             })}
           </Group>

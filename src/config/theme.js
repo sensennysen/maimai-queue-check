@@ -16,68 +16,68 @@ export const themes = {
     type: 'light',
     colors: {
       primary: [
-        '#FFE3F3',
-        '#FFC1E6',
-        '#FF9ED8',
-        '#FF7ACA',
-        '#FF57BC',
-        '#FF1493', // main logo pink
-        '#E01284',
-        '#C80F75',
-        '#B00C66',
-        '#8F084F'
+        '#FFF0F8',
+        '#FFD9EE',
+        '#FFC1E3',
+        '#FFA7D7',
+        '#FF8DCB',
+        '#FF4FAF', // Circle v2 main pink
+        '#E73D9D',
+        '#C92F86',
+        '#A7226D',
+        '#7A154F'
       ],
 
       secondary: [
-        '#E3F6FF',
-        '#BCE9FF',
-        '#91DAFF',
-        '#66CAFF',
-        '#3BB9FF',
-        '#00A6FF', // cyan from logo outline
-        '#0093E0',
-        '#007DBF',
-        '#00679E',
-        '#004A73'
+        '#ECFAFF',
+        '#D2F4FF',
+        '#B6EDFF',
+        '#98E4FF',
+        '#77DAFF',
+        '#3BC9FF', // Circle v2 cyan
+        '#21B5EA',
+        '#0F9CCF',
+        '#0C7EAA',
+        '#0A617F'
       ],
 
       accent: [
-        '#F3FFE3',
-        '#E2FFC2',
-        '#CEFF9F',
-        '#BAFF7C',
-        '#A6FF59',
-        '#8BFF2E', // lime highlight from logo
-        '#73E026',
-        '#5DC01F',
-        '#479F18',
-        '#317310'
+        '#F4FFE6',
+        '#E9FFD0',
+        '#DBFFB5',
+        '#CCFF99',
+        '#BBFF79',
+        '#A6F54D', // Circle v2 lime accent
+        '#8ED53A',
+        '#74B22B',
+        '#5A8B20',
+        '#3F6316'
       ],
     },
 
     css: {
       light: {
-        background: '#FFF6FB',
-        surface: '#FFFFFF',
-        primary: '#FF1493',
-        secondary: '#00A6FF',
-        accent: '#8BFF2E',
-        textPrimary: '#2B0A1F',
-        textMuted: '#7A5A6D',
-        border: 'rgba(255, 20, 147, 0.25)',
-        tabHighlight: '#FF1493',
+        background: '#FFF8FC',
+        surface: '#FFFDFE',
+        primary: '#FF4FAF',
+        secondary: '#3BC9FF',
+        accent: '#A6F54D',
+        textPrimary: '#311325',
+        textMuted: '#76586A',
+        border: 'rgba(255, 79, 175, 0.24)',
+        tabHighlight: '#FF4FAF',
       },
 
       dark: {
-        background: '#0F0510',
-        surface: '#1B0B1C',
-        primary: '#FF1493',
-        secondary: '#3BB9FF',
-        accent: '#8BFF2E',
-        textPrimary: '#FFFFFF',
-        textMuted: '#B8A9B2',
-        border: 'rgba(255, 20, 147, 0.35)',
-        tabHighlight: '#FF1493',
+        background: '#130818',
+        surface: '#221029',
+        primary: '#FF6CBD',
+        secondary: '#63D7FF',
+        accent: '#B8FF6A',
+        textPrimary: '#FFEAF5',
+        textMuted: '#C8AFC1',
+        border: 'rgba(255, 108, 189, 0.30)',
+        tabHighlight: '#FF6CBD',
       }
     }
   },

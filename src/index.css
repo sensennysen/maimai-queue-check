@@ -23,6 +23,10 @@
   --theme-error: #D63352;
   --theme-success: #2DA74F;
   --theme-warning: #FFD200;
+  --radius-panel: 16px;
+  --radius-control: 12px;
+  --radius-chip: 16px;
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--theme-primary), transparent 75%);
 
   color-scheme: light;
   color: var(--theme-text-primary);
@@ -167,9 +171,10 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-button:focus {
+button:focus-visible {
   outline: 2px solid var(--theme-primary);
   outline-offset: 2px;
+  box-shadow: var(--focus-ring);
 }
 
 button:active {
@@ -184,6 +189,22 @@ input {
 
 input:focus {
   outline: none;
+}
+
+:where(a, button, input, textarea, select, [role="button"]):focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Touch targets for mobile */

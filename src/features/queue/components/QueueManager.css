@@ -18,7 +18,7 @@
   margin-bottom: 1rem;
   padding: 1rem;
   background: var(--theme-surface);
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   border-left: 4px solid var(--theme-primary);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--theme-border);
@@ -47,7 +47,7 @@
   background: var(--theme-error);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 600;
@@ -68,7 +68,7 @@
 
 .now-playing {
   background: var(--theme-surface);
-  border-radius: 12px;
+  border-radius: var(--radius-panel);
   padding: 1.25rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -76,13 +76,6 @@
   border: 1px solid var(--theme-border);
 }
 
-.now-playing-header h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-/* Responsive: Make PlayTimer smaller and avoid overlap in mobile */
 .now-playing-header {
   display: flex;
   flex-direction: row;
@@ -94,13 +87,12 @@
 }
 
 .now-playing-header h3 {
-  margin-top: 0.25em;
-}
-
-.now-playing-header h3 {
   display: flex;
   align-items: center;
   margin: 0;
+  margin-top: 0.25em;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .now-playing-header .play-timer {
@@ -215,7 +207,7 @@
 
 .vs-text {
   background: var(--theme-accent);
-  color: #2B1C2A;
+  color: var(--theme-text-primary);
   padding: 0.4rem 0.8rem;
   border-radius: 50%;
   font-weight: bold;
@@ -246,7 +238,7 @@
   background: var(--theme-primary);
   color: white;
   border: 2px solid var(--theme-primary);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.9rem;
@@ -266,6 +258,13 @@
   background: var(--theme-primary-hover);
   border-color: var(--theme-primary-hover);
   transform: translateY(-1px);
+}
+
+.clear-btn:focus-visible,
+.finish-game-btn:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
 }
 
 /* Busy overlay message displayed above loading overlay */
