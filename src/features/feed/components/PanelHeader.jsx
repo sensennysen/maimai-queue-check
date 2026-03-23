@@ -14,7 +14,7 @@ import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
  */
 export function PanelHeader({ title, subtitle, onRefresh, loading, rightSection, className }) {
   return (
-    <Group justify="space-between" align="flex-end" mb="sm" className={className}>
+    <Group justify="space-between" align="center" mb="sm" className={className}>
       <Stack gap={2}>
         <Title order={3} className="community-panel-title">{title}</Title>
         {subtitle && <Text size="xs" c="dimmed">{subtitle}</Text>}

@@ -58,7 +58,7 @@ export const postsService = {
    * @param {number} [limit=LIMITS.FEED_POSTS] - The maximum number of posts to return.
    * @returns {Promise<Array<Object>>} A promise resolving to an array of post objects.
    */
-  async getFeedPosts(userId = null, limit = LIMITS.FEED_POSTS) {
+  async getFeedPostsPage(userId = null, limit = LIMITS.FEED_POSTS, offset = 0) {
     let query = supabase
       .from(TABLES.FEED_POSTS)
       .select(`
@@ -76,7 +76,11 @@ export const postsService = {
     if (userId) query = query.or(`visibility.eq.public,user_id.eq.${userId}`);
     else query = query.eq('visibility', 'public');
 
-    const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
+    const rangeStart = Math.max(0, Number(offset) || 0);
+    const rangeEnd = rangeStart + Math.max(1, Number(limit) || LIMITS.FEED_POSTS) - 1;
+    const { data, error } = await query
+      .order('created_at', { ascending: false })
+      .range(rangeStart, rangeEnd);
     if (error) throw error;
 
     return (data || []).map(p => {
@@ -90,6 +94,10 @@ export const postsService = {
         comments: undefined, votes: undefined
       };
     });
+  },
+
+  async getFeedPosts(userId = null, limit = LIMITS.FEED_POSTS) {
+    return this.getFeedPostsPage(userId, limit, 0);
   },
 
   /**
@@ -158,7 +166,7 @@ export const postsService = {
    * @param {number} [limit=LIMITS.COMMENT_POOL] - The maximum number of comments to return.
    * @returns {Promise<Array<Object>>} A promise resolving to an array of comment objects.
    */
-  async getFeedPostComments(postId, userId = null, limit = LIMITS.COMMENT_POOL) {
+  async getFeedPostComments(postId, userId = null, limit = LIMITS.COMMENT_POOL, ascending = true) {
     const { data, error } = await supabase
       .from(TABLES.FEED_POST_COMMENTS)
       .select(`
@@ -166,7 +174,9 @@ export const postsService = {
         author:${TABLES.USER_PROFILES}!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
         votes:${TABLES.FEED_POST_COMMENT_VOTES}(vote_type, user_id)
       `)
-      .eq('post_id', postId).order('created_at', { ascending: true }).limit(limit);
+      .eq('post_id', postId)
+      .order('created_at', { ascending })
+      .limit(limit);
 
     if (error) throw error;
     return (data || []).map(c => {

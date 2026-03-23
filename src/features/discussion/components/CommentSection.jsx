@@ -29,7 +29,7 @@ export function CommentSection({
   return (
     <Paper p="md" radius="md" withBorder className="comments-column">
       <Stack gap="md">
-        <Title order={4}>Comments ({comments.length})</Title>
+        <Title order={4}>Comments</Title>
 
         {user ? (
           <Stack gap="xs">

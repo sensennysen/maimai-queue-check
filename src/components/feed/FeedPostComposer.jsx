@@ -251,7 +251,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
             </Group>
             <Button
               size="xs"
-              leftSection={<IconSend size={14} />}
+              leftSection={<IconSend size={12} />}
               onClick={handleSubmit}
               loading={loading}
               disabled={isDisabled}

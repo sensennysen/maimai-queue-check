@@ -85,7 +85,7 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
         label={
           <Group gap={4}>
             <IconMessageCircle size={14} />
-            <Text size="xs" fw={700}>Comments ({comments.length})</Text>
+            <Text size="xs" fw={700}>Comments</Text>
           </Group>
         }
         labelPosition="left"

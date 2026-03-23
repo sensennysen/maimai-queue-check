@@ -1,7 +1,33 @@
 import { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { themes } from '../config/theme';
+import { themes } from '../config/theme.js';
 
 const ThemeContext = createContext();
+
+const getLuminance = (hex) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return 0;
+  const [r, g, b] = [1, 2, 3].map((i) => {
+    const c = parseInt(result[i], 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+const getContrastRatio = (hexA, hexB) => {
+  const lumA = getLuminance(hexA);
+  const lumB = getLuminance(hexB);
+  const lighter = Math.max(lumA, lumB);
+  const darker = Math.min(lumA, lumB);
+  return (lighter + 0.05) / (darker + 0.05);
+};
+
+const getReadableTextColor = (backgroundHex) => {
+  const lightText = '#FFFFFF';
+  const darkText = '#0B1324';
+  const lightContrast = getContrastRatio(backgroundHex, lightText);
+  const darkContrast = getContrastRatio(backgroundHex, darkText);
+  return darkContrast >= lightContrast ? darkText : lightText;
+};
 
 // The hook and provider are co-located intentionally (standard React context pattern).
 // Splitting into separate files would add indirection without benefit.
@@ -30,33 +56,6 @@ export const useTheme = () => {
  * @returns {JSX.Element} The rendered context provider.
  */
 export const ThemeProvider = ({ children }) => {
-  // Compute relative luminance from a hex color string
-  const getLuminance = (hex) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) return 0;
-    const [r, g, b] = [1, 2, 3].map((i) => {
-      const c = parseInt(result[i], 16) / 255;
-      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-    });
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  };
-
-  const getContrastRatio = (hexA, hexB) => {
-    const lumA = getLuminance(hexA);
-    const lumB = getLuminance(hexB);
-    const lighter = Math.max(lumA, lumB);
-    const darker = Math.min(lumA, lumB);
-    return (lighter + 0.05) / (darker + 0.05);
-  };
-
-  const getReadableTextColor = (backgroundHex) => {
-    const lightText = '#FFFFFF';
-    const darkText = '#0B1324';
-    const lightContrast = getContrastRatio(backgroundHex, lightText);
-    const darkContrast = getContrastRatio(backgroundHex, darkText);
-    return darkContrast >= lightContrast ? darkText : lightText;
-  };
-
   // Theme Mode: Light/Dark
   const [isDark, setIsDark] = useState(() => {
     const stored = localStorage.getItem('theme-mode');

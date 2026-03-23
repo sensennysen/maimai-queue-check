@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   Paper, Group, Avatar, Text, Box, Stack,
   ActionIcon, Menu, Textarea, Button, Image
@@ -23,6 +23,7 @@ import { FeedPostComments } from './FeedPostComments';
 import { FeedSongCard } from './FeedSongCard';
 import { FeedPlaylistCard } from './FeedPlaylistCard';
 import { VoterListModal } from '../common/VoterListModal';
+import { ImagePreviewModal } from '../common/ImagePreviewModal';
 import { feedService } from '../../services/supabase';
 
 
@@ -39,13 +40,16 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
   const [editContent, setEditContent] = useState(post.content || '');
   const [saving, setSaving] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const [commentCount, setCommentCount] = useState(post.comment_count ?? 0);
   const [likes, setLikes] = useState(post.like_count ?? 0);
   const [dislikes, setDislikes] = useState(post.dislike_count ?? 0);
   const [userVote, setUserVote] = useState(post.user_vote ?? 0);
   const [voting, setVoting] = useState(false);
   const [votersOpened, setVotersOpened] = useState(false);
   const [initialVoterTab, setInitialVoterTab] = useState('likes');
+  const [imagePreviewOpened, setImagePreviewOpened] = useState(false);
+  const [imagePreviewSrc, setImagePreviewSrc] = useState(null);
+  const [imagePreviewAlt, setImagePreviewAlt] = useState('Post image');
+  const [latestComment, setLatestComment] = useState(null);
 
   const isOwn = currentUser && post.author?.id === currentUser.id;
   const editRemaining = MAX_CHARS - editContent.length;
@@ -108,6 +112,34 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
       setVoting(false);
     }
   }, [post.id, currentUser, userVote, voting]);
+
+  const openImagePreview = useCallback((src, altText) => {
+    setImagePreviewSrc(src);
+    setImagePreviewAlt(altText || 'Post image');
+    setImagePreviewOpened(true);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchLatestComment = async () => {
+      if (!post?.id || (post.comment_count ?? 0) <= 0) {
+        setLatestComment(null);
+        return;
+      }
+      try {
+        const comments = await feedService.getFeedPostComments(post.id, currentUser?.id, 1, false);
+        if (!cancelled) setLatestComment(comments?.[0] || null);
+      } catch {
+        if (!cancelled) setLatestComment(null);
+      }
+    };
+
+    fetchLatestComment();
+    return () => {
+      cancelled = true;
+    };
+  }, [post?.id, post?.comment_count, currentUser?.id]);
 
   return (
     <Paper
@@ -211,13 +243,15 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
 
         {/* Post Image */}
         {post.image_url && (
-          <Box mb="xs" radius="md" style={{ overflow: 'hidden', border: '1px solid var(--mantine-color-gray-2)' }}>
+          <Box mb="xs" radius="md" style={{ overflow: 'hidden' }}>
             <Image 
               src={post.image_url} 
               alt="Post image" 
               fit="contain" 
               mah={400} 
               fallbackSrc="https://placehold.co/600x400?text=Image+not+found" 
+              style={{ cursor: 'zoom-in' }}
+              onClick={() => openImagePreview(post.image_url, 'Post image')}
             />
           </Box>
         )}
@@ -249,62 +283,80 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
 
         {/* Comment toggle */}
         <Box>
-          <Group gap="xs">
+          <Group gap="xs" grow className="community-post-actions-row">
             <Button
-              variant="subtle"
+              variant={commentsOpen ? 'light' : 'subtle'}
               size="xs"
               color="gray"
-              leftSection={<IconMessage size={14} />}
               onClick={() => setCommentsOpen(p => !p)}
+              justify="center"
+              className="community-post-action-btn"
             >
-              {commentsOpen ? 'Hide' : 'Show'} comments{commentCount > 0 ? ` (${commentCount})` : ''}
+              <Group gap={5} wrap="nowrap" justify="center" className="community-post-action-content">
+                <IconMessage size={14} />
+                <span>Comments</span>
+              </Group>
             </Button>
 
-            <Group gap={4}>
-              <ActionIcon 
-                variant={userVote === 1 ? 'light' : 'subtle'} 
-                color={userVote === 1 ? 'blue' : 'gray'} 
-                size="md"
-                onClick={() => handleVote(1)}
-                loading={voting && userVote === 1}
-              >
-                {userVote === 1 ? <IconThumbUpFilled size={20} /> : <IconThumbUp size={20} />}
-              </ActionIcon>
-              {likes > 0 && (
-                <Text 
-                  size="sm" 
-                  c="dimmed" 
-                  fw={userVote === 1 ? 700 : 400}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => { setInitialVoterTab('likes'); setVotersOpened(true); }}
-                >
-                  {likes}
-                </Text>
-              )}
+            <Button
+              variant={userVote === 1 ? 'light' : 'subtle'}
+              color={userVote === 1 ? 'blue' : 'gray'}
+              size="xs"
+              onClick={() => handleVote(1)}
+              loading={voting && userVote === 1}
+              justify="center"
+              className="community-post-action-btn"
+              onDoubleClick={() => { setInitialVoterTab('likes'); setVotersOpened(true); }}
+            >
+              <Group gap={5} wrap="nowrap" justify="center" className="community-post-action-content">
+                {userVote === 1 ? <IconThumbUpFilled size={16} /> : <IconThumbUp size={16} />}
+                <span>Like ({likes})</span>
+              </Group>
+            </Button>
 
-              <ActionIcon 
-                variant={userVote === -1 ? 'light' : 'subtle'} 
-                color={userVote === -1 ? 'red' : 'gray'} 
-                size="md"
-                onClick={() => handleVote(-1)}
-                loading={voting && userVote === -1}
-                ml={4}
-              >
-                {userVote === -1 ? <IconThumbDownFilled size={20} /> : <IconThumbDown size={20} />}
-              </ActionIcon>
-              {dislikes > 0 && (
-                <Text 
-                  size="sm" 
-                  c="dimmed" 
-                  fw={userVote === -1 ? 700 : 400}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => { setInitialVoterTab('dislikes'); setVotersOpened(true); }}
-                >
-                  {dislikes}
-                </Text>
-              )}
-            </Group>
+            <Button
+              variant={userVote === -1 ? 'light' : 'subtle'}
+              color={userVote === -1 ? 'red' : 'gray'}
+              size="xs"
+              onClick={() => handleVote(-1)}
+              loading={voting && userVote === -1}
+              justify="center"
+              className="community-post-action-btn"
+              onDoubleClick={() => { setInitialVoterTab('dislikes'); setVotersOpened(true); }}
+            >
+              <Group gap={5} wrap="nowrap" justify="center" className="community-post-action-content">
+                {userVote === -1 ? <IconThumbDownFilled size={16} /> : <IconThumbDown size={16} />}
+                <span>Dislike ({dislikes})</span>
+              </Group>
+            </Button>
           </Group>
+
+          {latestComment && (
+            <Paper p="xs" radius="md" withBorder mt="xs">
+              <Group gap={8} align="flex-start" wrap="nowrap">
+                <Avatar
+                  src={getProfileImageUrl(latestComment.author)}
+                  size={22}
+                  radius="xl"
+                  color="blue"
+                >
+                  {(latestComment.author?.display_name || '?').charAt(0)}
+                </Avatar>
+                <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+                  <Text size="xs" c="dimmed" lineClamp={1}>
+                    <Text span fw={600} c="var(--mantine-color-text)">
+                      {latestComment.author?.display_name || 'Someone'}
+                    </Text>
+                    {' commented '}
+                    {getRelativeTime(latestComment.created_at)}
+                  </Text>
+                  <Text size="sm" lineClamp={2} fs="italic">
+                    "{latestComment.content}"
+                  </Text>
+                </Stack>
+              </Group>
+            </Paper>
+          )}
 
           {commentsOpen && (
             <Box mt="xs">
@@ -312,7 +364,6 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
                 postId={post.id}
                 currentUser={currentUser}
                 profileData={profileData}
-                onCountChange={setCommentCount}
               />
             </Box>
           )}
@@ -326,6 +377,19 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
         fetchVoters={() => feedService.getFeedPostVoters(post.id)}
         initialTab={initialVoterTab}
       />
+
+      {imagePreviewOpened && (
+        <ImagePreviewModal
+          opened={imagePreviewOpened}
+          onClose={() => {
+            setImagePreviewOpened(false);
+            setImagePreviewSrc(null);
+          }}
+          src={imagePreviewSrc}
+          alt={imagePreviewAlt}
+          caption={null}
+        />
+      )}
     </Paper>
   );
 }

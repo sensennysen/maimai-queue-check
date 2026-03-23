@@ -3,6 +3,14 @@ import { notifications } from '@mantine/notifications';
 import { feedService, followService } from '../../../services/supabase';
 
 const SECTION_LIMIT = 10;
+const FEED_PAGE_SIZE = 12;
+const FOLLOWED_PRIORITY_SCORE = 2 * 60 * 60 * 1000;
+
+function getPostPriorityScore(post, followedAuthorIds) {
+  const createdAt = new Date(post.created_at || 0).getTime();
+  const followBoost = followedAuthorIds.has(post.user_id) ? FOLLOWED_PRIORITY_SCORE : 0;
+  return createdAt + followBoost;
+}
 
 /**
  * Hook to manage feed data, including songs, playlists, posts, activity, and suggestions.
@@ -12,18 +20,21 @@ export function useFeedData(user, userRoles, songs, songMapById) {
   const [songDiscussions, setSongDiscussions] = useState([]);
   const [playlistDiscussions, setPlaylistDiscussions] = useState([]);
   const [newPosts, setNewPosts] = useState([]);
-  const [followingActivity, setFollowingActivity] = useState([]);
   const [suggestedPlayers, setSuggestedPlayers] = useState([]);
   const [followedIds, setFollowedIds] = useState(new Set());
+  const [followedAuthorIds, setFollowedAuthorIds] = useState(new Set());
   const [communityPosts, setCommunityPosts] = useState([]);
+  const [feedOffset, setFeedOffset] = useState(0);
+  const [hasMoreCommunityPosts, setHasMoreCommunityPosts] = useState(true);
   const [loadingCommunityPosts, setLoadingCommunityPosts] = useState(true);
+  const [loadingMoreCommunityPosts, setLoadingMoreCommunityPosts] = useState(false);
   
   const [loadingDiscussions, setLoadingDiscussions] = useState(true);
   const [loadingPosts, setLoadingPosts] = useState(true);
-  const [loadingFollowingActivity, setLoadingFollowingActivity] = useState(false);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
   
   const hasLoadedPlayers = useRef(false);
+  const feedOffsetRef = useRef(0);
 
   // Process new songs
   useEffect(() => {
@@ -92,45 +103,86 @@ export function useFeedData(user, userRoles, songs, songMapById) {
     }
   }, [user, userRoles?.main_branch, userRoles?.preferred_branches]);
 
-  const fetchFollowingActivity = useCallback(async () => {
+  const fetchFollowedAuthors = useCallback(async () => {
     if (!user?.id) {
-      setFollowingActivity([]);
+      setFollowedAuthorIds(new Set());
       return;
     }
-    setLoadingFollowingActivity(true);
     try {
-      const data = await feedService.getFollowingActivity(user.id, SECTION_LIMIT);
-      setFollowingActivity(data || []);
+      const data = await followService.getFollowing(user.id, 500);
+      const ids = (data || [])
+        .map((row) => row.following?.id)
+        .filter(Boolean);
+      setFollowedAuthorIds(new Set(ids));
     } catch (err) {
-      console.error('Failed to load following activity:', err);
-    } finally {
-      setLoadingFollowingActivity(false);
+      console.error('Failed to load followed accounts:', err);
+      setFollowedAuthorIds(new Set());
     }
   }, [user?.id]);
 
-  const fetchCommunityPosts = useCallback(async () => {
-    setLoadingCommunityPosts(true);
+  const fetchCommunityPosts = useCallback(async (reset = true, offsetOverride = null) => {
+    if (reset) setLoadingCommunityPosts(true);
+    else setLoadingMoreCommunityPosts(true);
+
+    const currentOffset = reset ? 0 : (offsetOverride ?? feedOffsetRef.current);
     try {
-      const data = await feedService.getFeedPosts(user?.id, SECTION_LIMIT);
-      setCommunityPosts(data || []);
+      const data = await feedService.getFeedPostsPage(user?.id, FEED_PAGE_SIZE, currentOffset);
+      const fetchedPosts = data || [];
+
+      setCommunityPosts((prev) => {
+        const existing = reset ? [] : prev;
+        const seenIds = new Set(existing.map((post) => post.id));
+        const next = [...existing];
+        fetchedPosts.forEach((post) => {
+          if (!seenIds.has(post.id)) {
+            seenIds.add(post.id);
+            next.push(post);
+          }
+        });
+
+        return next.sort((a, b) => {
+          const scoreDiff = getPostPriorityScore(b, followedAuthorIds) - getPostPriorityScore(a, followedAuthorIds);
+          if (scoreDiff !== 0) return scoreDiff;
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        });
+      });
+
+      const nextOffset = currentOffset + fetchedPosts.length;
+      feedOffsetRef.current = nextOffset;
+      setFeedOffset(nextOffset);
+      setHasMoreCommunityPosts(fetchedPosts.length >= FEED_PAGE_SIZE);
     } catch (err) {
       console.error('Failed to load community posts:', err);
+      if (!reset) setHasMoreCommunityPosts(false);
     } finally {
-      setLoadingCommunityPosts(false);
+      if (reset) setLoadingCommunityPosts(false);
+      else setLoadingMoreCommunityPosts(false);
     }
-  }, [user?.id]);
+  }, [followedAuthorIds, user?.id]);
+
+  const loadMoreCommunityPosts = useCallback(() => {
+    if (loadingCommunityPosts || loadingMoreCommunityPosts || !hasMoreCommunityPosts) return;
+    fetchCommunityPosts(false, feedOffsetRef.current);
+  }, [fetchCommunityPosts, hasMoreCommunityPosts, loadingCommunityPosts, loadingMoreCommunityPosts]);
 
   const createPost = useCallback(async (content, visibility, songId, playlistId, imageUrl) => {
     if (!user) return;
     try {
       const newPost = await feedService.createFeedPost(user.id, content, visibility, songId, playlistId, imageUrl);
-      setCommunityPosts(prev => [{ ...newPost, comment_count: 0 }, ...prev]);
+      setCommunityPosts(prev => {
+        const next = [{ ...newPost, comment_count: 0 }, ...prev];
+        return next.sort((a, b) => {
+          const scoreDiff = getPostPriorityScore(b, followedAuthorIds) - getPostPriorityScore(a, followedAuthorIds);
+          if (scoreDiff !== 0) return scoreDiff;
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        });
+      });
       notifications.show({ title: 'Posted!', message: 'Your post is now live.', color: 'green', autoClose: 2000 });
       return newPost;
     } catch {
       notifications.show({ title: 'Error', message: 'Failed to create post.', color: 'red' });
     }
-  }, [user]);
+  }, [followedAuthorIds, user]);
 
   const toggleFollow = useCallback(async (targetId) => {
     if (!user) {
@@ -149,8 +201,18 @@ export function useFeedData(user, userRoles, songs, songMapById) {
     try {
       if (isCurrentlyFollowing) {
         await followService.unfollow(user.id, targetId);
+        setFollowedAuthorIds((prev) => {
+          const next = new Set(prev);
+          next.delete(targetId);
+          return next;
+        });
       } else {
         await followService.follow(user.id, targetId);
+        setFollowedAuthorIds((prev) => {
+          const next = new Set(prev);
+          next.add(targetId);
+          return next;
+        });
         notifications.show({ title: 'Followed!', message: 'You are now following this player.', color: 'green', autoClose: 2000 });
       }
     } catch {
@@ -167,20 +229,24 @@ export function useFeedData(user, userRoles, songs, songMapById) {
   const refreshAll = () => {
     fetchSongDiscussions();
     fetchPlaylistData();
-    fetchFollowingActivity();
+    fetchFollowedAuthors();
     fetchSuggestedPlayers();
-    fetchCommunityPosts();
+    fetchCommunityPosts(true);
   };
 
   useEffect(() => {
     fetchSongDiscussions();
     fetchPlaylistData();
-    fetchCommunityPosts();
-  }, [fetchSongDiscussions, fetchPlaylistData, fetchCommunityPosts]);
+    fetchFollowedAuthors();
+  }, [fetchSongDiscussions, fetchPlaylistData, fetchFollowedAuthors]);
 
   useEffect(() => {
-    fetchFollowingActivity();
-  }, [fetchFollowingActivity]);
+    fetchCommunityPosts(true);
+  }, [fetchCommunityPosts]);
+
+  useEffect(() => {
+    feedOffsetRef.current = feedOffset;
+  }, [feedOffset]);
 
   useEffect(() => {
     if (user && userRoles?.user_id && !hasLoadedPlayers.current) {
@@ -192,6 +258,16 @@ export function useFeedData(user, userRoles, songs, songMapById) {
   useEffect(() => {
     hasLoadedPlayers.current = false;
   }, [user?.id]);
+
+  useEffect(() => {
+    setCommunityPosts((prev) => {
+      return [...prev].sort((a, b) => {
+        const scoreDiff = getPostPriorityScore(b, followedAuthorIds) - getPostPriorityScore(a, followedAuthorIds);
+        if (scoreDiff !== 0) return scoreDiff;
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      });
+    });
+  }, [followedAuthorIds]);
 
   const trendingRows = useMemo(() => {
     return songDiscussions.map((item) => ({
@@ -225,21 +301,21 @@ export function useFeedData(user, userRoles, songs, songMapById) {
     songDiscussions,
     playlistDiscussions,
     newPosts,
-    followingActivity,
     suggestedPlayers,
     followedIds,
     communityPosts,
     setCommunityPosts,
+    hasMoreCommunityPosts,
     loadingCommunityPosts,
+    loadingMoreCommunityPosts,
     loadingDiscussions,
     loadingPosts,
-    loadingFollowingActivity,
     loadingPlayers,
     fetchSongDiscussions,
     fetchPlaylistData,
     fetchSuggestedPlayers,
-    fetchFollowingActivity,
     fetchCommunityPosts,
+    loadMoreCommunityPosts,
     createPost,
     toggleFollow,
     refreshAll,

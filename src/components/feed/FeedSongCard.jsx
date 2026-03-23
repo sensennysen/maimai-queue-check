@@ -1,7 +1,9 @@
-﻿import { Paper, Group, Text, Avatar, Badge, Stack, Box } from '@mantine/core';
+import { useState } from 'react';
+import { Paper, Group, Text, Avatar, Badge, Stack, Box } from '@mantine/core';
 import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
 import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
 import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
+import { ImagePreviewModal } from '../common/ImagePreviewModal';
 
 const CATEGORY_COLORS = {
   'POPS & ANIME': 'pink',
@@ -20,20 +22,33 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
   const categoryColor = CATEGORY_COLORS[category] || 'gray';
   const isTrending = variant === 'trending';
   const isDiscussion = variant === 'discussion' || isTrending;
+  const [imagePreviewOpened, setImagePreviewOpened] = useState(false);
+  const [imagePreviewSrc, setImagePreviewSrc] = useState(null);
+  const [imagePreviewAlt, setImagePreviewAlt] = useState(displayTitle);
+
+  const openImagePreview = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!song?.imageUrl) return;
+    setImagePreviewSrc(song.imageUrl);
+    setImagePreviewAlt(displayTitle);
+    setImagePreviewOpened(true);
+  };
 
   return (
-    <Paper
-      p="sm"
-      radius="md"
-      withBorder
-      onClick={onClick}
-      style={{
-        cursor: 'pointer',
-        transition: 'all 0.15s ease',
-      }}
-      className={`glass-effect-hover ${className || ''}`.trim()}
-    >
-      <Group gap={isTrending ? 'md' : 'sm'} wrap="nowrap" align="flex-start">
+    <>
+      <Paper
+        p="sm"
+        radius="md"
+        withBorder
+        onClick={onClick}
+        style={{
+          cursor: 'pointer',
+          transition: 'all 0.15s ease',
+        }}
+        className={`glass-effect-hover ${className || ''}`.trim()}
+      >
+      <Group gap={isTrending ? 'md' : 'sm'} wrap="nowrap" align="center">
         <Box
           className={isTrending ? 'community-trending-jacket' : undefined}
           style={{
@@ -49,7 +64,8 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
             <img
               src={song.imageUrl}
               alt={displayTitle}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
+              onClick={openImagePreview}
               onError={(e) => {
                 e.currentTarget.src = '';
                 e.currentTarget.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--theme-primary)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></div>';
@@ -126,6 +142,20 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
           </Box>
         )}
       </Group>
-    </Paper>
+      </Paper>
+
+      {imagePreviewOpened && (
+        <ImagePreviewModal
+          opened={imagePreviewOpened}
+          onClose={() => {
+            setImagePreviewOpened(false);
+            setImagePreviewSrc(null);
+          }}
+          src={imagePreviewSrc}
+          alt={imagePreviewAlt}
+          caption={null}
+        />
+      )}
+    </>
   );
 }

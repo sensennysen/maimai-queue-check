@@ -24,6 +24,7 @@
   color: var(--community-text);
   font-size: 1.8rem;
   letter-spacing: 0.01em;
+  line-height: 1.15;
 }
 
 .community-trending-panel {
@@ -85,8 +86,136 @@
 }
 
 .community-sidebar {
-  background: var(--theme-surface) !important;
+  background: transparent !important;
   border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  max-height: calc(100vh - 1.25rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.community-sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+.community-feed-page .mantine-ScrollArea-viewport {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.community-feed-page .mantine-ScrollArea-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.community-feed-page .mantine-ScrollArea-scrollbar,
+.community-feed-page .mantine-ScrollArea-thumb {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.community-feed-module {
+  margin: 0.25rem 0;
+}
+
+.community-pull-indicator-wrap {
+  overflow: hidden;
+  transition: height 0.18s ease;
+}
+
+.community-pull-indicator-text {
+  line-height: 32px;
+}
+
+.community-module-panel {
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--theme-primary) 8%, transparent);
+}
+
+.community-module-panel .mantine-Stack-root {
+  margin-top: 0.35rem;
+}
+
+.community-suggested-carousel .community-player-carousel-item {
+  min-width: 300px;
+  width: 300px;
+  max-width: 300px;
+}
+
+.community-suggested-carousel .community-player-carousel-item .community-player-row {
+  min-height: 96px;
+}
+
+.community-player-tags-row {
+  align-items: center;
+  row-gap: 4px;
+}
+
+.community-player-tag {
+  white-space: nowrap;
+}
+
+.community-player-follow-button {
+  min-width: 96px;
+}
+
+.community-module-carousel-row {
+  padding: 2px 2px 6px;
+}
+
+.community-module-carousel-item {
+  min-width: 340px;
+  width: 340px;
+  max-width: 340px;
+  overflow: hidden;
+}
+
+.community-module-carousel-item .community-trending-card,
+.community-module-carousel-item .community-playlist-strip {
+  min-height: 176px;
+  display: flex;
+  align-items: center;
+}
+
+.community-module-carousel-item .community-trending-jacket {
+  width: 170px !important;
+  height: 104px !important;
+  display: block;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.community-module-carousel-item .community-trending-card .mantine-Group-root {
+  align-items: center !important;
+}
+
+.community-module-carousel-item .community-trending-card .mantine-Text-root {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.community-post-actions-row .community-post-action-btn {
+  min-height: 34px;
+  border: 1px solid var(--theme-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--theme-surface) 85%, transparent);
+}
+
+.community-post-actions-row .community-post-action-btn .mantine-Button-label {
+  justify-content: center;
+  width: 100%;
+  font-size: 0.78rem;
+}
+
+.community-post-action-content {
+  gap: 5px;
+}
+
+.community-post-action-content svg {
+  flex-shrink: 0;
 }
 
 .community-sidebar-empty {
@@ -109,6 +238,18 @@
   .community-panel-title {
     font-size: 1.4rem;
   }
+
+  .community-suggested-carousel .community-player-carousel-item {
+    min-width: 250px;
+    width: 250px;
+    max-width: 250px;
+  }
+
+  .community-module-carousel-item {
+    min-width: 300px;
+    width: 300px;
+    max-width: 300px;
+  }
 }
 
 @media (max-width: 48em) {
@@ -120,6 +261,43 @@
   .community-release-card {
     width: 130px;
     min-width: 130px;
+  }
+
+  .community-suggested-carousel .community-player-carousel-item {
+    min-width: 200px;
+    width: 200px;
+    max-width: 200px;
+  }
+
+  .community-suggested-carousel .community-player-carousel-item .community-player-row {
+    min-height: 86px;
+  }
+
+  .community-module-carousel-item {
+    min-width: 260px;
+    width: 260px;
+    max-width: 260px;
+  }
+
+  .community-player-follow-label {
+    display: none;
+  }
+
+  .community-player-follow-button {
+    min-width: 34px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+  }
+
+  .community-player-follow-mobile {
+    min-width: 34px;
+    min-height: 34px;
+  }
+
+  .community-module-carousel-item .community-trending-jacket {
+    width: 118px !important;
+    height: 88px !important;
   }
 
   .community-feed-page::before {
