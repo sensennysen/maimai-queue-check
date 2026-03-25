@@ -1,6 +1,8 @@
-import { Paper, Group, ScrollArea, Text } from '@mantine/core';
+import { Paper, Group, Text } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { FeedPlayerCard } from '../../../components/feed/FeedPlayerCard';
 import { PanelHeader } from './PanelHeader';
+import { CommunityCarouselRow } from './CommunityCarouselRow';
 
 export function SuggestedPlayersCarousel({
   players = [],
@@ -11,6 +13,8 @@ export function SuggestedPlayersCarousel({
   onPlayerClick,
   className,
 }) {
+  const isDesktop = useMediaQuery('(min-width: 62em)');
+
   return (
     <Paper p="md" radius="xl" withBorder className={`community-panel ${className || ''}`.trim()}>
       <PanelHeader
@@ -22,7 +26,7 @@ export function SuggestedPlayersCarousel({
           No suggestions right now.
         </Text>
       ) : (
-        <ScrollArea type="auto" offsetScrollbars>
+        <CommunityCarouselRow isDesktop={isDesktop} watchKey={players.length}>
           <Group gap="sm" wrap="nowrap">
             {players.map((player) => (
               <div key={player.id} className="community-player-carousel-item">
@@ -37,7 +41,7 @@ export function SuggestedPlayersCarousel({
               </div>
             ))}
           </Group>
-        </ScrollArea>
+        </CommunityCarouselRow>
       )}
     </Paper>
   );

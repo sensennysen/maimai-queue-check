@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Container, Stack, Group, Text, Button, Paper,
-  Grid, Box, ScrollArea
+  Grid, Box
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +22,7 @@ import { useFeedData } from '../features/feed/hooks/useFeedData';
 import { PanelHeader } from '../features/feed/components/PanelHeader';
 import { SectionSkeleton } from '../features/feed/components/SectionSkeleton';
 import { SuggestedPlayersCarousel } from '../features/feed/components/SuggestedPlayersCarousel';
+import { CommunityCarouselRow } from '../features/feed/components/CommunityCarouselRow';
 
 const POSTS_PER_INSERTION = 4;
 const SUGGESTED_PLAYER_COUNT = 5;
@@ -202,7 +203,7 @@ export default function FeedPage() {
       ) : newSongs.length === 0 ? (
         <Text c="dimmed" size="sm" ta="center" py="md">No songs found</Text>
       ) : (
-        <ScrollArea type="auto" offsetScrollbars>
+        <CommunityCarouselRow isDesktop={isDesktop} watchKey={newSongs.length}>
           <Group gap="sm" wrap="nowrap" className="community-release-row">
             {newSongs.slice(0, 12).map((song) => (
               <Paper key={song.cardId || song.songId || song.id} p="xs" radius="lg" withBorder className="community-release-card" onClick={() => navigate(`/songs/${song.cardId || song.songId}`)}>
@@ -235,7 +236,7 @@ export default function FeedPage() {
               </Paper>
             ))}
           </Group>
-        </ScrollArea>
+        </CommunityCarouselRow>
       )}
     </Paper>
   );
@@ -250,7 +251,11 @@ export default function FeedPage() {
       ) : trendingRows.length === 0 ? (
         <Text c="dimmed" size="sm" ta="center" py="md">No recent discussions yet</Text>
       ) : (
-        <ScrollArea type="auto" offsetScrollbars>
+        <CommunityCarouselRow
+          isDesktop={isDesktop}
+          rowClassName="community-module-carousel-scroll"
+          watchKey={trendingRows.length}
+        >
           <Group gap="sm" wrap="nowrap" className="community-module-carousel-row">
             {trendingRows.map((item) => (
               <div key={item.key} className="community-module-carousel-item">
@@ -265,7 +270,7 @@ export default function FeedPage() {
               </div>
             ))}
           </Group>
-        </ScrollArea>
+        </CommunityCarouselRow>
       )}
     </Paper>
   );
@@ -291,7 +296,11 @@ export default function FeedPage() {
       ) : playlistRows.length === 0 ? (
         <Text c="dimmed" size="sm" ta="center" py="md">No playlist posts yet</Text>
       ) : (
-        <ScrollArea type="auto" offsetScrollbars>
+        <CommunityCarouselRow
+          isDesktop={isDesktop}
+          rowClassName="community-module-carousel-scroll"
+          watchKey={playlistRows.length}
+        >
           <Group gap="sm" wrap="nowrap" className="community-module-carousel-row">
             {playlistRows.slice(0, 8).map((item) => (
               <div key={item.key} className="community-module-carousel-item">
@@ -305,7 +314,7 @@ export default function FeedPage() {
               </div>
             ))}
           </Group>
-        </ScrollArea>
+        </CommunityCarouselRow>
       )}
     </Paper>
   );
@@ -335,7 +344,7 @@ export default function FeedPage() {
         </Box>
 
         <Grid gutter="xl" className="community-feed-layout">
-          <Grid.Col span={{ base: 12, md: 8 }}>
+          <Grid.Col span={{ base: 12, md: 7 }}>
             <Stack gap="lg">
               {user && (
                 <FeedPostComposer 
@@ -390,13 +399,18 @@ export default function FeedPage() {
             </Stack>
           </Grid.Col>
 
-          <Grid.Col span={{ base: 12, md: 4 }}>
+          <Grid.Col span={{ base: 12, md: 5 }} className="community-sidebar-col">
             {isDesktop && (
-              <Stack gap="lg" className="community-sidebar" style={{ position: 'sticky', top: '1rem' }}>
-                {newSongsBlock}
-                {recentDiscussionsBlock}
-                {playlistsBlock}
-              </Stack>
+              <Box
+                component="div"
+                className="community-sidebar community-sidebar-scroll-area"
+              >
+                <Stack gap="lg" pr={4} pb="sm">
+                  {newSongsBlock}
+                  {recentDiscussionsBlock}
+                  {playlistsBlock}
+                </Stack>
+              </Box>
             )}
           </Grid.Col>
         </Grid>

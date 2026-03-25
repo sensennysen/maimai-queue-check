@@ -90,18 +90,139 @@
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
-  max-height: calc(100vh - 1.25rem);
+  min-height: 0;
+}
+
+/*
+ * Facebook-style chat rail: fixed height to the viewport so the scrollbar runs the full column
+ * and the last card isn’t “floating” above an arbitrary max-height clip.
+ */
+.community-sidebar-scroll-area {
+  position: sticky;
+  top: 1rem;
+  /* 1rem top gap + fill to near bottom of viewport (same idea as Messenger’s sidebar) */
+  height: calc(100dvh - 2rem);
+  height: calc(100vh - 2rem);
+  max-height: none;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 62em) {
+  .community-sidebar-col {
+    min-height: 0;
+    align-self: start;
+  }
+
+  /*
+   * Discussion + playlist strips: one card per visible rail width (container query).
+   * Wider sidebar (5/12 vs 4/12) gives more room; cqi tracks the scroll viewport.
+   */
+  .community-sidebar-scroll-area .community-module-carousel-scroll {
+    container-type: inline-size;
+    container-name: community-rail-carousel;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 0;
+  }
+
+  .community-sidebar-scroll-area .community-module-carousel-scroll .community-module-carousel-item {
+    flex: 0 0 100cqi !important;
+    width: 100cqi !important;
+    min-width: 100cqi !important;
+    max-width: 100cqi !important;
+    box-sizing: border-box;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .community-sidebar-scroll-area .community-module-carousel-item .community-trending-card,
+  .community-sidebar-scroll-area .community-module-carousel-item .community-playlist-strip {
+    min-height: unset;
+    align-items: stretch;
+  }
+
+  .community-sidebar-scroll-area .community-module-carousel-item .community-trending-jacket {
+    width: clamp(88px, 30cqi, 132px) !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
+    max-height: 86px;
+  }
+}
+
+/* Hide scrollbars on horizontal carousels (desktop uses prev/next buttons) */
+.community-carousel-scroll-row {
+  position: relative;
+  z-index: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-.community-sidebar::-webkit-scrollbar {
+.community-carousel-scroll-row::-webkit-scrollbar {
   display: none;
+  height: 0;
 }
 
+/* Overlay controls on top of cards (no side fades — buttons only) */
+.community-carousel-wrap--desktop {
+  isolation: isolate;
+}
+
+/* Fine pointer + hover: hide arrows until hover or keyboard focus inside strip */
+@media (hover: hover) and (pointer: fine) {
+  .community-carousel-wrap--desktop .community-carousel-nav {
+    opacity: 0;
+    transition: opacity 0.18s ease;
+  }
+
+  .community-carousel-wrap--desktop:hover .community-carousel-nav,
+  .community-carousel-wrap--desktop:focus-within .community-carousel-nav {
+    opacity: 1;
+  }
+
+  .community-carousel-wrap--desktop:hover .community-carousel-nav:disabled,
+  .community-carousel-wrap--desktop:focus-within .community-carousel-nav:disabled {
+    opacity: 0.35;
+  }
+}
+
+.community-carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  box-shadow: 0 2px 14px color-mix(in srgb, var(--theme-text-primary) 18%, transparent);
+  background: color-mix(in srgb, var(--theme-surface) 88%, var(--theme-background) 12%) !important;
+  border: 1px solid color-mix(in srgb, var(--theme-border) 65%, transparent) !important;
+  color: var(--theme-text-primary) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.community-carousel-nav--left {
+  left: 0.5rem;
+}
+
+.community-carousel-nav--right {
+  right: 0.5rem;
+}
+
+.community-carousel-nav:not(:disabled):hover {
+  background: color-mix(in srgb, var(--theme-surface) 78%, var(--theme-primary) 22%) !important;
+}
+
+.community-carousel-nav:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Mantine ScrollArea elsewhere on feed (e.g. nested in post tooling) */
 .community-feed-page .mantine-ScrollArea-viewport {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -169,7 +290,8 @@
   min-width: 340px;
   width: 340px;
   max-width: 340px;
-  overflow: hidden;
+  /* Allow full card height in horizontal strip (overflow:hidden clipped playlist rows) */
+  overflow: visible;
 }
 
 .community-module-carousel-item .community-trending-card,
