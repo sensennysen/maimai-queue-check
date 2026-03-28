@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { 
-  Modal, Stack, Group, Avatar, Text, 
+import {
+  Modal, Stack, Group, Avatar, Text,
   Loader, ScrollArea, Tabs, Center
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
@@ -12,9 +12,9 @@ import { getProfileImageUrl } from '../../utils/formatters';
  * Reusable modal to display a list of users who voted (liked/disliked) an item.
  * Supports both Feed Posts and Song Comments.
  */
-export function VoterListModal({ 
-  opened, 
-  onClose, 
+export function VoterListModal({
+  opened,
+  onClose,
   title = "Voters",
   fetchVoters, // Async function that returns { vote_type, user: { id, display_name, slug, ... } }[]
   initialTab = "likes"
@@ -60,9 +60,9 @@ export function VoterListModal({
           const u = item.user;
           if (!u) return null; // Safety check
           return (
-            <Group 
-              key={u.id || idx} 
-              gap="sm" 
+            <Group
+              key={u.id || idx}
+              gap="sm"
               style={{ cursor: 'pointer' }}
               onClick={() => {
                 if (u.slug) {
@@ -103,16 +103,16 @@ export function VoterListModal({
           <Loader size="md" />
         </Center>
       ) : (
-        <Tabs value={activeTab} onChange={setActiveTab} color="blue" variant="outline">
+        <Tabs value={activeTab} onChange={setActiveTab} color="blue" variant="outline" style={{ marginTop: '1rem' }}>
           <Tabs.List grow>
-            <Tabs.Tab 
-              value="likes" 
+            <Tabs.Tab
+              value="likes"
               leftSection={<IconThumbUp size={14} color="var(--mantine-color-blue-filled)" />}
             >
               Likes ({likes.length})
             </Tabs.Tab>
-            <Tabs.Tab 
-              value="dislikes" 
+            <Tabs.Tab
+              value="dislikes"
               leftSection={<IconThumbDown size={14} color="var(--mantine-color-red-filled)" />}
             >
               Dislikes ({dislikes.length})

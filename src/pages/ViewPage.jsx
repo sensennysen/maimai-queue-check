@@ -1,5 +1,5 @@
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Container, Title, Text, Loader, Center, Alert, Badge, Group, Stack, ActionIcon, Paper, Skeleton, Table } from '@mantine/core';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import IconSun from '@tabler/icons-react/dist/esm/icons/IconSun.mjs';
@@ -11,6 +11,7 @@ import { useBranch } from '../hooks/useBranch';
 import { useMallSchedule } from '../hooks/useMallSchedule';
 import { useTheme } from '../contexts/ThemeContext';
 import BranchSelector from '../components/layout/BranchSelector';
+import { usePageVisibility } from '../hooks/usePageVisibility';
 import QueueItem from '../features/queue/components/QueueItem';
 import NowPlayingCard from '../features/queue/components/NowPlayingCard';
 import './ViewPage.css';
@@ -21,12 +22,18 @@ export default function ViewPage() {
   const urlBranchId = searchParams.get('branch_id');
 
   // Use hook to fetch data
-  const { queueData, loading, error, activeBranchId } = useMonitorData(urlBranchId);
+  const { queueData, loading, error, activeBranchId, refreshData } = useMonitorData(urlBranchId);
   const { branches } = useBranch();
   const selectedBranch = branches.find(b => b.id === activeBranchId);
   const { isDark, toggleTheme } = useTheme();
   // Fetch schedule and open status
   const { isMallOpen, loading: scheduleLoading, schedule } = useMallSchedule(activeBranchId);
+
+  const handleVisibilityChange = useCallback(() => {
+    refreshData();
+  }, [refreshData]);
+
+  usePageVisibility(handleVisibilityChange);
 
   // Animation state for view page
   const [addedIds, setAddedIds] = useState(new Set());

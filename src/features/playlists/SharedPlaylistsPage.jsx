@@ -1,22 +1,27 @@
-import { Container, Stack, Title, Text, Loader, Alert, Group, Button } from '@mantine/core';
+import { Container, Stack, Text, Loader, Alert, Button, Paper, Box } from '@mantine/core';
 import { IconAlertCircle, IconRefresh } from '@tabler/icons-react';
 import { useSharedPlaylists } from './hooks/useSharedPlaylists';
 import { PlaylistPostCard } from './components/PlaylistPostCard';
-import { useMediaQuery } from '@mantine/hooks';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { PlaylistDetailModal } from '../../components/profile/PlaylistDetailModal';
 import { useState } from 'react';
+import { PanelHeader } from '../feed/components/PanelHeader';
+import { VoterListModal } from '../../components/common/VoterListModal';
+import { playlistService } from '../../services/supabase';
+import './SharedPlaylistsPage.css';
+import '../../pages/FeedPage.css';
 
 const SharedPlaylistsPage = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const isMobile = useMediaQuery('(max-width: 768px)');
-  
   const initialFocusPostId = searchParams.get('post');
   const initialFocusPlaylistId = searchParams.get('playlist');
 
   const [detailPlaylist, setDetailPlaylist] = useState(null);
   const [detailSongs, setDetailSongs] = useState([]);
+  
+  const [votersOpened, setVotersOpened] = useState(false);
+  const [votersPostId, setVotersPostId] = useState(null);
+  const [initialVoterTab, setInitialVoterTab] = useState('likes');
 
   const {
     posts,
@@ -35,12 +40,13 @@ const SharedPlaylistsPage = () => {
     handleCancelEdit,
     handleSaveEdit,
     handlePlaylistDelete,
-    scrollRef
+    handleVote,
   } = useSharedPlaylists(initialFocusPostId, initialFocusPlaylistId);
 
+  /* ── loading state ── */
   if (loading && posts.length === 0) {
     return (
-      <Container size="xl" py="xl">
+      <Container size="xl" py="lg" className="playlists-feed-page">
         <Stack align="center" py={100}>
           <Loader size="xl" variant="bars" color="var(--theme-primary)" />
           <Text size="lg" fw={500} c="dimmed">Loading community playlists...</Text>
@@ -49,12 +55,20 @@ const SharedPlaylistsPage = () => {
     );
   }
 
+  /* ── error state ── */
   if (error) {
     return (
-      <Container size="xl" py="xl">
+      <Container size="xl" py="lg" className="playlists-feed-page">
         <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red">
           {error}
-          <Button variant="light" color="red" size="xs" mt="md" onClick={fetchPosts} leftSection={<IconRefresh size={14} />}>
+          <Button
+            variant="light"
+            color="red"
+            size="xs"
+            mt="md"
+            onClick={fetchPosts}
+            leftSection={<IconRefresh size={14} />}
+          >
             Try Again
           </Button>
         </Alert>
@@ -62,45 +76,47 @@ const SharedPlaylistsPage = () => {
     );
   }
 
+  /* ── main page ── */
   return (
-      <Container size="xl" py="xl">
-      <Stack gap="xl">
-        <Group justify="space-between" align="center">
-          <Stack gap={4}>
-            <Title order={1} fw={900} style={{ 
-              fontSize: '2.5rem',
-              background: 'linear-gradient(45deg, var(--theme-primary), var(--theme-secondary))',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              Community Playlists
-            </Title>
-            <Text c="dimmed" size="lg">Explore and discuss playlists shared by the community</Text>
-          </Stack>
-          <Button 
-            variant="light" 
-            leftSection={<IconRefresh size={16} />}
-            onClick={fetchPosts}
-            loading={loading}
-          >
-            Refresh
-          </Button>
-        </Group>
+    <Container size="xl" py="lg" className="playlists-feed-page">
+      <Stack gap="lg">
+        {/* Header panel — same style as Feed "Posts" panel */}
+        <Paper p="md" radius="xl" withBorder className="community-panel">
+          <PanelHeader
+            title="Community Playlists"
+            rightSection={
+              <Button
+                variant="subtle"
+                size="xs"
+                leftSection={<IconRefresh size={14} />}
+                onClick={fetchPosts}
+                loading={loading}
+                style={{ marginTop: '0.5rem' }}
+              >
+                Refresh
+              </Button>
+            }
+          />
+          <Text size="sm" c="dimmed" mt={4} mb="xs">
+            Explore and discuss playlists shared by the community
+          </Text>
+        </Paper>
 
+        {/* Posts list */}
         {posts.length === 0 ? (
-          <Stack align="center" py={100} gap="md">
-            <Text size="xl" fw={600} c="dimmed">No playlists shared yet</Text>
-            <Text c="dimmed">Be the first to share your playlist from your profile!</Text>
-          </Stack>
+          <Paper p="md" radius="xl" withBorder className="community-panel">
+            <Box className="playlists-empty-state">
+              <Text size="xl" fw={600} c="dimmed">No playlists shared yet</Text>
+              <Text c="dimmed" mt="xs">Be the first to share your playlist from your profile!</Text>
+            </Box>
+          </Paper>
         ) : (
-          <Stack gap="lg" ref={scrollRef}>
+          <Stack gap="sm">
             {posts.map((post) => (
-              <PlaylistPostCard 
-                key={post.id} 
+              <PlaylistPostCard
+                key={post.id}
                 post={post}
                 user={user}
-                isMobile={isMobile}
-                navigate={navigate}
                 editingPostId={editingPostId}
                 editContent={editContent}
                 setEditContent={setEditContent}
@@ -114,6 +130,12 @@ const SharedPlaylistsPage = () => {
                 onViewDetails={(data) => {
                   setDetailPlaylist(data);
                   setDetailSongs(data.fullSongs || []);
+                }}
+                onVote={handleVote}
+                onViewVoters={(postId, tab = 'likes') => {
+                  setVotersPostId(postId);
+                  setInitialVoterTab(tab);
+                  setVotersOpened(true);
                 }}
                 hydratedSongs={getPlaylistSongs(post.playlist)}
                 focusPostId={initialFocusPostId}
@@ -132,6 +154,14 @@ const SharedPlaylistsPage = () => {
         isOwnProfile={detailPlaylist?.authorId === user?.id}
         onEdit={handleStartEdit}
         onDelete={handlePlaylistDelete}
+      />
+
+      <VoterListModal
+        opened={votersOpened}
+        onClose={() => setVotersOpened(false)}
+        title="Playlist Voters"
+        fetchVoters={() => votersPostId ? playlistService.getPlaylistPostVoters(votersPostId) : []}
+        initialTab={initialVoterTab}
       />
     </Container>
   );

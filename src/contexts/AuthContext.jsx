@@ -37,7 +37,12 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const roles = await Promise.race([rolesPromise, timeoutPromise]);
-      setUserRoles(roles);
+      setUserRoles(prev => {
+        if (prev && roles && JSON.stringify(prev) === JSON.stringify(roles)) {
+          return prev;
+        }
+        return roles;
+      });
       return roles;
     } catch {
       // Set default permissions on error (keep existing permissions if available)
@@ -71,8 +76,15 @@ export const AuthProvider = ({ children }) => {
     } = authService.onAuthStateChange(async (event, session) => {
       try {
         const currentUser = session?.user ?? null;
-        setUser(currentUser);
-
+        setUser(prev => {
+          if (!prev && !currentUser) return null;
+          if (prev && currentUser && prev.id === currentUser.id) {
+            // Keep the same object reference if the ID is the same
+            // This prevents widespread re-renders when token refreshes on focus
+            return prev;
+          }
+          return currentUser;
+        });
 
         // Set loading to false immediately - don't wait for network fetch of roles
         setLoading(false);

@@ -25,7 +25,9 @@ export function useSharedPlaylists(initialFocusPostId, initialFocusPlaylistId) {
     try {
       setLoading(true);
       setError(null);
-      const data = await playlistService.getSharedPlaylists();
+      const data = user 
+        ? await playlistService.getSharedPlaylistsWithUser(user.id)
+        : await playlistService.getSharedPlaylists();
       setPosts(data || []);
     } catch (err) {
       console.error('Failed to load shared playlists:', err);
@@ -33,7 +35,7 @@ export function useSharedPlaylists(initialFocusPostId, initialFocusPlaylistId) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchPosts();
@@ -142,6 +144,45 @@ export function useSharedPlaylists(initialFocusPostId, initialFocusPlaylistId) {
     }
   }, []);
 
+  const handleVote = useCallback(async (postId, voteType) => {
+    if (!user) {
+      notifications.show({ title: 'Login Required', message: 'Please login to vote on playlists', color: 'yellow' });
+      return;
+    }
+
+    // Optimistic UI update
+    setPosts(prev => prev.map(p => {
+      if (p.id !== postId) return p;
+      
+      const oldVote = p.user_vote || 0;
+      let newLikeCount = p.like_count || 0;
+      let newDislikeCount = p.dislike_count || 0;
+
+      // Reverse old vote effect
+      if (oldVote === 1) newLikeCount--;
+      if (oldVote === -1) newDislikeCount--;
+
+      // Apply new vote effect
+      if (voteType === 1) newLikeCount++;
+      if (voteType === -1) newDislikeCount++;
+
+      return {
+        ...p,
+        user_vote: voteType,
+        like_count: newLikeCount,
+        dislike_count: newDislikeCount
+      };
+    }));
+
+    try {
+      await playlistService.votePlaylistPost(postId, user.id, voteType);
+    } catch (err) {
+      console.error('Failed to vote:', err);
+      // Revert optimistic update? (Simplified: just refetch or leave as is)
+      notifications.show({ title: 'Error', message: 'Failed to register vote', color: 'red' });
+    }
+  }, [user]);
+
   return {
     posts,
     loading,
@@ -158,6 +199,7 @@ export function useSharedPlaylists(initialFocusPostId, initialFocusPlaylistId) {
     handleStartEdit,
     handleCancelEdit,
     handleSaveEdit,
-    handlePlaylistDelete
+    handlePlaylistDelete,
+    handleVote
   };
 }

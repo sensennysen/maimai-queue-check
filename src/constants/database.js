@@ -11,6 +11,7 @@ export const TABLES = {
   FEED_POST_VOTES: 'feed_post_votes',
   FEED_POST_COMMENT_VOTES: 'feed_post_comment_votes',
   PLAYLIST_COMMENT_VOTES: 'playlist_comment_votes',
+  PLAYLIST_POST_VOTES: 'playlist_post_votes',
   SONG_RATINGS: 'song_ratings',
   SONG_COMMENTS: 'song_comments',
   SONG_COMMENT_VOTES: 'song_comment_votes',

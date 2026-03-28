@@ -25,6 +25,12 @@ export function usePublicProfile(slug, user) {
     };
   }, []);
 
+  // Capture user.id as a primitive — the full `user` object reference changes on every
+  // token refresh (different access_token, expires_at, etc.), which would cause fetchData
+  // to be recreated and trigger a re-fetch with a full loading state every time the tab
+  // regains focus. Using only the stable user ID primitive prevents this cascade.
+  const userId = user?.id ?? null;
+
   const fetchData = useCallback(async () => {
     if (!slug) return;
     
@@ -41,9 +47,9 @@ export function usePublicProfile(slug, user) {
       if (!profileData) {
         if (isMounted.current) setError('Profile not found');
       } else {
-        const isOwner = user && profileData.id === user.id;
+        const isOwner = userId && profileData.id === userId;
         
-        if (!profileData.is_public && !isOwner && !user) {
+        if (!profileData.is_public && !isOwner && !userId) {
           if (isMounted.current) setIsRestricted(true);
         } else {
           const mostPlayedData = await mostPlayedService.getMostPlayed(profileData.id);
@@ -59,9 +65,9 @@ export function usePublicProfile(slug, user) {
             setIntroduction(profileData.introduction || null);
           }
 
-          if (user && profileData.id !== user.id) {
+          if (userId && profileData.id !== userId) {
             try {
-              const following = await followService.isFollowing(user.id, profileData.id);
+              const following = await followService.isFollowing(userId, profileData.id);
               if (isMounted.current) setIsFollowing(following);
             } catch (followErr) {
               console.error('Error fetching follow status:', followErr);
@@ -75,7 +81,7 @@ export function usePublicProfile(slug, user) {
     } finally {
       if (isMounted.current) setLoading(false);
     }
-  }, [slug, user]);
+  }, [slug, userId]);
 
   useEffect(() => {
     fetchData();

@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Alert, Modal, Skeleton, LoadingOverlay, TextInput } from '@mantine/core';
-import { useOs } from '@mantine/hooks';
 import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
@@ -69,14 +68,10 @@ function QueueManager() {
   } = useQueueManager();
 
   // Refresh data when tab becomes active (mobile only)
-  const os = useOs();
-  const isMobile = os === 'ios' || os === 'android';
 
   const handleVisibilityChange = useCallback(() => {
-    if (isMobile) {
-      refreshData();
-    }
-  }, [isMobile, refreshData]);
+    refreshData();
+  }, [refreshData]);
 
   usePageVisibility(handleVisibilityChange);
 

@@ -29,25 +29,37 @@ export function CommentRow({
           {(c.author?.display_name || '?').charAt(0)}
         </Avatar>
         <Box style={{ flex: 1 }}>
-          <Group gap={6} align="baseline">
-            <Text
-              size="xs"
-              fw={700}
-              style={{ cursor: 'pointer' }}
-              onClick={() => c.author?.slug && navigate(`/p/${c.author.slug}`)}
-            >
-              {c.author?.display_name || 'Unknown'}
-            </Text>
-            <Text size="xs" c="dimmed">{getRelativeTime(c.created_at)}</Text>
+          <Group justify="space-between" align="flex-start" wrap="nowrap">
+            <Group gap={6} align="baseline">
+              <Text
+                size="xs"
+                fw={700}
+                style={{ cursor: 'pointer' }}
+                onClick={() => c.author?.slug && navigate(`/p/${c.author.slug}`)}
+              >
+                {c.author?.display_name || 'Unknown'}
+              </Text>
+              <Text size="xs" c="dimmed">{getRelativeTime(c.created_at)}</Text>
+            </Group>
+            {currentUser && c.author?.id === currentUser.id && (
+              <ActionIcon
+                variant="subtle"
+                color="red"
+                size="xs"
+                onClick={() => handleDelete(c.id)}
+              >
+                <IconTrash size={12} />
+              </ActionIcon>
+            )}
           </Group>
-          <Text size="md" style={{ wordBreak: 'break-word' }}>{c.content}</Text>
+          <Text size="md" style={{ wordBreak: 'break-word', marginTop: 4 }}>{c.content}</Text>
 
           <Group
             justify="space-between"
             align="center"
             wrap="wrap"
             gap="sm"
-            mt="md"
+            mt="xs"
             className="community-comment-engagement-bar"
           >
             <Box style={{ flex: '1 1 auto', minWidth: 0 }}>
@@ -127,16 +139,6 @@ export function CommentRow({
             </Group>
           </Group>
         </Box>
-        {currentUser && c.author?.id === currentUser.id && (
-          <ActionIcon
-            variant="subtle"
-            color="red"
-            size="xs"
-            onClick={() => handleDelete(c.id)}
-          >
-            <IconTrash size={12} />
-          </ActionIcon>
-        )}
       </Group>
     </Box>
   );
