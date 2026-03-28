@@ -38,35 +38,9 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
       opened={opened}
       onClose={onClose}
       title={
-        <Group justify="space-between" w="100%" pr="xl">
-          <Text fw={700}>{multiple ? `Select Songs (${selectedSongs.length} selected)` : 'Select a Song'}</Text>
-          {multiple && (
-            <Group gap="xs">
-              {selectedSongs.length > 0 && (
-                <Button
-                  size="xs"
-                  variant="subtle"
-                  color="red"
-                  onClick={() => handleSelectionChange([])}
-                >
-                  Clear Selection
-                </Button>
-              )}
-              <Button
-                size="xs"
-                leftSection={<IconCheck size={16} />}
-                onClick={() => {
-                  onSelect(selectedSongs);
-                  setSelectedSongs([]);
-                  onClose();
-                }}
-                disabled={selectedSongs.length === 0}
-              >
-                Confirm Selection
-              </Button>
-            </Group>
-          )}
-        </Group>
+        <Text fw={700} size="lg">
+          {multiple ? 'Select Songs' : 'Select a Song'}
+        </Text>
       }
       size="90%"
       padding="xl"
@@ -77,6 +51,82 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
     >
       <Box pos="relative">
         <LoadingOverlay visible={loading} zIndex={100} overlayProps={{ radius: "sm", blur: 2 }} />
+
+        {/* Mobile Header Actions (Inside Body) */}
+        {multiple && (
+          <Group justify="space-between" mb="lg" hiddenFrom="md" style={{ marginTop: '1rem' }}>
+            <Text fw={600} size="sm">
+              {selectedSongs.length} Selected
+            </Text>
+            <Group gap="xs">
+              {selectedSongs.length > 0 && (
+                <Button
+                  size="compact-xs"
+                  variant="subtle"
+                  color="red"
+                  onClick={() => handleSelectionChange([])}
+                >
+                  Clear
+                </Button>
+              )}
+              <Button
+                size="sm"
+                px="xl"
+                radius="xl"
+                leftSection={<IconCheck size={16} />}
+                onClick={() => {
+                  onSelect(selectedSongs);
+                  setSelectedSongs([]);
+                  onClose();
+                }}
+                disabled={selectedSongs.length === 0}
+                className="hologram-card"
+                style={{
+                  background: 'linear-gradient(135deg, var(--mantine-color-primary-6) 0%, var(--mantine-color-primary-8) 100%)',
+                  border: 'none'
+                }}
+              >
+                Confirm
+              </Button>
+            </Group>
+          </Group>
+        )}
+
+        {/* Desktop Header Actions (Inside Body) */}
+        {multiple && (
+          <Group justify="space-between" mb="xl" visibleFrom="md" style={{ marginTop: '1rem' }}>
+            <Text fw={700} size="xl" style={{ fontFamily: 'var(--font-heading)' }}>
+              {selectedSongs.length} songs selected
+            </Text>
+            <Group gap="md">
+              {selectedSongs.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="subtle"
+                  color="red"
+                  onClick={() => handleSelectionChange([])}
+                >
+                  Clear Selection
+                </Button>
+              )}
+              <Button
+                size="md"
+                px="xl"
+                radius="md"
+                leftSection={<IconCheck size={20} />}
+                onClick={() => {
+                  onSelect(selectedSongs);
+                  setSelectedSongs([]);
+                  onClose();
+                }}
+                disabled={selectedSongs.length === 0}
+                className="hologram-card"
+              >
+                Confirm Selection
+              </Button>
+            </Group>
+          </Group>
+        )}
 
         {/* Layout Grid */}
         <div className={styles.songModalGrid} style={{ marginTop: '2rem' }}>

@@ -243,9 +243,10 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         fullWidth
         display={{ base: 'flex', md: 'none' }}
         radius="md"
-        size="md"
+        size="sm"
+        mt="xs"
       >
-        {isOpen ? 'Hide Filters' : 'Show Filters'}
+        {isOpen ? 'Close Filters' : 'Adjust Filters'}
       </Button>
 
       {/* Mobile Collapse content */}
