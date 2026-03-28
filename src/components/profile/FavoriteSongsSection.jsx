@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Paper, Title, Button, Text, Group, LoadingOverlay, Stack, Box, Alert } from '@mantine/core';
+import { Paper, Title, Button, Text, Group, Stack, Box, Alert } from '@mantine/core';
 import { IconPlus, IconHeart, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useFavorites } from '../../features/profile/hooks/useFavorites';
@@ -86,13 +86,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
 
   const isEverythingLoading = loading || songsLoading;
 
-  if (isEverythingLoading && favoriteSongsMap.length === 0) {
-    return (
-      <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl" style={{ minHeight: 200 }}>
-        <LoadingOverlay visible={true} />
-      </Paper>
-    );
-  }
+  if (isEverythingLoading && favoriteSongsMap.length === 0) return null;
 
   return (
     <Paper shadow="sm" p="lg" radius="md" withBorder pos="relative">

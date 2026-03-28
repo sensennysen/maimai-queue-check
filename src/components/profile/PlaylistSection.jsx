@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Paper, Title, Button, Group, LoadingOverlay, Box, Alert, Indicator } from '@mantine/core';
+import { Paper, Title, Button, Group, Box, Alert, Indicator } from '@mantine/core';
 import { IconPlaylist, IconPlaylistAdd, IconAlertCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { playlistService } from '../../services/supabase';
@@ -120,13 +120,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
 
   const isEverythingLoading = loading || songsLoading;
 
-  if (isEverythingLoading && playlists.length === 0) {
-    return (
-      <Paper shadow="sm" p="lg" radius="md" withBorder style={{ minHeight: 150 }}>
-        <LoadingOverlay visible={true} />
-      </Paper>
-    );
-  }
+  if (isEverythingLoading && playlists.length === 0) return null;
 
   return (
     <Paper shadow="sm" p="lg" radius="md" withBorder pos="relative" className="playlist-section" style={{ overflow: 'hidden' }}>
