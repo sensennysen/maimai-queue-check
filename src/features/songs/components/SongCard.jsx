@@ -2,7 +2,7 @@ import { Paper, Text, Group, Badge, Image, Stack, Tooltip, Box } from '@mantine/
 import React, { useMemo } from 'react';
 import dxImage from '../../../assets/music_dx.png';
 import standardImage from '../../../assets/music_standard.png';
-import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty } from '../../../config/maimai-constants';
+import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty, BASE_JACKET_URL } from '../../../config/maimai-constants';
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
 
@@ -70,7 +70,7 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
           }}
         >
           <Image
-            src={song.imageUrl}
+            src={song.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
             alt={song.title}
             style={{
               position: 'absolute',

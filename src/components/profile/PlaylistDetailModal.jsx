@@ -4,7 +4,7 @@ import { IconPlaylist, IconEdit, IconMusic, IconTrash, IconMessageCircle, IconSh
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import FavoriteSongCard from './FavoriteSongCard';
-import { DIFFICULTY_COLORS, normalizeDifficulty, VERSION_MAPPING } from '../../config/maimai-constants';
+import { DIFFICULTY_COLORS, normalizeDifficulty, VERSION_MAPPING, BASE_JACKET_URL } from '../../config/maimai-constants';
 import dxImage from '../../assets/music_dx.png';
 import standardImage from '../../assets/music_standard.png';
 import { playlistService } from '../../services/supabase';
@@ -204,7 +204,7 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
           return (
             <Stack align="center" gap="md" pb="sm" mt="md">
               <Image
-                src={selectedSongDetails.imageUrl}
+                src={selectedSongDetails.imageUrl || (selectedSongDetails.imageName ? `${BASE_JACKET_URL}${selectedSongDetails.imageName}` : null)}
                 alt={selectedSongDetails.title}
                 w={140}
                 h={140}

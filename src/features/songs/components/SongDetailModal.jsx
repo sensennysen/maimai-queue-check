@@ -3,7 +3,7 @@ import { Modal, Image, Text, Group, Stack, Badge, Table, ScrollArea, Tooltip, Si
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconMessageCircle, IconPlaylistAdd } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
-import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty } from '../../../config/maimai-constants';
+import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty, BASE_JACKET_URL } from '../../../config/maimai-constants';
 import { AddToPlaylistModal } from '../../../components/modals/AddToPlaylistModal';
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
@@ -82,7 +82,7 @@ function SongDetailModal({ song, opened, onClose }) {
         {/* Header Section with Image and Basic Info */}
         <Group align="center" justify="center" gap="xl" wrap="nowrap" style={{ paddingBottom: '1rem' }}>
           <Image
-            src={song.imageUrl}
+            src={song.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
             alt={song.title}
             radius="md"
             w={{ base: 160, xs: 200, sm: 240 }}

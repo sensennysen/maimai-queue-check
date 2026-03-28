@@ -1,4 +1,5 @@
 import { Paper, Group, Avatar, Stack, Text, Button, Badge } from '@mantine/core';
+import { BASE_JACKET_URL } from '../../config/maimai-constants';
 
 export function SongResultCard({ song, onSelect }) {
   return (
@@ -6,7 +7,7 @@ export function SongResultCard({ song, onSelect }) {
       <Group justify="space-between" align="center" wrap="nowrap">
         <Group gap="md" wrap="nowrap" style={{ minWidth: 0 }}>
           <Avatar
-            src={song.imageUrl || undefined}
+            src={song.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : undefined)}
             radius="md"
             size={64}
           />

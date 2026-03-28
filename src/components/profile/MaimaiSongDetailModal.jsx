@@ -2,7 +2,7 @@ import { Modal, Image, Text, Group, Stack, Tooltip, SimpleGrid, TextInput, Actio
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconEdit, IconCheck as IconSave, IconX, IconStarFilled } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
-import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
+import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty, BASE_JACKET_URL } from '../../config/maimai-constants';
 import { Badge, Button } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { IconMessageCircle } from '@tabler/icons-react';
@@ -127,7 +127,7 @@ function MaimaiSongDetailModal({
         {/* Header Section with Image and Basic Info */}
         <Group align="center" justify="center" gap="xl" wrap="nowrap" style={{ paddingBottom: '1rem' }}>
           <Image
-            src={song.imageUrl}
+            src={song.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
             alt={song.title}
             radius="md"
             w={{ base: 140, xs: 180, sm: 220 }}

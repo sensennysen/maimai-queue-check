@@ -1,6 +1,6 @@
 import { Paper, Image, Box, Stack, Text, Group, Badge, ActionIcon } from '@mantine/core';
 import { IconArrowUp, IconArrowDown, IconTrash } from '@tabler/icons-react';
-import { DIFFICULTY_COLORS } from '../../config/maimai-constants';
+import { DIFFICULTY_COLORS, BASE_JACKET_URL } from '../../config/maimai-constants';
 
 export function PlaylistSongRow({ song, index, totalSongs, moveSong, handleRemoveSong }) {
   return (
@@ -17,7 +17,7 @@ export function PlaylistSongRow({ song, index, totalSongs, moveSong, handleRemov
       }}
     >
       <Box style={{ width: 50, height: 50, borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
-        <Image src={song.imageUrl} alt={song.title} fallbackSrc="https://placehold.co/50x50?text=?" />
+        <Image src={song.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)} alt={song.title} fallbackSrc="https://placehold.co/50x50?text=?" />
       </Box>
 
       <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
