@@ -80,7 +80,8 @@ export const VERSION_ORDER = [
   'BUDDiES PLUS',
   'PRiSM',
   'PRiSM PLUS',
-  'CiRCLE'
+  'CiRCLE',
+  'CiRCLE PLUS'
 ];
 
 // Mapping for version aliases/variations
