@@ -34,6 +34,13 @@ export const playlistCoreService = {
   async upsertPlaylist(userId, playlistId, { title, comment, is_public, is_draft = false, songIds, songs }) {
     let finalPlaylistId = playlistId;
 
+    if (!finalPlaylistId && is_draft) {
+      const existingDraft = await this.getDraft(userId);
+      if (existingDraft) {
+        finalPlaylistId = existingDraft.id;
+      }
+    }
+
     if (!finalPlaylistId) {
       const { data, error } = await supabase
         .from(TABLES.USER_PLAYLISTS)
