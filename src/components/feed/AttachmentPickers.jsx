@@ -31,7 +31,7 @@ export function SongPicker({ opened, onClose, onSelect }) {
       size="md"
       radius="md"
     >
-      <Stack gap="md">
+      <Stack gap="md" style={{marginTop: '2rem'}}>
         <TextInput
           placeholder="Search by title or artist..."
           leftSection={<IconSearch size={16} />}
@@ -113,7 +113,7 @@ export function PlaylistPicker({ opened, onClose, onSelect }) {
       size="md"
       radius="md"
     >
-      <Stack gap="md">
+      <Stack gap="md" style={{ marginTop: '2rem' }}>
         <ScrollArea h={300}>
           {loading ? (
             <Group justify="center" py="xl"><Loader size="sm" /></Group>

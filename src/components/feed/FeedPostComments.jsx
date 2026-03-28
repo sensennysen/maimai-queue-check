@@ -46,7 +46,7 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
   };
 
   return (
-    <Stack gap="xs">
+    <Stack gap="sm" className="community-feed-post-comments-stack">
       {loading ? (
         <Stack gap={6}>
           <Skeleton height={40} radius="md" />
@@ -73,7 +73,7 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
 
       {currentUser ? (
         <>
-          <Divider variant="dotted" />
+          <Divider variant="dotted" my="md" className="community-feed-comments-input-divider" />
           <Group gap="xs" wrap="nowrap" align="flex-end">
             <Avatar src={getProfileImageUrl(profileData || currentUser)} size={28} radius="xl" color="primary" style={{ flexShrink: 0 }}>
               {(profileData?.display_name || currentUser?.display_name || '?').charAt(0)}
@@ -106,7 +106,7 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
           </Group>
         </>
       ) : (
-        <Text size="xs" c="dimmed" ta="center">Log in to comment.</Text>
+        <Text size="sm" c="dimmed" ta="center">Log in to comment.</Text>
       )}
 
       <VoterListModal

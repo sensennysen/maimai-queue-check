@@ -1,9 +1,8 @@
 import { Paper, Text, Group, Badge, Image, Stack, Tooltip, Box } from '@mantine/core';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import dxImage from '../../../assets/music_dx.png';
 import standardImage from '../../../assets/music_standard.png';
 import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty } from '../../../config/maimai-constants';
-import { ImagePreviewModal } from '../../../components/common/ImagePreviewModal';
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
 
@@ -29,21 +28,8 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
   }, [song.sheets, hideDifficulties]);
 
   const typeImage = song.cardType === 'dx' ? dxImage : standardImage;
-  const [imagePreviewOpened, setImagePreviewOpened] = useState(false);
-  const [imagePreviewSrc, setImagePreviewSrc] = useState(null);
-  const [imagePreviewAlt, setImagePreviewAlt] = useState('Song image');
-
-  const openImagePreview = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!song?.imageUrl) return;
-    setImagePreviewSrc(song.imageUrl);
-    setImagePreviewAlt(song.title || 'Song image');
-    setImagePreviewOpened(true);
-  };
 
   return (
-    <>
     <Paper
       p={0}
       radius="lg"
@@ -92,10 +78,8 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
               left: 0,
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
-              cursor: 'zoom-in'
+              objectFit: 'cover'
             }}
-            onClick={openImagePreview}
             loading="lazy"
             fallbackSrc="https://placehold.co/300x300?text=No+Image"
           />
@@ -213,20 +197,6 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
         </Stack>
       </div>
     </Paper>
-
-      {imagePreviewOpened && (
-        <ImagePreviewModal
-          opened={imagePreviewOpened}
-          onClose={() => {
-            setImagePreviewOpened(false);
-            setImagePreviewSrc(null);
-          }}
-          src={imagePreviewSrc}
-          alt={imagePreviewAlt}
-          caption={null}
-        />
-      )}
-    </>
   );
 });
 

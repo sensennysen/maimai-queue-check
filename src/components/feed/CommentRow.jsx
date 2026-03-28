@@ -6,14 +6,14 @@ import IconThumbUpFilled from '@tabler/icons-react/dist/esm/icons/IconThumbUpFil
 import IconThumbDownFilled from '@tabler/icons-react/dist/esm/icons/IconThumbDownFilled.mjs';
 import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
 
-export function CommentRow({ 
-  comment: c, 
-  currentUser, 
-  navigate, 
-  handleVote, 
-  handleDelete, 
-  votingId, 
-  onVotersClick 
+export function CommentRow({
+  comment: c,
+  currentUser,
+  navigate,
+  handleVote,
+  handleDelete,
+  votingId,
+  onVotersClick
 }) {
   return (
     <Box>
@@ -40,53 +40,90 @@ export function CommentRow({
             </Text>
             <Text size="xs" c="dimmed">{getRelativeTime(c.created_at)}</Text>
           </Group>
-          <Text size="xs" style={{ wordBreak: 'break-word' }}>{c.content}</Text>
-          
-          <Group gap={8} mt={4}>
-            <Group gap={4}>
-              <ActionIcon 
-                variant={c.user_vote === 1 ? 'light' : 'subtle'} 
-                color={c.user_vote === 1 ? 'blue' : 'gray'} 
-                size="sm"
-                onClick={() => handleVote(c.id, 1)}
-                loading={votingId === c.id && c.user_vote === 1}
-              >
-                {c.user_vote === 1 ? <IconThumbUpFilled size={16} /> : <IconThumbUp size={16} />}
-              </ActionIcon>
-              {c.like_count > 0 && (
-                <Text 
-                  size="sm" 
-                  c="dimmed" 
-                  fw={c.user_vote === 1 ? 700 : 400}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => onVotersClick(c.id, 'likes')}
-                >
-                  {c.like_count}
-                </Text>
-              )}
-            </Group>
+          <Text size="md" style={{ wordBreak: 'break-word' }}>{c.content}</Text>
 
-            <Group gap={4}>
-              <ActionIcon 
-                variant={c.user_vote === -1 ? 'light' : 'subtle'} 
-                color={c.user_vote === -1 ? 'red' : 'gray'} 
-                size="sm"
-                onClick={() => handleVote(c.id, -1)}
-                loading={votingId === c.id && c.user_vote === -1}
-              >
-                {c.user_vote === -1 ? <IconThumbDownFilled size={16} /> : <IconThumbDown size={16} />}
-              </ActionIcon>
-              {c.dislike_count > 0 && (
-                <Text 
-                  size="sm" 
-                  c="dimmed" 
-                  fw={c.user_vote === -1 ? 700 : 400}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => onVotersClick(c.id, 'dislikes')}
-                >
-                  {c.dislike_count}
-                </Text>
+          <Group
+            justify="space-between"
+            align="center"
+            wrap="wrap"
+            gap="sm"
+            mt="md"
+            className="community-comment-engagement-bar"
+          >
+            <Box style={{ flex: '1 1 auto', minWidth: 0 }}>
+              {(c.like_count > 0 || c.dislike_count > 0) && (
+                <div className="community-post-engagement-stats community-comment-engagement-stats" style={{ display: 'flex', alignItems: 'center', gap: 0, lineHeight: 1 }}>
+                  {c.like_count > 0 && (
+                    <button
+                      type="button"
+                      className="community-post-engagement-stat"
+                      onClick={() => onVotersClick(c.id, 'likes')}
+                      style={{ padding: 0, margin: 0, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', minWidth: 0 }}
+                    >
+                      <span style={{ fontSize: 'var(--mantine-font-size-sm)', color: 'var(--mantine-color-dimmed)', whiteSpace: 'nowrap' }}>
+                        {c.like_count} {c.like_count === 1 ? 'like' : 'likes'}
+                      </span>
+                    </button>
+                  )}{c.like_count > 0 && c.dislike_count > 0 && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '1rem', color: 'var(--mantine-color-dimmed)', fontSize: 'var(--mantine-font-size-xs)', userSelect: 'none' }} aria-hidden>·</span>
+                  )}{c.dislike_count > 0 && (
+                    <button
+                      type="button"
+                      className="community-post-engagement-stat"
+                      onClick={() => onVotersClick(c.id, 'dislikes')}
+                      style={{ padding: 0, margin: 0, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', minWidth: 0 }}
+                    >
+                      <span style={{ fontSize: 'var(--mantine-font-size-sm)', color: 'var(--mantine-color-dimmed)', whiteSpace: 'nowrap' }}>
+                        {c.dislike_count} {c.dislike_count === 1 ? 'dislike' : 'dislikes'}
+                      </span>
+                    </button>
+                  )}
+                </div>
               )}
+            </Box>
+
+            <Group gap="sm" wrap="nowrap" className="community-comment-engagement-actions" style={{ flexShrink: 0 }}>
+              <Group
+                gap={6}
+                wrap="nowrap"
+                className="community-engagement-cluster"
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleVote(c.id, 1)}
+              >
+                <ActionIcon
+                  variant={c.user_vote === 1 ? 'light' : 'subtle'}
+                  color={c.user_vote === 1 ? 'blue' : 'gray'}
+                  size="lg"
+                  aria-label="Like"
+                  loading={votingId === c.id}
+                >
+                  {c.user_vote === 1 ? <IconThumbUpFilled size={18} /> : <IconThumbUp size={18} />}
+                </ActionIcon>
+                <Text size="sm" fw={500}>
+                  Like
+                </Text>
+              </Group>
+
+              <Group
+                gap={6}
+                wrap="nowrap"
+                className="community-engagement-cluster"
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleVote(c.id, -1)}
+              >
+                <ActionIcon
+                  variant={c.user_vote === -1 ? 'light' : 'subtle'}
+                  color={c.user_vote === -1 ? 'red' : 'gray'}
+                  size="lg"
+                  aria-label="Dislike"
+                  loading={votingId === c.id}
+                >
+                  {c.user_vote === -1 ? <IconThumbDownFilled size={18} /> : <IconThumbDown size={18} />}
+                </ActionIcon>
+                <Text size="sm" fw={500}>
+                  Dislike
+                </Text>
+              </Group>
             </Group>
           </Group>
         </Box>

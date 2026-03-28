@@ -38,6 +38,16 @@ const typeConfig = {
     color: 'blue',
     message: (actor) => `${actor} started following you`,
   },
+  post_like: {
+    icon: <IconThumbUp size={14} />,
+    color: 'green',
+    message: (actor) => `${actor} liked your post`,
+  },
+  comment_like: {
+    icon: <IconThumbUp size={14} />,
+    color: 'green',
+    message: (actor) => `${actor} liked your comment`,
+  },
 };
 
 export function ActivityItem({ item, onMarkRead, onNavigate, isFollowingActor, onFollowBack, followLoading }) {

@@ -42,6 +42,8 @@ const NotificationCenter = () => {
       navigate(`/songs/${item.song_id}`);
     } else if ((item.type === 'playlist_comment_upvote' || item.type === 'playlist_comment_downvote')) {
       navigate('/shared-playlists');
+    } else if (item.type === 'post_like' || item.type === 'comment_like') {
+      navigate('/feed');
     }
     handleMarkActivityRead(item.id);
   };

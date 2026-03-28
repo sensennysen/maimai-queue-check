@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import { Box, ActionIcon } from '@mantine/core';
 import IconChevronLeft from '@tabler/icons-react/dist/esm/icons/IconChevronLeft.mjs';
 import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
@@ -28,10 +28,13 @@ export function CommunityCarouselRow({
     setCanScrollRight(right);
   }, []);
 
+  useLayoutEffect(() => {
+    updateScrollState();
+  }, [updateScrollState, watchKey]);
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return undefined;
-    updateScrollState();
     el.addEventListener('scroll', updateScrollState, { passive: true });
     const ro = new ResizeObserver(() => {
       updateScrollState();
@@ -68,28 +71,34 @@ export function CommunityCarouselRow({
   return (
     <Box pos="relative" className="community-carousel-wrap community-carousel-wrap--desktop">
       {scrollRow}
-      <ActionIcon
-        variant="default"
-        className="community-carousel-nav community-carousel-nav--left"
-        size="lg"
-        radius="xl"
-        disabled={!canScrollLeft}
-        onClick={() => scrollByPage(-1)}
-        aria-label="Scroll left"
-      >
-        <IconChevronLeft size={18} stroke={2} />
-      </ActionIcon>
-      <ActionIcon
-        variant="default"
-        className="community-carousel-nav community-carousel-nav--right"
-        size="lg"
-        radius="xl"
-        disabled={!canScrollRight}
-        onClick={() => scrollByPage(1)}
-        aria-label="Scroll right"
-      >
-        <IconChevronRight size={18} stroke={2} />
-      </ActionIcon>
+      {canScrollLeft ? (
+        <Box className="community-carousel-nav-wrap community-carousel-nav-wrap--left">
+          <ActionIcon
+            variant="default"
+            className="community-carousel-nav"
+            size="lg"
+            radius="xl"
+            onClick={() => scrollByPage(-1)}
+            aria-label="Scroll left"
+          >
+            <IconChevronLeft size={18} stroke={2} />
+          </ActionIcon>
+        </Box>
+      ) : null}
+      {canScrollRight ? (
+        <Box className="community-carousel-nav-wrap community-carousel-nav-wrap--right">
+          <ActionIcon
+            variant="default"
+            className="community-carousel-nav"
+            size="lg"
+            radius="xl"
+            onClick={() => scrollByPage(1)}
+            aria-label="Scroll right"
+          >
+            <IconChevronRight size={18} stroke={2} />
+          </ActionIcon>
+        </Box>
+      ) : null}
     </Box>
   );
 }

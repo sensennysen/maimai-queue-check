@@ -50,8 +50,8 @@ function MainApp() {
   );
 }
 
-// Mantine wrapper that provides theme
-function AppProviders() {
+// Mantine must wrap ErrorBoundary so the boundary fallback (Mantine components) still has a provider.
+function MantineAppShell() {
   const { isDark, currentTheme } = useTheme();
 
   const dynamicTheme = useMemo(() => {
@@ -71,34 +71,36 @@ function AppProviders() {
 
   return (
     <MantineProvider theme={dynamicTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
-      <Notifications position="top-right" />
-      <GlobalNavbar />
-      <Suspense fallback={
-        <Container size="xl" py="xl">
-          <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
-            <Loader size="xl" color="pink" type="bars" />
-          </Stack>
-        </Container>
-      }>
-        <Routes>
-          <Route path="/profile/export" element={<ExportBest50Page />} />
-          <Route path="/profile" element={<ProfileRedirect />} />
-          <Route path="/view" element={<ViewPage />} />
-          <Route path="/songs" element={<SongsPage />} />
-          <Route path="/songs/:id" element={<SongDiscussionPage />} />
-          <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
-          <Route path="/shared-playlists" element={<ProtectedRoute><SharedPlaylistsPage /></ProtectedRoute>} />
-          <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/audit-logs" element={<AuditLogsPage />} />
-          <Route path="/p/:slug" element={<PublicProfilePage />} />
-          <Route path="/" element={<MainApp />} />
-          <Route path="*" element={<MainApp />} />
-        </Routes>
-      </Suspense>
-      <Footer />
-      <Analytics />
+      <ErrorBoundary>
+        <Notifications position="top-right" />
+        <GlobalNavbar />
+        <Suspense fallback={
+          <Container size="xl" py="xl">
+            <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
+              <Loader size="xl" color="pink" type="bars" />
+            </Stack>
+          </Container>
+        }>
+          <Routes>
+            <Route path="/profile/export" element={<ExportBest50Page />} />
+            <Route path="/profile" element={<ProfileRedirect />} />
+            <Route path="/view" element={<ViewPage />} />
+            <Route path="/songs" element={<SongsPage />} />
+            <Route path="/songs/:id" element={<SongDiscussionPage />} />
+            <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+            <Route path="/shared-playlists" element={<ProtectedRoute><SharedPlaylistsPage /></ProtectedRoute>} />
+            <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/audit-logs" element={<AuditLogsPage />} />
+            <Route path="/p/:slug" element={<PublicProfilePage />} />
+            <Route path="/" element={<MainApp />} />
+            <Route path="*" element={<MainApp />} />
+          </Routes>
+        </Suspense>
+        <Footer />
+        <Analytics />
+      </ErrorBoundary>
     </MantineProvider>
   );
 }
@@ -111,9 +113,7 @@ function App() {
           <AuthProvider>
             <SongDatabaseProvider>
               <FeatureFlagProvider>
-                <ErrorBoundary>
-                  <AppProviders />
-                </ErrorBoundary>
+                <MantineAppShell />
               </FeatureFlagProvider>
             </SongDatabaseProvider>
           </AuthProvider>

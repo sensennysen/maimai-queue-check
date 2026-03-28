@@ -14,7 +14,6 @@ import { FeedSongCard } from '../components/feed/FeedSongCard';
 import { FeedPlaylistCard } from '../components/feed/FeedPlaylistCard';
 import { FeedPostComposer } from '../components/feed/FeedPostComposer';
 import { FeedPostCard } from '../components/feed/FeedPostCard';
-import { ImagePreviewModal } from '../components/common/ImagePreviewModal';
 import './FeedPage.css';
 
 // Feature Modular Pieces
@@ -42,9 +41,6 @@ export default function FeedPage() {
   const { user, userRoles } = useAuth();
   const { loading: songsLoading, songMapById, songs } = useSongDatabaseContext();
   const { branches } = useBranch();
-  const [imagePreviewOpened, setImagePreviewOpened] = useState(false);
-  const [imagePreviewSrc, setImagePreviewSrc] = useState(null);
-  const [imagePreviewAlt, setImagePreviewAlt] = useState('Song image');
   const [suggestedPool, setSuggestedPool] = useState([]);
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshingByPull, setIsRefreshingByPull] = useState(false);
@@ -81,12 +77,7 @@ export default function FeedPage() {
     playlistRows
   } = useFeedData(user, userRoles, songs, songMapById);
 
-  const openImagePreview = (src, alt) => {
-    if (!src) return;
-    setImagePreviewSrc(src);
-    setImagePreviewAlt(alt || 'Song image');
-    setImagePreviewOpened(true);
-  };
+
 
   const isLoading = loadingDiscussions || loadingPosts || loadingCommunityPosts || isRefreshingByPull;
 
@@ -209,23 +200,6 @@ export default function FeedPage() {
               <Paper key={song.cardId || song.songId || song.id} p="xs" radius="lg" withBorder className="community-release-card" onClick={() => navigate(`/songs/${song.cardId || song.songId}`)}>
                 <Box
                   className="community-release-image-wrap"
-                  role={song.imageUrl ? 'button' : undefined}
-                  tabIndex={song.imageUrl ? 0 : -1}
-                  style={{ cursor: song.imageUrl ? 'zoom-in' : 'default' }}
-                  onClick={(e) => {
-                    if (!song.imageUrl) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    openImagePreview(song.imageUrl, song.title);
-                  }}
-                  onKeyDown={(e) => {
-                    if (!song.imageUrl) return;
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      openImagePreview(song.imageUrl, song.title);
-                    }
-                  }}
                 >
                   {song.imageUrl ? <img src={song.imageUrl} alt={song.title} className="community-release-image" /> : (
                     <Box className="community-release-image community-release-placeholder"><Text fw={700}>{(song.title || '?').charAt(0)}</Text></Box>
@@ -415,19 +389,6 @@ export default function FeedPage() {
           </Grid.Col>
         </Grid>
       </Stack>
-
-      {imagePreviewOpened && (
-        <ImagePreviewModal
-          opened={imagePreviewOpened}
-          onClose={() => {
-            setImagePreviewOpened(false);
-            setImagePreviewSrc(null);
-          }}
-          src={imagePreviewSrc}
-          alt={imagePreviewAlt}
-          caption={null}
-        />
-      )}
     </Container>
   );
 }

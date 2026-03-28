@@ -26,6 +26,7 @@ export function VoterListModal({
 
   useEffect(() => {
     if (opened) {
+      setActiveTab(initialTab);
       const load = async () => {
         setLoading(true);
         try {
@@ -39,7 +40,7 @@ export function VoterListModal({
       };
       load();
     }
-  }, [opened, fetchVoters]);
+  }, [opened, fetchVoters, initialTab]);
 
   const likes = voters.filter(v => v.vote_type === 1);
   const dislikes = voters.filter(v => v.vote_type === -1);

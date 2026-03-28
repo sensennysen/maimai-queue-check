@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import {
   Paper, Group, Avatar, Text, Box, Stack,
-  ActionIcon, Menu, Textarea, Button, Image
+  ActionIcon, Menu, Textarea, Button, Image, UnstyledButton,
 } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
@@ -25,7 +25,7 @@ import { FeedPlaylistCard } from './FeedPlaylistCard';
 import { VoterListModal } from '../common/VoterListModal';
 import { ImagePreviewModal } from '../common/ImagePreviewModal';
 import { feedService } from '../../services/supabase';
-
+import '../../pages/FeedPage.css';
 
 const MAX_CHARS = 500;
 
@@ -53,6 +53,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
 
   const isOwn = currentUser && post.author?.id === currentUser.id;
   const editRemaining = MAX_CHARS - editContent.length;
+  const commentCount = post.comment_count ?? 0;
 
   const handleSaveEdit = useCallback(async () => {
     const trimmed = editContent.trim();
@@ -236,7 +237,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
             </Group>
           </Stack>
         ) : (
-          <Text size="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+          <Text size="md" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
             {post.content}
           </Text>
         )}
@@ -244,12 +245,12 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
         {/* Post Image */}
         {post.image_url && (
           <Box mb="xs" radius="md" style={{ overflow: 'hidden' }}>
-            <Image 
-              src={post.image_url} 
-              alt="Post image" 
-              fit="contain" 
-              mah={400} 
-              fallbackSrc="https://placehold.co/600x400?text=Image+not+found" 
+            <Image
+              src={post.image_url}
+              alt="Post image"
+              fit="contain"
+              mah={400}
+              fallbackSrc="https://placehold.co/600x400?text=Image+not+found"
               style={{ cursor: 'zoom-in' }}
               onClick={() => openImagePreview(post.image_url, 'Post image')}
             />
@@ -260,7 +261,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
         {(post.attached_song_id || post.attached_playlist) && (
           <Box mt="xs">
             {post.attached_song_id && (
-              <FeedSongCard 
+              <FeedSongCard
                 song={songMapById?.get(post.attached_song_id)}
                 songId={post.attached_song_id}
                 onClick={() => navigate(`/songs/${post.attached_song_id}`)}
@@ -268,9 +269,9 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
               />
             )}
             {post.attached_playlist && (
-              <FeedPlaylistCard 
-                post={{ 
-                  author: post.author, 
+              <FeedPlaylistCard
+                post={{
+                  author: post.author,
                   playlist: post.attached_playlist,
                   created_at: post.created_at
                 }}
@@ -281,58 +282,143 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
           </Box>
         )}
 
-        {/* Comment toggle */}
-        <Box>
-          <Group gap="xs" grow className="community-post-actions-row">
-            <Button
-              variant={commentsOpen ? 'light' : 'subtle'}
-              size="xs"
-              color="gray"
-              onClick={() => setCommentsOpen(p => !p)}
-              justify="center"
-              className="community-post-action-btn"
+        {/* Engagement: one row — stats left, actions right (aligned, consistent control weight) */}
+        <Box className="community-post-engagement" mt="md">
+          <Group
+            justify="space-between"
+            align="center"
+            wrap="wrap"
+            gap="sm"
+            className="community-post-engagement-bar"
+          >
+            <Box
+              className="community-post-engagement-stats-slot"
+              style={{ flex: '1 1 0', minWidth: 0 }}
             >
-              <Group gap={5} wrap="nowrap" justify="center" className="community-post-action-content">
-                <IconMessage size={14} />
-                <span>Comments</span>
-              </Group>
-            </Button>
+              {(likes > 0 || dislikes > 0) && (
+                <div className="community-post-engagement-stats" style={{ display: 'flex', alignItems: 'center', gap: 0, lineHeight: 1 }}>
+                  {likes > 0 && (
+                    <button
+                      type="button"
+                      className="community-post-engagement-stat"
+                      onClick={() => {
+                        setInitialVoterTab('likes');
+                        setVotersOpened(true);
+                      }}
+                      style={{ padding: 0, margin: 0, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', minWidth: 0 }}
+                    >
+                      <span style={{ fontSize: 'var(--mantine-font-size-sm)', color: 'var(--mantine-color-dimmed)', whiteSpace: 'nowrap' }}>
+                        {likes} {likes === 1 ? 'like' : 'likes'}
+                      </span>
+                    </button>
+                  )}{likes > 0 && dislikes > 0 && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '1rem', color: 'var(--mantine-color-dimmed)', fontSize: 'var(--mantine-font-size-xs)', userSelect: 'none' }} aria-hidden>·</span>
+                  )}{dislikes > 0 && (
+                    <button
+                      type="button"
+                      className="community-post-engagement-stat"
+                      onClick={() => {
+                        setInitialVoterTab('dislikes');
+                        setVotersOpened(true);
+                      }}
+                      style={{ padding: 0, margin: 0, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', minWidth: 0 }}
+                    >
+                      <span style={{ fontSize: 'var(--mantine-font-size-sm)', color: 'var(--mantine-color-dimmed)', whiteSpace: 'nowrap' }}>
+                        {dislikes} {dislikes === 1 ? 'dislike' : 'dislikes'}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </Box>
 
-            <Button
-              variant={userVote === 1 ? 'light' : 'subtle'}
-              color={userVote === 1 ? 'blue' : 'gray'}
-              size="xs"
-              onClick={() => handleVote(1)}
-              loading={voting && userVote === 1}
-              justify="center"
-              className="community-post-action-btn"
-              onDoubleClick={() => { setInitialVoterTab('likes'); setVotersOpened(true); }}
+            <Group
+              gap={6}
+              wrap="wrap"
+              justify="flex-end"
+              align="center"
+              className="community-post-engagement-actions"
+              style={{ flex: '0 1 auto', minWidth: 0 }}
             >
-              <Group gap={5} wrap="nowrap" justify="center" className="community-post-action-content">
-                {userVote === 1 ? <IconThumbUpFilled size={16} /> : <IconThumbUp size={16} />}
-                <span>Like ({likes})</span>
-              </Group>
-            </Button>
+              <UnstyledButton
+                type="button"
+                aria-expanded={commentsOpen}
+                aria-controls={commentsOpen ? `post-${post.id}-comments` : undefined}
+                className={
+                  [
+                    'community-post-engagement-btn',
+                    commentsOpen ? 'community-post-engagement-btn--comments-open' : '',
+                  ].filter(Boolean).join(' ')
+                }
+                onClick={(e) => {
+                  setCommentsOpen((p) => !p);
+                  const pe = e.nativeEvent;
+                  if (pe && 'pointerType' in pe && pe.pointerType === 'touch') {
+                    e.currentTarget.blur();
+                  }
+                }}
+              >
+                <Group gap={6} justify="center" wrap="nowrap">
+                  <IconMessage size={18} stroke={1.5} />
+                  <Text size="sm" fw={500}>
+                    Comments
+                  </Text>
+                  {commentCount > 0 ? (
+                    <Text component="span" size="sm" c="dimmed" fw={500}>
+                      {commentCount}
+                    </Text>
+                  ) : null}
+                </Group>
+              </UnstyledButton>
 
-            <Button
-              variant={userVote === -1 ? 'light' : 'subtle'}
-              color={userVote === -1 ? 'red' : 'gray'}
-              size="xs"
-              onClick={() => handleVote(-1)}
-              loading={voting && userVote === -1}
-              justify="center"
-              className="community-post-action-btn"
-              onDoubleClick={() => { setInitialVoterTab('dislikes'); setVotersOpened(true); }}
-            >
-              <Group gap={5} wrap="nowrap" justify="center" className="community-post-action-content">
-                {userVote === -1 ? <IconThumbDownFilled size={16} /> : <IconThumbDown size={16} />}
-                <span>Dislike ({dislikes})</span>
+              <Group
+                gap={6}
+                justify="center"
+                wrap="nowrap"
+                className="community-engagement-cluster"
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleVote(1)}
+              >
+                <ActionIcon
+                  variant={userVote === 1 ? 'light' : 'subtle'}
+                  color={userVote === 1 ? 'blue' : 'gray'}
+                  size="lg"
+                  aria-label="Like"
+                  loading={voting}
+                >
+                  {userVote === 1 ? <IconThumbUpFilled size={18} /> : <IconThumbUp size={18} />}
+                </ActionIcon>
+                <Text size="sm" fw={500}>
+                  Like
+                </Text>
               </Group>
-            </Button>
+
+              <Group
+                gap={6}
+                justify="center"
+                wrap="nowrap"
+                className="community-engagement-cluster"
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleVote(-1)}
+              >
+                <ActionIcon
+                  variant={userVote === -1 ? 'light' : 'subtle'}
+                  color={userVote === -1 ? 'red' : 'gray'}
+                  size="lg"
+                  aria-label="Dislike"
+                  loading={voting}
+                >
+                  {userVote === -1 ? <IconThumbDownFilled size={18} /> : <IconThumbDown size={18} />}
+                </ActionIcon>
+                <Text size="sm" fw={500}>
+                  Dislike
+                </Text>
+              </Group>
+            </Group>
           </Group>
 
-          {latestComment && (
-            <Paper p="xs" radius="md" withBorder mt="xs">
+          {latestComment && !commentsOpen && (
+            <Paper p="xs" radius="md" withBorder mt="md">
               <Group gap={8} align="flex-start" wrap="nowrap">
                 <Avatar
                   src={getProfileImageUrl(latestComment.author)}
@@ -343,15 +429,15 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
                   {(latestComment.author?.display_name || '?').charAt(0)}
                 </Avatar>
                 <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
-                  <Text size="xs" c="dimmed" lineClamp={1}>
+                  <Text size="sm" c="dimmed" lineClamp={1}>
                     <Text span fw={600} c="var(--mantine-color-text)">
                       {latestComment.author?.display_name || 'Someone'}
                     </Text>
                     {' commented '}
                     {getRelativeTime(latestComment.created_at)}
                   </Text>
-                  <Text size="sm" lineClamp={2} fs="italic">
-                    "{latestComment.content}"
+                  <Text size="md" lineClamp={2} fs="italic">
+                    {latestComment.content}
                   </Text>
                 </Stack>
               </Group>
@@ -359,7 +445,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
           )}
 
           {commentsOpen && (
-            <Box mt="xs">
+            <Box id={`post-${post.id}-comments`} mt="xs">
               <FeedPostComments
                 postId={post.id}
                 currentUser={currentUser}
