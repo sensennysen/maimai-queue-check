@@ -100,26 +100,6 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
     await loadProfileData();
   }, [loadProfileData, refreshUserRoles]);
 
-  // Helper to render preferred branch badges
-  const renderPreferredBranches = () => {
-    const activeBranches = allEnabledBranches.length > 0 ? allEnabledBranches : branches;
-    if (!userRoles?.preferred_branches?.length || !activeBranches.length) return null;
-
-    return (
-      <Group gap={4} mt={4} style={{ flexWrap: 'wrap', maxWidth: '100%' }}>
-        {userRoles.preferred_branches.map(branchId => {
-          const branch = activeBranches.find(b => b.id === branchId);
-          if (!branch) return null;
-          return (
-            <Badge key={branchId} size="sm" variant="light" color="blue">
-              {branch.acronym || branch.short_name}
-            </Badge>
-          );
-        })}
-      </Group>
-    );
-  };
-
   if (loading) {
     return (
       <ActionIcon variant="subtle" size="xl" className="login-icon">
@@ -154,7 +134,6 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
                 <Text size="sm" c="secondary">
                   {user.email}
                 </Text>
-                {renderPreferredBranches()}
               </Stack>
             </Menu.Label>
             <Divider />
@@ -188,7 +167,7 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
               leftSection={<IconSettings size={16} />}
               onClick={onOpenPreferences}
             >
-              App Settings
+              Select Theme
             </Menu.Item>
             {showThemeToggleInMenu && (
               <Menu.Item
