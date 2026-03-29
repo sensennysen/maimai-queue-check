@@ -49,6 +49,7 @@ export default function GlobalNavbar() {
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const activePath = getActivePath(location.pathname);
   const isDense = useMediaQuery('(max-width: 1280px)');
   const isCompact = useMediaQuery('(max-width: 1060px)');
@@ -88,7 +89,10 @@ export default function GlobalNavbar() {
       } finally {
         if (!cancelled) {
           setProfileLoading(false);
-          setSuggestionsOpen(true);
+          // Only open suggestions if the input is still focused
+          if (isFocused) {
+            setSuggestionsOpen(true);
+          }
         }
       }
     };
@@ -173,7 +177,13 @@ export default function GlobalNavbar() {
                             leftSection={<IconSearch size={16} />}
                             className="global-top-search"
                             onFocus={() => {
+                              setIsFocused(true);
                               if (hasSuggestions) setSuggestionsOpen(true);
+                            }}
+                            onBlur={() => {
+                              setIsFocused(false);
+                              // Small delay to allow clicking suggestions
+                              setTimeout(() => setSuggestionsOpen(false), 200);
                             }}
                           />
                         ) : (
@@ -211,7 +221,12 @@ export default function GlobalNavbar() {
                                 className="global-top-search"
                                 style={{ flex: 1, width: '100%' }}
                                 onFocus={() => {
+                                  setIsFocused(true);
                                   if (hasSuggestions) setSuggestionsOpen(true);
+                                }}
+                                onBlur={() => {
+                                  setIsFocused(false);
+                                  setTimeout(() => setSuggestionsOpen(false), 200);
                                 }}
                               />
                             )}
