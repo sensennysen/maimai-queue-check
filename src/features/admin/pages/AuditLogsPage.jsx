@@ -159,6 +159,7 @@ const AuditLogsPage = () => {
           <Group justify="space-between" align="center">
             <Group gap="md">
               <Title order={2}>Audit Logs</Title>
+              <Badge variant="light" color="blue">30 Days Retention</Badge>
             </Group>
             <Group gap="sm">
               <Text c="dimmed" size="sm">
