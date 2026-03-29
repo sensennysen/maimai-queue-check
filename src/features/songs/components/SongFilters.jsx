@@ -247,11 +247,11 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         leftSection={<IconFilter size={16} />}
         rightSection={hasActiveFilters && <Box w={6} h={6} style={{ borderRadius: '50%', background: 'var(--theme-primary)' }} />}
         onClick={() => setIsOpen(!isOpen)}
-        fullWidth
         display={{ base: 'flex', md: 'none' }}
         radius="md"
         size="sm"
         mt="xs"
+        m='sm'
       >
         {isOpen ? 'Close Filters' : 'Adjust Filters'}
       </Button>
