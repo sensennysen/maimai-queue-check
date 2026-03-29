@@ -108,6 +108,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
             searchable
             description="Your primary arcade branch"
             clearable
+            comboboxProps={{ withinPortal: false }}
           />
         </SimpleGrid>
 
@@ -119,6 +120,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
           onChange={setSelectedBranches}
           searchable
           clearable
+          comboboxProps={{ withinPortal: false }}
         />
 
         <Divider

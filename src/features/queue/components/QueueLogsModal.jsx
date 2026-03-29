@@ -92,6 +92,7 @@ const QueueLogsModal = ({ opened, onClose, branchId }) => {
               { value: 'today', label: 'Today (Since Midnight)' },
               { value: 'all_time', label: 'All Time' },
             ]}
+            comboboxProps={{ withinPortal: false }}
           />
           <MultiSelect
             label="Status"
@@ -104,6 +105,7 @@ const QueueLogsModal = ({ opened, onClose, branchId }) => {
               { value: 'cancelled', label: 'Cancelled' },
             ]}
             clearable
+            comboboxProps={{ withinPortal: false }}
           />
         </Group>
 

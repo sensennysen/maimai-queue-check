@@ -116,6 +116,7 @@ export function GlobalSharePlaylistModal({
                 leftSection={<IconPlaylist size={16} />}
                 placeholder="Choose a playlist to share"
                 required
+                comboboxProps={{ withinPortal: false }}
               />
 
               <Textarea

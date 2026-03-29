@@ -159,6 +159,7 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
             {...form.getInputProps('branchIds')}
             maxDropdownHeight={200}
             clearable
+            comboboxProps={{ withinPortal: false }}
           />
 
           {showRejectionWarning && (

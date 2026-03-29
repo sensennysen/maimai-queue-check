@@ -186,6 +186,7 @@ export function AddToPlaylistModal({
             disabled={saving}
             searchable={playlists.length > 5}
             nothingFoundMessage="No playlists found"
+            comboboxProps={{ withinPortal: false }}
           />
 
           {isCreatingNew && (

@@ -1,12 +1,13 @@
-# Specification: Font Consistency for ViewPage
+# Specification: Modal Shake Fix
 
 ## Problem Statement
-The `ViewPage` (Public Monitor) might not be using the same fonts as the rest of the application, leading to a visual inconsistency.
+Centered Mantine modals (v7) "shake" or jump when a dropdown-based component (`Select`, `MultiSelect`, `Autocomplete`) inside them is opened. This happens because the dropdown renders via a portal at the `body` level, changing the document's scroll height and triggering a re-calculation of the centered modal's position.
 
 ## Requirements
-1.  Verify the intended global fonts for the application (Outfit for body, Space Grotesk for headings).
-2.  Ensure `ViewPage.jsx` and its components (Mantine Title, Text, etc.) utilize these fonts.
-3.  Align the Mantine theme configuration (`theme.js`) with the global CSS (`index.css`) to prevent tag-level vs class-level font mismatches.
+1.  Identify all instances of dropdown-based components (`Select`, `MultiSelect`, `Autocomplete`) inside `centered` modals.
+2.  Apply `comboboxProps={{ withinPortal: false }}` to these components to force rendering within the modal's DOM subtree.
+3.  Verify that the modal position remains stable when the dropdown opens/closes.
+4.  Ensure visual consistency and usability are maintained (e.g., dropdowns are not clipped by the modal container).
 
 ## Status
 Status: FINALIZED

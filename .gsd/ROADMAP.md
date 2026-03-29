@@ -1,16 +1,13 @@
-# Roadmap: Font Consistency Alignment
+# Roadmap: Modal Shake Fix
 
 ## Overview
-Decomposing the font alignment task into logical phases.
+Phase-wise approach to identifying and fixing modal shaking in Mantine centered modals.
 
-## Phase 1: Global Theme Alignment
-- Update `src/config/theme.js` to match the intended `index.css` fonts.
-- Status: TODO
+## Phase 1: Modal Audit and Technical Fix
+- Audit `centered` modals for `Select`, `MultiSelect`, and `Autocomplete` components.
+- Apply `comboboxProps={{ withinPortal: false }}` fix to all identified components.
+- Status: COMPLETED
 
-## Phase 2: ViewPage Specific Audit
-- Verify `ViewPage.jsx` and `ViewPage.css` for any outliers or manual overrides.
-- Status: TODO
-
-## Phase 3: Verification
-- Inspect computed styles using the browser tool.
-- Status: TODO
+## Phase 2: Verification
+- Verify stable repositioning for all updated modals.
+- Status: COMPLETED

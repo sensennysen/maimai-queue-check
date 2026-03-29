@@ -120,6 +120,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         clearable
         variant="filled"
         radius="md"
+        comboboxProps={{ withinPortal: false }}
       />
 
       <MultiSelect
@@ -132,6 +133,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         clearable
         variant="filled"
         radius="md"
+        comboboxProps={{ withinPortal: false }}
       />
 
       <MultiSelect
@@ -144,6 +146,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         clearable
         variant="filled"
         radius="md"
+        comboboxProps={{ withinPortal: false }}
       />
 
       <Select
@@ -158,6 +161,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         variant="filled"
         radius="md"
         clearable
+        comboboxProps={{ withinPortal: false }}
       />
 
       <Select
@@ -178,6 +182,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         variant="filled"
         radius="md"
         allowDeselect={false}
+        comboboxProps={{ withinPortal: false }}
       />
 
       <Stack gap="xs">
@@ -202,6 +207,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
             radius="md"
             clearable
             searchable
+            comboboxProps={{ withinPortal: false }}
           />
           <Select
             label="Max"
@@ -213,6 +219,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
             radius="md"
             clearable
             searchable
+            comboboxProps={{ withinPortal: false }}
           />
         </Group>
       </Stack>

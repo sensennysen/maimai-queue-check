@@ -408,6 +408,7 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
                 searchable
                 nothingFoundMessage="No regions found"
                 loading={loadingRegions}
+                comboboxProps={{ withinPortal: false }}
               />
 
               <Checkbox

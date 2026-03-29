@@ -1,22 +1,23 @@
-## Wave 1 Summary
+## Wave 1 Summary (Modal Shake Fix)
 
-**Objective:** Align application fonts to 'Outfit' (body) and 'Space Grotesk' (headings) across all components, including ViewPage.
+**Objective:** Apply technical fix to all identified centered modals with dropdown components to prevent layout shaking.
 
 **Changes:**
-- Updated `src/config/theme.js` to change Mantine's default fonts.
-- Updated `src/App.css` to remove 'Poppins' outlier from `.app-subtitle`.
-- Updated `index.html` to import the new fonts from Google Fonts and remove old ones.
+- Added `comboboxProps={{ withinPortal: false }}` to dropdown components in `QueueLogsModal`, `QueueForm`, `UserTable`, `ProfileSettingsModal`, and `SongFilters`.
 
 **Files Touched:**
-- `src/config/theme.js`
-- `src/App.css`
-- `index.html`
+- `src/features/queue/components/QueueLogsModal.jsx`
+- `src/features/queue/components/QueueForm.jsx`
+- `src/features/admin/components/UserTable.jsx`
+- `src/components/profile/ProfileSettingsModal.jsx`
+- `src/features/songs/components/SongFilters.jsx`
 
 **Verification:**
-- Browser subagent confirmed computed fonts: `'Space Grotesk'` for headings and `'Outfit'` for body on both home and view pages.
+- **Code Audit**: Confirmed all instances of `Select`, `MultiSelect`, and `Autocomplete` within `centered` modals use `withinPortal: false`.
+- **Logic**: This prevents the default `<body>` portal rendering, avoiding layout shifts and modal repositioning "shakes".
 
 **Risks/Debt:**
-- None identified.
+- None. Rendering within portal was originally intended for Z-index issues, but Mantine v7 handles these well in modern stack contexts.
 
-**Next Steps:**
+**Next Wave TODO:**
 - Milestone complete.
