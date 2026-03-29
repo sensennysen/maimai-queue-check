@@ -18,7 +18,7 @@ const SharedPlaylistsPage = () => {
 
   const [detailPlaylist, setDetailPlaylist] = useState(null);
   const [detailSongs, setDetailSongs] = useState([]);
-  
+
   const [votersOpened, setVotersOpened] = useState(false);
   const [votersPostId, setVotersPostId] = useState(null);
   const [initialVoterTab, setInitialVoterTab] = useState('likes');
@@ -80,28 +80,6 @@ const SharedPlaylistsPage = () => {
   return (
     <Container size="xl" py="lg" className="playlists-feed-page">
       <Stack gap="lg">
-        {/* Header panel — same style as Feed "Posts" panel */}
-        <Paper p="md" radius="xl" withBorder className="community-panel">
-          <PanelHeader
-            title="Community Playlists"
-            rightSection={
-              <Button
-                variant="subtle"
-                size="xs"
-                leftSection={<IconRefresh size={14} />}
-                onClick={fetchPosts}
-                loading={loading}
-                style={{ marginTop: '0.5rem' }}
-              >
-                Refresh
-              </Button>
-            }
-          />
-          <Text size="sm" c="dimmed" mt={4} mb="xs">
-            Explore and discuss playlists shared by the community
-          </Text>
-        </Paper>
-
         {/* Posts list */}
         {posts.length === 0 ? (
           <Paper p="md" radius="xl" withBorder className="community-panel">
