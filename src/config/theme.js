@@ -57,13 +57,13 @@ export const themes = {
 
     css: {
       light: {
-        background: '#FFF8FC',
-        surface: '#FFFDFE',
+        background: '#FFF0F8',
+        surface: '#FFF3F9',
         primary: '#FF4FAF',
         secondary: '#3BC9FF',
         accent: '#A6F54D',
         textPrimary: '#311325',
-        textMuted: '#76586A',
+        textMuted: '#6B4D60',
         border: 'rgba(255, 79, 175, 0.24)',
         tabHighlight: '#FF4FAF',
       },
@@ -127,15 +127,15 @@ export const themes = {
 
     css: {
       light: {
-        background: '#F3FBFF',
-        surface: '#FFFFFF',
-        primary: '#03A9F4',
-        secondary: '#9570FF',
+        background: '#EEF9FF',
+        surface: '#F5FBFF',
+        primary: '#0086CC',
+        secondary: '#7A58E8',
         accent: '#66D8FF',
-        textPrimary: '#13223A',
-        textMuted: '#6E7A8F',
-        border: 'rgba(3, 169, 244, 0.25)',
-        tabHighlight: '#03A9F4',
+        textPrimary: '#0F1E30',
+        textMuted: '#526070',
+        border: 'rgba(0, 134, 204, 0.25)',
+        tabHighlight: '#0086CC',
       },
 
       dark: {
@@ -197,15 +197,15 @@ export const themes = {
 
     css: {
       light: {
-        background: '#FFF8E6',
-        surface: '#FFFFFF',
-        primary: '#FFD700',
-        secondary: '#FF7A2F',
-        accent: '#FF4A8A',
+        background: '#FFF5D6',
+        surface: '#FFF9E8',
+        primary: '#C49000',
+        secondary: '#D45800',
+        accent: '#D63070',
         textPrimary: '#3E2723',
-        textMuted: '#8D6E63',
-        border: 'rgba(255, 183, 0, 0.35)',
-        tabHighlight: '#FFD700',
+        textMuted: '#7A5B50',
+        border: 'rgba(196, 144, 0, 0.35)',
+        tabHighlight: '#C49000',
       },
 
       dark: {
@@ -267,15 +267,15 @@ export const themes = {
 
     css: {
       light: {
-        background: '#FAF5FF',
-        surface: '#FFFFFF',
-        primary: '#9C27B0',
-        secondary: '#FF9800',
-        accent: '#FF3CA6',
+        background: '#F6EEFF',
+        surface: '#FAF3FF',
+        primary: '#7E1FA0',
+        secondary: '#C96600',
+        accent: '#CC1F84',
         textPrimary: '#2D0A3D',
-        textMuted: '#7D5A8A',
-        border: 'rgba(156, 39, 176, 0.3)',
-        tabHighlight: '#9C27B0',
+        textMuted: '#6E4C7A',
+        border: 'rgba(126, 31, 160, 0.3)',
+        tabHighlight: '#7E1FA0',
       },
 
       dark: {
@@ -337,15 +337,15 @@ export const themes = {
 
     css: {
       light: {
-        background: '#F0F7FF',
-        surface: '#FFFFFF',
-        primary: '#1E90FF',
-        secondary: '#F06292',
-        accent: '#FFD54F',
+        background: '#E8F4FF',
+        surface: '#F2F9FF',
+        primary: '#0E7DD8',
+        secondary: '#D44B7B',
+        accent: '#D4930A',
         textPrimary: '#0A192F',
-        textMuted: '#4A5568',
-        border: 'rgba(30, 144, 255, 0.3)',
-        tabHighlight: '#1E90FF',
+        textMuted: '#3D5068',
+        border: 'rgba(14, 125, 216, 0.3)',
+        tabHighlight: '#0E7DD8',
       },
 
       dark: {
