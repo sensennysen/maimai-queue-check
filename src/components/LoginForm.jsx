@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider, Badge, Group } from '@mantine/core';
+import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider } from '@mantine/core';
 import IconBrandGoogle from '@tabler/icons-react/dist/esm/icons/IconBrandGoogle.mjs';
 import IconLogout from '@tabler/icons-react/dist/esm/icons/IconLogout.mjs';
 import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';

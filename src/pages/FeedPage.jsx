@@ -12,6 +12,8 @@ import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { useBranch } from '../hooks/useBranch';
 import { FeedSongCard } from '../components/feed/FeedSongCard';
 import { FeedPlaylistCard } from '../components/feed/FeedPlaylistCard';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { PullToRefreshIndicator } from '../components/common/PullToRefreshIndicator';
 import { FeedPostComposer } from '../components/feed/FeedPostComposer';
 import { FeedPostCard } from '../components/feed/FeedPostCard';
 import './FeedPage.css';
@@ -42,12 +44,8 @@ export default function FeedPage() {
   const { loading: songsLoading, songMapById, songs } = useSongDatabaseContext();
   const { branches } = useBranch();
   const [suggestedPool, setSuggestedPool] = useState([]);
-  const [pullDistance, setPullDistance] = useState(0);
-  const [isRefreshingByPull, setIsRefreshingByPull] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 62em)');
   const loadMoreRef = useRef(null);
-  const pullStartYRef = useRef(null);
-  const canPullRef = useRef(false);
 
   const branchMap = useMemo(() => {
     const map = {};
@@ -79,7 +77,9 @@ export default function FeedPage() {
 
 
 
-  const isLoading = loadingDiscussions || loadingPosts || loadingCommunityPosts || isRefreshingByPull;
+  const { pullDistance, isRefreshingByPull, touchHandlers } = usePullToRefresh(refreshAll, loadingDiscussions || loadingPosts || loadingCommunityPosts);
+
+
 
   useEffect(() => {
     setSuggestedPool(pickRandomPlayers(suggestedPlayers, SUGGESTED_PLAYER_COUNT));
@@ -102,50 +102,7 @@ export default function FeedPage() {
     return () => observer.disconnect();
   }, [hasMoreCommunityPosts, loadMoreCommunityPosts]);
 
-  const triggerPullRefresh = async () => {
-    if (isRefreshingByPull) return;
-    setIsRefreshingByPull(true);
-    try {
-      await Promise.resolve(refreshAll());
-    } finally {
-      setTimeout(() => {
-        setPullDistance(0);
-        setIsRefreshingByPull(false);
-      }, 240);
-    }
-  };
 
-  const handleTouchStart = (e) => {
-    if (window.scrollY > 0 || isLoading) {
-      pullStartYRef.current = null;
-      canPullRef.current = false;
-      return;
-    }
-    pullStartYRef.current = e.touches?.[0]?.clientY ?? null;
-    canPullRef.current = true;
-  };
-
-  const handleTouchMove = (e) => {
-    if (!canPullRef.current || pullStartYRef.current == null || isLoading) return;
-    const currentY = e.touches?.[0]?.clientY ?? pullStartYRef.current;
-    const delta = currentY - pullStartYRef.current;
-    if (delta <= 0) {
-      setPullDistance(0);
-      return;
-    }
-    const next = Math.min(96, delta * 0.5);
-    setPullDistance(next);
-  };
-
-  const handleTouchEnd = async () => {
-    canPullRef.current = false;
-    pullStartYRef.current = null;
-    if (pullDistance >= 64 && !isLoading) {
-      await triggerPullRefresh();
-      return;
-    }
-    setPullDistance(0);
-  };
 
   const moduleCycle = useMemo(() => {
     const modules = ['suggested'];
@@ -306,16 +263,10 @@ export default function FeedPage() {
       size="xl"
       py="lg"
       className="community-feed-page animate-fade-in"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      {...touchHandlers}
     >
       <Stack gap="lg">
-        <Box className="community-pull-indicator-wrap" style={{ height: pullDistance > 0 || isRefreshingByPull ? 32 : 0 }}>
-          <Text size="sm" c="dimmed" ta="center" className="community-pull-indicator-text">
-            {isRefreshingByPull ? 'Refreshing feed...' : pullDistance >= 64 ? 'Release to refresh' : 'Pull down to refresh'}
-          </Text>
-        </Box>
+        <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshingByPull} />
 
         <Grid gutter="xl" className="community-feed-layout">
           <Grid.Col span={{ base: 12, md: 7 }}>

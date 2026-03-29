@@ -29,6 +29,8 @@ import { usePublicProfile } from '../features/profile/hooks/usePublicProfile';
 import { ProfileHeaderCard } from '../features/profile/components/ProfileHeaderCard';
 import { MostPlayedSection } from '../features/profile/components/MostPlayedSection';
 import { Best50PreviewCard } from '../features/profile/components/Best50PreviewCard';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { PullToRefreshIndicator } from '../components/common/PullToRefreshIndicator';
 import './PublicProfilePage.css';
 
 const PublicProfilePage = () => {
@@ -53,6 +55,8 @@ const PublicProfilePage = () => {
     toggleFollow,
     fetchData
   } = usePublicProfile(slug, user);
+
+  const { pullDistance, isRefreshingByPull, touchHandlers } = usePullToRefresh(fetchData, loading);
 
   // Modal states
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -167,8 +171,9 @@ const PublicProfilePage = () => {
   const hasSidebarContent = hasBest50 || hasMostPlayed || hasRecentPlays;
 
   return (
-    <Container size="xl" py="xl">
-      <Stack gap="lg">
+    <Container size="xl" py="xl" {...touchHandlers}>
+      <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshingByPull} />
+      <Stack gap="lg" mt={pullDistance > 0 || isRefreshingByPull ? 'sm' : 0}>
         {/* View-as-Public alert banner */}
         {viewAsPublic && isRealOwner && (
           <Alert icon={<IconLogin size={16} />} title="Viewing as Public" color="primary" variant="light" className="animate-fade-in">

@@ -7,6 +7,8 @@ import { PlaylistDetailModal } from '../../components/profile/PlaylistDetailModa
 import { useState } from 'react';
 import { VoterListModal } from '../../components/common/VoterListModal';
 import { playlistService } from '../../services/supabase';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
+import { PullToRefreshIndicator } from '../../components/common/PullToRefreshIndicator';
 import './SharedPlaylistsPage.css';
 import '../../pages/FeedPage.css';
 
@@ -41,6 +43,8 @@ const SharedPlaylistsPage = () => {
     handlePlaylistDelete,
     handleVote,
   } = useSharedPlaylists(initialFocusPostId, initialFocusPlaylistId);
+
+  const { pullDistance, isRefreshingByPull, touchHandlers } = usePullToRefresh(fetchPosts, loading);
 
   /* ── loading state ── */
   if (loading && posts.length === 0) {
@@ -77,8 +81,9 @@ const SharedPlaylistsPage = () => {
 
   /* ── main page ── */
   return (
-    <Container size="xl" py="lg" className="playlists-feed-page">
-      <Stack gap="lg">
+    <Container size="xl" py="lg" className="playlists-feed-page" {...touchHandlers} style={{ position: 'relative' }}>
+      <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshingByPull} />
+      <Stack gap="lg" mt={pullDistance > 0 || isRefreshingByPull ? 'sm' : 0}>
         {/* Posts list */}
         {posts.length === 0 ? (
           <Paper p="md" radius="xl" withBorder className="community-panel">

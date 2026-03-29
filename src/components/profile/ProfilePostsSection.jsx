@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Stack, Group, Text, Title, Paper, Button, Alert } from '@mantine/core';
+import { Stack, Group, Text, Title, Paper, Alert } from '@mantine/core';
 import IconPencil from '@tabler/icons-react/dist/esm/icons/IconPencil.mjs';
-import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
+
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import { feedService } from '../../services/supabase';
 import { FeedPostCard } from '../feed/FeedPostCard';
@@ -12,11 +12,8 @@ import { FeedPostCard } from '../feed/FeedPostCard';
 export function ProfilePostsSection({ userId, currentUser, isOwnProfile }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fetchPosts = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+  const fetchPosts = useCallback(async () => {
+    setLoading(true);
 
     try {
       const data = await feedService.getUserFeedPosts(userId);
@@ -25,7 +22,6 @@ export function ProfilePostsSection({ userId, currentUser, isOwnProfile }) {
       console.error('Failed to fetch user posts:', err);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, [userId]);
 
@@ -44,15 +40,6 @@ export function ProfilePostsSection({ userId, currentUser, isOwnProfile }) {
             <Title order={2}>Community Posts</Title>
             <Text size="sm" c="dimmed" mt={4}>({posts.length})</Text>
           </Group>
-          <Button
-            variant="subtle"
-            size="sm"
-            leftSection={<IconRefresh size={14} />}
-            onClick={() => fetchPosts(true)}
-            loading={refreshing}
-          >
-            Refresh
-          </Button>
         </Group>
 
         {posts.length === 0 ? (
