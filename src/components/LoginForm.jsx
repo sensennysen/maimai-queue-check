@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider } from '@mantine/core';
+import { Button, Stack, Text, Avatar, Menu, ActionIcon, Loader, Divider, Tooltip } from '@mantine/core';
 import IconBrandGoogle from '@tabler/icons-react/dist/esm/icons/IconBrandGoogle.mjs';
 import IconLogout from '@tabler/icons-react/dist/esm/icons/IconLogout.mjs';
 import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
@@ -9,6 +9,8 @@ import IconSun from '@tabler/icons-react/dist/esm/icons/IconSun.mjs';
 import IconMoon from '@tabler/icons-react/dist/esm/icons/IconMoon.mjs';
 import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
 import IconMail from '@tabler/icons-react/dist/esm/icons/IconMail.mjs';
+import IconShieldLock from '@tabler/icons-react/dist/esm/icons/IconShieldLock.mjs';
+import IconFileText from '@tabler/icons-react/dist/esm/icons/IconFileText.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';
@@ -208,6 +210,19 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
             >
               Contact
             </Menu.Item>
+            <Divider />
+            <Menu.Item
+              leftSection={<IconShieldLock size={16} />}
+              onClick={() => navigate('/privacy')}
+            >
+              Privacy Policy
+            </Menu.Item>
+            <Menu.Item
+              leftSection={<IconFileText size={16} />}
+              onClick={() => navigate('/terms')}
+            >
+              Terms of Service
+            </Menu.Item>
           </Menu.Dropdown>
         </Menu>
 
@@ -235,19 +250,48 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
     );
   }
 
-  // When not authenticated, show a prominent login button.
+  // When not authenticated, show a prominent login button with a legal tooltip.
   return (
     <div className="login-button-container">
-      <Button
-        leftSection={<IconBrandGoogle size={16} />}
-        onClick={() => handleSocialLogin('google')}
-        variant="light"
-        color="red"
-        className="google-login-button"
-        loading={isLoading}
+      <Tooltip
+        label={
+          <Text size="xs" fw={700}>
+            By signing in, you agree to our Privacy Policy and Terms of Service.
+          </Text>
+        }
+        position="bottom-end"
+        withArrow
+        multiline
+        w={220}
+        offset={10}
+        events={{ hover: true, focus: true, touch: true }}
+        styles={{
+          tooltip: {
+            backgroundColor: 'color-mix(in srgb, var(--nav-surface) 90%, white 10%)',
+            color: 'var(--nav-ink)',
+            border: '1px solid var(--nav-border)',
+            backdropFilter: 'blur(12px)',
+            boxShadow: 'var(--mantine-shadow-md)',
+            padding: '8px 12px',
+            borderRadius: '12px',
+          },
+          arrow: {
+            border: '1px solid var(--nav-border)',
+            backgroundColor: 'color-mix(in srgb, var(--nav-surface) 90%, white 10%)',
+          }
+        }}
       >
-        <span className="login-button-text">Login with Google</span>
-      </Button>
+        <Button
+          leftSection={<IconBrandGoogle size={16} />}
+          onClick={() => handleSocialLogin('google')}
+          variant="light"
+          color="red"
+          className="google-login-button"
+          loading={isLoading}
+        >
+          <span className="login-button-text">Login with Google</span>
+        </Button>
+      </Tooltip>
     </div>
   );
 };

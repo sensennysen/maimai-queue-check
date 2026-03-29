@@ -6,6 +6,13 @@
   transform: scale(1.1);
 }
 
+.login-button-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+
 .google-login-button {
   width: 100%;
 }

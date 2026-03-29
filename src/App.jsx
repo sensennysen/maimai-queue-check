@@ -20,6 +20,8 @@ import GlobalNavbar from './components/layout/GlobalNavbar';
 import BranchSelector from './components/layout/BranchSelector';
 import ErrorBoundary from './components/layout/ErrorBoundary';
 import './App.css';
+import ConsentBanner from './components/legal/ConsentBanner';
+import { useAuth } from './hooks/useAuth';
 
 // Lazy load pages
 const AdminPage = lazy(() => import('./pages/AdminPage'));
@@ -34,6 +36,8 @@ const ProfileBest50Page = lazy(() => import('./pages/ProfileBest50Page'));
 const SongDiscussionPage = lazy(() => import('./pages/SongDiscussionPage'));
 const SharedPlaylistsPage = lazy(() => import('./features/playlists/SharedPlaylistsPage'));
 const FeedPage = lazy(() => import('./pages/FeedPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
 
 // The main application content (Queue check, Login, etc.)
 function MainApp() {
@@ -54,6 +58,7 @@ function MainApp() {
 // Mantine must wrap ErrorBoundary so the boundary fallback (Mantine components) still has a provider.
 function MantineAppShell() {
   const { isDark, currentTheme } = useTheme();
+  const { user } = useAuth();
 
   const dynamicTheme = useMemo(() => {
     const selectedPalette = themes[currentTheme] || themes.circle;
@@ -69,6 +74,10 @@ function MantineAppShell() {
       },
     });
   }, [currentTheme]);
+
+  // Check for per-user analytics opt-out
+  const analyticsKey = user ? `smf_analytics_opt_out_${user.id}` : 'smf_analytics_opt_out_guest';
+  const isOptedOut = localStorage.getItem(analyticsKey) === 'true';
 
   return (
     <MantineProvider theme={dynamicTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
@@ -92,6 +101,8 @@ function MantineAppShell() {
             <Route path="/shared-playlists" element={<ProtectedRoute><SharedPlaylistsPage /></ProtectedRoute>} />
             <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsOfServicePage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/audit-logs" element={<AuditLogsPage />} />
             <Route path="/p/:slug" element={<PublicProfilePage />} />
@@ -101,7 +112,8 @@ function MantineAppShell() {
           </Routes>
         </Suspense>
         <Footer />
-        <Analytics />
+        <ConsentBanner />
+        {!isOptedOut && <Analytics />}
       </ErrorBoundary>
     </MantineProvider>
   );

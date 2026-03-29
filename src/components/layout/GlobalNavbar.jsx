@@ -101,7 +101,7 @@ export default function GlobalNavbar() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery]);
+  }, [debouncedQuery, isFocused]);
 
   const songSuggestions = useMemo(() => {
     if (!debouncedQuery || debouncedQuery.length < 2) return [];
