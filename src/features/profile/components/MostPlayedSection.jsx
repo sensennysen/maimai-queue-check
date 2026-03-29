@@ -1,155 +1,313 @@
-import { Paper, Group, Title, Box, Image, Text } from '@mantine/core';
-import { IconStar } from '@tabler/icons-react';
+import { useState, useRef } from 'react';
+import { Paper, Group, Title, Box, Image, Text, ActionIcon } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
+import { IconStar, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { DIFFICULTY_COLORS, BASE_JACKET_URL } from '../../../config/maimai-constants';
 
 /**
- * MostPlayedSection component
+ * MostPlayedSection — ranked table layout with carousel-style pagination, swipe support, and slide animation
  */
-export function MostPlayedSection({ 
-  profile, 
-  privacy, 
-  isOwner, 
-  songMapByTitle, 
-  scrollRef, 
-  isDragging, 
-  onSongClick 
+export function MostPlayedSection({
+  profile,
+  privacy,
+  isOwner,
+  songMapByTitle,
+  onSongClick
 }) {
   const songs = profile?.maimai_best_scores?.most_played;
+  const [currentPage, setCurrentPage] = useState(0);
+  const [direction, setDirection] = useState('next'); // 'next' or 'prev'
+  const itemsPerPage = 5;
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  
+  // Swipe handling refs
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
+  const minSwipeDistance = 50;
+
   if (!songs || songs.length === 0) return null;
+
+  const totalPages = Math.ceil(songs.length / itemsPerPage);
+
+  // Paginated songs for current view
+  const visibleSongs = songs.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+
+  const handleNext = () => {
+    if (currentPage < totalPages - 1) {
+      setDirection('next');
+      setCurrentPage(p => p + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentPage > 0) {
+      setDirection('prev');
+      setCurrentPage(p => p - 1);
+    }
+  };
+
+  // Swipe logic
+  const onTouchStart = (e) => {
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchMove = (e) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    
+    const distance = touchStartX.current - touchEndX.current;
+    if (Math.abs(distance) < minSwipeDistance) return;
+
+    if (distance > 0) handleNext(); // swipe left -> next
+    else handlePrev(); // swipe right -> prev
+  };
 
   return (
     <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-400">
-      <Group gap="xs" mb="md">
-        <IconStar size={24} style={{ color: 'var(--mantine-color-pink-5)' }} />
-        <Title order={2}>Most Played Songs</Title>
-      </Group>
-      <div
-        className="hide-scrollbar"
-        ref={scrollRef}
-        style={{
-          overflowX: 'auto',
-          display: 'flex',
-          gap: '12px',
-          paddingBottom: '12px',
-          paddingTop: '8px',
-          cursor: 'grab'
-        }}
-      >
-        {songs.map((song, index) => {
-          const matchedSong = songMapByTitle?.get(song.title);
-          const canViewDetails = isOwner || privacy.show_most_played_details === true;
+      {/* Animation keyframes */}
+      <style>
+        {`
+          @keyframes slideInFromRight {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+          @keyframes slideInFromLeft {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+          .most-played-slide-next {
+            animation: slideInFromRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+          .most-played-slide-prev {
+            animation: slideInFromLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+        `}
+      </style>
 
-          return (
-            <Paper
-              key={index}
-              p={0}
-              radius="lg"
-              className="hologram-card favorite-song-card"
+      <Group justify="space-between" mb="md" align="center">
+        <Group gap="xs">
+          <IconStar size={22} style={{ color: 'var(--theme-primary)' }} />
+          <Title order={2}>Most Played Songs</Title>
+        </Group>
+
+        {totalPages > 1 && !isMobile && (
+          <Group gap={6}>
+            <ActionIcon
+              variant="light"
+              color="primary"
+              radius="xl"
+              onClick={handlePrev}
+              disabled={currentPage === 0}
+              size="sm"
               style={{
-                minWidth: 160,
-                width: 160,
-                flexShrink: 0,
-                height: 160,
-                overflow: 'hidden',
-                position: 'relative',
-                cursor: canViewDetails ? 'pointer' : 'default',
-                transition: 'transform 0.1s ease, box-shadow 0.2s ease',
-                border: `2px solid ${DIFFICULTY_COLORS[song.difficulty] || 'transparent'}`,
-                contentVisibility: 'auto',
-                containIntrinsicSize: 'auto 160px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 12px 24px -8px rgba(0, 0, 0, 0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '';
-              }}
-              onClick={() => {
-                if (!isDragging && canViewDetails) {
-                  onSongClick(song, matchedSong);
-                }
+                opacity: currentPage === 0 ? 0.3 : 1,
+                transition: 'all 0.2s ease'
               }}
             >
-              <Box style={{ position: 'relative', width: '100%', height: '100%' }}>
-                {/* Difficulty Badge */}
-                {song.difficulty && (
-                  <Box
-                    style={{
-                      position: 'absolute',
-                      top: 6,
-                      right: 6,
-                      zIndex: 10,
-                      background: DIFFICULTY_COLORS[song.difficulty] || 'gray',
-                      color: 'white',
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      fontSize: '9px',
-                      fontWeight: 900,
-                      textTransform: 'uppercase',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                    }}
-                  >
-                    {song.difficulty}
-                  </Box>
-                )}
+              <IconChevronLeft size={16} />
+            </ActionIcon>
+            <ActionIcon
+              variant="light"
+              color="primary"
+              radius="xl"
+              onClick={handleNext}
+              disabled={currentPage === totalPages - 1}
+              size="sm"
+              style={{
+                opacity: currentPage === totalPages - 1 ? 0.3 : 1,
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <IconChevronRight size={16} />
+            </ActionIcon>
+          </Group>
+        )}
+      </Group>
 
+      {/* Table wrapping Box handles touch events and page transition animation */}
+      <Box
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        key={currentPage} // Triggers animation on page change
+        className={direction === 'next' ? 'most-played-slide-next' : 'most-played-slide-prev'}
+        style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: 0, 
+          minHeight: 52 * 5,
+          touchAction: 'pan-y'
+        }}
+      >
+        {visibleSongs.map((song, localIndex) => {
+          const globalIndex = currentPage * itemsPerPage + localIndex;
+          const matchedSong = songMapByTitle?.get(song.title);
+          const canViewDetails = isOwner || privacy.show_most_played_details === true;
+          const diffColor = DIFFICULTY_COLORS[song.difficulty];
+          const isEven = localIndex % 2 === 0;
+
+          return (
+            <Box
+              key={globalIndex}
+              onClick={() => canViewDetails && onSongClick(song, matchedSong)}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '28px 44px 1fr auto',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '8px 6px',
+                borderRadius: 10,
+                cursor: canViewDetails ? 'pointer' : 'default',
+                backgroundColor: isEven
+                  ? 'transparent'
+                  : 'color-mix(in srgb, var(--theme-primary) 4%, transparent)',
+                transition: 'background-color 0.15s ease, transform 0.15s ease',
+              }}
+              onMouseEnter={e => {
+                if (!canViewDetails || isMobile) return;
+                e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-primary) 8%, transparent)';
+                e.currentTarget.style.transform = 'translateX(2px)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = isEven
+                  ? 'transparent'
+                  : 'color-mix(in srgb, var(--theme-primary) 4%, transparent)';
+                e.currentTarget.style.transform = 'translateX(0)';
+              }}
+            >
+              {/* Rank number */}
+              <Text
+                size="xs"
+                fw={globalIndex < 3 ? 900 : 600}
+                ta="center"
+                style={{
+                  color: globalIndex === 0
+                    ? '#FFB300'
+                    : globalIndex === 1
+                      ? '#A8A8A8'
+                      : globalIndex === 2
+                        ? '#B87333'
+                        : 'var(--theme-text-muted)',
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: globalIndex < 3 ? '13px' : '11px',
+                  lineHeight: 1,
+                }}
+              >
+                {globalIndex + 1}
+              </Text>
+
+              {/* Album art thumbnail */}
+              <Box
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                  background: 'var(--theme-surface)'
+                }}
+              >
                 <Image
                   src={matchedSong?.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
                   alt={song.title}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover'
-                  }}
-                  fallbackSrc="https://placehold.co/160x160?text=No+Image"
+                  fit="cover"
+                  fallbackSrc="https://placehold.co/44x44?text=?"
+                  style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
                 />
+              </Box>
 
-                {/* Dark Overlay */}
-                <Box
+              {/* Title + difficulty */}
+              <Box style={{ minWidth: 0 }}>
+                <Text
+                  size="sm"
+                  fw={700}
+                  lineClamp={1}
                   style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%)',
-                    zIndex: 1
-                  }}
-                />
-
-                {/* Content */}
-                <Box
-                  p="xs"
-                  style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    zIndex: 5
+                    fontFamily: 'var(--font-heading)',
+                    color: 'var(--theme-text-primary)',
+                    marginBottom: 2,
+                    fontSize: '0.85rem'
                   }}
                 >
-                  <Text size="xs" c="white" fw={700} lineClamp={1} mb={2} style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                    {song.title}
-                  </Text>
-                  <Group gap={4} align="baseline">
-                    <Text size="lg" fw={900} c="white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)', lineHeight: 1 }}>
-                      {song.play_count}
-                    </Text>
-                    <Text size="xs" fw={700} c="white" style={{ opacity: 0.8, textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                      plays
-                    </Text>
-                  </Group>
-                </Box>
+                  {song.title}
+                </Text>
+                <Group gap={6} align="center" wrap="nowrap">
+                  {/* Difficulty pill */}
+                  {song.difficulty && (
+                    <Box
+                      style={{
+                        background: diffColor || 'rgba(150,150,150,0.5)',
+                        color: 'white',
+                        padding: '1px 6px',
+                        borderRadius: 6,
+                        fontSize: '8px',
+                        fontWeight: 900,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        flexShrink: 0,
+                        lineHeight: '13px',
+                      }}
+                    >
+                      {song.difficulty}
+                    </Box>
+                  )}
+                </Group>
               </Box>
-            </Paper>
+
+              {/* Play count */}
+              <Box style={{ textAlign: 'right', flexShrink: 0 }}>
+                <Text
+                  fw={900}
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '15px',
+                    lineHeight: 1,
+                    color: 'var(--theme-primary)',
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  {song.play_count}
+                </Text>
+                <Text
+                  size="9px"
+                  style={{ color: 'var(--theme-text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}
+                >
+                  plays
+                </Text>
+              </Box>
+            </Box>
           );
         })}
-      </div>
+      </Box>
+
+      {/* Dots Indicator */}
+      {totalPages > 1 && (
+        <Group justify="center" gap={6} mt="md">
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <Box
+              key={i}
+              onClick={() => {
+                setDirection(i > currentPage ? 'next' : 'prev');
+                setCurrentPage(i);
+              }}
+              style={{
+                width: i === currentPage ? 18 : 6,
+                height: 6,
+                borderRadius: 999,
+                background: i === currentPage
+                  ? 'var(--theme-primary)'
+                  : 'color-mix(in srgb, var(--theme-primary) 20%, transparent)',
+                cursor: 'pointer',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}
+            />
+          ))}
+        </Group>
+      )}
     </Paper>
   );
 }
