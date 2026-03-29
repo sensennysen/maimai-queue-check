@@ -30,6 +30,7 @@ const SongsPage = lazy(() => import('./pages/SongsPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 const SearchPage = lazy(() => import('./pages/SearchPage'));
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
+const ProfileBest50Page = lazy(() => import('./pages/ProfileBest50Page'));
 const SongDiscussionPage = lazy(() => import('./pages/SongDiscussionPage'));
 const SharedPlaylistsPage = lazy(() => import('./features/playlists/SharedPlaylistsPage'));
 const FeedPage = lazy(() => import('./pages/FeedPage'));
@@ -94,6 +95,7 @@ function MantineAppShell() {
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/audit-logs" element={<AuditLogsPage />} />
             <Route path="/p/:slug" element={<PublicProfilePage />} />
+            <Route path="/p/:slug/best50" element={<ProfileBest50Page />} />
             <Route path="/" element={<MainApp />} />
             <Route path="*" element={<MainApp />} />
           </Routes>

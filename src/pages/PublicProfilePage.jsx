@@ -29,7 +29,8 @@ import { useMouseDragScroll } from '../hooks/useMouseDragScroll';
 import { usePublicProfile } from '../features/profile/hooks/usePublicProfile';
 import { ProfileHeaderCard } from '../features/profile/components/ProfileHeaderCard';
 import { MostPlayedSection } from '../features/profile/components/MostPlayedSection';
-import { Best50Section } from '../features/profile/components/Best50Section';
+import { Best50PreviewCard } from '../features/profile/components/Best50PreviewCard';
+import './PublicProfilePage.css';
 
 const PublicProfilePage = () => {
   const { slug } = useParams();
@@ -159,9 +160,17 @@ const PublicProfilePage = () => {
     !profile.maimai_best_scores.best_new || !profile.maimai_best_scores.best_old
   );
 
+  const hasBest50 = !!(profile?.maimai_best_scores) && (privacy.show_best_50 || isOwner);
+  const hasMostPlayed = (privacy.show_most_played !== false || isOwner);
+  const hasFavorites = (privacy.show_favorite_songs || isOwner);
+  const hasPlaylists = (privacy.show_playlists || isOwner);
+  const hasRecentPlays = (privacy.show_recent_plays !== false || isOwner);
+  const hasSidebarContent = hasBest50 || hasMostPlayed || hasRecentPlays;
+
   return (
     <Container size="xl" py="xl">
       <Stack gap="lg">
+        {/* View-as-Public alert banner */}
         {viewAsPublic && isRealOwner && (
           <Alert icon={<IconLogin size={16} />} title="Viewing as Public" color="primary" variant="light" className="animate-fade-in">
             <Group justify="space-between" align="center">
@@ -171,6 +180,7 @@ const PublicProfilePage = () => {
           </Alert>
         )}
 
+        {/* Top-right actions */}
         <Group justify="flex-end">
           {isRealOwner && !viewAsPublic && (
             <Group gap="xs">
@@ -208,6 +218,7 @@ const PublicProfilePage = () => {
           )}
         </Group>
 
+        {/* Full-width: Profile header */}
         <ProfileHeaderCard 
           profile={profile}
           privacy={privacy}
@@ -217,50 +228,87 @@ const PublicProfilePage = () => {
           onAvatarClick={() => isOwner && setIsUploadModalOpen(true)}
         />
 
+        {/* Full-width: Introduction */}
         {(privacy.show_introduction !== false || isOwner) && (
           <IntroductionCard introduction={introduction} isOwnProfile={isOwner} userId={profile.id} onUpdate={setIntroduction} />
         )}
 
-        {(privacy.show_posts !== false || isOwner) && (
-          <ProfilePostsSection userId={profile.id} currentUser={user} isOwnProfile={isOwner} />
-        )}
+        {/* Two-column layout: main content + sidebar */}
+        {hasSidebarContent ? (
+          <div className="profile-layout-grid">
+            {/* ---- Left: main content (Posts + Music Identity) ---- */}
+            <div className="profile-main">
+              {(privacy.show_posts !== false || isOwner) && (
+                <ProfilePostsSection userId={profile.id} currentUser={user} isOwnProfile={isOwner} />
+              )}
 
-        {(privacy.show_favorite_songs || isOwner) && (
-          <FavoriteSongsSection userId={profile.id} isOwnProfile={isOwner} />
-        )}
+              {/* Music identity row: shows who this person is musically */}
+              {(hasFavorites || hasPlaylists) && (
+                <div className="profile-music-row">
+                  {hasFavorites && (
+                    <FavoriteSongsSection userId={profile.id} isOwnProfile={isOwner} />
+                  )}
+                  {hasPlaylists && (
+                    <PlaylistSection userId={profile.id} isOwnProfile={isOwner} />
+                  )}
+                </div>
+              )}
+            </div>
 
-        {(privacy.show_playlists || isOwner) && (
-          <PlaylistSection userId={profile.id} isOwnProfile={isOwner} />
-        )}
+            {/* ---- Right: sidebar (performance stats) ---- */}
+            <div className="profile-sidebar">
+              {hasBest50 && (
+                <Best50PreviewCard
+                  profile={profile}
+                  privacy={privacy}
+                  isOwner={isOwner}
+                  isMalformedBest50={isMalformedBest50}
+                  onImportClick={() => setIsImportModalOpen(true)}
+                  onScoreClick={(score) => {
+                    setSelectedBest50Song(songMapByTitle?.get(score.title));
+                    setSelectedBest50Score(score);
+                  }}
+                  slug={slug}
+                />
+              )}
 
-        {(privacy.show_most_played !== false || isOwner) && (
-          <MostPlayedSection 
-            profile={profile} 
-            privacy={privacy} 
-            isOwner={isOwner} 
-            songMapByTitle={songMapByTitle} 
-            scrollRef={scrollRef} 
-            isDragging={isDragging} 
-            onSongClick={(song, matched) => setSelectedMostPlayedSong({...matched, ...song})}
-          />
-        )}
+              {hasMostPlayed && (
+                <MostPlayedSection 
+                  profile={profile} 
+                  privacy={privacy} 
+                  isOwner={isOwner} 
+                  songMapByTitle={songMapByTitle} 
+                  scrollRef={scrollRef} 
+                  isDragging={isDragging} 
+                  onSongClick={(song, matched) => setSelectedMostPlayedSong({...matched, ...song})}
+                />
+              )}
 
-        {(privacy.show_best_50 || isOwner) && (
-          <Best50Section 
-            profile={profile} 
-            privacy={privacy} 
-            isOwner={isOwner} 
-            isMalformedBest50={isMalformedBest50} 
-            onImportClick={() => setIsImportModalOpen(true)}
-            onScoreClick={(score) => {
-              setSelectedBest50Song(songMapByTitle?.get(score.title));
-              setSelectedBest50Score(score);
-            }}
-          />
-        )}
-
-        {(privacy.show_recent_plays !== false || isOwner) && (
-          <RecentPlaysSection userId={profile.id} isOwnProfile={isOwner} />
+              {hasRecentPlays && (
+                <RecentPlaysSection userId={profile.id} isOwnProfile={isOwner} />
+              )}
+            </div>
+          </div>
+        ) : (
+          /* No sidebar content: single column posts + music */
+          <Stack gap="lg">
+            {(privacy.show_posts !== false || isOwner) && (
+              <ProfilePostsSection userId={profile.id} currentUser={user} isOwnProfile={isOwner} />
+            )}
+            {(hasFavorites || hasPlaylists) && (
+              <div className="profile-music-row">
+                {hasFavorites && (
+                  <FavoriteSongsSection userId={profile.id} isOwnProfile={isOwner} />
+                )}
+                {hasPlaylists && (
+                  <PlaylistSection userId={profile.id} isOwnProfile={isOwner} />
+                )}
+              </div>
+            )}
+            {(privacy.show_recent_plays !== false || isOwner) && (
+              <RecentPlaysSection userId={profile.id} isOwnProfile={isOwner} />
+            )}
+          </Stack>
         )}
       </Stack>
 
