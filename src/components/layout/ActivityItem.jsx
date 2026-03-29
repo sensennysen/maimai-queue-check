@@ -82,17 +82,17 @@ export function ActivityItem({ item, onMarkRead, onNavigate, isFollowingActor, o
           {actorName.charAt(0).toUpperCase()}
         </Avatar>
         <Stack gap={0} style={{ flex: 1 }}>
-          <Text size="xs" lineClamp={2}>
+          <Text size="sm" lineClamp={2}>
             {config.message(actorName)}
           </Text>
           <Group gap="xs" mt={2}>
-            <Text size="xs" c="dimmed">
+            <Text size="sm" c="dimmed">
               {getRelativeTime(item.created_at)}
             </Text>
             {item.type === 'new_follower' && !isFollowingActor && (
               <Button
                 variant="subtle"
-                size="compact-xs"
+                size="compact-sm"
                 color="blue"
                 loading={followLoading}
                 onClick={(e) => { e.stopPropagation(); onFollowBack(item.actor_id); }}
@@ -101,7 +101,7 @@ export function ActivityItem({ item, onMarkRead, onNavigate, isFollowingActor, o
               </Button>
             )}
             {item.type === 'new_follower' && isFollowingActor && (
-              <Badge size="xs" variant="light" color="gray">Following</Badge>
+              <Badge size="sm" variant="light" color="gray">Following</Badge>
             )}
           </Group>
         </Stack>

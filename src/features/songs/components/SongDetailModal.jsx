@@ -103,34 +103,34 @@ function SongDetailModal({ song, opened, onClose }) {
             </Tooltip>
 
             <Stack gap={2}>
-              <Text size="xs" c="secondary" fw={700} tt="uppercase">Artist</Text>
-              <Text size="sm" lineClamp={2} title={song.artist}>{song.artist}</Text>
+              <Text size="sm" c="secondary" fw={700} tt="uppercase">Artist</Text>
+              <Text size="md" lineClamp={2} title={song.artist}>{song.artist}</Text>
             </Stack>
 
             <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm" mt="xs">
               <Stack gap={2}>
-                <Text size="xs" c="secondary" fw={700} tt="uppercase">Category</Text>
-                <Text size="sm" lineClamp={1} title={CATEGORY_TRANSLATION[song.category] || song.category}>
+                <Text size="sm" c="secondary" fw={700} tt="uppercase">Category</Text>
+                <Text size="md" lineClamp={1} title={CATEGORY_TRANSLATION[song.category] || song.category}>
                   {CATEGORY_TRANSLATION[song.category] || song.category}
                 </Text>
               </Stack>
 
               <Stack gap={2}>
-                <Text size="xs" c="secondary" fw={700} tt="uppercase">Version</Text>
-                <Text size="sm" lineClamp={1} title={VERSION_MAPPING[song.version] || song.version}>
+                <Text size="sm" c="secondary" fw={700} tt="uppercase">Version</Text>
+                <Text size="md" lineClamp={1} title={VERSION_MAPPING[song.version] || song.version}>
                   {VERSION_MAPPING[song.version] || song.version}
                 </Text>
               </Stack>
 
               <Stack gap={2}>
-                <Text size="xs" c="secondary" fw={700} tt="uppercase">Type</Text>
+                <Text size="sm" c="secondary" fw={700} tt="uppercase">Type</Text>
                 <img src={typeImage} alt={song.cardType} style={{ height: 20, maxWidth: '100%', objectFit: 'contain', alignSelf: 'flex-start' }} />
               </Stack>
 
               {song.bpm && (
                 <Stack gap={2}>
-                  <Text size="xs" c="secondary" fw={700} tt="uppercase">BPM</Text>
-                  <Text size="sm">{song.bpm}</Text>
+                  <Text size="sm" c="secondary" fw={700} tt="uppercase">BPM</Text>
+                  <Text size="md">{song.bpm}</Text>
                 </Stack>
               )}
             </SimpleGrid>

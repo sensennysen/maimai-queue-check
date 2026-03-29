@@ -102,7 +102,7 @@ export function MostPlayedSection({
               radius="xl"
               onClick={handlePrev}
               disabled={currentPage === 0}
-              size="sm"
+              size="md"
               style={{
                 opacity: currentPage === 0 ? 0.3 : 1,
                 transition: 'all 0.2s ease'
@@ -181,7 +181,7 @@ export function MostPlayedSection({
             >
               {/* Rank number */}
               <Text
-                size="xs"
+                size="sm"
                 fw={globalIndex < 3 ? 900 : 600}
                 ta="center"
                 style={{
@@ -193,7 +193,7 @@ export function MostPlayedSection({
                         ? '#B87333'
                         : 'var(--theme-text-muted)',
                   fontFamily: 'var(--font-heading)',
-                  fontSize: globalIndex < 3 ? '13px' : '11px',
+                  fontSize: globalIndex < 3 ? '14px' : '12px',
                   lineHeight: 1,
                 }}
               >
@@ -223,14 +223,14 @@ export function MostPlayedSection({
               {/* Title + difficulty */}
               <Box style={{ minWidth: 0 }}>
                 <Text
-                  size="sm"
+                  size="md"
                   fw={700}
                   lineClamp={1}
                   style={{
                     fontFamily: 'var(--font-heading)',
                     color: 'var(--theme-text-primary)',
                     marginBottom: 2,
-                    fontSize: '0.85rem'
+                    fontSize: '0.9rem'
                   }}
                 >
                   {song.title}
@@ -244,12 +244,12 @@ export function MostPlayedSection({
                         color: 'white',
                         padding: '1px 6px',
                         borderRadius: 6,
-                        fontSize: '8px',
+                        fontSize: '10px',
                         fontWeight: 900,
                         textTransform: 'uppercase',
                         letterSpacing: '0.04em',
                         flexShrink: 0,
-                        lineHeight: '13px',
+                        lineHeight: '14px',
                       }}
                     >
                       {song.difficulty}
@@ -273,7 +273,7 @@ export function MostPlayedSection({
                   {song.play_count}
                 </Text>
                 <Text
-                  size="9px"
+                  size="11px"
                   style={{ color: 'var(--theme-text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}
                 >
                   plays

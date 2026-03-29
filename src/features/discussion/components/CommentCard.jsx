@@ -40,7 +40,7 @@ export function CommentCard({
             >
               {comment.user_profiles?.display_name || 'Unknown User'}
             </Text>
-            <Text c="dimmed" size="xs" title={new Date(comment.created_at).toLocaleString()}>
+            <Text c="dimmed" size="sm" title={new Date(comment.created_at).toLocaleString()}>
               {getRelativeTimeCb(comment.created_at)}
             </Text>
           </Stack>

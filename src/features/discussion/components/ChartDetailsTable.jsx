@@ -76,8 +76,8 @@ export function ChartDetailsTable({ currentSheets, isMobile }) {
                     <Table.Td fw={700}>{displaySheet.level}</Table.Td>
                     <Table.Td>{displaySheet.internalLevel || displaySheet.internalLevelValue || '-'}</Table.Td>
                     <Table.Td>
-                      <Text size="xs" truncate maw={150} title={displaySheet.noteDesigner}>
-                        {displaySheet.noteDesigner || '-'}
+                      <Text size="sm" truncate maw={150} title={displaySheet.noteDesigner}>
+                        {displaySheet.noteDesigner}
                       </Text>
                     </Table.Td>
                     <Table.Td>{displaySheet.noteCounts?.tap ?? '-'}</Table.Td>

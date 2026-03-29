@@ -213,7 +213,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
               <Code block style={{ fontSize: '1.25rem', letterSpacing: 2 }}>{sessionToken}</Code>
               <CopyButton value={sessionToken} timeout={2000}>
                 {({ copied, copy }) => (
-                  <Button size="xs" variant="light" onClick={copy}>{copied ? 'Copied' : 'Copy'}</Button>
+                  <Button size="sm" variant="light" onClick={copy}>{copied ? 'Copied' : 'Copy'}</Button>
                 )}
               </CopyButton>
             </Group>

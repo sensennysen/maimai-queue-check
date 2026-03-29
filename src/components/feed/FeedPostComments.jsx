@@ -53,7 +53,7 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
           <Skeleton height={40} radius="md" />
         </Stack>
       ) : comments.length === 0 ? (
-        <Text size="xs" c="dimmed" ta="center" py={4}>
+        <Text size="sm" c="dimmed" ta="center" py={4}>
           No comments yet. Be the first!
         </Text>
       ) : (
@@ -90,7 +90,7 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
               disabled={submitting}
               style={{ flex: 1 }}
               radius="md"
-              styles={{ input: { fontSize: '0.8rem' } }}
+              styles={{ input: { fontSize: '0.9rem' } }}
             />
             <ActionIcon
               variant="filled"
@@ -101,7 +101,7 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
               disabled={!newComment.trim()}
               style={{ flexShrink: 0 }}
             >
-              <IconSend size={14} />
+              <IconSend size={16} />
             </ActionIcon>
           </Group>
         </>

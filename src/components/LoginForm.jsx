@@ -111,7 +111,7 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
           const branch = activeBranches.find(b => b.id === branchId);
           if (!branch) return null;
           return (
-            <Badge key={branchId} size="xs" variant="light" color="blue">
+            <Badge key={branchId} size="sm" variant="light" color="blue">
               {branch.acronym || branch.short_name}
             </Badge>
           );
@@ -151,7 +151,7 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
                 <Text size="sm" fw={500}>
                   {userRoles?.display_name || user.user_metadata?.full_name || 'User'}
                 </Text>
-                <Text size="xs" c="secondary">
+                <Text size="sm" c="secondary">
                   {user.email}
                 </Text>
                 {renderPreferredBranches()}

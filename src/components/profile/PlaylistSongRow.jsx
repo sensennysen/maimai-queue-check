@@ -23,9 +23,9 @@ export function PlaylistSongRow({ song, index, totalSongs, moveSong, handleRemov
       <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
         <Text size="sm" fw={700} truncate>{song.title}</Text>
         <Group gap={4}>
-          <Text size="xs" c="dimmed" truncate style={{ flexShrink: 1 }}>{song.artist}</Text>
+          <Text size="sm" c="dimmed" truncate style={{ flexShrink: 1 }}>{song.artist}</Text>
           {song.level && (
-            <Badge size="xs" color={DIFFICULTY_COLORS[song.level] || 'gray'} variant="filled" style={{ textTransform: 'none' }}>
+            <Badge size="sm" color={DIFFICULTY_COLORS[song.level] || 'gray'} variant="filled" style={{ textTransform: 'none' }}>
               {song.level}
             </Badge>
           )}

@@ -36,7 +36,7 @@ function LocationHelpModal({ opened, onClose }) {
             <Accordion.Control icon={<IconBrandChrome size={20} />}>
               <Group gap="xs">
                 <Text fw={500}>Chrome</Text>
-                <Badge size="xs" variant="light"><IconDeviceDesktop size={12} /> Desktop</Badge>
+                <Badge size="sm" variant="light"><IconDeviceDesktop size={14} /> Desktop</Badge>
               </Group>
             </Accordion.Control>
             <Accordion.Panel>
@@ -54,7 +54,7 @@ function LocationHelpModal({ opened, onClose }) {
             <Accordion.Control icon={<IconBrandChrome size={20} />}>
               <Group gap="xs">
                 <Text fw={500}>Chrome</Text>
-                <Badge size="xs" variant="light"><IconDeviceMobile size={12} /> Mobile</Badge>
+                <Badge size="sm" variant="light"><IconDeviceMobile size={14} /> Mobile</Badge>
               </Group>
             </Accordion.Control>
             <Accordion.Panel>
@@ -72,7 +72,7 @@ function LocationHelpModal({ opened, onClose }) {
             <Accordion.Control icon={<IconBrandFirefox size={20} />}>
               <Group gap="xs">
                 <Text fw={500}>Firefox</Text>
-                <Badge size="xs" variant="light"><IconDeviceDesktop size={12} /> Desktop</Badge>
+                <Badge size="sm" variant="light"><IconDeviceDesktop size={14} /> Desktop</Badge>
               </Group>
             </Accordion.Control>
             <Accordion.Panel>
@@ -92,11 +92,11 @@ function LocationHelpModal({ opened, onClose }) {
             <Accordion.Control icon={<IconBrandEdge size={20} />}>
               <Group gap="xs">
                 <Text fw={500}>Microsoft Edge</Text>
-                <Badge size="xs" variant="light"><IconDeviceDesktop size={12} /> Desktop</Badge>
+                <Badge size="sm" variant="light"><IconDeviceDesktop size={14} /> Desktop</Badge>
               </Group>
             </Accordion.Control>
             <Accordion.Panel>
-              <List size="sm" spacing="xs" type="ordered">
+              <List size="sm" spacing="sm" type="ordered">
                 <List.Item>Click the <strong>lock icon</strong> in the address bar</List.Item>
                 <List.Item>Click <strong>"Permissions for this site"</strong></List.Item>
                 <List.Item>Find <strong>"Location"</strong> and change to "Allow"</List.Item>
@@ -108,14 +108,14 @@ function LocationHelpModal({ opened, onClose }) {
           {/* Safari */}
           <Accordion.Item value="safari">
             <Accordion.Control icon={<IconBrandSafari size={20} />}>
-              <Group gap="xs">
+              <Group gap="sm">
                 <Text fw={500}>Safari</Text>
-                <Badge size="xs" variant="light"><IconDeviceDesktop size={12} /> Mac / <IconDeviceMobile size={12} /> iOS</Badge>
+                <Badge size="sm" variant="light"><IconDeviceDesktop size={14} /> Mac / <IconDeviceMobile size={14} /> iOS</Badge>
               </Group>
             </Accordion.Control>
             <Accordion.Panel>
-              <Text size="sm" fw={500} mb="xs">On Mac:</Text>
-              <List size="sm" spacing="xs" type="ordered" mb="md">
+              <Text size="sm" fw={500} mb="sm">On Mac:</Text>
+              <List size="sm" spacing="sm" type="ordered" mb="md">
                 <List.Item>Go to <strong>Safari → Settings → Websites</strong></List.Item>
                 <List.Item>Click <strong>"Location"</strong> in the sidebar</List.Item>
                 <List.Item>Find this website and change to "Allow"</List.Item>

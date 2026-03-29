@@ -82,7 +82,7 @@ const QueueRulesModal = ({ opened, onClose, branchId }) => {
               />
             </TypographyStylesProvider>
             {rules.updated_at && (
-              <Text size="xs" c="dimmed" mt="xl" ta="right">
+              <Text size="sm" c="dimmed" mt="xl" ta="right">
                 Last updated: {new Date(rules.updated_at).toLocaleDateString()}
               </Text>
             )}

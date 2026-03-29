@@ -13,12 +13,12 @@ export function ProfileResultCard({ profile, onNavigate }) {
             {(profile.display_name || profile.slug || '?').slice(0, 2).toUpperCase()}
           </Avatar>
           <Stack gap={2} style={{ minWidth: 0 }}>
-            <Text fw={600} lineClamp={1}>{profile.display_name || profile.slug || 'Unnamed'}</Text>
-            <Text size="xs" c="dimmed" lineClamp={1}>@{profile.slug || 'no-slug'}</Text>
+            <Text size="sm" c="md" lineClamp={1}>{profile.display_name || 'Anonymous'}</Text>
+            <Text size="sm" c="dimmed" lineClamp={1}>@{profile.slug || 'no-slug'}</Text>
           </Stack>
         </Group>
         <Button
-          size="xs"
+          size="sm"
           variant="light"
           onClick={() => onNavigate(profile.slug)}
           disabled={!profile.slug}

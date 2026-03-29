@@ -65,14 +65,14 @@ const NotificationCenter = () => {
             <Tabs.Tab
               value="activity"
               leftSection={<IconHeart size={14} />}
-              rightSection={unreadActivity > 0 ? <Badge size="xs" color="red" circle>{unreadActivity > 9 ? '9+' : unreadActivity}</Badge> : null}
+              rightSection={unreadActivity > 0 ? <Badge size="sm" color="red" circle>{unreadActivity > 9 ? '9+' : unreadActivity}</Badge> : null}
             >
               Activity
             </Tabs.Tab>
             <Tabs.Tab
               value="system"
               leftSection={<IconInfoCircle size={14} />}
-              rightSection={unreadSystem > 0 ? <Badge size="xs" color="blue" circle>{unreadSystem}</Badge> : null}
+              rightSection={unreadSystem > 0 ? <Badge size="sm" color="blue" circle>{unreadSystem}</Badge> : null}
             >
               System
             </Tabs.Tab>
@@ -82,9 +82,9 @@ const NotificationCenter = () => {
           <Tabs.Panel value="activity">
             <Stack gap={0} p="sm">
               <Group justify="space-between" mb="xs">
-                <Text size="xs" fw={600} c="dimmed">Recent Activity</Text>
+                <Text size="sm" fw={600} c="dimmed">Recent Activity</Text>
                 {unreadActivity > 0 && (
-                  <Button variant="subtle" size="xs" onClick={handleMarkAllActivityRead}>
+                  <Button variant="subtle" size="sm" onClick={handleMarkAllActivityRead}>
                     Mark all read
                   </Button>
                 )}
@@ -120,7 +120,7 @@ const NotificationCenter = () => {
           {/* ── System Tab ── */}
           <Tabs.Panel value="system">
             <Stack gap={0} p="sm">
-              <Text size="xs" fw={600} c="dimmed" mb="xs">System Notifications</Text>
+              <Text size="sm" fw={600} c="dimmed" mb="xs">System Notifications</Text>
               <ScrollArea.Autosize mah="55vh" type="scroll">
                 {systemItems.length === 0 ? (
                   <Text size="sm" c="dimmed" ta="center" py="lg">
@@ -160,21 +160,21 @@ const NotificationCenter = () => {
                           <Text size="sm" fw={500}>
                             {item.type === 'request' ? 'Access Request' : item.data.title}
                           </Text>
-                          <Text size="xs" c="secondary" style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
+                          <Text size="sm" c="secondary" style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
                             {item.type === 'request' ? (
                               `${item.data.user_roles?.email || 'Unknown User'} requested access to ${item.data.allowed_places?.short_name || 'Branch'}`
                             ) : (
                               item.data.message
                             )}
                           </Text>
-                          <Text size="xs" c="secondary" mt={4}>
+                          <Text size="sm" c="secondary" mt={4}>
                             {item.date.toLocaleString()}
                           </Text>
                         </div>
 
                         {item.type === 'general' && !item.read && (
                           <ActionIcon
-                            size="sm"
+                            size="md"
                             variant="subtle"
                             color="blue"
                             onClick={(e) => handleMarkGeneralRead(e, item.data)}

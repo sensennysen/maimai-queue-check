@@ -132,7 +132,7 @@ export const RecentPlayItem = memo(({ play, isOpened, onToggle, index, isMobile,
               <Box style={{ flex: 1, width: '100%', overflowX: 'auto' }}>
                 <Text size="sm" fw={700} mb={8} ta={isMobile ? 'center' : 'left'}>Notes Breakdown</Text>
                 <Table
-                  size="xs"
+                  size="sm"
                   verticalSpacing={4}
                   horizontalSpacing={4}
                   style={{

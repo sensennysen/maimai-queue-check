@@ -130,7 +130,7 @@ const ProfileBest50Page = () => {
             </Group>
             {scores?.total_rating && (
               <Stack gap={0} align="flex-end" style={{ flexShrink: 0 }}>
-                <Text size="xs" fw={700} c="dimmed" tt="uppercase" style={{ letterSpacing: 1 }}>Rating</Text>
+                <Text size="sm" fw={700} c="dimmed" tt="uppercase" style={{ letterSpacing: 1 }}>Rating</Text>
                 <Text size="2rem" fw={900} c="primary" style={{ lineHeight: 1 }}>
                   {scores.total_rating}
                 </Text>

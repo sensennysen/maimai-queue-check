@@ -30,7 +30,7 @@ export function Best50Section({
             <IconTrophy size={24} style={{ color: 'var(--mantine-color-yellow-6)' }} />
             <Title order={2}>Best 50</Title>
             {isOwner && privacy.show_play_count === false && (
-              <Badge variant="subtle" color="gray" size="xs">Hidden to public</Badge>
+              <Badge variant="subtle" color="gray" size="sm">Hidden to public</Badge>
             )}
           </Group>
           {scores.total_play_count && (privacy.show_play_count !== false || isOwner) && (

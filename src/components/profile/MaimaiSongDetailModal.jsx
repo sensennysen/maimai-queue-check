@@ -147,35 +147,29 @@ function MaimaiSongDetailModal({
               </Text>
             </Tooltip>
 
-            <Stack gap={2}>
-              <Text size="xs" c="dimmed" fw={700} tt="uppercase">Artist</Text>
-              <Text size="sm" lineClamp={2} title={song.artist}>{song.artist}</Text>
+            <Stack gap={0}>
+              <Text size="sm" c="dimmed" fw={700} tt="uppercase">Artist</Text>
+              <Text fw={600} lineClamp={1}>{song.artist || 'Unknown'}</Text>
             </Stack>
-
-            <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm" mt="xs">
-              <Stack gap={2}>
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Category</Text>
-                <Text size="sm" lineClamp={1} title={CATEGORY_TRANSLATION[song.category] || song.category}>
-                  {CATEGORY_TRANSLATION[song.category] || song.category}
-                </Text>
+            <SimpleGrid cols={2} spacing="md">
+              <Stack gap={0}>
+                <Text size="sm" c="dimmed" fw={700} tt="uppercase">Category</Text>
+                <Text fw={600}>{CATEGORY_TRANSLATION[song.category] || song.category || 'Unknown'}</Text>
               </Stack>
-
-              <Stack gap={2}>
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Version</Text>
-                <Text size="sm" lineClamp={1} title={VERSION_MAPPING[song.version] || song.version}>
-                  {VERSION_MAPPING[song.version] || song.version}
-                </Text>
+              <Stack gap={0}>
+                <Text size="sm" c="dimmed" fw={700} tt="uppercase">Version</Text>
+                <Text fw={600} lineClamp={1}>{VERSION_MAPPING[song.version] || song.version || 'Unknown'}</Text>
               </Stack>
-
-              <Stack gap={2}>
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Type</Text>
-                <img src={typeImage} alt={song.cardType} style={{ height: 20, maxWidth: '100%', objectFit: 'contain', alignSelf: 'flex-start' }} />
+            </SimpleGrid>
+            <SimpleGrid cols={2} spacing="md">
+              <Stack gap={0}>
+                <Text size="sm" c="dimmed" fw={700} tt="uppercase">Type</Text>
+                <Text fw={600}>{song.cardType?.toUpperCase() || 'Standard'}</Text>
               </Stack>
-
               {song.bpm && (
-                <Stack gap={2}>
-                  <Text size="xs" c="dimmed" fw={700} tt="uppercase">BPM</Text>
-                  <Text size="sm">{song.bpm}</Text>
+                <Stack gap={0}>
+                  <Text size="sm" c="dimmed" fw={700} tt="uppercase">BPM</Text>
+                  <Text fw={600}>{song.bpm}</Text>
                 </Stack>
               )}
             </SimpleGrid>
@@ -185,8 +179,8 @@ function MaimaiSongDetailModal({
                 <Group gap={8} align="center">
                   {playCount !== undefined && (
                     <Group gap={4} align="baseline">
-                      <Text size="xl" fw={900} c="primary.6" style={{ lineHeight: 1 }}>{playCount}</Text>
-                      <Text size="xs" fw={700} c="dimmed">plays</Text>
+                      <Text fw={900} size="xl" lh={1}>{playCount}</Text>
+                      <Text size="sm" fw={700} c="dimmed">plays</Text>
                     </Group>
                   )}
                   {difficulty && (
@@ -202,78 +196,46 @@ function MaimaiSongDetailModal({
               </Stack>
             )}
 
-            {effectiveBest50Score && (
+            {score && (
               <Stack gap="xs" mt="md">
-                <Divider />
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Best 50 Details</Text>
-
-                {(b50ComboTag || b50SyncTag) && (
-                  <Group gap={6} wrap="wrap">
-                    {b50ComboTag && (
-                      <Badge size="sm" variant="light" color="orange">
-                        {b50ComboTag}
-                      </Badge>
-                    )}
-                    {b50SyncTag && (
-                      <Badge size="sm" variant="light" color="cyan">
-                        {b50SyncTag}
-                      </Badge>
-                    )}
-                  </Group>
-                )}
-
-                <SimpleGrid cols={2} spacing="sm" verticalSpacing="xs">
-                  {b50Achievement !== undefined && b50Achievement !== null && (
-                    <Stack gap={2}>
-                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">Achievement</Text>
-                      <Text size="sm" fw={700}>{parseFloat(b50Achievement).toFixed(4)}%</Text>
-                    </Stack>
-                  )}
-
-                  {b50Rating !== undefined && b50Rating !== null && (
-                    <Stack gap={2}>
-                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">Rating</Text>
-                      <Text size="sm" fw={800}>{b50Rating}</Text>
-                    </Stack>
-                  )}
-
-                  {(b50DxScore !== undefined && b50DxScore !== null) && (
-                    <Stack gap={2}>
-                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">DX Score</Text>
-                      <Text size="sm" fw={700}>
-                        {b50DxScore}
-                        {b50TotalDxScore ? `/${b50TotalDxScore}` : ''}
-                      </Text>
-                    </Stack>
-                  )}
-
-                  {(b50DxStar !== undefined && b50DxStar !== null) && (
-                    <Stack gap={2}>
-                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">DX Stars</Text>
-                      <Group gap={6} align="center">
-                        <Group gap={2}>
-                          {Array.from({ length: Math.max(0, Math.min(5, Number(b50DxStar) || 0)) }).map((_, i) => (
-                            <IconStarFilled key={i} size={16} style={{ color: 'var(--mantine-color-yellow-6)' }} />
-                          ))}
-                        </Group>
+                <Box mt="xs">
+                  <Divider mb="md" label={<Text size="sm" c="dimmed" fw={700} tt="uppercase">Best 50 Details</Text>} labelPosition="center" />
+                  <SimpleGrid cols={3} spacing="sm">
+                    <div className="stat-item">
+                      <Text size="sm" c="dimmed" fw={700} tt="uppercase">Achievement</Text>
+                      <Text fw={750} size="lg">{parseFloat(score.achievement ?? score.achievement).toFixed(4)}%</Text>
+                    </div>
+                    <div className="stat-item">
+                      <Text size="sm" c="dimmed" fw={700} tt="uppercase">Rating</Text>
+                      <Text fw={750} size="lg">{score.rating}</Text>
+                    </div>
+                    <div className="stat-item">
+                      <Text size="sm" c="dimmed" fw={700} tt="uppercase">DX Score</Text>
+                      <Text fw={750} size="lg">{score.dxScore}</Text>
+                    </div>
+                  </SimpleGrid>
+                  <SimpleGrid cols={2} spacing="md" mt="sm">
+                    <div className="stat-item">
+                      <Text size="sm" c="dimmed" fw={700} tt="uppercase">DX Stars</Text>
+                      <Group gap={4}>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <IconStarFilled key={i} size={16} style={{ color: i < (score.dxStar || 0) ? 'var(--mantine-color-yellow-6)' : 'var(--mantine-color-gray-3)' }} />
+                        ))}
                       </Group>
-                    </Stack>
-                  )}
-
-                  {b50LastPlayed && (
-                    <Stack gap={2} style={{ gridColumn: '1 / -1' }}>
-                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">Last Played</Text>
-                      <Text size="sm">{b50LastPlayed}</Text>
-                    </Stack>
-                  )}
-                </SimpleGrid>
+                    </div>
+                    <div className="stat-item">
+                      <Text size="sm" c="dimmed" fw={700} tt="uppercase">Last Played</Text>
+                      <Text fw={600}>{score.lastPlayed ?? score.last_played ?? 'N/A'}</Text>
+                    </div>
+                  </SimpleGrid>
+                </Box>
               </Stack>
             )}
 
             {(comment || isOwnProfile) && (
-              <Stack gap={2} mt="md">
+              <Stack gap={4} mt="md">
                 <Group justify="space-between" align="center">
-                  <Text size="xs" c="dimmed" fw={700} tt="uppercase">User Comment</Text>
+                  <Text size="sm" c="dimmed" fw={700} tt="uppercase">User Comment</Text>
                   {isOwnProfile && !isEditing && (
                     <ActionIcon variant="subtle" size="sm" onClick={() => setIsEditing(true)}>
                       <IconEdit size={14} />

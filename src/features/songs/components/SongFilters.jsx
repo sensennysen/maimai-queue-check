@@ -187,7 +187,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
             label="Use Internal Levels"
             checked={filters.showInternalLevels}
             onChange={handleToggleInternal}
-            size="xs"
+            size="sm"
           />
         </Group>
 

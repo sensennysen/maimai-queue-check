@@ -29,7 +29,7 @@ function Footer() {
           </Group>
         </Group>
 
-        <Text size="xs" c="secondary" className="footer-copyright">
+        <Text size="sm" c="secondary" className="footer-copyright">
           © {new Date().getFullYear()} Made with <IconHeart size={12} fill="var(--theme-primary)" color="var(--theme-primary)" style={{ verticalAlign: 'middle', marginBottom: 2 }} /> by Senny
         </Text>
       </Stack>

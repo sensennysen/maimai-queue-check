@@ -174,7 +174,7 @@ const PublicProfilePage = () => {
           <Alert icon={<IconLogin size={16} />} title="Viewing as Public" color="primary" variant="light" className="animate-fade-in">
             <Group justify="space-between" align="center">
               <Text size="sm">You are currently viewing your profile as a public guest.</Text>
-              <Button size="xs" variant="filled" onClick={() => setViewAsPublic(false)}>Exit Preview</Button>
+              <Button size="sm" variant="filled" onClick={() => setViewAsPublic(false)}>Exit Preview</Button>
             </Group>
           </Alert>
         )}

@@ -17,7 +17,7 @@ export function PanelHeader({ title, subtitle, onRefresh, loading, rightSection,
     <Group justify="space-between" align="center" mb="sm" className={className}>
       <Stack gap={2}>
         <Title order={3} className="community-panel-title">{title}</Title>
-        {subtitle && <Text size="xs" c="dimmed">{subtitle}</Text>}
+        {subtitle && <Text size="sm" c="dimmed">{subtitle}</Text>}
       </Stack>
       <Group gap="xs">
         {rightSection}

@@ -199,10 +199,10 @@ export function PlaylistPostCard({
                 {post.author?.display_name || 'Anonymous'}
               </Text>
               <Group gap={4} align="center">
-                <Text size="xs" c="dimmed">
+                <Text size="sm" c="dimmed">
                   {getRelativeTime(post.created_at)}
                 </Text>
-                <Text size="xs" c="dimmed">&middot;</Text>
+                <Text size="sm" c="dimmed">&middot;</Text>
                 <IconWorld size={14} style={{ color: 'var(--mantine-color-dimmed)' }} title="Public" />
               </Group>
             </Stack>
@@ -256,7 +256,7 @@ export function PlaylistPostCard({
             <Group gap="xs" justify="flex-end">
               <Button
                 variant="subtle"
-                size="xs"
+                size="sm"
                 onClick={onCancelEdit}
                 disabled={savingEdit}
                 leftSection={<IconX size={14} />}
@@ -264,7 +264,7 @@ export function PlaylistPostCard({
                 Cancel
               </Button>
               <Button
-                size="xs"
+                size="sm"
                 onClick={onSaveEdit}
                 loading={savingEdit}
                 leftSection={<IconCheck size={14} />}
@@ -297,7 +297,7 @@ export function PlaylistPostCard({
               <Text fw={700} size="sm" lineClamp={2} style={{ lineHeight: 1.3 }}>
                 {post.playlist.name}
               </Text>
-              <Text size="xs" c="dimmed" fw={500} mt={2}>
+              <Text size="sm" c="dimmed" fw={500} mt={2}>
                 {hydratedSongs.length} song{hydratedSongs.length !== 1 ? 's' : ''}
               </Text>
             </Box>

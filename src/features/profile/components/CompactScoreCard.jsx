@@ -71,14 +71,14 @@ export const CompactScoreCard = React.memo(function CompactScoreCard({ score, on
       {/* Top Right: Rating Badge */}
       <Box pos="absolute" top={4} right={4}>
         <Badge
-          size="xs"
+          size="sm"
           variant="filled"
           color="dark"
           radius="xs"
-          h={16}
+          h={18}
           px={4}
           style={{
-            fontSize: '9px',
+            fontSize: '10px',
             fontWeight: 900,
             border: '1px solid rgba(255,255,255,0.2)',
             boxShadow: '0 2px 4px rgba(0,0,0,0.5)',
@@ -99,7 +99,7 @@ export const CompactScoreCard = React.memo(function CompactScoreCard({ score, on
       >
         <Stack gap={0}>
           <Text
-            size="9px"
+            size="11px"
             fw={900}
             c="white"
             style={{
@@ -112,7 +112,7 @@ export const CompactScoreCard = React.memo(function CompactScoreCard({ score, on
             {parseFloat(score.achievement).toFixed(4)}%
           </Text>
           <Text
-            size="12px"
+            size="14px"
             fw={900}
             c="var(--theme-primary)"
             style={{

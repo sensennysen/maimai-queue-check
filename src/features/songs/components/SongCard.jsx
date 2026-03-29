@@ -133,7 +133,7 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
             {/* Version badge */}
             {!hideTags && (
               <Badge
-                size="xs"
+                size="sm"
                 variant="filled"
                 color="dark"
                 style={{
@@ -142,7 +142,7 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
                   pointerEvents: 'auto',
                   flexShrink: 1,
                   maxWidth: '70%',
-                  fontSize: '10px'
+                  fontSize: '12px'
                 }}
               >
                 {VERSION_MAPPING[song.version] || song.version}
@@ -199,7 +199,7 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
                       minWidth: 'auto',
                       padding: '0 6px',
                       cursor: 'default',
-                      fontSize: '11px',
+                      fontSize: '12px',
                       fontFamily: 'var(--font-body)',
                       backgroundColor: diffColor,
                       color: 'white'

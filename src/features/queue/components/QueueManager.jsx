@@ -353,7 +353,7 @@ function QueueManager() {
             <Group justify="space-between" align="center">
               <Text size="sm">{locationError}</Text>
               <Button
-                size="xs"
+                size="sm"
                 variant="light"
                 onClick={() => setShowLocationHelp(true)}
               >
@@ -372,7 +372,7 @@ function QueueManager() {
           >
             <Text size="sm" mb="xs">{locationError}</Text>
             <Button
-              size="xs"
+              size="sm"
               variant="light"
               leftSection={<IconMapPin size={14} />}
               onClick={verifyLocation}
@@ -409,7 +409,7 @@ function QueueManager() {
             size="sm"
           >
             <Stack gap="md">
-              <Text size="xs" c="dimmed">Name shown in queue autocomplete (max 10 chars)</Text>
+              <Text size="sm" c="dimmed">Name shown in queue autocomplete (max 10 chars)</Text>
               <TextInput
                 placeholder="Your queue name"
                 value={queueName}

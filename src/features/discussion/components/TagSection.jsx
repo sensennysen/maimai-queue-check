@@ -83,19 +83,19 @@ export function TagSection({
                         ) : null
                       }
                     >
-                      {tagObj.tagName} <Text span size="xs" c={tagObj.hasAdded ? "var(--theme-primary-contrast)" : "dimmed"} ml={4} opacity={tagObj.hasAdded ? 0.8 : 1}>({tagObj.count})</Text>
+                      {tagObj.tagName} <Text span size="sm" c={tagObj.hasAdded ? "var(--theme-primary-contrast)" : "dimmed"} ml={4} opacity={tagObj.hasAdded ? 0.8 : 1}>({tagObj.count})</Text>
                     </Badge>
                   </HoverCard.Target>
                   <HoverCard.Dropdown>
                     <Stack gap="xs">
                       <Text size="sm" fw={700}>{tagObj.tagName}</Text>
                       {tagObj.description ? (
-                        <Text size="xs" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>{tagObj.description}</Text>
+                        <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>{tagObj.description}</Text>
                       ) : (
-                        <Text size="xs" c="dimmed" fs="italic">No description available.</Text>
+                        <Text size="sm" c="dimmed" fs="italic">No description available.</Text>
                       )}
                       <Box mt="xs">
-                        <Text size="xs" fw={500} mb={4}>Added by:</Text>
+                        <Text size="sm" fw={500} mb={4}>Added by:</Text>
                         <Avatar.Group spacing="sm">
                           {tagObj.users.slice(0, 5).map((u, i) => (
                             <Tooltip key={i} label={u?.display_name || 'Unknown'}>
@@ -110,7 +110,7 @@ export function TagSection({
                         </Avatar.Group>
                       </Box>
                       {user && !tagObj.hasAdded && (
-                        <Text size="xs" c="blue" mt="xs" fw={500}>Click badge to add this tag</Text>
+                        <Text size="sm" c="blue" mt="xs" fw={500}>Click badge to add this tag</Text>
                       )}
                     </Stack>
                   </HoverCard.Dropdown>
@@ -149,13 +149,13 @@ export function TagSection({
                 </ActionIcon>
               </Group>
               {!availableTags.find(t => t.tag_name.toLowerCase() === newTagValue.trim().toLowerCase()) && newTagValue.trim() !== '' && (
-                <Text size="xs" c="dimmed">
+                <Text size="sm" c="dimmed">
                   This is a new tag. You can add a description after clicking the plus icon.
                 </Text>
               )}
             </Stack>
           ) : (
-            <Text size="xs" c="dimmed" fs="italic" ta="center" mt="xs">
+            <Text size="sm" c="dimmed" fs="italic" ta="center" mt="xs">
               Log in to add tags
             </Text>
           )}

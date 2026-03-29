@@ -124,7 +124,7 @@ export default function SongDiscussionPage() {
           <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red">
             <Group justify="space-between" align="center">
               <Text size="sm">Failed to load discussion data. Please try again.</Text>
-              <Button size="xs" color="red" variant="light" leftSection={<IconRefresh size={14} />} onClick={loadDiscussion}>
+              <Button size="sm" color="red" variant="light" leftSection={<IconRefresh size={14} />} onClick={loadDiscussion}>
                 Retry
               </Button>
             </Group>

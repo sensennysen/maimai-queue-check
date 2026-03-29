@@ -42,11 +42,11 @@ export function ProfilePostsSection({ userId, currentUser, isOwnProfile }) {
           <Group gap="xs">
             <IconPencil size={24} style={{ color: 'var(--mantine-color-primary)' }} />
             <Title order={2}>Community Posts</Title>
-            <Text size="xs" c="dimmed" mt={4}>({posts.length})</Text>
+            <Text size="sm" c="dimmed" mt={4}>({posts.length})</Text>
           </Group>
           <Button
             variant="subtle"
-            size="xs"
+            size="sm"
             leftSection={<IconRefresh size={14} />}
             onClick={() => fetchPosts(true)}
             loading={refreshing}

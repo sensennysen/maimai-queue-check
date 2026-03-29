@@ -153,7 +153,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               maxLength={10}
               disabled={isBusy || (!locationVerified && !isSuperAdmin)}
               style={{ marginTop: '1rem' }}
-              rightSection={loading ? <Loader size="xs" /> : null}
+              rightSection={loading ? <Loader size="sm" /> : null}
               filter={({ options, search }) => {
                 const splittedSearch = search.toLowerCase().trim().split(' ');
                 return (
@@ -188,7 +188,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
                 error={errors.player2}
                 maxLength={10}
                 disabled={isBusy || (!locationVerified && !isSuperAdmin)}
-                rightSection={loading ? <Loader size="xs" /> : null}
+                rightSection={loading ? <Loader size="sm" /> : null}
                 filter={({ options, search }) => {
                   const splittedSearch = search.toLowerCase().trim().split(' ');
                   return (

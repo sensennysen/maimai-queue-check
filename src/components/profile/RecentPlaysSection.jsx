@@ -117,7 +117,7 @@ const RecentPlayRow = memo(({ play, globalIndex, onClick, isMobile, songMap }) =
             {diffLabel} {play.level}
           </Box>
           <Text
-            size="xs"
+            size="sm"
             style={{ color: 'var(--theme-text-muted)', fontSize: '10px' }}
           >
             {getRelativeTime(play.played_at)}

@@ -116,13 +116,13 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
                         >
                           {comment.user_profiles?.display_name || 'Anonymous'}
                         </Text>
-                        <Text size="xs" c="dimmed">{getRelativeTime(comment.created_at)}</Text>
+                        <Text size="sm" c="dimmed">{getRelativeTime(comment.created_at)}</Text>
                       </Group>
                       {(user?.id === comment.user_id || user?.id === ownerId) && (
                         <ActionIcon
                           variant="subtle"
                           color="red"
-                          size="xs"
+                          size="md"
                           onClick={() => handleDeleteComment(comment.id)}
                         >
                           <IconTrash size={12} />
@@ -279,7 +279,7 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
         </Stack>
       ) : (
         <Center py="sm">
-          <Text size="xs" c="dimmed" fs="italic">No comments yet. Be the first!</Text>
+          <Text size="sm" c="dimmed" fs="italic">No comments yet. Be the first!</Text>
         </Center>
       )}
 
@@ -318,7 +318,7 @@ export function PlaylistComments({ postId, ownerId, commentsEnabled }) {
           </Group>
         </>
       ) : (
-        <Text size="xs" c="dimmed" ta="center" mt="sm">Log in to leave a comment.</Text>
+        <Text size="sm" c="dimmed" ta="center" mt="sm">Log in to leave a comment.</Text>
       )}
       <VoterListModal
         opened={votersOpened}

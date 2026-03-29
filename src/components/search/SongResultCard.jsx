@@ -15,12 +15,12 @@ export function SongResultCard({ song, onSelect }) {
             <Text fw={700} lineClamp={1}>{song.title}</Text>
             <Text size="sm" c="dimmed" lineClamp={1}>{song.artist || 'Unknown artist'}</Text>
             {song.version && (
-              <Badge size="xs" variant="light">{song.version}</Badge>
+              <Badge size="sm" variant="light">{song.version}</Badge>
             )}
           </Stack>
         </Group>
         <Group gap="xs" wrap="nowrap">
-          <Button size="xs" variant="light" onClick={() => onSelect(song)}>
+          <Button size="sm" variant="light" onClick={() => onSelect(song)}>
             Song Info
           </Button>
         </Group>

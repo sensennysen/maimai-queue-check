@@ -36,7 +36,7 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
         <Stack align="center">
           <Text size="xl">❌</Text>
           <Text c="red" fw={500}>Failed to load song database.</Text>
-          <Text size="xs" c="red">Please check your connection or try again later.</Text>
+          <Text size="sm" c="red">Please check your connection or try again later.</Text>
         </Stack>
       </Center>
     );
@@ -59,7 +59,7 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
         <Stack align="center">
           <Text size="xl">🎵</Text>
           <Text c="secondary" fw={500}>No songs found matching your criteria.</Text>
-          <Text size="xs" c="secondary">Try adjusting your filters or search query.</Text>
+          <Text size="sm" c="secondary">Try adjusting your filters or search query.</Text>
         </Stack>
       </Center>
     );

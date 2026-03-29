@@ -154,7 +154,7 @@ const ReportsManager = () => {
               <Table.Tr key={report.id}>
                 <Table.Td>
                   <Text size="sm">{new Date(report.created_at).toLocaleDateString()}</Text>
-                  <Text size="xs" c="secondary">{new Date(report.created_at).toLocaleTimeString()}</Text>
+                  <Text size="sm" c="secondary">{new Date(report.created_at).toLocaleTimeString()}</Text>
                 </Table.Td>
                 <Table.Td>
                   <Badge variant="light" color={report.report_type === 'bug' ? 'red' : 'blue'}>
@@ -162,8 +162,10 @@ const ReportsManager = () => {
                   </Badge>
                 </Table.Td>
                 <Table.Td>
-                  <Text size="sm" fw={500}>{report.user_display}</Text>
-                  <Text size="xs" c="secondary">{report.user_email}</Text>
+                  <Stack gap={0}>
+                    <Text size="sm" fw={700}>Reporter</Text>
+                    <Text size="sm" c="secondary">{report.user_email}</Text>
+                  </Stack>
                 </Table.Td>
                 <Table.Td style={{ maxWidth: '300px' }}>
                   <Text size="sm" lineClamp={3} title={report.description}>
@@ -173,7 +175,7 @@ const ReportsManager = () => {
                 <Table.Td>
                   {report.attachment_path && (
                     <Button
-                      size="xs"
+                      size="sm"
                       variant="subtle"
                       leftSection={<IconPaperclip size={14} />}
                       onClick={() => handleViewAttachment(report.attachment_path)}
@@ -187,16 +189,18 @@ const ReportsManager = () => {
                   <Badge color={getStatusColor(report.status)}>{report.status}</Badge>
                 </Table.Td>
                 <Table.Td>
-                  {report.status !== 'resolved' && (
-                    <Button size="xs" color="green" variant="light" onClick={() => handleStatusChange(report, 'resolved')}>
-                      Resolve
-                    </Button>
-                  )}
-                  {report.status === 'resolved' && (
-                    <Button size="xs" color="gray" variant="light" onClick={() => handleStatusChange(report, 'open')}>
-                      Re-open
-                    </Button>
-                  )}
+                  <Group gap="xs" mt="xs">
+                    {report.status !== 'resolved' && (
+                      <Button size="sm" color="green" variant="light" onClick={() => handleStatusChange(report, 'resolved')}>
+                        Resolve
+                      </Button>
+                    )}
+                    {report.status === 'resolved' && (
+                      <Button size="sm" color="gray" variant="light" onClick={() => handleStatusChange(report, 'open')}>
+                        Reopen
+                      </Button>
+                    )}
+                  </Group>
                   <ActionIcon
                     color="red"
                     variant="subtle"

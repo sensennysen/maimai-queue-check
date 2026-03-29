@@ -165,15 +165,15 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
                 {post.author?.display_name || 'Unknown'}
               </Text>
               <Group gap={4} align="center">
-                <Text size="xs" c="dimmed" title={new Date(post.created_at).toLocaleString()}>
+                <Text size="sm" c="dimmed" title={new Date(post.created_at).toLocaleString()}>
                   {getRelativeTime(post.created_at)}
                   {post.updated_at && <> &middot; edited</>}
                 </Text>
-                <Text size="xs" c="dimmed">&middot;</Text>
+                <Text size="sm" c="dimmed">&middot;</Text>
                 {post.visibility === 'followers' ? (
-                  <IconUsers size={14} style={{ color: 'var(--mantine-color-dimmed)' }} title="Followers only" />
+                  <IconUsers size={16} style={{ color: 'var(--mantine-color-dimmed)' }} title="Followers only" />
                 ) : (
-                  <IconWorld size={14} style={{ color: 'var(--mantine-color-dimmed)' }} title="Public" />
+                  <IconWorld size={16} style={{ color: 'var(--mantine-color-dimmed)' }} title="Public" />
                 )}
               </Group>
             </Stack>
@@ -218,7 +218,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
             <Group gap="xs" justify="flex-end">
               <Button
                 variant="subtle"
-                size="xs"
+                size="sm"
                 leftSection={<IconX size={14} />}
                 onClick={() => setEditing(false)}
                 disabled={saving}
@@ -226,7 +226,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
                 Cancel
               </Button>
               <Button
-                size="xs"
+                size="sm"
                 leftSection={<IconCheck size={14} />}
                 onClick={handleSaveEdit}
                 loading={saving}
@@ -312,7 +312,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
                       </span>
                     </button>
                   )}{likes > 0 && dislikes > 0 && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '1rem', color: 'var(--mantine-color-dimmed)', fontSize: 'var(--mantine-font-size-xs)', userSelect: 'none' }} aria-hidden>·</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '1rem', color: 'var(--mantine-color-dimmed)', fontSize: 'var(--mantine-font-size-sm)', userSelect: 'none' }} aria-hidden>·</span>
                   )}{dislikes > 0 && (
                     <button
                       type="button"

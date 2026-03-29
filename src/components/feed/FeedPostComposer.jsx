@@ -156,7 +156,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
             autosize
             maxRows={6}
             radius="md"
-            styles={{ input: { fontSize: '0.9rem' } }}
+            styles={{ input: { fontSize: '1rem' } }}
             disabled={loading}
           />
 
@@ -186,14 +186,14 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
                     fit="cover" 
                   />
                   <ActionIcon 
-                    size="xs" 
+                    size="sm" 
                     color="red" 
                     variant="filled" 
                     radius="xl"
                     onClick={() => { setImageFile(null); setImagePreview(null); }}
                     style={{ position: 'absolute', top: -5, right: -5, zIndex: 1 }}
                   >
-                    <IconX size={10} />
+                    <IconX size={12} />
                   </ActionIcon>
                 </Box>
               )}
@@ -205,7 +205,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
               <Stack gap="xs">
                 <SegmentedControl
                   fullWidth
-                  size="xs"
+                  size="sm"
                   value={visibility}
                   onChange={setVisibility}
                   disabled={loading}
@@ -216,12 +216,11 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
                     type="button"
                     variant="light"
                     color="gray"
-                    size="xs"
+                    size="sm"
                     radius="md"
                     leftSection={<IconMusic size={16} />}
                     onClick={() => setSongPickerOpened(true)}
                     disabled={loading || !!attachedSong}
-                    styles={{ label: { fontSize: '0.7rem' } }}
                   >
                     Song
                   </Button>
@@ -229,12 +228,11 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
                     type="button"
                     variant="light"
                     color="gray"
-                    size="xs"
+                    size="sm"
                     radius="md"
                     leftSection={<IconPlaylist size={16} />}
                     onClick={() => setPlaylistPickerOpened(true)}
                     disabled={loading || !!attachedPlaylist}
-                    styles={{ label: { fontSize: '0.7rem' } }}
                   >
                     Playlist
                   </Button>
@@ -244,11 +242,10 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
                         {...props}
                         variant="light"
                         color="gray"
-                        size="xs"
+                        size="sm"
                         radius="md"
                         leftSection={<IconPhoto size={16} />}
                         disabled={loading || !!imageFile}
-                        styles={{ label: { fontSize: '0.7rem' } }}
                       >
                         Photo
                       </Button>
@@ -259,7 +256,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
             ) : (
               <Group justify="space-between" align="center" wrap="wrap" gap="sm">
                 <SegmentedControl
-                  size="xs"
+                  size="sm"
                   value={visibility}
                   onChange={setVisibility}
                   disabled={loading}
@@ -323,16 +320,16 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
 
             <Group justify="space-between" align="center" wrap="nowrap" gap="md">
               <Text
-                size="xs"
+                size="sm"
                 ff="monospace"
                 c={isOver ? 'red' : remaining <= 50 ? 'yellow' : 'dimmed'}
               >
                 {content.length} / {APP_CONFIG.MAX_POST_LENGTH}
               </Text>
               <Button
-                size={isMobile ? 'compact-xs' : 'sm'}
+                size={isMobile ? 'compact-sm' : 'sm'}
                 radius="xl"
-                leftSection={<IconSend size={isMobile ? 12 : 14} />}
+                leftSection={<IconSend size={isMobile ? 14 : 16} />}
                 onClick={handleSubmit}
                 loading={loading}
                 disabled={isDisabled}

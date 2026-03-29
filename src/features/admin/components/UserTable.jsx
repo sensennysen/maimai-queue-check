@@ -499,7 +499,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
             </Group>
           )}
 
-          <Text size="xs" c="secondary" ta="center">
+          <Text size="sm" c="secondary" ta="center">
             Showing {users.length} of {totalCount} users
           </Text>
         </Stack>

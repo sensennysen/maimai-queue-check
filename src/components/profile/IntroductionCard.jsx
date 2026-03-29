@@ -70,7 +70,7 @@ function IntroductionEditor({ initialContent, onSave, onCancel }) {
       </RichTextEditor>
 
       <Group gap="xs" justify="space-between">
-        <Text size="xs" c={isOverLimit ? 'red' : 'dimmed'} fw={isOverLimit ? 700 : 400}>
+        <Text size="sm" c={isOverLimit ? 'red' : 'dimmed'} fw={isOverLimit ? 700 : 400}>
           {characterCount} / 1000 characters
         </Text>
         <Group gap="xs">

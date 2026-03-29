@@ -59,8 +59,8 @@ function PrivacyModal({ opened, onClose }) {
           </Text>
         </div>
 
-        <Text size="xs" c="dimmed" mt="xs">
-          Last updated: February 19, 2026
+        <Text size="sm" c="dimmed" mt="xs">
+          By continuing, you agree to our privacy policy and terms of service.
         </Text>
       </Stack>
     </Modal>

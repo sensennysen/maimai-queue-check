@@ -160,7 +160,7 @@ function SearchPage() {
                       <Stack key={song.songId} gap="sm">
                         <Group gap="xs" align="center">
                           <Text fw={600}>{song.title}</Text>
-                          <Badge size="xs" variant="light">{playlists.length}</Badge>
+                          <Badge size="sm" variant="light">{playlists.length}</Badge>
                         </Group>
                         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
                           {playlists.slice(0, PLAYLIST_LIMIT).map((playlist) => (

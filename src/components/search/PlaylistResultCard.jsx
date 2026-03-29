@@ -16,14 +16,14 @@ export function PlaylistResultCard({ playlist, song, onView }) {
             <Text size="sm" c="dimmed" lineClamp={1}>
               by {playlist.author?.display_name || playlist.author?.slug || 'Unknown'}
             </Text>
-            <Badge size="xs" variant="light">
+            <Badge size="sm" variant="light">
               {(playlist.songs || []).length} match{(playlist.songs || []).length !== 1 ? 'es' : ''}
             </Badge>
           </Stack>
         </Group>
         <Group gap="xs" wrap="nowrap">
           <Button
-            size="xs"
+            size="sm"
             variant="light"
             onClick={() => onView(playlist)}
           >

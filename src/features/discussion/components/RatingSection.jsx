@@ -28,7 +28,7 @@ export function RatingSection({ discussionData, loading, user, isRatingLoading, 
                 fractions={2}
                 readOnly
               />
-              <Text size="xs" c="dimmed">({discussionData.ratings.length})</Text>
+              <Text size="sm" c="dimmed">({discussionData.ratings.length})</Text>
             </Group>
           </Group>
 
@@ -36,7 +36,7 @@ export function RatingSection({ discussionData, loading, user, isRatingLoading, 
             <Stack gap={4} mt="xs">
               <Text size="sm" fw={700} c="blue">How do you like this song?</Text>
               <Group justify="space-between">
-                <Text size="xs" fw={500} c="dimmed" tt="uppercase">Your Rating</Text>
+                <Text size="sm" fw={500} c="dimmed" tt="uppercase">Your Rating</Text>
                 {isRatingLoading ? <Loader size="sm" /> : (
                   <Rating
                     size="lg"
@@ -47,8 +47,8 @@ export function RatingSection({ discussionData, loading, user, isRatingLoading, 
               </Group>
             </Stack>
           ) : (
-            <Text size="xs" c="dimmed" fs="italic" ta="center" mt="xs">
-              Log in to rate this song
+            <Text size="sm" c="dimmed" fs="italic" ta="center" mt="sm">
+              Sign in to rate this song.
             </Text>
           )}
         </Stack>

@@ -67,7 +67,7 @@ function IntroductionEditor({ initialContent, onSave, onCancel }) {
       </RichTextEditor>
 
       <Group gap="xs" justify="space-between">
-        <Text size="xs" c={isOverLimit ? 'red' : 'dimmed'} fw={isOverLimit ? 700 : 400}>
+        <Text size="sm" c={isOverLimit ? 'red' : 'dimmed'} fw={isOverLimit ? 700 : 400}>
           {characterCount} / 1000 characters
         </Text>
         <Group gap="xs">
@@ -255,7 +255,7 @@ export function ProfileHeaderCard({
           )}
           {(privacy.show_dx_rating || isOwner) && profile.maimai_best_scores?.total_rating && (
             <Stack gap={0} align="flex-end" mt={4}>
-              <Text size="xs" fw={700} c="secondary" tt="uppercase" lts={1}>Rating</Text>
+              <Text size="sm" fw={700} c="secondary" tt="uppercase" lts={1}>Rating</Text>
               <Text size="xl" fw={900} c="primary" style={{ fontSize: '2.5rem', lineHeight: 1 }}>
                 {profile.maimai_best_scores.total_rating}
               </Text>

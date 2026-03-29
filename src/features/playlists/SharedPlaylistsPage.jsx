@@ -64,7 +64,7 @@ const SharedPlaylistsPage = () => {
           <Button
             variant="light"
             color="red"
-            size="xs"
+            size="sm"
             mt="md"
             onClick={fetchPosts}
             leftSection={<IconRefresh size={14} />}

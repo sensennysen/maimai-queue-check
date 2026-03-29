@@ -44,7 +44,7 @@ export const BookmarkletInstructions = () => {
               <Button
                 component="a"
                 ref={bookmarkletRef}
-                size="xs"
+                size="sm"
                 variant="outline"
                 color="pink"
                 mt="xs"
@@ -74,7 +74,7 @@ export const BookmarkletInstructions = () => {
               <Group mt="xs">
                 <CopyButton value={bookmarkletCode} timeout={2000}>
                   {({ copied, copy }) => (
-                    <Button color={copied ? 'teal' : 'blue'} onClick={copy} size="xs" leftSection={copied ? <IconCheck size={16} /> : <IconCopy size={16} />}>
+                    <Button color={copied ? 'teal' : 'blue'} onClick={copy} size="sm" leftSection={copied ? <IconCheck size={16} /> : <IconCopy size={16} />}>
                       {copied ? 'Copied' : 'Copy Code'}
                     </Button>
                   )}
@@ -96,7 +96,7 @@ export const BookmarkletInstructions = () => {
             </List.Item>
             <List.Item>
               <strong>To run it:</strong> Type <strong>"maimai Export"</strong> in the address bar and tap the <strong>bookmark suggestion</strong> (star icon).
-              <Text size="xs" c="red" mt={4}>
+              <Text size="sm" c="red" mt={4}>
                 Do not tap the "Search" result, or it won't work!
               </Text>
             </List.Item>

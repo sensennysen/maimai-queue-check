@@ -35,7 +35,7 @@ export function Best50PreviewCard({
           title="Action Required"
           styles={{ title: { fontSize: '0.75rem' } }}
         >
-          <Text size="xs">Data out of date — please reimport.</Text>
+          <Text size="sm">Data out of date — please reimport.</Text>
         </Alert>
       )}
 
@@ -49,10 +49,10 @@ export function Best50PreviewCard({
         {/* Play count badges */}
         {scores.total_play_count && (privacy.show_play_count !== false || isOwner) && (
           <Stack gap={2} align="flex-end">
-            <Badge variant="dot" color="pink" size="xs">
+            <Badge variant="dot" color="pink" size="sm">
               {scores.current_version_play_count || 0} plays
             </Badge>
-            <Badge variant="dot" color="cyan" size="xs">
+            <Badge variant="dot" color="cyan" size="sm">
               {scores.total_play_count} total
             </Badge>
           </Stack>
@@ -113,17 +113,17 @@ export function Best50PreviewCard({
         <Group gap={4} grow>
           <Button
             variant="subtle"
-            size="xs"
+            size="sm"
             color="teal"
-            leftSection={<IconCamera size={13} />}
+            leftSection={<IconCamera size={14} />}
             onClick={() => window.open('/profile/export', '_blank')}
           >
             Export Image
           </Button>
           <Button
             variant="subtle"
-            size="xs"
-            leftSection={<IconUpload size={13} />}
+            size="sm"
+            leftSection={<IconUpload size={14} />}
             onClick={onImportClick}
           >
             Import

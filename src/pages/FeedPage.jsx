@@ -187,12 +187,12 @@ export default function FeedPage() {
     <Paper p="lg" radius="xl" withBorder className="community-panel community-module-panel">
       <PanelHeader
         title="New Songs"
-        rightSection={<Button variant="subtle" size="xs" rightSection={<IconChevronRight size={14} />} onClick={() => navigate('/songs')} style={{ marginTop: '0.5rem' }}  >View all</Button>}
+        rightSection={<Button variant="subtle" size="sm" rightSection={<IconChevronRight size={14} />} onClick={() => navigate('/songs')} style={{ marginTop: '0.5rem' }}  >View all</Button>}
       />
       {songsLoading ? ( 
         <SectionSkeleton rows={1} height={180} />
       ) : newSongs.length === 0 ? (
-        <Text c="dimmed" size="sm" ta="center" py="md">No songs found</Text>
+        <Text c="dimmed" size="md" ta="center" py="md">No songs found</Text>
       ) : (
         <CommunityCarouselRow isDesktop={isDesktop} watchKey={newSongs.length}>
           <Group gap="sm" wrap="nowrap" className="community-release-row">
@@ -205,8 +205,8 @@ export default function FeedPage() {
                     <Box className="community-release-image community-release-placeholder"><Text fw={700}>{(song.title || '?').charAt(0)}</Text></Box>
                   )}
                 </Box>
-                <Text fw={600} size="sm" lineClamp={1} mt={8}>{song.title}</Text>
-                <Text c="dimmed" size="xs" lineClamp={1}>{song.artist || 'Unknown artist'}</Text>
+                <Text fw={600} size="md" lineClamp={1} mt={8}>{song.title}</Text>
+                <Text c="dimmed" size="sm" lineClamp={1}>{song.artist || 'Unknown artist'}</Text>
               </Paper>
             ))}
           </Group>
@@ -223,7 +223,7 @@ export default function FeedPage() {
       {loadingDiscussions ? (
         <SectionSkeleton rows={5} height={146} />
       ) : trendingRows.length === 0 ? (
-        <Text c="dimmed" size="sm" ta="center" py="md">No recent discussions yet</Text>
+        <Text c="dimmed" size="md" ta="center" py="md">No recent discussions yet</Text>
       ) : (
         <CommunityCarouselRow
           isDesktop={isDesktop}
@@ -256,7 +256,7 @@ export default function FeedPage() {
         rightSection={
           <Button
             variant="subtle"
-            size="xs"
+            size="sm"
             rightSection={<IconChevronRight size={14} />}
             onClick={() => navigate('/shared-playlists')}
             style={{ marginTop: '0.5rem' }}
@@ -268,7 +268,7 @@ export default function FeedPage() {
       {loadingPosts ? (
         <SectionSkeleton rows={3} height={88} />
       ) : playlistRows.length === 0 ? (
-        <Text c="dimmed" size="sm" ta="center" py="md">No playlist posts yet</Text>
+        <Text c="dimmed" size="md" ta="center" py="md">No playlist posts yet</Text>
       ) : (
         <CommunityCarouselRow
           isDesktop={isDesktop}
@@ -312,7 +312,7 @@ export default function FeedPage() {
     >
       <Stack gap="lg">
         <Box className="community-pull-indicator-wrap" style={{ height: pullDistance > 0 || isRefreshingByPull ? 32 : 0 }}>
-          <Text size="xs" c="dimmed" ta="center" className="community-pull-indicator-text">
+          <Text size="sm" c="dimmed" ta="center" className="community-pull-indicator-text">
             {isRefreshingByPull ? 'Refreshing feed...' : pullDistance >= 64 ? 'Release to refresh' : 'Pull down to refresh'}
           </Text>
         </Box>
@@ -335,7 +335,7 @@ export default function FeedPage() {
                 {loadingCommunityPosts ? (
                   <SectionSkeleton rows={3} height={100} />
                 ) : communityPosts.length === 0 ? (
-                  <Text c="dimmed" size="sm" ta="center" py="md">
+                  <Text c="dimmed" size="md" ta="center" py="md">
                     No posts yet. Be the first to share something!
                   </Text>
                 ) : (
@@ -363,7 +363,7 @@ export default function FeedPage() {
                     {loadingMoreCommunityPosts && <SectionSkeleton rows={2} height={96} />}
                     <Box ref={loadMoreRef} h={8} />
                     {!hasMoreCommunityPosts && (
-                      <Text c="dimmed" size="xs" ta="center" py="xs">
+                      <Text c="dimmed" size="sm" ta="center" py="xs">
                         You are caught up for now.
                       </Text>
                     )}

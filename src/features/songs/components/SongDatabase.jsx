@@ -23,27 +23,27 @@ function SongDatabase() {
     <Container size="xl" py="lg" pb="xl">
       <Stack gap="lg">
         <Group gap="xs" justify="flex-end" w="100%">
-          <Text size="xs" c="dimmed">Attribution:</Text>
+          <Text size="sm" c="dimmed">Attribution:</Text>
           <Text
             component="a"
             href="https://github.com/zetaraku"
             target="_blank"
-            size="xs"
+            size="sm"
             c="dimmed"
             style={{ display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
           >
-            <IconBrandGithub size={12} /> Chart Metadata
+            <IconBrandGithub size={14} /> Chart Metadata
           </Text>
-          <Text size="xs" c="dimmed">•</Text>
+          <Text size="sm" c="dimmed">•</Text>
           <Text
             component="a"
             href="https://x.com/maiLv_Chihooooo"
             target="_blank"
-            size="xs"
+            size="sm"
             c="dimmed"
             style={{ display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
           >
-            <IconBrandTwitter size={12} /> Internal Levels
+            <IconBrandTwitter size={14} /> Internal Levels
           </Text>
         </Group>
         

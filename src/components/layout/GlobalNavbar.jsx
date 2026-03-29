@@ -222,12 +222,14 @@ export default function GlobalNavbar() {
                       <Stack gap="xs" align="stretch">
                         <Group gap={6} justify="flex-start" align="center">
                           <IconUsersGroup size={14} />
-                          <Text size="xs" fw={700}>Profiles</Text>
+                          <Text size="sm" fw={700}>Profiles</Text>
                         </Group>
-                        {profileLoading && <Text size="xs" c="dimmed">Searching profiles...</Text>}
-                        {!profileLoading && profileSuggestions.length === 0 && (
-                          <Text size="xs" c="dimmed">No profile matches.</Text>
-                        )}
+                        <Group gap={4}>
+                          {profileLoading && <Text size="sm" c="dimmed">Searching profiles...</Text>}
+                          {!profileLoading && profileSuggestions.length === 0 && (
+                            <Text size="sm" c="dimmed">No profile matches.</Text>
+                          )}
+                        </Group>
                         {profileSuggestions.map((profile) => (
                           <Button
                             key={profile.id}

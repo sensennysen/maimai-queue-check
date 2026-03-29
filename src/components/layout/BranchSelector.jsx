@@ -43,7 +43,7 @@ function BranchSelector() {
 
   if (loading) {
     return (
-      <Button variant="light" disabled leftSection={<Loader size="xs" />}>
+      <Button variant="light" disabled leftSection={<Loader size="sm" />}>
         Loading...
       </Button>
     );

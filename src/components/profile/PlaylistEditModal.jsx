@@ -52,14 +52,14 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
       onClose={onClose}
       title={
         <Group justify="space-between" w="100%">
-          <Group gap="xs">
+          <Group gap="sm">
             <IconPlaylistAdd size={20} />
             <Text fw={700}>{initialPlaylist ? 'Edit Playlist' : 'New Playlist'}</Text>
-            {isDraftSaving && <Text size="xs" c="dimmed">Saving draft…</Text>}
+            {isDraftSaving && <Text size="sm" c="dimmed">Saving draft…</Text>}
           </Group>
           {selectedSongs.length > 0 && (
             <Button
-              size="xs"
+              size="sm"
               variant="subtle"
               color="red"
               leftSection={<IconTrash size={14} />}
@@ -87,11 +87,11 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
             onClose={handleDiscardDraft}
           >
             <Text size="sm" mb="xs">You have an unsaved draft from a previous session.</Text>
-            <Group gap="xs">
-              <Button size="xs" color="orange" onClick={() => handleContinueDraft(songMapById)}>
+            <Group gap="sm" mt="sm">
+              <Button size="sm" color="orange" onClick={() => handleContinueDraft(songMapById)}>
                 Continue Draft
               </Button>
-              <Button size="xs" variant="subtle" color="gray" onClick={handleDiscardDraft}>
+              <Button size="sm" variant="subtle" color="gray" onClick={handleDiscardDraft}>
                 Discard
               </Button>
             </Group>
@@ -109,7 +109,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
 
         <Divider label={`Songs (${selectedSongs.length})`} labelPosition="center" />
 
-        <Stack gap="xs">
+        <Stack gap="sm">
           {selectedSongs.map((song, index) => (
             <PlaylistSongRow
               key={`${song.songId}-${index}`}
@@ -127,13 +127,13 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
             onClick={() => setIsSongPickerOpen(true)}
             fullWidth
             style={{ borderStyle: 'dashed' }}
-            mt="xs"
+            mt="sm"
           >
             Add Song
           </Button>
 
           {selectedSongs.length === 0 && (
-            <Text size="xs" c="dimmed" ta="center" mt="xs">Add some songs to your playlist</Text>
+            <Text size="sm" c="dimmed" ta="center" mt="sm">Add some songs to your playlist</Text>
           )}
         </Stack>
 
@@ -168,10 +168,12 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
           )}
 
           {isPublic && !hidePublicToggle && (
-            <Box p="xs" radius="sm" bg="var(--mantine-color-teal-light)" style={{ border: '1px solid var(--mantine-color-teal-outline)' }}>
-              <Text size="xs" c="teal" fw={500}>
-                This playlist will be visible to everyone in the global feed.
-              </Text>
+            <Box p="sm" radius="sm" bg="var(--mantine-color-teal-light)" style={{ border: '1px solid var(--mantine-color-teal-outline)' }}>
+              <Group gap={4} align="center">
+                <Text size="sm" c="teal" fw={500}>
+                  This playlist will be visible to everyone in the global feed.
+                </Text>
+              </Group>
             </Box>
           )}
 

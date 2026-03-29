@@ -224,7 +224,7 @@ export default function ViewPage() {
             <Stack align="center" gap="md">
               <IconClockOff size={60} color="var(--theme-text-muted)" />
               <Title order={2}>This arcade is currently closed</Title>
-              <Text c="secondary" fw={600} tt="uppercase" lts={1} size="xs">Operating Hours</Text>
+              <Text c="secondary" fw={600} tt="uppercase" lts={1} size="sm">Operating Hours</Text>
               {renderSchedule()}
             </Stack>
           </Paper>
