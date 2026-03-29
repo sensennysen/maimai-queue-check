@@ -6,8 +6,8 @@ import { createTheme } from '@mantine/core';
 // Duplicate import removed
 
 // Base constants
-export const FONT_FAMILY = "'Nunito', system-ui, -apple-system, sans-serif";
-export const HEADING_FONT_FAMILY = "'Fredoka', sans-serif";
+export const FONT_FAMILY = "'Outfit', system-ui, -apple-system, sans-serif";
+export const HEADING_FONT_FAMILY = "'Space Grotesk', sans-serif";
 
 // Theme Palettes
 export const themes = {

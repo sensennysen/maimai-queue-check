@@ -27,8 +27,7 @@
 
 /* Subtitle styling */
 .app-subtitle {
-  font-style: italic;
-  font-family: 'Poppins', system-ui, sans-serif !important;
+  font-family: 'Outfit', system-ui, sans-serif !important;
   font-weight: 400;
   color: var(--theme-text-muted) !important;
   opacity: 0.9;
