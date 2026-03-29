@@ -90,7 +90,7 @@ export function MostPlayedSection({
 
       <Group justify="space-between" mb="md" align="center">
         <Group gap="xs">
-          <IconStar size={22} style={{ color: 'var(--theme-primary)' }} />
+          <IconStar size={22} style={{ color: 'var(--theme-primary)', fill: 'var(--theme-primary)' }} />
           <Title order={2}>Most Played Songs</Title>
         </Group>
 

@@ -24,7 +24,7 @@ export function Best50PreviewCard({
   const canSeeDetails = isOwner || privacy.show_best_50_details !== false;
 
   return (
-    <Paper shadow="sm" p="md" radius="md" withBorder>
+    <Paper shadow="sm" p="lg" radius="md" withBorder>
       {isOwner && isMalformedBest50 && (
         <Alert
           icon={<IconAlertCircle size={14} />}
@@ -40,10 +40,10 @@ export function Best50PreviewCard({
       )}
 
       {/* Header row: title + play counts */}
-      <Group justify="space-between" mb="xs" wrap="nowrap" align="flex-start">
-        <Group gap={6} wrap="nowrap">
-          <IconTrophy size={18} style={{ color: 'var(--mantine-color-yellow-6)', flexShrink: 0 }} />
-          <Title order={4} style={{ lineHeight: 1 }}>Best 50</Title>
+      <Group justify="space-between" mb="md" align="center" wrap="nowrap">
+        <Group gap="xs" wrap="nowrap">
+          <IconTrophy size={22} style={{ color: 'var(--theme-accent)', flexShrink: 0 }} />
+          <Title order={2}>Best 50</Title>
         </Group>
         
         {/* Play count badges */}

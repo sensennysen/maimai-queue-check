@@ -29,7 +29,7 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
   return (
     <Paper shadow="sm" p="lg" radius="md" withBorder>
       <Group gap="xs" mb="lg">
-        <IconHistory size={24} style={{ color: 'var(--mantine-color-blue-5)' }} />
+        <IconHistory size={24} style={{ color: 'var(--theme-secondary)' }} />
         <Title order={2}>Recent Plays</Title>
         <Badge variant="light" size="lg">{plays.length} entries</Badge>
       </Group>
