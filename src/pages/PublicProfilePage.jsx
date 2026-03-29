@@ -22,7 +22,6 @@ import { FavoriteSongsSection } from '../components/profile/FavoriteSongsSection
 import { PlaylistSection } from '../components/profile/PlaylistSection';
 import { ProfilePostsSection } from '../components/profile/ProfilePostsSection';
 import { RecentPlaysSection } from '../components/profile/RecentPlaysSection';
-import { IntroductionCard } from '../components/profile/IntroductionCard';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { useMouseDragScroll } from '../hooks/useMouseDragScroll';
@@ -77,7 +76,7 @@ const PublicProfilePage = () => {
     const settingsTarget = searchParams.get('settings');
     if (settingsTarget === 'profile') setIsSettingsModalOpen(true);
     else if (settingsTarget === 'privacy') setIsPrivacyModalOpen(true);
-  }, [isRealOwner, searchParams]);  
+  }, [isRealOwner, searchParams]);
 
   const clearSettingsParam = useCallback(() => {
     const nextParams = new URLSearchParams(searchParams);
@@ -185,9 +184,9 @@ const PublicProfilePage = () => {
           {isRealOwner && !viewAsPublic && (
             <Group gap="xs">
               <Tooltip label="View as Public" withArrow>
-                <Button 
-                  variant="light" color="gray" 
-                  leftSection={<IconLogin size={18} />} 
+                <Button
+                  variant="light" color="gray"
+                  leftSection={<IconLogin size={18} />}
                   onClick={() => setViewAsPublic(true)}
                 >
                   {isMobile ? '' : 'View as Public'}
@@ -218,40 +217,33 @@ const PublicProfilePage = () => {
           )}
         </Group>
 
-        {/* Full-width: Profile header */}
-        <ProfileHeaderCard 
+        {/* Full-width: Profile header + introduction (merged) */}
+        <ProfileHeaderCard
           profile={profile}
           privacy={privacy}
           isOwner={isOwner}
           mainBranchName={mainBranchName}
           preferredBranchNames={preferredBranchNames}
           onAvatarClick={() => isOwner && setIsUploadModalOpen(true)}
+          introduction={introduction}
+          onIntroductionUpdate={setIntroduction}
         />
 
-        {/* Full-width: Introduction */}
-        {(privacy.show_introduction !== false || isOwner) && (
-          <IntroductionCard introduction={introduction} isOwnProfile={isOwner} userId={profile.id} onUpdate={setIntroduction} />
+        {/* Full-width: Showcase sections */}
+        {(hasFavorites || hasPlaylists) && (
+          <Stack gap="lg">
+            {hasFavorites && <FavoriteSongsSection userId={profile.id} isOwnProfile={isOwner} />}
+            {hasPlaylists && <PlaylistSection userId={profile.id} isOwnProfile={isOwner} />}
+          </Stack>
         )}
 
-        {/* Two-column layout: main content + sidebar */}
+        {/* Two-column layout: Posts (main) + Stats (sidebar) */}
         {hasSidebarContent ? (
           <div className="profile-layout-grid">
-            {/* ---- Left: main content (Posts + Music Identity) ---- */}
+            {/* ---- Left: community posts ---- */}
             <div className="profile-main">
               {(privacy.show_posts !== false || isOwner) && (
                 <ProfilePostsSection userId={profile.id} currentUser={user} isOwnProfile={isOwner} />
-              )}
-
-              {/* Music identity row: shows who this person is musically */}
-              {(hasFavorites || hasPlaylists) && (
-                <div className="profile-music-row">
-                  {hasFavorites && (
-                    <FavoriteSongsSection userId={profile.id} isOwnProfile={isOwner} />
-                  )}
-                  {hasPlaylists && (
-                    <PlaylistSection userId={profile.id} isOwnProfile={isOwner} />
-                  )}
-                </div>
               )}
             </div>
 
@@ -273,13 +265,13 @@ const PublicProfilePage = () => {
               )}
 
               {hasMostPlayed && (
-                <MostPlayedSection 
-                  profile={profile} 
-                  privacy={privacy} 
-                  isOwner={isOwner} 
-                  songMapByTitle={songMapByTitle} 
-                  scrollRef={scrollRef} 
-                  isDragging={isDragging} 
+                <MostPlayedSection
+                  profile={profile}
+                  privacy={privacy}
+                  isOwner={isOwner}
+                  songMapByTitle={songMapByTitle}
+                  scrollRef={scrollRef}
+                  isDragging={isDragging}
                   onSongClick={(song, matched) => setSelectedMostPlayedSong({...matched, ...song})}
                 />
               )}
@@ -290,22 +282,12 @@ const PublicProfilePage = () => {
             </div>
           </div>
         ) : (
-          /* No sidebar content: single column posts + music */
+          /* No sidebar content: single column — posts below music shelf */
           <Stack gap="lg">
             {(privacy.show_posts !== false || isOwner) && (
               <ProfilePostsSection userId={profile.id} currentUser={user} isOwnProfile={isOwner} />
             )}
-            {(hasFavorites || hasPlaylists) && (
-              <div className="profile-music-row">
-                {hasFavorites && (
-                  <FavoriteSongsSection userId={profile.id} isOwnProfile={isOwner} />
-                )}
-                {hasPlaylists && (
-                  <PlaylistSection userId={profile.id} isOwnProfile={isOwner} />
-                )}
-              </div>
-            )}
-            {(privacy.show_recent_plays !== false || isOwner) && (
+            {hasRecentPlays && (
               <RecentPlaysSection userId={profile.id} isOwnProfile={isOwner} />
             )}
           </Stack>
@@ -313,38 +295,38 @@ const PublicProfilePage = () => {
       </Stack>
 
       {/* Modals */}
-      <ProfileSettingsModal 
-        opened={isSettingsModalOpen} 
-        onClose={() => { setIsSettingsModalOpen(false); clearSettingsParam(); }} 
-        userId={user?.id} 
-        initialData={profile} 
-        allBranches={branches} 
-        onSuccess={fetchData} 
+      <ProfileSettingsModal
+        opened={isSettingsModalOpen}
+        onClose={() => { setIsSettingsModalOpen(false); clearSettingsParam(); }}
+        userId={user?.id}
+        initialData={profile}
+        allBranches={branches}
+        onSuccess={fetchData}
       />
-      <PrivacySettingsModal 
-        opened={isPrivacyModalOpen} 
-        onClose={() => { setIsPrivacyModalOpen(false); clearSettingsParam(); }} 
-        userId={user?.id} 
-        initialData={privacy} 
-        onSuccess={fetchData} 
+      <PrivacySettingsModal
+        opened={isPrivacyModalOpen}
+        onClose={() => { setIsPrivacyModalOpen(false); clearSettingsParam(); }}
+        userId={user?.id}
+        initialData={privacy}
+        onSuccess={fetchData}
       />
-      <ProfilePictureUploadModal 
-        opened={isUploadModalOpen} 
-        onClose={() => setIsUploadModalOpen(false)} 
-        userId={user?.id} 
+      <ProfilePictureUploadModal
+        opened={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        userId={user?.id}
         currentPhotoUrl={profile?.display_photo_url || profile?.dx_display_photo_url}
-        onSuccess={fetchData} 
+        onSuccess={fetchData}
       />
-      <MaimaiImportModal 
-        opened={isImportModalOpen} 
-        onClose={() => setIsImportModalOpen(false)} 
-        userId={user?.id} 
-        onSuccess={fetchData} 
+      <MaimaiImportModal
+        opened={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        userId={user?.id}
+        onSuccess={fetchData}
       />
-      <MaimaiSongDetailModal 
-        opened={!!selectedMostPlayedSong || !!selectedBest50Song} 
-        onClose={() => { setSelectedMostPlayedSong(null); setSelectedBest50Song(null); setSelectedBest50Score(null); }} 
-        song={selectedMostPlayedSong || selectedBest50Song} 
+      <MaimaiSongDetailModal
+        opened={!!selectedMostPlayedSong || !!selectedBest50Song}
+        onClose={() => { setSelectedMostPlayedSong(null); setSelectedBest50Song(null); setSelectedBest50Score(null); }}
+        song={selectedMostPlayedSong || selectedBest50Song}
         userBestScore={selectedBest50Score}
       />
     </Container>

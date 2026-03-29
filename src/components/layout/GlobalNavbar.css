@@ -1,5 +1,5 @@
 .global-top-nav-wrap {
-  --nav-surface: color-mix(in srgb, var(--theme-surface) 88%, var(--theme-background) 12%);
+  --nav-surface: color-mix(in srgb, var(--theme-surface) 75%, var(--theme-background) 25%);
   --nav-ink: color-mix(in srgb, var(--theme-text-primary) 92%, var(--theme-text-muted) 8%);
   --nav-ink-muted: color-mix(in srgb, var(--theme-text-primary) 68%, var(--theme-text-muted) 32%);
   --nav-brand: color-mix(in srgb, var(--theme-tab-highlight, var(--theme-primary)) 70%, var(--theme-text-primary) 30%);
@@ -8,7 +8,6 @@
   --nav-border: color-mix(in srgb, var(--theme-border) 70%, transparent);
   position: relative;
   z-index: 20;
-  overflow-x: hidden;
 }
 
 body[data-theme='dark'][data-palette='circle'] .global-top-nav-wrap,
@@ -77,11 +76,13 @@ body[data-theme='dark'][data-palette='festival'] .global-top-nav-wrap {
 }
 
 .global-top-nav {
-  background: var(--nav-surface) !important;
-  border: none !important;
+  background: color-mix(in srgb, var(--nav-surface) 80%, transparent) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--nav-border) !important;
   /* Top-nav Claymorphism Shadow */
   box-shadow:
-    3px 10px 18px rgba(0, 0, 0, 0.08),
+    0 12px 28px rgba(0, 0, 0, 0.12),
     inset 2px 2px 6px rgba(255, 255, 255, 0.8),
     inset -2px -2px 6px rgba(0, 0, 0, 0.03) !important;
   border-radius: 999px !important; /* Full pill shape for navbar */

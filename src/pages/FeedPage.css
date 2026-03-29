@@ -581,9 +581,6 @@
   }
 
   .community-feed-page::before {
-    background:
-      radial-gradient(circle at 15% 8%, color-mix(in srgb, var(--theme-primary) 25%, transparent), transparent 28%),
-      radial-gradient(circle at 88% 24%, color-mix(in srgb, var(--theme-secondary) 25%, transparent), transparent 34%),
-      linear-gradient(130deg, var(--community-bg-a), var(--community-bg-b));
+    content: none;
   }
 }

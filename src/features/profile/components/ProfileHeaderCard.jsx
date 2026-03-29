@@ -1,21 +1,128 @@
-import { Paper, Group, Box, Avatar, Stack, Title, Tooltip, Badge, Text } from '@mantine/core';
-import { IconUser, IconCamera, IconCode, IconGitPullRequest, IconBug, IconMapPin, IconStar, IconListDetails } from '@tabler/icons-react';
+import { useState } from 'react';
+import { Paper, Group, Box, Avatar, Stack, Title, Tooltip, Badge, Text, ActionIcon, Button, Divider } from '@mantine/core';
+import {
+  IconUser, IconCamera, IconCode, IconGitPullRequest, IconBug,
+  IconMapPin, IconStar, IconListDetails, IconQuote, IconPencil, IconX, IconCheck
+} from '@tabler/icons-react';
+import { RichTextEditor, Link } from '@mantine/tiptap';
+import { useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { notifications } from '@mantine/notifications';
+import { userService } from '../../../services/supabase';
+import { sanitizeHtml } from '../../../utils/sanitizeHtml';
+
+/** Inline rich-text editor for the introduction */
+function IntroductionEditor({ initialContent, onSave, onCancel }) {
+  const [characterCount, setCharacterCount] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const editor = useEditor({
+    extensions: [StarterKit, Link],
+    content: initialContent || '',
+    onUpdate: ({ editor }) => setCharacterCount(editor.getText().trim().length),
+    onCreate: ({ editor }) => setCharacterCount(editor.getText().trim().length),
+  });
+
+  const isOverLimit = characterCount > 1000;
+
+  const handleSave = async () => {
+    if (!editor || isOverLimit) return;
+    setIsSaving(true);
+    try {
+      const html = editor.getHTML();
+      const value = html === '<p></p>' ? null : html;
+      await onSave(value);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Stack gap="sm">
+      <RichTextEditor
+        editor={editor}
+        style={{ minHeight: 140, borderColor: isOverLimit ? 'var(--mantine-color-red-filled)' : undefined }}
+      >
+        <RichTextEditor.Toolbar>
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Bold />
+            <RichTextEditor.Italic />
+            <RichTextEditor.Strikethrough />
+            <RichTextEditor.ClearFormatting />
+          </RichTextEditor.ControlsGroup>
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.BulletList />
+            <RichTextEditor.OrderedList />
+          </RichTextEditor.ControlsGroup>
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Link />
+            <RichTextEditor.Unlink />
+          </RichTextEditor.ControlsGroup>
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Undo />
+            <RichTextEditor.Redo />
+          </RichTextEditor.ControlsGroup>
+        </RichTextEditor.Toolbar>
+        <RichTextEditor.Content />
+      </RichTextEditor>
+
+      <Group gap="xs" justify="space-between">
+        <Text size="xs" c={isOverLimit ? 'red' : 'dimmed'} fw={isOverLimit ? 700 : 400}>
+          {characterCount} / 1000 characters
+        </Text>
+        <Group gap="xs">
+          <Button variant="default" leftSection={<IconX size={16} />} onClick={onCancel} disabled={isSaving} size="sm">
+            Cancel
+          </Button>
+          <Button leftSection={<IconCheck size={16} />} onClick={handleSave} loading={isSaving} disabled={isOverLimit} size="sm" color={isOverLimit ? 'var(--theme-error)' : 'primary'}>
+            Save
+          </Button>
+        </Group>
+      </Group>
+    </Stack>
+  );
+}
 
 /**
- * ProfileHeaderCard component
+ * ProfileHeaderCard — displays avatar, name, badges, branch info, and DX stats.
+ * Also embeds the introduction section (replaces the standalone IntroductionCard).
  */
-export function ProfileHeaderCard({ 
-  profile, 
-  privacy, 
-  isOwner, 
-  mainBranchName, 
-  preferredBranchNames, 
-  onAvatarClick 
+export function ProfileHeaderCard({
+  profile,
+  privacy,
+  isOwner,
+  mainBranchName,
+  preferredBranchNames,
+  onAvatarClick,
+  // Introduction props
+  introduction,
+  onIntroductionUpdate,
 }) {
+  const [isEditingIntro, setIsEditingIntro] = useState(false);
+
   if (!profile) return null;
+
+  const hasIntroContent = introduction && introduction !== '<p></p>';
+  const showIntroSection = isOwner || hasIntroContent;
+
+  // Only show the intro section if privacy allows or owner
+  const introAllowed = privacy.show_introduction !== false || isOwner;
+
+  const handleIntroSave = async (html) => {
+    try {
+      await userService.updateIntroduction(profile.id, html);
+      onIntroductionUpdate?.(html);
+      setIsEditingIntro(false);
+      notifications.show({ title: 'Saved', message: 'Introduction updated', color: 'green' });
+    } catch (e) {
+      notifications.show({ title: 'Error', message: e.message || 'Failed to save', color: 'red' });
+      throw e;
+    }
+  };
 
   return (
     <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-100">
+      {/* ── Top row: avatar + info ── */}
       <Group wrap="nowrap" justify="space-between" align="flex-start">
         <Group wrap="nowrap" style={{ flex: 1 }}>
           <div
@@ -162,6 +269,57 @@ export function ProfileHeaderCard({
           )}
         </Stack>
       </Group>
+
+      {/* ── Introduction section ── */}
+      {introAllowed && showIntroSection && (
+        <>
+          <Divider
+            mt="md"
+            mb="md"
+            style={{ borderColor: 'color-mix(in srgb, var(--theme-primary) 15%, transparent)' }}
+          />
+
+          <Group justify="space-between" align="center" mb={isEditingIntro || hasIntroContent ? 'sm' : 0}>
+            <Group gap="xs">
+              <IconQuote size={18} style={{ color: 'var(--theme-accent)', flexShrink: 0 }} />
+              <Text fw={700} size="sm" style={{ fontFamily: 'var(--font-heading)', letterSpacing: '-0.01em' }}>
+                Introduction
+              </Text>
+            </Group>
+
+            {isOwner && !isEditingIntro && (
+              <ActionIcon variant="subtle" color="gray" onClick={() => setIsEditingIntro(true)} title="Edit introduction">
+                <IconPencil size={16} />
+              </ActionIcon>
+            )}
+          </Group>
+
+          {isEditingIntro ? (
+            <IntroductionEditor
+              initialContent={introduction}
+              onSave={handleIntroSave}
+              onCancel={() => setIsEditingIntro(false)}
+            />
+          ) : hasIntroContent ? (
+            <div
+              className="mantine-RichTextEditor-content"
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(introduction, { mode: 'rich' }) }}
+              style={{ lineHeight: 1.7, fontSize: '0.9rem' }}
+            />
+          ) : (
+            // Owner, no content yet
+            <Text
+              c="dimmed"
+              fs="italic"
+              size="sm"
+              style={{ cursor: 'pointer' }}
+              onClick={() => setIsEditingIntro(true)}
+            >
+              Click the pencil icon to add an introduction…
+            </Text>
+          )}
+        </>
+      )}
     </Paper>
   );
 }

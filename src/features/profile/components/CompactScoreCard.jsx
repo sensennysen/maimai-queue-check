@@ -22,7 +22,6 @@ export const CompactScoreCard = React.memo(function CompactScoreCard({ score, on
         overflow: 'hidden',
         borderRadius: '8px',
         transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-        border: `2px solid ${difficultyColor}`,
         backgroundColor: 'var(--mantine-color-dark-6)'
       }}
       onClick={onClick}
@@ -45,7 +44,20 @@ export const CompactScoreCard = React.memo(function CompactScoreCard({ score, on
         fallbackSrc="https://placehold.co/120x120?text=?"
         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
       />
-      
+
+      {/* Left side difficulty stripe - matches Recent Plays style */}
+      <Box
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 4,
+          background: difficultyColor,
+          zIndex: 1,
+        }}
+      />
+
       {/* Bottom Gradient for readability */}
       <Box
         pos="absolute"
@@ -58,15 +70,15 @@ export const CompactScoreCard = React.memo(function CompactScoreCard({ score, on
 
       {/* Top Right: Rating Badge */}
       <Box pos="absolute" top={4} right={4}>
-        <Badge 
-          size="xs" 
-          variant="filled" 
-          color="dark" 
+        <Badge
+          size="xs"
+          variant="filled"
+          color="dark"
           radius="xs"
-          h={16} 
-          px={4} 
-          style={{ 
-            fontSize: '9px', 
+          h={16}
+          px={4}
+          style={{
+            fontSize: '9px',
             fontWeight: 900,
             border: '1px solid rgba(255,255,255,0.2)',
             boxShadow: '0 2px 4px rgba(0,0,0,0.5)',
@@ -78,33 +90,33 @@ export const CompactScoreCard = React.memo(function CompactScoreCard({ score, on
       </Box>
 
       {/* Bottom Info: Achievement + Grade */}
-      <Box 
-        pos="absolute" 
-        bottom={4} 
-        left={6} 
-        right={6} 
+      <Box
+        pos="absolute"
+        bottom={4}
+        left={6}
+        right={6}
         style={{ pointerEvents: 'none' }}
       >
         <Stack gap={0}>
-          <Text 
-            size="9px" 
-            fw={900} 
-            c="white" 
-            style={{ 
-              textShadow: '0 1px 3px black', 
-              lineHeight: 1, 
+          <Text
+            size="9px"
+            fw={900}
+            c="white"
+            style={{
+              textShadow: '0 1px 3px black',
+              lineHeight: 1,
               letterSpacing: '-0.2px',
               fontFamily: 'monospace'
             }}
           >
             {parseFloat(score.achievement).toFixed(4)}%
           </Text>
-          <Text 
-            size="12px" 
-            fw={900} 
-            c="var(--theme-primary)" 
-            style={{ 
-              textShadow: '0 1px 4px black', 
+          <Text
+            size="12px"
+            fw={900}
+            c="var(--theme-primary)"
+            style={{
+              textShadow: '0 1px 4px black',
               lineHeight: 1.1,
               marginTop: '1px'
             }}

@@ -31,19 +31,6 @@
   display: none;
 }
 
-/* Music identity row: favorites + playlists side by side */
-.profile-music-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  align-items: start;
-}
-
-/* Contain overflow so horizontal-scroll sections don't blow out their cell */
-.profile-music-row > * {
-  min-width: 0;
-}
-
 /* Mobile: collapse to single column */
 @media (max-width: 900px) {
   .profile-layout-grid {
@@ -55,8 +42,5 @@
     max-height: none;
     overflow-y: visible;
   }
-
-  .profile-music-row {
-    grid-template-columns: 1fr;
-  }
 }
+

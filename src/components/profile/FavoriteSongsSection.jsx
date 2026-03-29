@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Paper, Title, Button, Text, Group, Stack, Box, Alert } from '@mantine/core';
-import { IconPlus, IconHeart, IconAlertCircle } from '@tabler/icons-react';
+import { Button, Text, Box, Paper, Title, TextInput, Modal as MantineModal, Stack, Group, Alert, ActionIcon } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
+import { IconPlus, IconHeart, IconMusicOff } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useFavorites } from '../../features/profile/hooks/useFavorites';
-import { TextInput, Modal as MantineModal } from '@mantine/core';
 import FavoriteSongCard from './FavoriteSongCard';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
 import MaimaiSongDetailModal from './MaimaiSongDetailModal';
@@ -11,6 +11,7 @@ import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
 import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 
 export function FavoriteSongsSection({ userId, isOwnProfile }) {
+  const isMobile = useMediaQuery('(max-width: 500px)');
   const { loading: songsLoading, songMapById } = useSongDatabaseContext();
   const {
     favorites,
@@ -88,31 +89,53 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
 
   if (isEverythingLoading && favoriteSongsMap.length === 0) return null;
 
+  const count = favoriteSongsMap.length;
+
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder pos="relative">
-      <Group justify="space-between" mb="lg">
-        <Group gap="xs">
-          <IconHeart size={24} style={{ color: 'var(--theme-primary)' }} />
-          <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>Favorite Songs</Title>
+    <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-200" pos="relative">
+      <Group justify="space-between" mb="md" align="center">
+        <Group gap="xs" align="center">
+          <IconHeart size={22} style={{ color: 'var(--theme-primary)', fill: 'var(--theme-primary)' }} />
+          <Title order={2}>Favorite Songs</Title>
+          {count > 0 && (
+            <Text size="sm" c="dimmed" fw={600} ml={4} mt={2}>
+              ({count})
+            </Text>
+          )}
         </Group>
 
         {isOwnProfile && (
-          <Button
-            leftSection={<IconPlus size={18} />}
-            variant="light"
-            color="primary"
-            onClick={() => setIsModalOpen(true)}
-          >
-            Add Favorite
-          </Button>
+          isMobile ? (
+            <ActionIcon
+              variant="light"
+              color="primary"
+              size="lg"
+              radius="xl"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <IconPlus size={20} />
+            </ActionIcon>
+          ) : (
+            <Button
+              leftSection={<IconPlus size={16} />}
+              variant="light"
+              color="primary"
+              size="sm"
+              onClick={() => setIsModalOpen(true)}
+              style={{ borderRadius: 999 }}
+            >
+              Add
+            </Button>
+          )
         )}
       </Group>
 
+      {/* Content */}
       {favoriteSongsMap.length === 0 ? (
-        <Alert icon={<IconAlertCircle size={16} />} title="No Favorites" color="gray" variant="light">
+        <Alert icon={<IconMusicOff size={16} />} title="No favorites" color="gray" variant="light">
           {isOwnProfile
-            ? "You haven't added any favorite songs yet. Click the button above to add some!"
-            : "This user hasn't added any favorite songs yet."}
+            ? "You haven't pinned any favorite tracks yet. Add the charts you love playing the most!"
+            : "This player hasn't pinned any favorite tracks yet."}
         </Alert>
       ) : (
         <div
@@ -120,15 +143,18 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
           className="hide-scrollbar"
           style={{
             display: 'flex',
-            gap: '12px',
-            paddingBottom: '12px',
-            paddingTop: '8px',
+            gap: '10px',
+            paddingBottom: '6px',
+            paddingTop: '4px',
             overflowX: 'auto',
             scrollBehavior: 'smooth'
           }}
         >
           {favoriteSongsMap.map(({ song, comment: favComment }, index) => (
-            <Box key={`${song.songId}-${index}`} style={{ minWidth: '160px', width: '180px', flexShrink: 0 }}>
+            <Box
+              key={`${song.songId}-${index}`}
+              style={{ minWidth: '148px', width: '168px', flexShrink: 0 }}
+            >
               <FavoriteSongCard
                 song={song}
                 comment={favComment}
@@ -146,6 +172,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
         </div>
       )}
 
+      {/* Modals */}
       {isOwnProfile && (
         <SongSelectionModal
           opened={isModalOpen}
@@ -154,7 +181,6 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
         />
       )}
 
-      {/* Comment Input Modal */}
       <MantineModal
         opened={commentModalOpen}
         onClose={() => !isAdding && setCommentModalOpen(false)}

@@ -123,7 +123,7 @@ export default function GlobalNavbar() {
 
   return (
     <>
-      <Container size="xl" pt="xl" className="global-top-nav-wrap" style={{ overflow: 'hidden' }}>
+      <Container size="xl" pt={40} className="global-top-nav-wrap" style={{ paddingBottom: '2.5rem' }}>
         <Paper p={0} radius="xl" withBorder className="global-top-nav">
           <Group justify="space-between" align="center" gap="md" wrap="nowrap" className="global-top-nav-inner">
             <Text fw={800} className="global-top-brand">mPQCheckPH</Text>
