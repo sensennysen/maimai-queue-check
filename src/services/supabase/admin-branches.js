@@ -7,19 +7,27 @@ export const branchService = {
   async getAllBranches() {
     const { data, error } = await supabase
       .from(TABLES.ALLOWED_PLACES)
-      .select(`id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled, ${TABLES.MALL_SCHEDULE}(id)`)
+      .select(`
+        id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled,
+        region_id:region,
+        ${TABLES.PLACES_REGIONS}(name),
+        ${TABLES.MALL_SCHEDULE}(id)
+      `)
       .eq('enabled', true)
       .not('latitude', 'is', null)
-      .not('longitude', 'is', null)
-      .order('arcade_name', { ascending: true });
+      .not('longitude', 'is', null);
 
     if (error) throw error;
     
     // Filter on client side for branches that have at least one schedule
     const filteredData = (data || []).filter(branch => branch[TABLES.MALL_SCHEDULE] && branch[TABLES.MALL_SCHEDULE].length > 0)
       .map(branch => {
-        const rest = { ...branch };
+        const rest = { 
+          ...branch,
+          region_name: branch.places_regions?.name || null
+        };
         delete rest[TABLES.MALL_SCHEDULE];
+        delete rest.places_regions;
         return rest;
       });
       
@@ -53,12 +61,22 @@ export const branchService = {
   async getAllEnabledBranches() {
     const { data, error } = await supabase
       .from(TABLES.ALLOWED_PLACES)
-      .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled')
-      .eq('enabled', true)
-      .order('arcade_name', { ascending: true });
+      .select(`
+        id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled,
+        region_id:region,
+        ${TABLES.PLACES_REGIONS}(name)
+      `)
+      .eq('enabled', true);
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(branch => {
+      const rest = { 
+        ...branch,
+        region_name: branch.places_regions?.name || null
+      };
+      delete rest.places_regions;
+      return rest;
+    });
   }
 };
 
@@ -89,11 +107,21 @@ export const adminBranchService = {
   async getAllBranchesForAdmin() {
     const { data, error } = await supabase
       .from(TABLES.ALLOWED_PLACES)
-      .select('id, arcade_name, short_name, acronym, cab_count, enabled, latitude, longitude')
-      .order('arcade_name', { ascending: true });
+      .select(`
+        id, arcade_name, short_name, acronym, cab_count, enabled, latitude, longitude,
+        region_id:region,
+        ${TABLES.PLACES_REGIONS}(name)
+      `);
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(branch => {
+      const rest = { 
+        ...branch,
+        region_name: branch.places_regions?.name || null
+      };
+      delete rest.places_regions;
+      return rest;
+    }).sort((a, b) => a.arcade_name.localeCompare(b.arcade_name));
   },
 
   // Create a new branch in allowed_places
@@ -107,7 +135,8 @@ export const adminBranchService = {
         longitude: branchData.longitude,
         latitude: branchData.latitude,
         cab_count: branchData.cab_count,
-        enabled: branchData.enabled ?? true
+        enabled: branchData.enabled ?? true,
+        region: branchData.region_id || null
       }])
       .select()
       .single();
@@ -129,9 +158,16 @@ export const adminBranchService = {
 
   // Update an existing branch
   async updateBranch(branchId, updates) {
+    // If region_id is provided, map it back to region column
+    const formattedUpdates = { ...updates };
+    if ('region_id' in formattedUpdates) {
+      formattedUpdates.region = formattedUpdates.region_id;
+      delete formattedUpdates.region_id;
+    }
+
     const { data, error } = await supabase
       .from(TABLES.ALLOWED_PLACES)
-      .update(updates)
+      .update(formattedUpdates)
       .eq('id', branchId)
       .select()
       .single();
@@ -144,11 +180,21 @@ export const adminBranchService = {
   async getBranchWithSchedules(branchId) {
     const { data: branch, error: branchError } = await supabase
       .from(TABLES.ALLOWED_PLACES)
-      .select('id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled')
+      .select(`
+        id, arcade_name, short_name, acronym, longitude, latitude, cab_count, enabled,
+        region_id:region,
+        ${TABLES.PLACES_REGIONS}(name)
+      `)
       .eq('id', branchId)
       .single();
 
     if (branchError) throw branchError;
+
+    const formattedBranch = {
+      ...branch,
+      region_name: branch.places_regions?.name || null
+    };
+    delete formattedBranch.places_regions;
 
     const { data: schedules, error: scheduleError } = await supabase
       .from(TABLES.MALL_SCHEDULE)
@@ -159,7 +205,7 @@ export const adminBranchService = {
     if (scheduleError) throw scheduleError;
 
     return {
-      branch,
+      branch: formattedBranch,
       schedules: schedules || []
     };
   },

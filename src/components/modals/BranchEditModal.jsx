@@ -13,12 +13,13 @@ import {
   Checkbox,
   Table,
   ScrollArea,
+  Select,
 } from '@mantine/core';
 import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
 import IconBuildingStore from '@tabler/icons-react/dist/esm/icons/IconBuildingStore.mjs';
 import IconClock from '@tabler/icons-react/dist/esm/icons/IconClock.mjs';
 import { notifications } from '@mantine/notifications';
-import { adminService } from '../../services/supabase';
+import { adminService, supabase } from '../../services/supabase';
 import { requestUserLocation } from '../../services/geolocation';
 import './BranchEditModal.css';
 
@@ -33,6 +34,9 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
   const [latitude, setLatitude] = useState('');
   const [cabCount, setCabCount] = useState(1);
   const [enabled, setEnabled] = useState(true);
+  const [regionId, setRegionId] = useState(null);
+  const [regions, setRegions] = useState([]);
+  const [loadingRegions, setLoadingRegions] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
 
   // Schedule form state
@@ -58,11 +62,35 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
       setLongitude(branchToEdit.longitude?.toString() || '');
       setCabCount(branchToEdit.cab_count);
       setEnabled(branchToEdit.enabled);
+      setRegionId(branchToEdit.region_id?.toString() || null);
     } else if (opened && mode === 'create') {
       // Reset form for create mode
       resetForm();
     }
   }, [opened, mode, branchToEdit]);
+
+  // Fetch regions on mount
+  useEffect(() => {
+    const fetchRegions = async () => {
+      setLoadingRegions(true);
+      try {
+        const { data, error } = await supabase
+          .from('places_regions')
+          .select('id, name')
+          .order('name');
+        if (error) throw error;
+        setRegions(data.map(r => ({ value: r.id.toString(), label: r.name })));
+      } catch (error) {
+        console.error('Failed to fetch regions:', error);
+      } finally {
+        setLoadingRegions(false);
+      }
+    };
+
+    if (opened) {
+      fetchRegions();
+    }
+  }, [opened]);
 
   const handleUseCurrentLocation = async () => {
     setLoadingLocation(true);
@@ -139,6 +167,7 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
       latitude: latitude ? parseFloat(latitude) : null,
       cab_count: cabCount,
       enabled,
+      region_id: regionId ? parseInt(regionId, 10) : null,
     };
 
     if (mode === 'edit' && branchToEdit) {
@@ -220,6 +249,7 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
         latitude: latitude ? parseFloat(latitude) : null,
         cab_count: cabCount,
         enabled,
+        region_id: regionId ? parseInt(regionId, 10) : null,
       };
       const newBranch = await adminService.createBranch(branchData);
 
@@ -261,6 +291,7 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
     setLatitude('');
     setCabCount(1);
     setEnabled(true);
+    setRegionId(null);
     setSchedules(
       DAYS_OF_WEEK.map(day => ({
         day,
@@ -365,6 +396,18 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
                 required
                 min={1}
                 step={1}
+              />
+
+              <Select
+                label="Region"
+                placeholder="Select region"
+                data={regions}
+                value={regionId}
+                onChange={setRegionId}
+                clearable
+                searchable
+                nothingFoundMessage="No regions found"
+                loading={loadingRegions}
               />
 
               <Checkbox

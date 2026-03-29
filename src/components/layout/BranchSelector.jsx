@@ -100,32 +100,46 @@ function BranchSelector() {
 
       <Menu.Dropdown>
         <Menu.Label>Select Branch</Menu.Label>
-        {branches.map((branch) => {
-          const distance = getBranchDistance(branch);
-          const isSelected = selectedBranch?.id === branch.id;
+        {(() => {
+          let lastRegion = null;
+          return branches.map((branch, index) => {
+            const distance = getBranchDistance(branch);
+            const isSelected = selectedBranch?.id === branch.id;
+            const regionName = branch.region_name || 'Other';
+            
+            const showRegionHeader = regionName !== lastRegion;
+            lastRegion = regionName;
 
-          return (
-            <Menu.Item
-              key={branch.id}
-              onClick={() => handleBranchChange(branch)}
-              leftSection={isSelected ? <IconCheck size={16} /> : <IconMapPin size={16} />}
-              rightSection={
-                distance !== null && (
-                  <Badge size="sm" variant="light" color={distance < 100 ? themeColors.lightest : themeColors.darkest}>
-                    {distance < 1000 ? `${distance}m` : `${(distance / 1000).toFixed(1)}km`}
-                  </Badge>
-                )
-              }
-              style={{
-                backgroundColor: isSelected ? 'color-mix(in srgb, var(--theme-primary), transparent 85%)' : undefined,
-              }}
-            >
-              <Text size="sm" fw={isSelected ? 600 : 400}>
-                {branch.short_name || branch.arcade_name}
-              </Text>
-            </Menu.Item>
-          );
-        })}
+            return (
+              <div key={branch.id}>
+                {showRegionHeader && (
+                  <>
+                    {index > 0 && <Menu.Divider />}
+                    <Menu.Label>{regionName}</Menu.Label>
+                  </>
+                )}
+                <Menu.Item
+                  onClick={() => handleBranchChange(branch)}
+                  leftSection={isSelected ? <IconCheck size={16} /> : <IconMapPin size={16} />}
+                  rightSection={
+                    distance !== null && (
+                      <Badge size="sm" variant="light" color={distance < 100 ? themeColors.lightest : themeColors.darkest}>
+                        {distance < 1000 ? `${distance}m` : `${(distance / 1000).toFixed(1)}km`}
+                      </Badge>
+                    )
+                  }
+                  style={{
+                    backgroundColor: isSelected ? 'color-mix(in srgb, var(--theme-primary), transparent 85%)' : undefined,
+                  }}
+                >
+                  <Text size="sm" fw={isSelected ? 600 : 400}>
+                    {branch.short_name || branch.arcade_name}
+                  </Text>
+                </Menu.Item>
+              </div>
+            );
+          });
+        })()}
       </Menu.Dropdown>
     </Menu>
   );

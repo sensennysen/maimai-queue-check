@@ -33,6 +33,7 @@ export const TABLES = {
   NOTIFICATIONS: 'notifications',
   USER_NOTIFICATION_READS: 'user_notification_reads',
   IMPORT_SESSIONS: 'import_sessions',
+  PLACES_REGIONS: 'places_regions',
 };
 
 export const BUCKETS = {

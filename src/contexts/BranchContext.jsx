@@ -9,6 +9,25 @@ import { TABLES } from '../constants/database';
 const BranchContext = createContext(null);
 
 const STORAGE_KEY = 'maimai-selected-branch';
+const REGION_PRIORITY = {
+  'Metro Manila': 1,
+  'Luzon': 2,
+  'Visayas': 3,
+  'Mindanao': 4
+};
+
+const sortBranches = (branches) => {
+  return [...branches].sort((a, b) => {
+    const priorityA = REGION_PRIORITY[a.region_name] || 999;
+    const priorityB = REGION_PRIORITY[b.region_name] || 999;
+    
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
+    }
+    
+    return a.arcade_name.localeCompare(b.arcade_name);
+  });
+};
 
 /**
  * Provider component for the global Branch context.
@@ -42,8 +61,8 @@ export const BranchProvider = ({ children }) => {
         branchService.getAllEnabledBranches()
       ]);
 
-      setBranches(allBranches);
-      setAllEnabledBranches(allEnabled);
+      setBranches(sortBranches(allBranches));
+      setAllEnabledBranches(sortBranches(allEnabled));
 
       if (allBranches.length === 0) {
         setError('No branches found');
@@ -96,17 +115,13 @@ export const BranchProvider = ({ children }) => {
     if (eventType === 'INSERT') {
       // Add to allEnabledBranches if enabled
       if (newRecord.enabled) {
-        setAllEnabledBranches(prev => [...prev, newRecord].sort((a, b) =>
-          a.arcade_name.localeCompare(b.arcade_name)
-        ));
+        setAllEnabledBranches(prev => sortBranches([...prev, newRecord]));
       }
       // New branch added - only add if enabled and has coordinates
       if (newRecord.enabled && newRecord.latitude != null && newRecord.longitude != null) {
         // Note: we can't easily verify mall_schedule here, but coordinate presence is a good proxy 
         // until a full reload happens.
-        setBranches(prev => [...prev, newRecord].sort((a, b) =>
-          a.arcade_name.localeCompare(b.arcade_name)
-        ));
+        setBranches(prev => sortBranches([...prev, newRecord]));
       }
     } else if (eventType === 'UPDATE') {
       // Update allEnabledBranches
@@ -114,17 +129,7 @@ export const BranchProvider = ({ children }) => {
         const updated = prev.map(branch =>
           branch.id === newRecord.id ? newRecord : branch
         );
-        if (!newRecord.enabled) {
-          return updated.filter(b => b.id !== newRecord.id);
-        }
-        if (newRecord.enabled && !prev.find(b => b.id === newRecord.id)) {
-          return [...updated, newRecord].sort((a, b) =>
-            a.arcade_name.localeCompare(b.arcade_name)
-          );
-        }
-        return updated.sort((a, b) =>
-          a.arcade_name.localeCompare(b.arcade_name)
-        );
+        return sortBranches(updated);
       });
 
       // Branch updated
@@ -139,15 +144,7 @@ export const BranchProvider = ({ children }) => {
         }
 
         // If branch was enabled with coordinates, make sure it's in the list
-        if (newRecord.enabled && newRecord.latitude != null && newRecord.longitude != null && !prev.find(b => b.id === newRecord.id)) {
-          return [...updated, newRecord].sort((a, b) =>
-            a.arcade_name.localeCompare(b.arcade_name)
-          );
-        }
-
-        return updated.sort((a, b) =>
-          a.arcade_name.localeCompare(b.arcade_name)
-        );
+        return sortBranches(updated);
       });
 
       // Update selected branch state if it was updated
