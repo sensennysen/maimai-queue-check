@@ -1,35 +1,10 @@
-import { Modal, Image, Text, Group, Stack, Tooltip, SimpleGrid, TextInput, ActionIcon, Divider } from '@mantine/core';
+import { Modal, Image, Text, Group, Stack, Tooltip, SimpleGrid, TextInput, ActionIcon, Divider, Badge, Button, Box } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconCheck, IconEdit, IconCheck as IconSave, IconX, IconStarFilled } from '@tabler/icons-react';
+import { IconCheck, IconEdit, IconX, IconStarFilled } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty, BASE_JACKET_URL } from '../../config/maimai-constants';
-import { Badge, Button } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { IconMessageCircle } from '@tabler/icons-react';
-
-const formatComboAchievement = (value) => {
-  if (!value) return null;
-  const v = String(value).trim();
-  const lower = v.toLowerCase();
-  if (lower === 'fc') return 'FC';
-  if (lower === 'fcp') return 'FC+';
-  if (lower === 'ap') return 'AP';
-  if (lower === 'app') return 'AP+';
-  if (v === 'FC' || v === 'FC+' || v === 'AP' || v === 'AP+') return v;
-  return v;
-};
-
-const formatSyncType = (value) => {
-  if (!value) return null;
-  const v = String(value).trim();
-  const lower = v.toLowerCase();
-  if (lower === 'fs') return 'FS';
-  if (lower === 'fsp') return 'FS+';
-  if (lower === 'fdx') return 'FDX';
-  if (lower === 'fdxp') return 'FDX+';
-  if (v === 'FS' || v === 'FS+' || v === 'FDX' || v === 'FDX+') return v;
-  return v;
-};
 
 function MaimaiSongDetailModal({
   song,
@@ -80,24 +55,9 @@ function MaimaiSongDetailModal({
     }).catch(err => console.error('Failed to copy:', err));
   };
 
-  const typeImage = song.cardType === 'dx'
-    ? new URL('../../assets/music_dx.png', import.meta.url).href
-    : new URL('../../assets/music_standard.png', import.meta.url).href;
-
   const normalizedDifficulty = normalizeDifficulty(difficulty);
   const effectiveBest50Score = best50Score || null;
-  const b50ComboTag = formatComboAchievement(
-    effectiveBest50Score?.comboAchievement ?? effectiveBest50Score?.comboAchivement
-  );
-  const b50SyncTag = formatSyncType(
-    effectiveBest50Score?.syncType ?? effectiveBest50Score?.syncAchievement ?? effectiveBest50Score?.syncAchivement
-  );
-  const b50DxScore = effectiveBest50Score?.dxScore;
-  const b50TotalDxScore = effectiveBest50Score?.totalDxScore;
   const b50DxStar = effectiveBest50Score?.dxStar;
-  const b50Achievement = effectiveBest50Score?.achievement;
-  const b50Rating = effectiveBest50Score?.rating;
-  const b50LastPlayed = effectiveBest50Score?.lastPlayed ?? effectiveBest50Score?.last_played;
 
   return (
     <Modal
@@ -196,22 +156,22 @@ function MaimaiSongDetailModal({
               </Stack>
             )}
 
-            {score && (
+            {effectiveBest50Score && (
               <Stack gap="xs" mt="md">
                 <Box mt="xs">
                   <Divider mb="md" label={<Text size="sm" c="dimmed" fw={700} tt="uppercase">Best 50 Details</Text>} labelPosition="center" />
                   <SimpleGrid cols={3} spacing="sm">
                     <div className="stat-item">
                       <Text size="sm" c="dimmed" fw={700} tt="uppercase">Achievement</Text>
-                      <Text fw={750} size="lg">{parseFloat(score.achievement ?? score.achievement).toFixed(4)}%</Text>
+                      <Text fw={750} size="lg">{parseFloat(effectiveBest50Score.achievement).toFixed(4)}%</Text>
                     </div>
                     <div className="stat-item">
                       <Text size="sm" c="dimmed" fw={700} tt="uppercase">Rating</Text>
-                      <Text fw={750} size="lg">{score.rating}</Text>
+                      <Text fw={750} size="lg">{effectiveBest50Score.rating}</Text>
                     </div>
                     <div className="stat-item">
                       <Text size="sm" c="dimmed" fw={700} tt="uppercase">DX Score</Text>
-                      <Text fw={750} size="lg">{score.dxScore}</Text>
+                      <Text fw={750} size="lg">{effectiveBest50Score.dxScore}</Text>
                     </div>
                   </SimpleGrid>
                   <SimpleGrid cols={2} spacing="md" mt="sm">
@@ -219,13 +179,13 @@ function MaimaiSongDetailModal({
                       <Text size="sm" c="dimmed" fw={700} tt="uppercase">DX Stars</Text>
                       <Group gap={4}>
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <IconStarFilled key={i} size={16} style={{ color: i < (score.dxStar || 0) ? 'var(--mantine-color-yellow-6)' : 'var(--mantine-color-gray-3)' }} />
+                          <IconStarFilled key={i} size={16} style={{ color: i < (b50DxStar || 0) ? 'var(--mantine-color-yellow-6)' : 'var(--mantine-color-gray-3)' }} />
                         ))}
                       </Group>
                     </div>
                     <div className="stat-item">
                       <Text size="sm" c="dimmed" fw={700} tt="uppercase">Last Played</Text>
-                      <Text fw={600}>{score.lastPlayed ?? score.last_played ?? 'N/A'}</Text>
+                      <Text fw={600}>{effectiveBest50Score.lastPlayed ?? effectiveBest50Score.last_played ?? 'N/A'}</Text>
                     </div>
                   </SimpleGrid>
                 </Box>
@@ -257,7 +217,7 @@ function MaimaiSongDetailModal({
                         <IconX size={14} />
                       </ActionIcon>
                       <ActionIcon variant="filled" color="green" onClick={handleSaveComment} loading={isSaving}>
-                        <IconSave size={14} />
+                        <IconCheck size={14} />
                       </ActionIcon>
                     </Group>
                   </Stack>

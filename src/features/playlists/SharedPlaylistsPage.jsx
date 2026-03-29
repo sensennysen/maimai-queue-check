@@ -5,7 +5,6 @@ import { PlaylistPostCard } from './components/PlaylistPostCard';
 import { useSearchParams } from 'react-router-dom';
 import { PlaylistDetailModal } from '../../components/profile/PlaylistDetailModal';
 import { useState } from 'react';
-import { PanelHeader } from '../feed/components/PanelHeader';
 import { VoterListModal } from '../../components/common/VoterListModal';
 import { playlistService } from '../../services/supabase';
 import './SharedPlaylistsPage.css';
