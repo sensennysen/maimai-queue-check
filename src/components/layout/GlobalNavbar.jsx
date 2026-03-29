@@ -123,7 +123,7 @@ export default function GlobalNavbar() {
 
   return (
     <>
-      <Container size="xl" pt={40} className="global-top-nav-wrap" style={{ paddingBottom: '2.5rem' }}>
+      <Container size="xl" pt={40} className="global-top-nav-wrap">
         <Paper p={0} radius="xl" withBorder className="global-top-nav">
           <Group justify="space-between" align="center" gap="md" wrap="nowrap" className="global-top-nav-inner">
             <Text fw={800} className="global-top-brand">mPQCheckPH</Text>
@@ -158,13 +158,13 @@ export default function GlobalNavbar() {
                     opened={suggestionsOpen && hasSuggestions}
                     onClose={() => setSuggestionsOpen(false)}
                     position="bottom-end"
-                    width={230}
+                    width={isCompact && showSearch ? "target" : 230}
                     withinPortal
                     shadow="md"
                     radius="md"
                   >
                     <Popover.Target>
-                      <Box component="form" onSubmit={handleSearchSubmit} className={`global-top-search-wrap ${isCompact ? 'compact' : ''}`}>
+                      <Box component="form" onSubmit={handleSearchSubmit} className={`global-top-search-wrap ${isCompact ? 'compact' : ''} ${showSearch ? 'is-open' : ''}`}>
                         {!isCompact ? (
                           <TextInput
                             value={searchTerm}
@@ -192,7 +192,7 @@ export default function GlobalNavbar() {
                               <TextInput
                                 value={searchTerm}
                                 onChange={(event) => setSearchTerm(event.currentTarget.value)}
-                                placeholder="Search..."
+                                placeholder="Search players or songs..."
                                 leftSection={<IconSearch size={16} />}
                                 rightSection={
                                   <ActionIcon
@@ -209,6 +209,7 @@ export default function GlobalNavbar() {
                                 }
                                 autoFocus
                                 className="global-top-search"
+                                style={{ flex: 1, width: '100%' }}
                                 onFocus={() => {
                                   if (hasSuggestions) setSuggestionsOpen(true);
                                 }}
