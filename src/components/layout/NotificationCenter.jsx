@@ -1,283 +1,38 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import {
   Popover, ActionIcon, Indicator, Stack, Text, Group, ThemeIcon,
-  ScrollArea, Button, Tabs, Avatar, Badge
+  ScrollArea, Button, Tabs, Badge
 } from '@mantine/core';
 import IconBell from '@tabler/icons-react/dist/esm/icons/IconBell.mjs';
 import IconUserPlus from '@tabler/icons-react/dist/esm/icons/IconUserPlus.mjs';
 import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
 import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
-import IconThumbUp from '@tabler/icons-react/dist/esm/icons/IconThumbUp.mjs';
-import IconThumbDown from '@tabler/icons-react/dist/esm/icons/IconThumbDown.mjs';
 import IconHeart from '@tabler/icons-react/dist/esm/icons/IconHeart.mjs';
-import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
-import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { requestService, notificationService, feedService, followService, supabase } from '../../services/supabase';
-import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
-
-// Render a single activity notification row
-function ActivityItem({ item, onMarkRead, onNavigate, isFollowingActor, onFollowBack, followLoading }) {
-  const typeConfig = {
-    comment_upvote: {
-      icon: <IconThumbUp size={14} />,
-      color: 'green',
-      message: (actor) => `${actor} upvoted your song comment`,
-    },
-    playlist_comment_upvote: {
-      icon: <IconThumbUp size={14} />,
-      color: 'green',
-      message: (actor) => `${actor} upvoted your playlist comment`,
-    },
-    thread_activity: {
-      icon: <IconMessageCircle size={14} />,
-      color: 'blue',
-      message: (actor) => `${actor} also commented on a thread you're in`,
-    },
-    comment_downvote: {
-      icon: <IconThumbDown size={14} />,
-      color: 'red',
-      message: (actor) => `${actor} downvoted your song comment`,
-    },
-    playlist_comment_downvote: {
-      icon: <IconThumbDown size={14} />,
-      color: 'orange',
-      message: (actor) => `${actor} downvoted your playlist comment`,
-    },
-    new_follower: {
-      icon: <IconUserPlus size={14} />,
-      color: 'blue',
-      message: (actor) => `${actor} started following you`,
-    },
-  };
-
-  const config = typeConfig[item.type] || { icon: <IconInfoCircle size={14} />, color: 'gray', message: (a) => `${a} interacted with you` };
-  const actorName = item.actor?.display_name || 'Someone';
-
-  return (
-    <Group
-      wrap="nowrap"
-      align="flex-start"
-      p="xs"
-      style={{
-        cursor: 'pointer',
-        backgroundColor: item.read ? 'transparent' : 'var(--mantine-color-default-hover)',
-        borderRadius: 'var(--mantine-radius-sm)',
-        transition: 'background 0.15s ease',
-      }}
-      onClick={() => onNavigate(item)}
-    >
-      <ThemeIcon color={config.color} variant="light" size="md" radius="xl" mt={2}>
-        {config.icon}
-      </ThemeIcon>
-
-      <Group gap="xs" style={{ flex: 1, overflow: 'hidden' }} align="flex-start">
-        <Avatar
-          src={getProfileImageUrl(item.actor)}
-          size={24}
-          radius="xl"
-          color={config.color}
-          style={{ flexShrink: 0, marginTop: 1 }}
-        >
-          {actorName.charAt(0).toUpperCase()}
-        </Avatar>
-        <Stack gap={0} style={{ flex: 1 }}>
-          <Text size="xs" lineClamp={2}>
-            {config.message(actorName)}
-          </Text>
-          <Group gap="xs" mt={2}>
-            <Text size="xs" c="dimmed">
-              {getRelativeTime(item.created_at)}
-            </Text>
-            {item.type === 'new_follower' && !isFollowingActor && (
-              <Button
-                variant="subtle"
-                size="compact-xs"
-                color="blue"
-                loading={followLoading}
-                onClick={(e) => { e.stopPropagation(); onFollowBack(item.actor_id); }}
-              >
-                Follow Back
-              </Button>
-            )}
-            {item.type === 'new_follower' && isFollowingActor && (
-              <Badge size="xs" variant="light" color="gray">Following</Badge>
-            )}
-          </Group>
-        </Stack>
-      </Group>
-
-      {!item.read && (
-        <ActionIcon
-          size="sm"
-          variant="subtle"
-          color="blue"
-          onClick={(e) => { e.stopPropagation(); onMarkRead(item.id); }}
-          title="Mark as read"
-        >
-          <IconCheck size={12} />
-        </ActionIcon>
-      )}
-    </Group>
-  );
-}
+import { useNotifications } from '../../hooks/useNotifications';
+import { ActivityItem } from './ActivityItem';
 
 const NotificationCenter = () => {
   const { user, userRoles } = useAuth();
   const navigate = useNavigate();
   const [opened, setOpened] = useState(false);
   const [activeTab, setActiveTab] = useState('activity');
-  const [pendingRequests, setPendingRequests] = useState([]);
-  const [generalNotifications, setGeneralNotifications] = useState([]);
-  const [activityNotifications, setActivityNotifications] = useState([]);
-  const [followedIds, setFollowedIds] = useState(new Set());
-  const [followLoadingMap, setFollowLoadingMap] = useState({});
 
-  const adminBranch = userRoles?.admin_branch;
-  const isSuperAdmin = userRoles?.is_super_admin;
-  const isAdmin = userRoles?.is_admin || isSuperAdmin;
-  const userId = user?.id;
-
-  // ── Admin Requests ──
-  useEffect(() => {
-    if (!isAdmin) return;
-    const fetchRequests = async () => {
-      try {
-        const data = await requestService.getPendingRequests(isSuperAdmin ? null : adminBranch);
-        setPendingRequests(data);
-      } catch (error) {
-        console.error('Failed to fetch requests:', error);
-      }
-    };
-    fetchRequests();
-    const channel = supabase
-      .channel('admin-notifications')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'access_requests' }, (payload) => {
-        if (isSuperAdmin || payload.new.branch_id === adminBranch) {
-          fetchRequests();
-          if (payload.eventType === 'INSERT') {
-            notifications.show({ title: 'New Access Request', message: 'A user has requested access.', color: 'blue', icon: <IconUserPlus size={16} /> });
-          }
-        }
-      })
-      .subscribe();
-    return () => supabase.removeChannel(channel);
-  }, [isAdmin, adminBranch, isSuperAdmin]);
-
-  // ── General Notifications ──
-  const fetchGeneralNotifications = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const data = await notificationService.getAllNotifications(userId);
-      setGeneralNotifications(data);
-    } catch {
-      // console.error silent
-    }
-  }, [userId]);
-
-  // ── Activity Notifications ──
-  const fetchActivityNotifications = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const data = await feedService.getActivityNotifications(userId, 30);
-      setActivityNotifications(data);
-
-      // Fetch follow status for all actors
-      const actorIds = [...new Set(data.map(n => n.actor_id).filter(Boolean))];
-      if (actorIds.length > 0) {
-        const followed = await followService.getBulkFollowStatus(userId, actorIds);
-        setFollowedIds(followed);
-      }
-    } catch {
-      // console.error silent
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    if (!userId) return;
-    fetchGeneralNotifications();
-    fetchActivityNotifications();
-  }, [userId, fetchGeneralNotifications, fetchActivityNotifications]);
-
-  // Real-time subscription for general notifications
-  useEffect(() => {
-    if (!userId) return;
-    const channel = supabase
-      .channel('general_notifications')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, () => {
-        fetchGeneralNotifications();
-      })
-      .subscribe();
-    return () => supabase.removeChannel(channel);
-  }, [userId, fetchGeneralNotifications]);
-
-  // Real-time subscription for activity notifications
-  useEffect(() => {
-    if (!userId) return;
-    const channel = supabase
-      .channel(`activity-notifications-${userId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'user_activity_notifications',
-        filter: `recipient_id=eq.${userId}`,
-      }, () => {
-        fetchActivityNotifications();
-      })
-      .subscribe();
-    return () => supabase.removeChannel(channel);
-  }, [userId, fetchActivityNotifications]);
-
-  const handleMarkGeneralRead = async (e, notification) => {
-    e.stopPropagation();
-    if (notification.read) return;
-    setGeneralNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, read: true } : n));
-    try {
-      await notificationService.markAsRead(userId, notification.id);
-    } catch (error) {
-      console.error('Failed to mark as read', error);
-      fetchGeneralNotifications();
-    }
-  };
-
-  const handleMarkActivityRead = async (notifId) => {
-    setActivityNotifications(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n));
-    try {
-      await feedService.markActivityNotificationRead(notifId, userId);
-    } catch (err) {
-      console.error('Failed to mark activity notification as read', err);
-      fetchActivityNotifications();
-    }
-  };
-
-  const handleMarkAllActivityRead = async () => {
-    setActivityNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    try {
-      await feedService.markAllActivityNotificationsRead(userId);
-    } catch (err) {
-      console.error('Failed to mark all activity notifications as read', err);
-      fetchActivityNotifications();
-    }
-  };
-
-  const handleFollowBack = async (actorId) => {
-    setFollowLoadingMap(prev => ({ ...prev, [actorId]: true }));
-    try {
-      await followService.follow(userId, actorId);
-      setFollowedIds(prev => {
-        const next = new Set(prev);
-        next.add(actorId);
-        return next;
-      });
-      notifications.show({ title: 'Followed!', message: 'You are now following back.', color: 'green', autoClose: 2000 });
-    } catch {
-      notifications.show({ title: 'Error', message: 'Failed to follow back.', color: 'red' });
-    } finally {
-      setFollowLoadingMap(prev => ({ ...prev, [actorId]: false }));
-    }
-  };
+  const {
+    activityNotifications,
+    followedIds,
+    followLoadingMap,
+    systemItems,
+    unreadActivity,
+    unreadSystem,
+    totalUnread,
+    handleMarkGeneralRead,
+    handleMarkActivityRead,
+    handleMarkAllActivityRead,
+    handleFollowBack,
+  } = useNotifications(user, userRoles);
 
   const handleNavigateActivity = (item) => {
     setOpened(false);
@@ -287,19 +42,12 @@ const NotificationCenter = () => {
       navigate(`/songs/${item.song_id}`);
     } else if ((item.type === 'playlist_comment_upvote' || item.type === 'playlist_comment_downvote')) {
       navigate('/shared-playlists');
+    } else if (item.type === 'post_like' || item.type === 'comment_like') {
+      navigate('/feed');
     }
     handleMarkActivityRead(item.id);
   };
 
-  // Combine admin + general items
-  const systemItems = [
-    ...pendingRequests.map(r => ({ type: 'request', id: `req-${r.id}`, originalId: r.id, data: r, date: new Date(r.created_at), read: false })),
-    ...generalNotifications.map(n => ({ type: 'general', id: `notif-${n.id}`, originalId: n.id, data: n, date: new Date(n.created_at), read: n.read }))
-  ].sort((a, b) => b.date - a.date);
-
-  const unreadActivity = activityNotifications.filter(n => !n.read).length;
-  const unreadSystem = pendingRequests.length + generalNotifications.filter(n => !n.read).length;
-  const totalUnread = unreadActivity + unreadSystem;
 
   return (
     <Popover opened={opened} onChange={setOpened} width={370} position="bottom-end" shadow="md">
@@ -317,14 +65,14 @@ const NotificationCenter = () => {
             <Tabs.Tab
               value="activity"
               leftSection={<IconHeart size={14} />}
-              rightSection={unreadActivity > 0 ? <Badge size="xs" color="red" circle>{unreadActivity > 9 ? '9+' : unreadActivity}</Badge> : null}
+              rightSection={unreadActivity > 0 ? <Badge size="sm" color="red" circle>{unreadActivity > 9 ? '9+' : unreadActivity}</Badge> : null}
             >
               Activity
             </Tabs.Tab>
             <Tabs.Tab
               value="system"
               leftSection={<IconInfoCircle size={14} />}
-              rightSection={unreadSystem > 0 ? <Badge size="xs" color="blue" circle>{unreadSystem}</Badge> : null}
+              rightSection={unreadSystem > 0 ? <Badge size="sm" color="blue" circle>{unreadSystem}</Badge> : null}
             >
               System
             </Tabs.Tab>
@@ -334,9 +82,9 @@ const NotificationCenter = () => {
           <Tabs.Panel value="activity">
             <Stack gap={0} p="sm">
               <Group justify="space-between" mb="xs">
-                <Text size="xs" fw={600} c="dimmed">Recent Activity</Text>
+                <Text size="sm" fw={600} c="dimmed">Recent Activity</Text>
                 {unreadActivity > 0 && (
-                  <Button variant="subtle" size="xs" onClick={handleMarkAllActivityRead}>
+                  <Button variant="subtle" size="sm" onClick={handleMarkAllActivityRead}>
                     Mark all read
                   </Button>
                 )}
@@ -372,7 +120,7 @@ const NotificationCenter = () => {
           {/* ── System Tab ── */}
           <Tabs.Panel value="system">
             <Stack gap={0} p="sm">
-              <Text size="xs" fw={600} c="dimmed" mb="xs">System Notifications</Text>
+              <Text size="sm" fw={600} c="dimmed" mb="xs">System Notifications</Text>
               <ScrollArea.Autosize mah="55vh" type="scroll">
                 {systemItems.length === 0 ? (
                   <Text size="sm" c="dimmed" ta="center" py="lg">
@@ -412,21 +160,21 @@ const NotificationCenter = () => {
                           <Text size="sm" fw={500}>
                             {item.type === 'request' ? 'Access Request' : item.data.title}
                           </Text>
-                          <Text size="xs" c="secondary" style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
+                          <Text size="sm" c="secondary" style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
                             {item.type === 'request' ? (
                               `${item.data.user_roles?.email || 'Unknown User'} requested access to ${item.data.allowed_places?.short_name || 'Branch'}`
                             ) : (
                               item.data.message
                             )}
                           </Text>
-                          <Text size="xs" c="secondary" mt={4}>
+                          <Text size="sm" c="secondary" mt={4}>
                             {item.date.toLocaleString()}
                           </Text>
                         </div>
 
                         {item.type === 'general' && !item.read && (
                           <ActionIcon
-                            size="sm"
+                            size="md"
                             variant="subtle"
                             color="blue"
                             onClick={(e) => handleMarkGeneralRead(e, item.data)}

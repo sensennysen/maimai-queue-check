@@ -16,6 +16,15 @@ import { notifications } from '@mantine/notifications';
 import { adminService, requestService, rolesService } from '../../../services/supabase';
 import './UserManager.css';
 
+/**
+ * Component for managing pending branch access requests.
+ * Allows administrators to approve or reject requests from users.
+ * @param {Object} props - Component props.
+ * @param {boolean} props.isSuperAdmin - Whether the current user is a super administrator.
+ * @param {Object} props.currentUserRoles - Roles and permissions for the current user.
+ * @param {string} [props.keyProp] - Optional key to trigger data refreshes.
+ * @returns {JSX.Element} The rendered requests board.
+ */
 const AccessRequests = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -95,7 +104,7 @@ const AccessRequests = ({ isSuperAdmin, currentUserRoles, keyProp }) => {
                   <Table.Td>
                     <Stack gap={0}>
                       <Text size="sm">{r.user_roles?.queue_name || 'Unknown'}</Text>
-                      <Text size="xs" c="secondary">{r.user_roles?.email}</Text>
+                      <Text size="sm" c="secondary">{r.user_roles?.email}</Text>
                     </Stack>
                   </Table.Td>
                   <Table.Td>

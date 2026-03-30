@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Paper, Title, Button, Group, LoadingOverlay, Box, Alert, Indicator } from '@mantine/core';
-import { IconPlaylist, IconPlaylistAdd, IconAlertCircle } from '@tabler/icons-react';
+import { Button, Box, Group, Text, Paper, Title, Indicator, Alert, ActionIcon } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
+import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
+import IconPlaylistAdd from '@tabler/icons-react/dist/esm/icons/IconPlaylistAdd.mjs';
+import IconMusicOff from '@tabler/icons-react/dist/esm/icons/IconMusicOff.mjs';
+import IconSortAscending from '@tabler/icons-react/dist/esm/icons/IconSortAscending.mjs';
 import { notifications } from '@mantine/notifications';
 import { playlistService } from '../../services/supabase';
 import { PlaylistEditModal } from './PlaylistEditModal';
@@ -12,6 +16,7 @@ import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 import './PlaylistStack.css';
 
 export function PlaylistSection({ userId, isOwnProfile }) {
+  const isMobile = useMediaQuery('(max-width: 500px)');
   const { loading: songsLoading, songMapById } = useSongDatabaseContext();
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +74,6 @@ export function PlaylistSection({ userId, isOwnProfile }) {
       }
       return [...prev, updatedPlaylist];
     });
-    // Refresh detailed data if needed
     if (selectedPlaylist?.id === updatedPlaylist.id) {
       setSelectedPlaylist(updatedPlaylist);
     }
@@ -93,7 +97,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
       .map(entry => {
         const fullSong = songMapById?.get(entry.song_id);
         if (!fullSong) return null;
-        return { ...fullSong, level: entry.level }; // Inject level from DB
+        return { ...fullSong, level: entry.level };
       })
       .filter(Boolean);
   }, [songMapById]);
@@ -103,7 +107,6 @@ export function PlaylistSection({ userId, isOwnProfile }) {
     setIsEditModalOpen(true);
   };
 
-  // Called by PlaylistEditModal when draft state changes
   const handleDraftChange = (draftExists) => {
     setHasDraft(draftExists);
   };
@@ -120,53 +123,83 @@ export function PlaylistSection({ userId, isOwnProfile }) {
 
   const isEverythingLoading = loading || songsLoading;
 
-  if (isEverythingLoading && playlists.length === 0) {
-    return (
-      <Paper shadow="sm" p="lg" radius="md" withBorder style={{ minHeight: 150 }}>
-        <LoadingOverlay visible={true} />
-      </Paper>
-    );
-  }
+  if (isEverythingLoading && playlists.length === 0) return null;
+
+  const count = playlists.length;
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder pos="relative" className="playlist-section" style={{ overflow: 'hidden' }}>
-      <Group justify="space-between" mb="lg">
-        <Group gap="xs">
-          <IconPlaylist size={24} style={{ color: 'var(--theme-primary)' }} />
-          <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>My Playlists</Title>
+    <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-200" style={{ overflow: 'hidden' }}>
+      <Group justify="space-between" mb="md" align="center">
+        <Group gap="xs" align="center">
+          <IconPlaylist size={22} style={{ color: 'var(--theme-secondary)' }} />
+          <Title order={2}>Custom Playlists</Title>
+          {count > 0 && (
+            <Text size="sm" c="dimmed" fw={600} ml={4} mt={2}>
+              ({count})
+            </Text>
+          )}
         </Group>
 
         {isOwnProfile && (
-          <Group gap="xs">
+          <Group gap="xs" wrap="nowrap">
             {playlists.length > 1 && (
-              <Button
-                variant="light"
-                color="gray"
-                size="sm"
-                onClick={() => setIsManageModalOpen(true)}
-                leftSection={<IconPlaylist size={18} />}
-              >
-                Manage Order
-              </Button>
+              isMobile ? (
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="lg"
+                  radius="xl"
+                  onClick={() => setIsManageModalOpen(true)}
+                >
+                  <IconSortAscending size={20} />
+                </ActionIcon>
+              ) : (
+                <Button
+                  variant="subtle"
+                  color="gray"
+                  size="sm"
+                  onClick={() => setIsManageModalOpen(true)}
+                  leftSection={<IconSortAscending size={16} />}
+                  style={{ borderRadius: 999 }}
+                >
+                  Order
+                </Button>
+              )
             )}
             <Indicator color="orange" size={10} processing disabled={!hasDraft}>
-              <Button
-                leftSection={<IconPlaylistAdd size={18} />}
-                variant="light"
-                onClick={handleCreateNew}
-              >
-                New Playlist
-              </Button>
+              {isMobile ? (
+                <ActionIcon
+                  variant="light"
+                  color="secondary"
+                  size="lg"
+                  radius="xl"
+                  onClick={handleCreateNew}
+                >
+                  <IconPlaylistAdd size={20} />
+                </ActionIcon>
+              ) : (
+                <Button
+                  leftSection={<IconPlaylistAdd size={16} />}
+                  variant="light"
+                  color="secondary"
+                  size="sm"
+                  onClick={handleCreateNew}
+                  style={{ borderRadius: 999 }}
+                >
+                  New
+                </Button>
+              )}
             </Indicator>
           </Group>
         )}
       </Group>
 
+      {/* Content */}
       {playlists.length === 0 ? (
-        <Alert icon={<IconAlertCircle size={16} />} title="No Playlists" color="gray" variant="light">
+        <Alert icon={<IconMusicOff size={16} />} title="No playlists" color="gray" variant="light">
           {isOwnProfile
-            ? "Showcase your recent grind set here!"
-            : "This user hasn't created any playlists yet."}
+            ? "Create custom folders for your training sets, grinds, or favorite charts!"
+            : "This player hasn't curated any playlists yet."}
         </Alert>
       ) : (
         <div
@@ -174,17 +207,15 @@ export function PlaylistSection({ userId, isOwnProfile }) {
           className="hide-scrollbar"
           style={{
             display: 'flex',
-            padding: '24px 20px 20px 20px',
-            margin: '0 -20px -20px -20px',
+            padding: '4px 0 6px 0',
             overflowX: 'auto',
             overflowY: 'visible',
             scrollBehavior: 'smooth',
-            maxWidth: 'calc(100% + 40px)'
           }}
         >
-          <Group wrap="nowrap" gap="xs" style={{ overflow: 'visible' }}>
+          <Group wrap="nowrap" gap="sm" style={{ overflow: 'visible' }}>
             {playlists.map((pl) => (
-              <Box key={pl.id} style={{ minWidth: '200px', width: '220px', overflow: 'visible' }}>
+              <Box key={pl.id} style={{ minWidth: '180px', width: '200px', overflow: 'visible' }}>
                 <PlaylistStack
                   playlist={pl}
                   songs={getPlaylistSongs(pl)}
@@ -194,24 +225,22 @@ export function PlaylistSection({ userId, isOwnProfile }) {
             ))}
           </Group>
         </div>
-      )
-      }
+      )}
 
-      {
-        isOwnProfile && (
-          <PlaylistEditModal
-            opened={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            userId={userId}
-            initialPlaylist={selectedPlaylist ? {
-              ...selectedPlaylist,
-              fullSongs: getPlaylistSongs(selectedPlaylist)
-            } : null}
-            onSave={handleSavePlaylist}
-            onDraftChange={handleDraftChange}
-          />
-        )
-      }
+      {/* Modals */}
+      {isOwnProfile && (
+        <PlaylistEditModal
+          opened={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          userId={userId}
+          initialPlaylist={selectedPlaylist ? {
+            ...selectedPlaylist,
+            fullSongs: getPlaylistSongs(selectedPlaylist)
+          } : null}
+          onSave={handleSavePlaylist}
+          onDraftChange={handleDraftChange}
+        />
+      )}
 
       <PlaylistDetailModal
         playlist={selectedPlaylist}
@@ -229,6 +258,6 @@ export function PlaylistSection({ userId, isOwnProfile }) {
         playlists={playlists}
         onSave={(updatedList) => setPlaylists(updatedList)}
       />
-    </Paper >
+    </Paper>
   );
 }

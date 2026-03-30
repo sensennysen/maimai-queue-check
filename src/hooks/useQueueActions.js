@@ -6,17 +6,18 @@ import { useLocationGuard } from './useLocationGuard';
 import { ERRORS } from '../constants/queue';
 
 /**
- * Hook for queue CRUD operations
- * @param {Object} options
- * @param {Array} options.queue - Current queue array
- * @param {(queue: Array) => void} options.setQueue - Queue state setter
- * @param {(error: string) => void} options.setError - Error state setter
- * @param {boolean} options.locationVerified - Whether location is verified
- * @param {string|null} options.locationError - Current location error
- * @param {() => Promise<void>} options.refreshData - Function to refresh queue data
- * @param {() => number} options.getNextOrder - Function to get next order position
- * @param {number} options.selectedCabinet - Currently selected cabinet number
- * @returns {Object} Queue action functions and isMutating state
+ * Hook that provides complex CRUD operations and state management for queue entries.
+ * Orchestrates location guards and service layer calls for adding, updating, and moving players.
+ * @param {Object} options - Action configuration options.
+ * @param {Array<Object>} options.queue - The current list of queue entries.
+ * @param {Function} options.setQueue - State setter for the queue array.
+ * @param {Function} options.setError - State setter for error messages.
+ * @param {boolean} options.locationVerified - Current location verification status.
+ * @param {string|null} options.locationError - Current location error message.
+ * @param {Function} options.refreshData - Stable callback to trigger a full queue data reload.
+ * @param {Function} options.getNextOrder - Helper function to calculate the next available order position.
+ * @param {number} [options.selectedCabinet=1] - The cabinet number these actions apply to.
+ * @returns {Object} An object containing all queue action functions and the `isMutating` state.
  */
 export const useQueueActions = ({
   queue,
@@ -106,56 +107,84 @@ export const useQueueActions = ({
     requireLocationVerification();
 
     try {
-      setIsMutating(true);
-      const waitingItems = queue.filter(item => item.status === 'waiting');
-      const index = waitingItems.findIndex(item => item.id === id);
-      
+      const waitingItems = queue.filter((item) => item.status === 'waiting');
+      const index = waitingItems.findIndex((item) => item.id === id);
+
       if (index > 0) {
         const itemA = waitingItems[index - 1];
         const itemB = waitingItems[index];
 
+        // Optimistic UI update: swap order positions in local state for instant feedback
+        setQueue((prev) => {
+          const newQueue = [...prev];
+          const idxA = newQueue.findIndex((i) => i.id === itemA.id);
+          const idxB = newQueue.findIndex((i) => i.id === itemB.id);
+
+          if (idxA !== -1 && idxB !== -1) {
+            const posA = newQueue[idxA].order_position;
+            const posB = newQueue[idxB].order_position;
+            newQueue[idxA] = { ...newQueue[idxA], order_position: posB };
+            newQueue[idxB] = { ...newQueue[idxB], order_position: posA };
+            return newQueue.sort((a, b) => a.order_position - b.order_position);
+          }
+          return prev;
+        });
+
+        // Perform the actual database update in the background
         await queueService.updateOrderPositions([
           { id: itemA.id, order_position: itemB.order_position },
           { id: itemB.id, order_position: itemA.order_position }
         ]);
-
-        await refreshData();
       }
     } catch (err) {
       setError(err.message);
+      // Revert to server state on error
+      await refreshData();
       throw err;
-    } finally {
-      setIsMutating(false);
     }
-  }, [requireLocationVerification, queue, refreshData, setError]);
+  }, [requireLocationVerification, queue, setQueue, refreshData, setError]);
 
   // Move entry down in queue
   const moveDown = useCallback(async (id) => {
     requireLocationVerification();
 
     try {
-      setIsMutating(true);
-      const waitingItems = queue.filter(item => item.status === 'waiting');
-      const index = waitingItems.findIndex(item => item.id === id);
-      
+      const waitingItems = queue.filter((item) => item.status === 'waiting');
+      const index = waitingItems.findIndex((item) => item.id === id);
+
       if (index < waitingItems.length - 1) {
         const itemA = waitingItems[index];
         const itemB = waitingItems[index + 1];
 
+        // Optimistic UI update: swap order positions in local state for instant feedback
+        setQueue((prev) => {
+          const newQueue = [...prev];
+          const idxA = newQueue.findIndex((i) => i.id === itemA.id);
+          const idxB = newQueue.findIndex((i) => i.id === itemB.id);
+
+          if (idxA !== -1 && idxB !== -1) {
+            const posA = newQueue[idxA].order_position;
+            const posB = newQueue[idxB].order_position;
+            newQueue[idxA] = { ...newQueue[idxA], order_position: posB };
+            newQueue[idxB] = { ...newQueue[idxB], order_position: posA };
+            return newQueue.sort((a, b) => a.order_position - b.order_position);
+          }
+          return prev;
+        });
+
+        // Perform the actual database update in the background
         await queueService.updateOrderPositions([
           { id: itemA.id, order_position: itemB.order_position },
           { id: itemB.id, order_position: itemA.order_position }
         ]);
-        
-        await refreshData();
       }
     } catch (err) {
       setError(err.message);
+      // Revert to server state on error
+      await refreshData();
       throw err;
-    } finally {
-      setIsMutating(false);
     }
-  }, [requireLocationVerification, queue, refreshData, setError]);
+  }, [requireLocationVerification, queue, setQueue, refreshData, setError]);
 
   // Clear entire queue
   const clearQueue = useCallback(async () => {

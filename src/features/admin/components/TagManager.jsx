@@ -18,16 +18,14 @@ import {
   Tabs,
   Tooltip,
 } from '@mantine/core';
-import {
-  IconCheck,
-  IconX,
-  IconEdit,
-  IconRefresh,
-  IconPlus,
-  IconTrash,
-  IconSearch,
-  IconTags
-} from '@tabler/icons-react';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
+import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
+import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
+import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
+import IconSearch from '@tabler/icons-react/dist/esm/icons/IconSearch.mjs';
+import IconTags from '@tabler/icons-react/dist/esm/icons/IconTags.mjs';
 import { notifications } from '@mantine/notifications';
 import { discussionService } from '../../../services/supabase';
 

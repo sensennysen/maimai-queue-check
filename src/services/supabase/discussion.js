@@ -3,7 +3,12 @@ import { feedService } from './feed';
 import { TABLES } from '../../constants/database';
 
 export const discussionService = {
-  // Get all discussion data for a song
+  /**
+   * Retrieves all discussion-related data for a specific song (ratings, comments, tags).
+   * Executes multiple queries in parallel for efficiency.
+   * @param {string} songId - The unique identifier of the song.
+   * @returns {Promise<Object>} A promise resolving to an object containing {ratings, comments, tags}.
+   */
   async getSongDiscussionData(songId) {
     try {
       // Run queries in parallel
@@ -46,7 +51,12 @@ export const discussionService = {
     }
   },
 
-  // Get available tags from dictionary
+  /**
+   * Retrieves the list of available tags from the song tags dictionary.
+   * Filters for approved tags unless the viewer has administrative privileges.
+   * @param {boolean} [isAdmin=false] - Flag to include pending/internal tags.
+   * @returns {Promise<Array<Object>>} A promise resolving to an array of tag objects.
+   */
   async getAvailableTags(isAdmin = false) {
     let query = supabase
       .from(TABLES.SONG_TAGS_DICTIONARY)
@@ -62,7 +72,11 @@ export const discussionService = {
     return data;
   },
 
-  // Get all tags for administration
+  /**
+   * Retrieves all tags in the dictionary regardless of status, including creator info.
+   * Intended for administrative audit and management.
+   * @returns {Promise<Array<Object>>} A promise resolving to a list of fully populated tag objects.
+   */
   async getAllTags() {
     const { data, error } = await supabase
       .from(TABLES.SONG_TAGS_DICTIONARY)
@@ -76,7 +90,11 @@ export const discussionService = {
     }));
   },
 
-  // Delete a tag (Super Admin only)
+  /**
+   * Permanently deletes a tag definition from the global dictionary.
+   * @param {string} tagId - The identifier of the tag to delete.
+   * @returns {Promise<boolean>} A promise resolving to true on successful deletion.
+   */
   async deleteTag(tagId) {
     const { error } = await supabase
       .from(TABLES.SONG_TAGS_DICTIONARY)
@@ -86,7 +104,13 @@ export const discussionService = {
     return true;
   },
 
-  // Add a new custom tag to dictionary
+  /**
+   * Adds a new user-suggested tag to the dictionary with a pending status.
+   * @param {string} name - The display name of the tag.
+   * @param {string} [description=null] - Optional context or rules for tag usage.
+   * @param {string} [status='pending'] - Initial moderation status.
+   * @returns {Promise<Object>} A promise resolving to the created dictionary entry.
+   */
   async addCustomTag(name, description = null, status = 'pending') {
     const { data, error } = await supabase
       .from(TABLES.SONG_TAGS_DICTIONARY)
@@ -103,7 +127,10 @@ export const discussionService = {
     return data;
   },
 
-  // Admin: Get all pending tags
+  /**
+   * Retrieves tags currently awaiting moderator review.
+   * @returns {Promise<Array<Object>>} A promise resolving to a list of pending tags.
+   */
   async getPendingTags() {
     const { data, error } = await supabase
       .from(TABLES.SONG_TAGS_DICTIONARY)
@@ -119,7 +146,13 @@ export const discussionService = {
     return data;
   },
 
-  // Admin: Update tag status (approve/reject)
+  /**
+   * Updates the moderation status of a tag (e.g., approving or rejecting it).
+   * @param {string} tagId - The ID of the tag.
+   * @param {string} status - The new status ('approved', 'rejected', etc.).
+   * @param {string} [description=null] - Optional updated description or rejection reason.
+   * @returns {Promise<Object>} A promise resolving to the updated tag entry.
+   */
   async updateTagStatus(tagId, status, description = null) {
     const updates = { status };
     if (description !== null) updates.description = description;
@@ -135,7 +168,13 @@ export const discussionService = {
     return data;
   },
 
-  // Add a tag to a song
+  /**
+   * Associates a tag with a specific song in the database.
+   * @param {string} songId - The ID of the song.
+   * @param {string} tagId - The ID of the tag to associate.
+   * @param {string} userId - The ID of the user performing the tagging.
+   * @returns {Promise<Object>} A promise resolving to the mapping record.
+   */
   async addSongTag(songId, tagId, userId) {
     const { data, error } = await supabase
       .from(TABLES.SONG_TAGS)
@@ -146,7 +185,13 @@ export const discussionService = {
     return data;
   },
 
-  // Remove a tag from a song
+  /**
+   * Removes a specific tag association from a song.
+   * @param {string} songId - The ID of the song.
+   * @param {string} tagId - The ID of the tag mapping to remove.
+   * @param {string} userId - The ID of the user (for ownership verification).
+   * @returns {Promise<boolean>} A promise resolving to true when successful.
+   */
   async removeSongTag(songId, tagId, userId) {
     const { error } = await supabase
       .from(TABLES.SONG_TAGS)
@@ -159,7 +204,13 @@ export const discussionService = {
     return true;
   },
 
-  // Upsert a 1-5 rating
+  /**
+   * Registers or updates a user's 1-5 numerical rating for a song.
+   * @param {string} songId - The ID of the song.
+   * @param {string} userId - The ID of the rater.
+   * @param {number} rating - The score value (1-5).
+   * @returns {Promise<Object>} A promise resolving to the upserted rating record.
+   */
   async upsertSongRating(songId, userId, rating) {
     const { data, error } = await supabase
       .from(TABLES.SONG_RATINGS)
@@ -173,7 +224,12 @@ export const discussionService = {
     return data;
   },
   
-  // Remove user's rating
+  /**
+   * Deletes a user's existing rating for a specific song.
+   * @param {string} songId - The ID of the song.
+   * @param {string} userId - The ID of the user.
+   * @returns {Promise<boolean>} A promise resolving to true when successful.
+   */
   async removeSongRating(songId, userId) {
     const { error } = await supabase
       .from(TABLES.SONG_RATINGS)
@@ -185,7 +241,14 @@ export const discussionService = {
     return true;
   },
 
-  // Add a comment
+  /**
+   * Adds a new discussion comment to a song's thread.
+   * Automatically triggers thread activity notifications to recent participants.
+   * @param {string} songId - The ID of the song.
+   * @param {string} userId - The ID of the author.
+   * @param {string} content - The text content of the comment.
+   * @returns {Promise<Object>} A promise resolving to the created comment with author profile.
+   */
   async addComment(songId, userId, content) {
     const { data, error } = await supabase
       .from(TABLES.SONG_COMMENTS)
@@ -226,7 +289,14 @@ export const discussionService = {
     return data;
   },
 
-  // Vote on a comment
+  /**
+   * Registers, updates, or removes a vote on a song discussion comment.
+   * Automatically triggers a notification to the author on new upvotes.
+   * @param {string} commentId - The unique identifier of the comment.
+   * @param {string} userId - The ID of the voter.
+   * @param {number} voteType - The type of vote (1: up, -1: down, 0: remove).
+   * @returns {Promise<Object>} A promise resolving to the final vote state.
+   */
   async voteComment(commentId, userId, voteType) {
     if (voteType === 0) {
       // Remove vote
@@ -279,7 +349,9 @@ export const discussionService = {
   },
 
   /**
-   * Get profiles of users who voted on a song comment.
+   * Retrieves user profiles for anyone who has voted on a specific song comment.
+   * @param {string} commentId - The ID of the comment to audit.
+   * @returns {Promise<Array<Object>>} A promise resolving to a list of voter profiles.
    */
   async getSongCommentVoters(commentId) {
     const { data, error } = await supabase
@@ -295,7 +367,12 @@ export const discussionService = {
     return data || [];
   },
   
-  // Delete user's comment
+  /**
+   * Permanently deletes a user's own comment from a song discussion.
+   * @param {string} commentId - The ID of the comment to delete.
+   * @param {string} userId - The ID of the user (for ownership verification).
+   * @returns {Promise<boolean>} A promise resolving to true when successful.
+   */
   async deleteComment(commentId, userId) {
     const { error } = await supabase
       .from(TABLES.SONG_COMMENTS)

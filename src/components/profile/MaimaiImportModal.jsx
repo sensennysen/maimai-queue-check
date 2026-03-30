@@ -1,9 +1,13 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Modal, Stack, Text, Divider, Alert, Group, Button, CopyButton, Code, Loader } from '@mantine/core';
-import { IconCheck, IconAlertCircle } from '@tabler/icons-react';
+import { Modal, Stack, Text, Alert, Group, Button, CopyButton, Code, Loader, Box, LoadingOverlay } from '@mantine/core';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconDownload from '@tabler/icons-react/dist/esm/icons/IconDownload.mjs';
+import IconCopy from '@tabler/icons-react/dist/esm/icons/IconCopy.mjs';
 import { BookmarkletInstructions } from '../BookmarkletInstructions';
 import { userService, mostPlayedService, createImportSession, getImportSession, deleteImportSession } from '../../services/supabase';
 import { fetchSongConstants, calculateBest50 } from '../../utils/maimai-calc';
+import { usePageVisibility } from '../../hooks/usePageVisibility';
 
 const POLL_INTERVAL_MS = 2500;
 
@@ -13,6 +17,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
   const [sessionExpiresAt, setSessionExpiresAt] = useState(null);
   const [validationResult, setValidationResult] = useState(null);
   const pollRef = useRef(null);
+  const isVisible = usePageVisibility();
 
   const processPayload = useCallback(async (data) => {
     if (!data.scores || !Array.isArray(data.scores)) {
@@ -101,7 +106,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
     if (!opened || !userId) return;
     let cancelled = false;
     // Reset state immediately so UI doesn't flash stale content while loading
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setValidationResult(null);
     setStep('loading');
     (async () => {
@@ -129,7 +134,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
       if (sessionExpiresAt && new Date(sessionExpiresAt) < new Date()) {
         if (pollRef.current) clearInterval(pollRef.current);
         deleteImportSession(sessionToken).catch(() => { });
-        setValidationResult({ success: false, message: 'Session expired. Click Get new code to try again.' });
+        setValidationResult({ success: false, message: 'Session expired. Request a new code.' });
         setStep('idle');
         setSessionToken(null);
         setSessionExpiresAt(null);
@@ -164,12 +169,17 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
       }
     };
 
+    if (!isVisible) {
+      if (pollRef.current) clearInterval(pollRef.current);
+      return;
+    }
+
     check();
     pollRef.current = setInterval(check, POLL_INTERVAL_MS);
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [step, sessionToken, sessionExpiresAt, processPayload, onSuccess, onClose]);
+  }, [step, sessionToken, sessionExpiresAt, processPayload, onSuccess, onClose, isVisible]);
 
   const handleClose = useCallback(() => {
     if (pollRef.current) clearInterval(pollRef.current);
@@ -184,74 +194,234 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
     <Modal
       opened={opened}
       onClose={handleClose}
-      title="Import Scores"
       size="lg"
+      radius={24}
+      padding={0}
+      withCloseButton={false}
+      centered
+      styles={{
+        content: {
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: 'calc(100vh - 60px)'
+        },
+        body: {
+          padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          overflow: 'hidden'
+        },
+      }}
     >
-      <Stack>
-        <BookmarkletInstructions />
+      <LoadingOverlay visible={step === 'processing'} zIndex={100} overlayProps={{ radius: 'md', blur: 2 }} />
 
-        <Divider label="Session" labelPosition="center" />
-
-        {step === 'loading' && (
-          <Group>
-            <Loader size="sm" />
-            <Text size="sm">Getting code…</Text>
-          </Group>
-        )}
-
-        {(step === 'idle' || step === 'waiting') && sessionToken && (
-          <Stack gap="sm">
-            <Text size="sm" fw={600}>Copy this code:</Text>
-            <Group gap="xs" wrap="nowrap">
-              <Code block style={{ fontSize: '1.25rem', letterSpacing: 2 }}>{sessionToken}</Code>
-              <CopyButton value={sessionToken} timeout={2000}>
-                {({ copied, copy }) => (
-                  <Button size="xs" variant="light" onClick={copy}>{copied ? 'Copied' : 'Copy'}</Button>
-                )}
-              </CopyButton>
-            </Group>
-            <Text size="sm" c="dimmed">
-              On maimai DX NET (Play Data), run your bookmarklet, paste the code in the overlay, and tap &quot;Fetch &amp; Send to App&quot;. This page will update when the data is received.
-            </Text>
-            {step === 'waiting' && (
-              <Group mt="md">
-                <Loader size="sm" />
-                <Text size="sm">Waiting for bookmarklet…</Text>
-              </Group>
-            )}
-          </Stack>
-        )}
-
-        {step === 'idle' && !sessionToken && (
-          <Group justify="flex-end">
-            <Button variant="default" onClick={handleClose}>Cancel</Button>
-            <Button onClick={startImport}>Get new code</Button>
-          </Group>
-        )}
-
-        {step === 'processing' && (
-          <Group>
-            <Loader size="sm" />
-            <Text size="sm">Importing scores…</Text>
-          </Group>
-        )}
-
-        {validationResult && (
-          <Alert
-            icon={validationResult.success ? <IconCheck /> : <IconAlertCircle />}
-            color={validationResult.success ? 'green' : 'red'}
-            title={validationResult.success ? 'Success' : 'Error'}
+      {/* ── Fixed Header ─────────────────────────────────────────── */}
+      <Box
+        style={{
+          background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
+          padding: '24px 24px 20px',
+          position: 'relative',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+      >
+        <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
+          <Box
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
+            }}
           >
-            {validationResult.message}
-          </Alert>
-        )}
+            <IconDownload size={18} color="#fff" strokeWidth={2.2} />
+          </Box>
+          <Box>
+            <Text
+              size="lg"
+              fw={800}
+              style={{
+                fontFamily: 'var(--font-heading)',
+                color: '#fff',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
+              }}
+            >
+              Import Scores
+            </Text>
+            <Text size="xs" style={{ color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
+              Sync from maimai DX NET
+            </Text>
+          </Box>
+        </Group>
 
-        {step === 'done' && (
+        <Box
+          onClick={handleClose}
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 20,
+            cursor: 'pointer',
+            padding: '4px 12px',
+            borderRadius: 20,
+            background: 'rgba(255,255,255,0.15)',
+            color: '#fff',
+            fontSize: 12,
+            fontWeight: 700,
+            backdropFilter: 'blur(4px)',
+            transition: 'all 0.2s ease',
+          }}
+          className="header-close-pill"
+        >
+          Close
+        </Box>
+      </Box>
+
+      {/* ── Body ─────────────────────────────────────────────────── */}
+      <Box style={{ flex: 1, overflowY: 'auto' }}>
+        <Stack gap="lg" p="lg">
+          <Box
+            style={{
+              borderRadius: 18,
+              padding: '20px',
+              background: 'var(--theme-surface)',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              border: '1px solid var(--theme-border)',
+            }}
+          >
+            <BookmarkletInstructions />
+          </Box>
+
+          <Box
+            style={{
+              borderRadius: 18,
+              padding: '20px',
+              background: 'var(--theme-surface)',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              border: '1px solid var(--theme-border)',
+              position: 'relative'
+            }}
+          >
+            <Text size="sm" fw={800} mb="xs" style={{ letterSpacing: '0.02em', textTransform: 'uppercase', color: 'var(--theme-primary)' }}>
+              Session Code
+            </Text>
+
+            {step === 'loading' ? (
+              <Group p="md">
+                <Loader size="sm" color="var(--theme-primary)" />
+                <Text size="sm" fw={500}>Generating session code…</Text>
+              </Group>
+            ) : (step === 'idle' || step === 'waiting') && sessionToken ? (
+              <Stack gap="md">
+                <Box
+                  style={{
+                    background: 'var(--theme-bg-soft)',
+                    padding: '16px',
+                    borderRadius: 12,
+                    border: '1px dashed var(--theme-border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <Code 
+                    style={{ 
+                      fontSize: '1.25rem', 
+                      letterSpacing: 4, 
+                      fontWeight: 800, 
+                      background: 'transparent',
+                      color: 'var(--theme-text)'
+                    }}
+                  >
+                    {sessionToken}
+                  </Code>
+                  <CopyButton value={sessionToken} timeout={2000}>
+                    {({ copied, copy }) => (
+                      <Button 
+                        size="xs" 
+                        variant="filled" 
+                        color={copied ? "green" : "var(--theme-primary)"} 
+                        onClick={copy}
+                        leftSection={copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                        radius="md"
+                      >
+                        {copied ? 'Copied' : 'Copy'}
+                      </Button>
+                    )}
+                  </CopyButton>
+                </Box>
+                
+                <Text size="xs" c="dimmed" lh={1.5}>
+                  1. Go to <strong>maimai DX NET</strong> (Play Data)<br />
+                  2. Run your bookmarklet<br />
+                  3. Paste the code above and tap <strong>"Fetch & Send"</strong>
+                </Text>
+
+                {step === 'waiting' && (
+                  <Group justify="center" p="sm" bg="var(--theme-bg-soft)" style={{ borderRadius: 12 }}>
+                    <Loader size="xs" color="var(--theme-primary)" />
+                    <Text size="xs" fw={700} style={{ color: 'var(--theme-primary)' }}>Waiting for bookmarklet data…</Text>
+                  </Group>
+                )}
+              </Stack>
+            ) : step === 'idle' && !sessionToken && (
+              <Button 
+                onClick={startImport} 
+                fullWidth 
+                radius="xl"
+                variant="light"
+                style={{ height: 48, fontWeight: 700 }}
+              >
+                Get Session Code
+              </Button>
+            )}
+          </Box>
+
+          {validationResult && (
+            <Alert
+              icon={validationResult.success ? <IconCheck size={18} /> : <IconAlertCircle size={18} />}
+              color={validationResult.success ? 'green' : 'red'}
+              radius="lg"
+              styles={{
+                root: { border: '1px solid currentColor' },
+                title: { fontWeight: 800, fontSize: '14px' }
+              }}
+              title={validationResult.success ? 'Success' : 'Error'}
+            >
+              <Text size="sm" fw={500}>{validationResult.message}</Text>
+            </Alert>
+          )}
+        </Stack>
+      </Box>
+
+      {/* ── Footer ───────────────────────────────────────────────── */}
+      {(step === 'done' || (step === 'idle' && !sessionToken)) && (
+        <Box 
+          p="lg" 
+          style={{ 
+            borderTop: '1px solid var(--theme-border)',
+            background: 'var(--theme-surface)',
+            flexShrink: 0
+          }}
+        >
           <Group justify="flex-end">
-            <Button onClick={handleClose}>Close</Button>
+            <Button 
+              variant="default" 
+              onClick={handleClose}
+              radius="xl"
+              style={{ fontWeight: 600 }}
+            >
+              {step === 'done' ? 'Close' : 'Cancel'}
+            </Button>
           </Group>
-        )}
-      </Stack>
+        </Box>
+      )}
     </Modal>
   );
 };

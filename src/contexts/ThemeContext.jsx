@@ -1,11 +1,43 @@
 import { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { themes } from '../config/theme';
+import { themes } from '../config/theme.js';
 
 const ThemeContext = createContext();
 
+const getLuminance = (hex) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return 0;
+  const [r, g, b] = [1, 2, 3].map((i) => {
+    const c = parseInt(result[i], 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+const getContrastRatio = (hexA, hexB) => {
+  const lumA = getLuminance(hexA);
+  const lumB = getLuminance(hexB);
+  const lighter = Math.max(lumA, lumB);
+  const darker = Math.min(lumA, lumB);
+  return (lighter + 0.05) / (darker + 0.05);
+};
+
+const getReadableTextColor = (backgroundHex) => {
+  const lightText = '#FFFFFF';
+  const darkText = '#0B1324';
+  const lightContrast = getContrastRatio(backgroundHex, lightText);
+  const darkContrast = getContrastRatio(backgroundHex, darkText);
+  return darkContrast >= lightContrast ? darkText : lightText;
+};
+
 // The hook and provider are co-located intentionally (standard React context pattern).
 // Splitting into separate files would add indirection without benefit.
-// eslint-disable-next-line react-refresh/only-export-components
+ 
+/**
+ * Custom hook to access the global Theme context.
+ * Provides current theme settings, mode, and color transformation utilities.
+ * @returns {Object} The Theme context value.
+ * @throws {Error} If used outside of a ThemeProvider.
+ */
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
@@ -16,6 +48,13 @@ export const useTheme = () => {
 
 
 // Theme Context provider
+/**
+ * Provider component for the global Theme context.
+ * Manages theme mode (light/dark), color palettes, and synchronization with CSS variables.
+ * @param {Object} props - Component props.
+ * @param {React.ReactNode} props.children - Child components to be wrapped by the provider.
+ * @returns {JSX.Element} The rendered context provider.
+ */
 export const ThemeProvider = ({ children }) => {
   // Theme Mode: Light/Dark
   const [isDark, setIsDark] = useState(() => {
@@ -27,8 +66,8 @@ export const ThemeProvider = ({ children }) => {
   // Selected Theme: Circle, Prism, etc.
   const [currentTheme, setCurrentTheme] = useState(() => {
     const stored = localStorage.getItem('app-theme');
-    // Default to 'circle' if not set or invalid
-    return (stored && themes[stored]) ? stored : 'circle';
+    // Default to 'universe' or first available if not set or invalid
+    return (stored && themes[stored]) ? stored : 'universe';
   });
 
   useEffect(() => {
@@ -50,6 +89,9 @@ export const ThemeProvider = ({ children }) => {
     root.style.setProperty('--theme-text-muted', cssVars.textMuted);
     root.style.setProperty('--theme-border', cssVars.border);
     root.style.setProperty('--theme-tab-highlight', cssVars.tabHighlight || cssVars.primary);
+
+    // Dynamic soft backgrounds for inputs/cards
+    root.style.setProperty('--theme-bg-soft', isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)');
 
     // Derived colors could be calculated or added to theme config
     // For now, let's just set some basic derivatives based on primary/secondary
@@ -85,23 +127,30 @@ export const ThemeProvider = ({ children }) => {
     root.style.setProperty('--theme-player1', cssVars.primary);
     root.style.setProperty('--theme-player2', cssVars.secondary);
 
+    // Pick the text color that has the better contrast ratio on primary buttons.
+    const contrastColor = getReadableTextColor(cssVars.primary);
+    root.style.setProperty('--theme-primary-contrast', contrastColor);
+
+    // Also for status colors
+    root.style.setProperty('--theme-error-contrast', getReadableTextColor(isDark ? '#FF6B6B' : '#D63352'));
+    root.style.setProperty('--theme-success-contrast', getReadableTextColor(isDark ? '#88FF00' : '#2DA74F'));
+
+    // Set hover variations (slightly darker for light mode, lighter for dark mode)
+    root.style.setProperty('--theme-primary-hover', isDark ? 
+      `color-mix(in srgb, ${cssVars.primary}, white 15%)` : 
+      `color-mix(in srgb, ${cssVars.primary}, black 15%)`
+    );
+    root.style.setProperty('--theme-secondary-hover', isDark ? 
+      `color-mix(in srgb, ${cssVars.secondary}, white 15%)` : 
+      `color-mix(in srgb, ${cssVars.secondary}, black 15%)`
+    );
+
     document.body.setAttribute('data-theme', mode); // still needed for some CSS selectors
     document.body.setAttribute('data-palette', currentTheme); // helpful for debug or specific overrides
   }, [isDark, currentTheme]);
 
   const toggleTheme = () => setIsDark(!isDark);
   const setTheme = (themeName) => setCurrentTheme(themeName);
-
-  // Compute relative luminance from a hex color string
-  const getLuminance = (hex) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) return 0;
-    const [r, g, b] = [1, 2, 3].map((i) => {
-      const c = parseInt(result[i], 16) / 255;
-      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-    });
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  };
 
   // Expose resolved theme info for component consumption
   const themeColors = useMemo(() => {

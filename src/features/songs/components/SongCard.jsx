@@ -2,10 +2,20 @@ import { Paper, Text, Group, Badge, Image, Stack, Tooltip, Box } from '@mantine/
 import React, { useMemo } from 'react';
 import dxImage from '../../../assets/music_dx.png';
 import standardImage from '../../../assets/music_standard.png';
-import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty } from '../../../config/maimai-constants';
+import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty, BASE_JACKET_URL } from '../../../config/maimai-constants';
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
 
+/**
+ * Component for displaying a single song card with its metadata and difficulty bars.
+ * @param {Object} props - Component props.
+ * @param {Object} props.song - The song data object.
+ * @param {Function} props.onClick - Handler for card click events.
+ * @param {boolean} [props.hideDifficulties=false] - Whether to hide difficulty level badges.
+ * @param {boolean} [props.hideTags=false] - Whether to hide version and category tags.
+ * @param {Object} [props.style] - Optional CSS styles for the container.
+ * @returns {JSX.Element} The rendered song card.
+ */
 export const SongCard = React.memo(function SongCard({ song, onClick, hideDifficulties = false, hideTags = false, style }) {
   // Sort sheets by difficulty
   const sortedSheets = useMemo(() => {
@@ -60,7 +70,7 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
           }}
         >
           <Image
-            src={song.imageUrl}
+            src={song.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
             alt={song.title}
             style={{
               position: 'absolute',
@@ -104,39 +114,56 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
             </Badge>
           )}
 
-          {/* DX/Standard Type Badge (Bottom Right) */}
-          {song.cardType && (
-            <img
-              src={typeImage}
-              alt={song.cardType === 'dx' ? 'DX' : 'Standard'}
-              loading="lazy"
-              style={{
-                position: 'absolute',
-                bottom: 8,
-                right: 8,
-                height: 20,
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))'
-              }}
-            />
-          )}
+          {/* Bottom Bar for Version and Type */}
+          <Group
+            justify="space-between"
+            wrap="nowrap"
+            gap="xs"
+            px={8}
+            pb={8}
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              pointerEvents: 'none',
+              zIndex: 5
+            }}
+          >
+            {/* Version badge */}
+            {!hideTags && (
+              <Badge
+                size="sm"
+                variant="filled"
+                color="dark"
+                style={{
+                  opacity: 0.9,
+                  fontFamily: 'var(--font-body)',
+                  pointerEvents: 'auto',
+                  flexShrink: 1,
+                  maxWidth: '70%',
+                  fontSize: '12px'
+                }}
+              >
+                {VERSION_MAPPING[song.version] || song.version}
+              </Badge>
+            )}
 
-          {/* Version badge (Bottom Left) */}
-          {!hideTags && (
-            <Badge
-              size="sm"
-              variant="filled"
-              color="dark"
-              style={{
-                position: 'absolute',
-                bottom: 8,
-                left: 8,
-                opacity: 0.8,
-                fontFamily: 'var(--font-body)'
-              }}
-            >
-              {VERSION_MAPPING[song.version] || song.version}
-            </Badge>
-          )}
+            {/* DX/Standard Type Badge */}
+            {song.cardType && (
+              <img
+                src={typeImage}
+                alt={song.cardType === 'dx' ? 'DX' : 'Standard'}
+                loading="lazy"
+                style={{
+                  height: 14,
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+                  pointerEvents: 'auto',
+                  flexShrink: 0
+                }}
+              />
+            )}
+          </Group>
         </Box>
 
         {/* Content Area */}
@@ -172,7 +199,7 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
                       minWidth: 'auto',
                       padding: '0 6px',
                       cursor: 'default',
-                      fontSize: '11px',
+                      fontSize: '12px',
                       fontFamily: 'var(--font-body)',
                       backgroundColor: diffColor,
                       color: 'white'
@@ -186,7 +213,7 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
           </Group>
         </Stack>
       </div>
-    </Paper >
+    </Paper>
   );
 });
 

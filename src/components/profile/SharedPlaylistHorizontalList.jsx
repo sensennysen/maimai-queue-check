@@ -1,4 +1,5 @@
 import { Group, Image, Text } from '@mantine/core';
+import { BASE_JACKET_URL } from '../../config/maimai-constants';
 import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
 
 export function SharedPlaylistHorizontalList({ songs, onSongClick }) {
@@ -24,7 +25,7 @@ export function SharedPlaylistHorizontalList({ songs, onSongClick }) {
         {songs.map((song, idx) => (
           <Image
             key={`${song.songId}-${idx}`}
-            src={song.imageUrl}
+            src={song.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
             w={140}
             h={140}
             radius="md"

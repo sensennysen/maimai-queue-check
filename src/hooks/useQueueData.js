@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { queueService, subscribeToQueueChanges } from '../services/supabase';
 import { useBranch } from './useBranch';
 import { QUEUE_STATUSES } from '../constants/queue';
@@ -14,10 +14,11 @@ export const useQueueData = (selectedCabinet = 1) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const requestIdRef = useRef(0);
 
   // Derived state
-  const nowPlaying = queue.find(item => item.status === QUEUE_STATUSES.PLAYING) || null;
-  const waitingQueue = queue.filter(item => item.status === QUEUE_STATUSES.WAITING);
+  const nowPlaying = (queue || []).find(item => item?.status === QUEUE_STATUSES.PLAYING) || null;
+  const waitingQueue = (queue || []).filter(item => item?.status === QUEUE_STATUSES.WAITING);
 
   // Load initial data
   const loadInitialData = useCallback(async () => {
@@ -25,17 +26,29 @@ export const useQueueData = (selectedCabinet = 1) => {
       return;
     }
 
+    const currentRequestId = ++requestIdRef.current;
+
     try {
       setLoading(true);
       const queueData = await queueService.getQueueEntries(selectedBranch.id, selectedCabinet);
+      
+      if (currentRequestId !== requestIdRef.current) {
+        return;
+      }
+
       setQueue(queueData);
       setError(null);
       setIsConnected(true);
     } catch (err) {
+      if (currentRequestId !== requestIdRef.current) {
+        return;
+      }
       if (err.name === 'AbortError') return;
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (currentRequestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, [selectedBranch?.id, selectedCabinet]);
 
@@ -46,7 +59,7 @@ export const useQueueData = (selectedCabinet = 1) => {
     }
   }, [loadInitialData, selectedBranch?.id]);
 
-  // Subscribe to real-time changes
+  // Subscribe to real-time changes using postgres_changes (Supabase built-in)
   useEffect(() => {
     if (!selectedBranch?.id) {
       return;
@@ -56,35 +69,24 @@ export const useQueueData = (selectedCabinet = 1) => {
       const newRow = payload.new;
       const oldRow = payload.old;
       
-      const isRelevantBranch = 
-        (newRow && newRow.branch_id === selectedBranch.id) ||
-        (oldRow && oldRow.branch_id === selectedBranch.id);
+      const isRelevant = 
+        (newRow && newRow.branch_id === selectedBranch.id && newRow.cabinet_num === selectedCabinet) ||
+        (oldRow && oldRow.branch_id === selectedBranch.id && oldRow.cabinet_num === selectedCabinet);
       
-      // Check if this change is relevant to the selected cabinet
-      const isRelevantCabinet =
-        (newRow && newRow.cabinet_num === selectedCabinet) ||
-        (oldRow && oldRow.cabinet_num === selectedCabinet);
-      
-      if (isRelevantBranch && isRelevantCabinet) {
-        queueService.getQueueEntries(selectedBranch.id, selectedCabinet)
-          .then(data => setQueue(data))
-          .catch(err => {
-            console.error('[useQueueData] Failed to refresh queue on subscription event:', err);
-          });
+      if (isRelevant) {
+        loadInitialData();
       }
     };
 
     const queueSubscription = subscribeToQueueChanges(handleQueueChange, selectedBranch.id);
 
-    // Test connection removed
-    
     return () => {
       if (queueSubscription) {
         queueSubscription.unsubscribe();
       }
       setIsConnected(false);
     };
-  }, [selectedBranch?.id, selectedCabinet]);
+  }, [selectedBranch?.id, selectedCabinet, loadInitialData]);
 
   // Generate next order number
   const getNextOrder = useCallback(() => {

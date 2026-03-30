@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { queueService, subscribeToQueueChanges } from '../services/supabase';
 import { useBranch } from './useBranch';
 import { QUEUE_STATUSES } from '../constants/queue';
@@ -17,6 +17,7 @@ export const useMonitorData = (branchIdOverride = null) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const requestIdRef = useRef(0);
 
   // Load initial data
   const loadData = useCallback(async () => {
@@ -25,11 +26,17 @@ export const useMonitorData = (branchIdOverride = null) => {
       return;
     }
 
+    const currentRequestId = ++requestIdRef.current;
+
     try {
       setLoading(true);
       // Fetch all entries for the branch (cabinetNum = null)
       const data = await queueService.getQueueEntries(activeBranchId, null);
       
+      if (currentRequestId !== requestIdRef.current) {
+        return;
+      }
+
       // Group by cabinet
       const grouped = {};
       data.forEach(entry => {
@@ -52,10 +59,15 @@ export const useMonitorData = (branchIdOverride = null) => {
       setError(null);
       setIsConnected(true);
     } catch (err) {
+      if (currentRequestId !== requestIdRef.current) {
+        return;
+      }
       if (err.name === 'AbortError') return;
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (currentRequestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, [activeBranchId]);
 

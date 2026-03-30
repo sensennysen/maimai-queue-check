@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { scheduleService } from '../services/supabase';
+import { usePageVisibility } from './usePageVisibility';
 
 // Helper: parse 'HH:MM' into minutes since midnight
 const parseTimeToMinutes = (hhmm) => {
@@ -68,15 +69,18 @@ export const useMallSchedule = (branchId) => {
 
   // State to trigger recalculation of isMallOpen every minute
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const isVisible = usePageVisibility();
 
   // Update time every minute to recalculate isMallOpen
   useEffect(() => {
+    if (!isVisible) return;
+
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
     }, 60000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isVisible]);
 
   // Compute mall open state for current Manila time
   const isMallOpen = useMemo(() => {

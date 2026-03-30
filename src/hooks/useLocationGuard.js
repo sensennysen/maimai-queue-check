@@ -3,12 +3,13 @@ import { useAuth } from './useAuth';
 import { ERRORS } from '../constants/queue';
 
 /**
- * Hook that provides a function to guard queue operations requiring location verification
- * @param {Object} options
- * @param {boolean} options.locationVerified - Whether location is verified
- * @param {string|null} options.locationError - Current location error message
- * @param {(error: string) => void} options.setError - Function to set error state
- * @returns {{ requireLocationVerification: () => void }}
+ * Provides a guard function to enforce location requirements for sensitive operations.
+ * Allows Super Admins to bypass location checks.
+ * @param {Object} options - Guard configuration options.
+ * @param {boolean} options.locationVerified - Current location verification status.
+ * @param {string|null} options.locationError - Current location error message.
+ * @param {Function} options.setError - Function to update UI error state.
+ * @returns {Object} An object containing the `requireLocationVerification` guard function.
  */
 export const useLocationGuard = ({ locationVerified, locationError, setError }) => {
   const { userRoles } = useAuth();

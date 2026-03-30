@@ -3,7 +3,12 @@ import { TABLES } from '../../constants/database';
 
 // Authentication service functions
 export const authService = {
-  // Sign in with OAuth provider
+  /**
+   * Initiates an OAuth sign-in flow with the specified provider.
+   * Configures the redirect URL to return the user to the application's origin.
+   * @param {string} provider - The OAuth provider name (e.g., 'google', 'discord').
+   * @returns {Promise<Object>} A promise resolving to the auth data or throwing an error.
+   */
   async signInWithProvider(provider) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
@@ -16,18 +21,28 @@ export const authService = {
     return data;
   },
 
-  // Sign out
+  /**
+   * Ends the current user's session and signs them out of the application.
+   * @returns {Promise<void>} A promise that resolves when the sign-out is complete.
+   */
   async signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   },
 
-  // Get current user
+  /**
+   * Retrieves the currently authenticated user's data from Supabase.
+   * @returns {Promise<Object>} A promise resolving to the user object or { user: null }.
+   */
   getCurrentUser() {
     return supabase.auth.getUser();
   },
 
-  // Subscribe to auth changes
+  /**
+   * Registers a listener for authentication state changes (sign-in, sign-out, etc.).
+   * @param {Function} callback - The function to execute when the auth state changes.
+   * @returns {Object} An object containing the subscription's unsubscribe method.
+   */
   onAuthStateChange(callback) {
     return supabase.auth.onAuthStateChange(callback);
   },
@@ -35,7 +50,13 @@ export const authService = {
 
 // User roles service functions
 export const rolesService = {
-  // Fetch user roles/permissions and profile data
+  /**
+   * Fetches the comprehensive user profile and role data from multiple database tables.
+   * Normalizes permissions, preferences, and maimai-specific stats into a unified object.
+   * @param {string} userId - The unique identifier of the user.
+   * @param {string} [branchIdOptional] - Optional branch ID to check for site-specific edit rights.
+   * @returns {Promise<Object>} A promise resolving to the merged profile and role data.
+   */
   async getUserRoles(userId, branchIdOptional) {
     try {
       const [roleResult, profileResult] = await Promise.all([
@@ -141,6 +162,11 @@ export const rolesService = {
   }
 };
 
+/**
+ * Establishes a real-time subscription to changes in the user roles table.
+ * @param {Function} callback - The function to call whenever a change occurs.
+ * @returns {Object} The Supabase Realtime channel subscription.
+ */
 export const subscribeToUserRoleChanges = (callback) => {
   const channel = supabase
     .channel('user_role_changes')

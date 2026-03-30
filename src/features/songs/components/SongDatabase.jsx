@@ -1,8 +1,10 @@
 import { Container, Group, Stack, Text } from '@mantine/core';
-import { IconBrandGithub, IconBrandTwitter } from '@tabler/icons-react';
+import IconBrandGithub from '@tabler/icons-react/dist/esm/icons/IconBrandGithub.mjs';
+import IconBrandTwitter from '@tabler/icons-react/dist/esm/icons/IconBrandTwitter.mjs';
+import { useSongDatabase } from '../../../hooks/useSongDatabase';
 import SongFilters from './SongFilters';
 import SongList from './SongList';
-import { useSongDatabase } from '../../../hooks/useSongDatabase';
+import styles from './SongDatabase.module.css';
 
 function SongDatabase() {
   const {
@@ -22,69 +24,47 @@ function SongDatabase() {
     <Container size="xl" py="lg" pb="xl">
       <Stack gap="lg">
         <Group gap="xs" justify="flex-end" w="100%">
-          <Text size="xs" c="dimmed">Attribution:</Text>
+          <Text size="sm" c="dimmed">Attribution:</Text>
           <Text
             component="a"
             href="https://github.com/zetaraku"
             target="_blank"
-            size="xs"
+            size="sm"
             c="dimmed"
             style={{ display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
           >
-            <IconBrandGithub size={12} /> Chart Metadata
+            <IconBrandGithub size={14} /> Chart Metadata
           </Text>
-          <Text size="xs" c="dimmed">•</Text>
+          <Text size="sm" c="dimmed">•</Text>
           <Text
             component="a"
             href="https://x.com/maiLv_Chihooooo"
             target="_blank"
-            size="xs"
+            size="sm"
             c="dimmed"
             style={{ display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
           >
-            <IconBrandTwitter size={12} /> Internal Levels
+            <IconBrandTwitter size={14} /> Internal Levels
           </Text>
         </Group>
         
         {/* Layout Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gap: '2rem',
-          alignItems: 'start'
-        }}>
-          {/* Desktop: standard grid, Mobile: Stack */}
-          <style dangerouslySetInnerHTML={{
-            __html: `
-                    @media (min-width: 992px) {
-                        .song-db-grid {
-                            grid-template-columns: 300px 1fr !important;
-                        }
-                    }
-                 `}} />
+        <div className={styles.songDbGrid}>
+          <div style={{ position: 'relative', height: '100%' }}>
+            {/* This container ensures sticky works if parent has height */}
+            <SongFilters
+              filters={filters}
+              onFilterChange={setFilters}
+              categories={categories}
+              versions={versions}
+              levels={levels}
+              internalLevels={internalLevels}
+              artists={artists}
+            />
+          </div>
 
-          <div className="song-db-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr',
-            gap: '2rem',
-            alignItems: 'start',
-          }}>
-            <div style={{ position: 'relative', height: '100%' }}>
-              {/* This container ensures sticky works if parent has height */}
-              <SongFilters
-                filters={filters}
-                onFilterChange={setFilters}
-                categories={categories}
-                versions={versions}
-                levels={levels}
-                internalLevels={internalLevels}
-                artists={artists}
-              />
-            </div>
-
-            <div style={{ minWidth: 0 }}>
-              <SongList key={JSON.stringify(filters)} songs={filteredSongs} loading={loading} error={error} />
-            </div>
+          <div style={{ minWidth: 0 }}>
+            <SongList key={JSON.stringify(filters)} songs={filteredSongs} loading={loading} error={error} />
           </div>
         </div>
       </Stack>

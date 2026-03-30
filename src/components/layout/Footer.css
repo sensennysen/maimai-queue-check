@@ -1,7 +1,8 @@
 .footer {
-  margin-top: 3rem;
-  padding: 2rem 1rem 1.5rem;
+  margin-top: 4rem;
+  padding: 2rem 1rem 6rem; /* Extra bottom padding for mobile dock */
   text-align: center;
+  font-family: var(--font-heading);
 }
 
 .footer-link-group {
@@ -36,7 +37,7 @@
 
 @media (max-width: 768px) {
   .footer {
-    padding: 1.5rem 1rem 1rem;
+    padding: 1.5rem 1rem 7rem; /* Extra clearance for mobile bottom dock */
     margin-top: 2rem;
   }
 

@@ -117,7 +117,7 @@
 
 .vs {
   background: var(--theme-accent);
-  color: #2B1C2A;
+  color: var(--theme-text-primary);
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -187,11 +187,11 @@
 }
 
 .move-btn.up {
-  border-radius: 4px 4px 0 0;
+  border-radius: var(--radius-control) var(--radius-control) 0 0;
 }
 
 .move-btn.down {
-  border-radius: 0 0 4px 4px;
+  border-radius: 0 0 var(--radius-control) var(--radius-control);
   border-top: none;
 }
 
@@ -216,7 +216,7 @@
   width: 32px;
   height: 32px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.2s ease;
@@ -257,6 +257,14 @@
   background: var(--theme-surface-hover);
   color: var(--theme-text-muted);
   border: 1px solid var(--theme-border);
+}
+
+.move-btn:focus-visible,
+.edit-btn:focus-visible,
+.remove-btn:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
 }
 
 @media (max-width: 768px) {
@@ -370,7 +378,7 @@
     height: 18px;
   }
 
-  .queue-.item.next-up {
+  .queue-item.next-up {
     background: linear-gradient(90deg, color-mix(in srgb, var(--theme-accent), transparent 80%) 0%, var(--theme-surface) 100%);
     border-left-color: var(--theme-accent);
   }

@@ -5,7 +5,13 @@ import { QUEUE_STATUSES } from '../../constants/queue';
 
 // Queue service functions
 export const queueService = {
-  // Fetch all queue entries (waiting and playing)
+  /**
+   * Retrieves all active queue entries (both 'waiting' and 'playing') for a branch.
+   * Filters by the current day's entries and optionally by a specific cabinet.
+   * @param {string} branchId - The unique identifier of the branch.
+   * @param {number} [cabinetNum=null] - Optional cabinet number to filter results.
+   * @returns {Promise<Array<Object>>} A promise resolving to an ordered list of queue entries.
+   */
   async getQueueEntries(branchId, cabinetNum = null) {
     if (!branchId) return [];
 
@@ -17,42 +23,52 @@ export const queueService = {
       .select('id, player1, player2, order_position, status, branch_id, cabinet_num, created_at, started_at, created_by_profile:created_by(display_photo_url)')
       .in('status', [QUEUE_STATUSES.WAITING, QUEUE_STATUSES.PLAYING])
       .gte('created_at', today.toISOString());
-    
+
     if (branchId) {
       query = query.eq('branch_id', branchId);
     }
-    
+
     if (cabinetNum !== null) {
       query = query.eq('cabinet_num', cabinetNum);
     }
-    
+
     query = query.order('order_position', { ascending: true });
 
     const { data, error } = await query;
-    
+
     if (error) throw error;
     return data || [];
   },
 
-  // Add a new queue entry
+  /**
+   * Creates a new queue entry in the database.
+   * Automatically determines whether the entry starts as 'playing' or 'waiting' based on current occupancy.
+   * @param {string} player1 - The name or identifier of the first player.
+   * @param {string} player2 - The name or identifier of the second player (can be empty).
+   * @param {number} orderPosition - The sort order for the entry in the queue.
+   * @param {string} userId - The unique identifier of the user creating the entry.
+   * @param {string} branchId - The ID of the branch where the entry is created.
+   * @param {number} [cabinetNum=1] - The cabinet being queued for.
+   * @returns {Promise<Object>} A promise resolving to the newly created queue entry.
+   */
   async addQueueEntry(player1, player2, orderPosition, userId, branchId, cabinetNum = 1) {
-    const validation = validateData(queueEntrySchema, { 
-      player1, 
-      player2, 
-      order_position: orderPosition, 
-      branch_id: branchId, 
-      cabinet_num: cabinetNum 
+    const validation = validateData(queueEntrySchema, {
+      player1,
+      player2,
+      order_position: orderPosition,
+      branch_id: branchId,
+      cabinet_num: cabinetNum
     });
-    
+
     if (!validation.success) throw new Error(validation.error);
 
     const { count, error: countError } = await supabase
-        .from(TABLES.QUEUE_ENTRIES)
-        .select('id', { count: 'exact', head: true })
-        .eq('branch_id', branchId)
-        .eq('cabinet_num', cabinetNum)
-        .eq('status', QUEUE_STATUSES.PLAYING);
-    
+      .from(TABLES.QUEUE_ENTRIES)
+      .select('id', { count: 'exact', head: true })
+      .eq('branch_id', branchId)
+      .eq('cabinet_num', cabinetNum)
+      .eq('status', QUEUE_STATUSES.PLAYING);
+
     if (countError) throw countError;
 
     const initialStatus = count === 0 ? QUEUE_STATUSES.PLAYING : QUEUE_STATUSES.WAITING;
@@ -73,18 +89,24 @@ export const queueService = {
       ])
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
 
-  // Update an existing queue entry
+  /**
+   * Updates the player names for an existing queue entry.
+   * @param {string} id - The unique identifier of the queue entry.
+   * @param {string} player1 - The updated name for the first player.
+   * @param {string} player2 - The updated name for the second player.
+   * @returns {Promise<Object>} A promise resolving to the updated queue entry.
+   */
   async updateQueueEntry(id, player1, player2) {
-    const validation = validateData(queueEntrySchema.pick({ player1: true, player2: true }), { 
-      player1, 
-      player2 
+    const validation = validateData(queueEntrySchema.pick({ player1: true, player2: true }), {
+      player1,
+      player2
     });
-    
+
     if (!validation.success) throw new Error(validation.error);
 
     const { data, error } = await supabase
@@ -96,42 +118,60 @@ export const queueService = {
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
 
-  // Remove a queue entry (cancel it)
+  /**
+   * Cancels an active queue entry by setting its status to 'cancelled'.
+   * @param {string} id - The unique identifier of the queue entry.
+   * @returns {Promise<void>} A promise that resolves when the update is complete.
+   */
   async removeQueueEntry(id) {
     const { error } = await supabase
       .from(TABLES.QUEUE_ENTRIES)
-      .update({ 
+      .update({
         status: QUEUE_STATUSES.CANCELLED,
         ended_at: new Date().toISOString()
       })
       .eq('id', id);
-    
+
     if (error) throw error;
   },
 
-  // Update order positions for reordering
+  /**
+   * Batch updates the order positions of multiple queue entries.
+   * Useful during drag-and-drop reordering operations.
+   * @param {Array<Object>} updates - An array of objects containing {id, order_position}.
+   * @returns {Promise<Array<Object>>} A promise resolving to the collection of updated entries.
+   */
   async updateOrderPositions(updates) {
-    const results = [];
-    for (const update of updates) {
-      const { data, error } = await supabase
-        .from(TABLES.QUEUE_ENTRIES)
-        .update({ order_position: update.order_position })
-        .eq('id', update.id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      results.push(data);
-    }
-    return results;
+    if (!Array.isArray(updates) || updates.length === 0) return [];
+
+    const sanitizedUpdates = updates
+      .filter((item) => item?.id !== undefined && item?.id !== null)
+      .map((item) => ({ id: item.id, order_position: item.order_position }));
+
+    if (sanitizedUpdates.length === 0) return [];
+
+    // Use a dedicated RPC for batch reordering to ensure atomicity and high performance.
+    // This replaces the separate update calls, reducing network overhead.
+    const { error } = await supabase.rpc('reorder_queue_entries', {
+      p_updates: sanitizedUpdates
+    });
+
+    if (error) throw error;
+    return sanitizedUpdates;
   },
 
-  // Clear all queue entries (waiting and playing) for a specific cabinet
+  /**
+   * Transitions all 'waiting' and 'playing' entries for a cabinet to 'completed'.
+   * Typically used at the end of a shift or session.
+   * @param {string} branchId - The ID of the branch.
+   * @param {number} [cabinetNum=null] - Optional cabinet number to target.
+   * @returns {Promise<void>} A promise that resolves when the queue is cleared.
+   */
   async clearQueue(branchId, cabinetNum = null) {
     if (!branchId) {
       throw new Error('branchId is required to clear the queue');
@@ -139,13 +179,13 @@ export const queueService = {
 
     let query = supabase
       .from(TABLES.QUEUE_ENTRIES)
-      .update({ 
+      .update({
         status: QUEUE_STATUSES.COMPLETED,
         ended_at: new Date().toISOString()
       })
       .eq('branch_id', branchId)
       .in('status', [QUEUE_STATUSES.WAITING, QUEUE_STATUSES.PLAYING]);
-    
+
     if (cabinetNum !== null) {
       query = query.eq('cabinet_num', cabinetNum);
     }
@@ -154,50 +194,53 @@ export const queueService = {
     if (error) throw error;
   },
 
-  // Move to next game
+  /**
+   * Atomically finishes the current game and marks the next waiting entry as playing.
+   * Uses a Postgres RPC to ensure both updates occur in a single transaction.
+   * @param {string} [currentPlayingId] - The ID of the entry currently in the 'playing' state.
+   * @param {string} [nextWaitingId] - The ID of the entry to be transitioned to 'playing'.
+   * @returns {Promise<void>} A promise that resolves when both operations complete.
+   */
   async finishGame(currentPlayingId, nextWaitingId) {
-    if (currentPlayingId) {
-        const { error: completeError } = await supabase
-            .from(TABLES.QUEUE_ENTRIES)
-            .update({ 
-                status: QUEUE_STATUSES.COMPLETED,
-                ended_at: new Date().toISOString()
-            })
-            .eq('id', currentPlayingId);
-        
-        if (completeError) throw completeError;
+    if (!currentPlayingId && !nextWaitingId) return;
+
+    if (currentPlayingId && nextWaitingId && currentPlayingId === nextWaitingId) {
+      throw new Error('Cannot finish and start the same entry in one transition.');
     }
 
-    if (nextWaitingId) {
-        const { error: startError } = await supabase
-            .from(TABLES.QUEUE_ENTRIES)
-            .update({ 
-                status: QUEUE_STATUSES.PLAYING,
-                started_at: new Date().toISOString()
-            })
-            .eq('id', nextWaitingId);
-        
-        if (startError) throw startError;
-    }
+    const { error } = await supabase.rpc('finish_game', {
+      p_current_playing_id: currentPlayingId || null,
+      p_next_waiting_id: nextWaitingId || null
+    });
+
+    if (error) throw error;
   },
 
-  // Legacy/Helper to manually mark as playing
+  /**
+   * Manually transitions a specific queue entry to the 'playing' state.
+   * @param {string} id - The unique identifier of the entry.
+   * @returns {Promise<Object>} A promise resolving to the updated queue entry.
+   */
   async markAsPlaying(id) {
     const { data, error } = await supabase
       .from(TABLES.QUEUE_ENTRIES)
-      .update({ 
-          status: QUEUE_STATUSES.PLAYING,
-          started_at: new Date().toISOString()
+      .update({
+        status: QUEUE_STATUSES.PLAYING,
+        started_at: new Date().toISOString()
       })
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   },
 
-  // Fetch completed and cancelled queue entries for today
+  /**
+   * Fetches all non-active entries (completed/cancelled) created within the current day.
+   * @param {string} branchId - The ID of the branch.
+   * @returns {Promise<Array<Object>>} A promise resolving to today's history entries.
+   */
   async getCompletedEntriesForToday(branchId) {
     if (!branchId) return [];
 
@@ -216,7 +259,14 @@ export const queueService = {
     return data || [];
   },
 
-  // Fetch queue logs based on time range and status filters
+  /**
+   * Queries the database for queue history logs with advanced filtering.
+   * @param {Object} params - The query parameters.
+   * @param {string} params.branchId - The branch to query within.
+   * @param {string} params.timeFilter - The resolution of history (hour, today, all_time).
+   * @param {Array<string>} params.statusFilter - The statuses to include in the results.
+   * @returns {Promise<Array<Object>>} A promise resolving to the filtered log entries.
+   */
   async getQueueLogs({ branchId, timeFilter, statusFilter }) {
     if (!branchId) return [];
 
@@ -239,8 +289,6 @@ export const queueService = {
       query = query.gte('created_at', gteDate.toISOString());
     }
 
-    // Apply status filter (if provided and not empty array, else we don't filter to allow all)
-    // Actually, if statusFilter is provided, we use it. If it's empty, we might return nothing or everything. Let's assume it always has values if filtering by status.
     if (Array.isArray(statusFilter) && statusFilter.length > 0) {
       query = query.in('status', statusFilter);
     }
@@ -251,7 +299,12 @@ export const queueService = {
   },
 };
 
-// Real-time subscriptions
+/**
+ * Subscribes to real-time database changes for queue entries.
+ * @param {Function} callback - The function to call on update payload reception.
+ * @param {string} [branchId=null] - Optional filter for changes at a specific branch.
+ * @returns {Object} The Supabase Realtime channel subscription.
+ */
 export const subscribeToQueueChanges = (callback, branchId = null) => {
   const config = {
     event: '*',
@@ -263,41 +316,44 @@ export const subscribeToQueueChanges = (callback, branchId = null) => {
     config.filter = `branch_id=eq.${branchId}`;
   }
 
-  const channelId = `queue_realtime:${branchId || 'all'}:${Date.now()}:${Math.random().toString(36).substring(7)}`;
+  return supabase
+    .channel('queue_changes')
+    .on('postgres_changes', config, (payload) => {
+      if (callback && typeof callback === 'function') {
+        callback(payload);
+      }
+    })
+    .subscribe();
+};
+
+/**
+ * Subscribes to real-time events for queue entries via V2 broadcasts.
+ * This provides incremental updates (INSERT, UPDATE, DELETE) for better scaling.
+ * @param {string} branchId - The unique identifier for the branch.
+ * @param {Object} handlers - An object containing event handlers: onInsert, onUpdate, onDelete.
+ * @param {Function} onSubscribed - Optional callback when the channel is successfully subscribed.
+ * @returns {Object} The Supabase Realtime channel subscription.
+ */
+export const subscribeToQueueV2 = (branchId, { onInsert, onUpdate, onDelete }, onSubscribed = null) => {
+  if (!branchId) return null;
 
   const channel = supabase
-    .channel(channelId)
-    .on(
-      'postgres_changes',
-      config,
-      (payload) => {
-        if (callback && typeof callback === 'function') {
-          callback(payload);
-        }
+    .channel(`queue_v2_channel_${branchId}`)
+    .on('broadcast', { event: 'INSERT' }, (payload) => {
+      if (onInsert) onInsert(payload);
+    })
+    .on('broadcast', { event: 'UPDATE' }, (payload) => {
+      if (onUpdate) onUpdate(payload);
+    })
+    .on('broadcast', { event: 'DELETE' }, (payload) => {
+      if (onDelete) onDelete(payload);
+    })
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED' && onSubscribed) {
+        onSubscribed();
       }
-    )
-    .subscribe();
+    });
 
   return channel;
 };
 
-export const subscribeToSessionChanges = (callback) => {
-  const channel = supabase
-    .channel('session_realtime')
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: TABLES.GAME_SESSIONS
-      },
-      (payload) => {
-        if (callback && typeof callback === 'function') {
-          callback(payload);
-        }
-      }
-    )
-    .subscribe();
-
-  return channel;
-};

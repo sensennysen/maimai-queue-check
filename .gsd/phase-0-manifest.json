@@ -1,0 +1,94 @@
+{
+  "version": "1.25.1",
+  "phase": 0,
+  "status": "initialized",
+  "projectName": "GSD Project",
+  "created": "$(date +%Y-%m-%dT%H:%M:%S)",
+  "codebaseScan": {
+    "totalFiles": 456,
+    "directories": ["api/", "src/", "public/", "scripts/", "node_modules/"],
+    "configFiles": ["package.json", "vite.config.js", "vercel.json", "eslint.config.js"]
+  },
+  "projects": [
+    {
+      "id": "core",
+      "name": "Core Infrastructure",
+      "path": "./src/",
+      "type": "frontend",
+      "dependencies": ["package.json", "vite.config.js"],
+      "deliverables": [],
+      "status": "analyzing"
+    },
+    {
+      "id": "api",
+      "name": "API Layer", 
+      "path": "./api/",
+      "type": "backend",
+      "dependencies": [],
+      "deliverables": [],
+      "status": "empty"
+    },
+    {
+      "id": "public",
+      "name": "Public Assets",
+      "path": "./public/",
+      "type": "static",
+      "dependencies": [],
+      "deliverables": [],
+      "status": "empty"
+    },
+    {
+      "id": "scripts",
+      "name": "Build Scripts",
+      "path": "./scripts/",
+      "type": "utility",
+      "dependencies": [],
+      "deliverables": [],
+      "status": "empty"
+    }
+  ],
+  "waves": [
+    {
+      "id": "wave-0",
+      "name": "Codebase Mapping Phase",
+      "description": "Map existing structure, identify gaps, create deliverables",
+      "status": "active",
+      "tasks": [],
+      "estimatedTime": "1 hour"
+    }
+  ],
+  "agents": [
+    {
+      "role": "Context Engineer",
+      "status": "active",
+      "priority": 1
+    },
+    {
+      "role": "Spec Writer", 
+      "status": "standby",
+      "priority": 2
+    },
+    {
+      "role": "Executor",
+      "status": "standby",
+      "priority": 3
+    },
+    {
+      "role": "Verifier",
+      "status": "standby",
+      "priority": 4
+    }
+  ],
+  "hooks": {
+    "updateCheck": true,
+    "contextWindowMonitor": true,
+    "fileManifestTracking": true
+  },
+  "commands": {
+    "/gsd:new-project": "Full project initialization",
+    "/gsd:quick": "Quick setup for small tasks",
+    "/gsd:wave": "Execute next wave of tasks",
+    "/gsd:status": "Show current status",
+    "/gsd:report": "Generate progress report",
+    "/gsd:plan": "Create detailed roadmap"
+  }

@@ -1,4 +1,4 @@
-﻿import { Paper, Group, Text, Avatar, Box } from '@mantine/core';
+import { Paper, Group, Text, Avatar, Box } from '@mantine/core';
 import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
 import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
 import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
@@ -51,24 +51,24 @@ export function FeedPlaylistCard({ post, latestComment, onClick, className, layo
             >
               {(author?.display_name || '?').charAt(0)}
             </Avatar>
-            <Text size="xs" c="dimmed" lineClamp={1}>
+            <Text size="sm" c="dimmed" lineClamp={1}>
               {author?.display_name || 'Unknown'} - {songCount} song{songCount !== 1 ? 's' : ''}
             </Text>
-            <Text size="xs" c="dimmed">
+            <Text size="sm" c="dimmed">
               - {getRelativeTime(post.created_at)}
             </Text>
           </Group>
 
           {post.content && (
-            <Text size="xs" c="dimmed" lineClamp={1} mt={4} fs="italic">
+            <Text size="sm" c="dimmed" lineClamp={1} mt={4} fs="italic">
               "{post.content}"
             </Text>
           )}
 
           {latestComment && (
             <Group gap={5} mt={5} wrap="nowrap" align="flex-start">
-              <IconMessageCircle size={12} style={{ opacity: 0.5, flexShrink: 0, marginTop: 1 }} />
-              <Text size="xs" c="dimmed" lineClamp={1}>
+              <IconMessageCircle size={14} style={{ opacity: 0.5, flexShrink: 0, marginTop: 1 }} />
+              <Text size="sm" c="dimmed" lineClamp={1}>
                 <Text span fw={500} c="var(--mantine-color-text)">
                   {latestComment.author?.display_name || 'Someone'}
                 </Text>
@@ -78,7 +78,7 @@ export function FeedPlaylistCard({ post, latestComment, onClick, className, layo
           )}
 
           {latestComment?.content && (
-            <Text size="xs" c="dimmed" lineClamp={2} mt={4} fs="italic">
+            <Text size="sm" c="dimmed" lineClamp={2} mt={4} fs="italic">
               "{latestComment.content}"
             </Text>
           )}

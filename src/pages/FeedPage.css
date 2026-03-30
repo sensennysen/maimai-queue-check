@@ -1,20 +1,9 @@
 .community-feed-page {
-  --community-surface: color-mix(in srgb, var(--theme-surface) 85%, transparent);
-  --community-border: color-mix(in srgb, var(--theme-primary) 45%, transparent);
-  --community-glow: color-mix(in srgb, var(--theme-primary) 25%, transparent);
+  --community-surface: var(--theme-surface);
+  --community-border: var(--theme-border);
   --community-text: var(--theme-text-primary);
   --community-muted: var(--theme-text-muted);
-  --community-bg-a: color-mix(in srgb, var(--theme-background) 80%, var(--theme-secondary) 20%);
-  --community-bg-b: color-mix(in srgb, var(--theme-background) 85%, var(--theme-primary) 15%);
   color: var(--community-text);
-}
-
-body[data-theme='dark'] .community-feed-page {
-  --community-surface: color-mix(in srgb, var(--theme-surface) 88%, transparent);
-  --community-border: color-mix(in srgb, var(--theme-primary) 55%, transparent);
-  --community-glow: color-mix(in srgb, var(--theme-primary) 35%, transparent);
-  --community-bg-a: color-mix(in srgb, var(--theme-background) 70%, var(--theme-secondary) 30%);
-  --community-bg-b: color-mix(in srgb, var(--theme-background) 75%, var(--theme-primary) 25%);
 }
 
 .community-feed-page::before {
@@ -27,42 +16,25 @@ body[data-theme='dark'] .community-feed-page {
 }
 
 .community-panel {
-  border: 1px solid color-mix(in srgb, var(--community-border) 70%, transparent) !important;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--community-surface) 70%, var(--theme-background) 30%),
-    color-mix(in srgb, var(--community-surface) 88%, var(--theme-background) 12%)
-  ) !important;
-  box-shadow: 0 16px 45px color-mix(in srgb, var(--theme-primary) 12%, transparent);
+  background: var(--theme-surface) !important;
+  border: none !important;
 }
 
 .community-panel-title {
   color: var(--community-text);
   font-size: 1.8rem;
   letter-spacing: 0.01em;
+  line-height: 1.15;
 }
 
 .community-trending-panel {
-  border-color: var(--community-border) !important;
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--theme-primary) 25%, transparent),
-    0 18px 40px color-mix(in srgb, var(--theme-background) 60%, transparent),
-    0 0 30px var(--community-glow);
+  border: none !important;
 }
 
 .community-trending-card {
-  border: 1px solid color-mix(in srgb, var(--theme-primary) 45%, transparent) !important;
-  background: linear-gradient(
-    100deg,
-    color-mix(in srgb, var(--community-surface) 85%, var(--theme-primary) 15%),
-    color-mix(in srgb, var(--community-surface) 88%, var(--theme-secondary) 12%)
-  ) !important;
+  background: var(--theme-surface) !important;
+  border: 1px solid var(--theme-border) !important;
 }
-
-/* .community-trending-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--theme-primary) 28%, transparent);
-} */
 
 .community-release-row {
   padding: 2px 2px 6px;
@@ -72,12 +44,7 @@ body[data-theme='dark'] .community-feed-page {
   width: 150px;
   min-width: 150px;
   cursor: pointer;
-  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent) !important;
-  background: linear-gradient(
-    150deg,
-    color-mix(in srgb, var(--community-surface) 80%, var(--theme-secondary) 20%),
-    color-mix(in srgb, var(--community-surface) 90%, var(--theme-background) 10%)
-  ) !important;
+  background: var(--theme-surface) !important;
 }
 
 .community-release-card:hover {
@@ -111,44 +78,424 @@ body[data-theme='dark'] .community-feed-page {
   color: var(--theme-text-primary);
 }
 
-.community-playlist-strip {
-  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent) !important;
-  background: linear-gradient(
-    120deg,
-    color-mix(in srgb, var(--community-surface) 85%, var(--theme-primary) 15%),
-    color-mix(in srgb, var(--community-surface) 92%, var(--theme-background) 8%)
-  ) !important;
-}
-
-.community-following-activity-row {
-  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent) !important;
-  background: linear-gradient(
-    120deg,
-    color-mix(in srgb, var(--community-surface) 88%, var(--theme-secondary) 12%),
-    color-mix(in srgb, var(--community-surface) 94%, var(--theme-background) 6%)
-  ) !important;
+.community-playlist-strip,
+.community-following-activity-row,
+.community-player-row {
+  background: var(--theme-surface) !important;
+  border: 1px solid var(--theme-border) !important;
 }
 
 .community-sidebar {
-  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent) !important;
-  background: linear-gradient(
-    170deg,
-    color-mix(in srgb, var(--community-surface) 92%, var(--theme-primary) 8%),
-    color-mix(in srgb, var(--community-surface) 96%, var(--theme-background) 4%)
-  ) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-height: 0;
 }
 
-.community-sidebar-header h3 {
-  font-size: 1.55rem;
+/*
+ * Facebook-style chat rail: fixed height to the viewport so the scrollbar runs the full column
+ * and the last card isn’t “floating” above an arbitrary max-height clip.
+ */
+.community-sidebar-scroll-area {
+  position: sticky;
+  top: 1rem;
+  /* 1rem top gap + fill to near bottom of viewport (same idea as Messenger’s sidebar) */
+  height: calc(100dvh - 2rem);
+  height: calc(100vh - 2rem);
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
-.community-player-row {
-  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent) !important;
-  background: linear-gradient(
-    130deg,
-    color-mix(in srgb, var(--community-surface) 88%, var(--theme-secondary) 12%),
-    color-mix(in srgb, var(--community-surface) 95%, var(--theme-background) 5%)
-  ) !important;
+@media (min-width: 62em) {
+  .community-sidebar-col {
+    min-height: 0;
+    align-self: start;
+  }
+
+  /*
+   * Discussion + playlist strips: one card per visible rail width (container query).
+   * Wider sidebar (5/12 vs 4/12) gives more room; cqi tracks the scroll viewport.
+   */
+  .community-sidebar-scroll-area .community-module-carousel-scroll {
+    container-type: inline-size;
+    container-name: community-rail-carousel;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 0;
+  }
+
+  .community-sidebar-scroll-area .community-module-carousel-scroll .community-module-carousel-item {
+    flex: 0 0 100cqi !important;
+    width: 100cqi !important;
+    min-width: 100cqi !important;
+    max-width: 100cqi !important;
+    box-sizing: border-box;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .community-sidebar-scroll-area .community-module-carousel-item .community-trending-card,
+  .community-sidebar-scroll-area .community-module-carousel-item .community-playlist-strip {
+    min-height: unset;
+    align-items: stretch;
+  }
+
+  .community-sidebar-scroll-area .community-module-carousel-item .community-trending-jacket {
+    width: clamp(88px, 30cqi, 132px) !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
+    max-height: 86px;
+  }
+}
+
+/* Hide scrollbars on horizontal carousels (desktop uses prev/next buttons) */
+.community-carousel-scroll-row {
+  position: relative;
+  z-index: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.community-carousel-scroll-row::-webkit-scrollbar {
+  display: none;
+  height: 0;
+}
+
+/* Overlay controls on top of cards (no side fades — buttons only) */
+.community-carousel-wrap--desktop {
+  isolation: isolate;
+}
+
+/* Fine pointer + hover: hide arrows until hover or keyboard focus inside strip */
+@media (hover: hover) and (pointer: fine) {
+  .community-carousel-wrap--desktop .community-carousel-nav-wrap {
+    opacity: 0;
+    transition: opacity 0.18s ease;
+  }
+
+  .community-carousel-wrap--desktop:hover .community-carousel-nav-wrap,
+  .community-carousel-wrap--desktop:focus-within .community-carousel-nav-wrap {
+    opacity: 1;
+  }
+}
+
+/* Wrapper centers the control; ActionIcon keeps its own :active transform without fighting translateY(-50%). */
+.community-carousel-nav-wrap {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+}
+
+.community-carousel-nav-wrap--left {
+  left: 0.5rem;
+}
+
+.community-carousel-nav-wrap--right {
+  right: 0.5rem;
+}
+
+.community-carousel-nav {
+  box-shadow: 0 2px 14px color-mix(in srgb, var(--theme-text-primary) 18%, transparent);
+  background: color-mix(in srgb, var(--theme-surface) 88%, var(--theme-background) 12%) !important;
+  border: 1px solid color-mix(in srgb, var(--theme-border) 65%, transparent) !important;
+  color: var(--theme-text-primary) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.12s ease, filter 0.12s ease;
+}
+
+.community-carousel-nav:hover {
+  background: color-mix(in srgb, var(--theme-surface) 78%, var(--theme-primary) 22%) !important;
+}
+
+.community-carousel-nav:active {
+  filter: brightness(0.92);
+}
+
+/* Mantine ScrollArea elsewhere on feed (e.g. nested in post tooling) */
+.community-feed-page .mantine-ScrollArea-viewport {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.community-feed-page .mantine-ScrollArea-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.community-feed-page .mantine-ScrollArea-scrollbar,
+.community-feed-page .mantine-ScrollArea-thumb {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.community-feed-module {
+  margin: 0.25rem 0;
+}
+
+.community-pull-indicator-wrap {
+  overflow: hidden;
+  transition: height 0.18s ease;
+}
+
+.community-pull-indicator-text {
+  line-height: 32px;
+}
+
+.community-module-panel {
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--theme-primary) 8%, transparent);
+}
+
+.community-module-panel .mantine-Stack-root {
+  margin-top: 0.35rem;
+}
+
+.community-suggested-carousel .community-player-carousel-item {
+  min-width: 300px;
+  width: 300px;
+  max-width: 300px;
+}
+
+.community-suggested-carousel .community-player-carousel-item .community-player-row {
+  min-height: 96px;
+}
+
+.community-player-tags-row {
+  align-items: center;
+  row-gap: 4px;
+}
+
+.community-player-tag {
+  white-space: nowrap;
+}
+
+.community-player-follow-button {
+  min-width: 96px;
+}
+
+.community-module-carousel-row {
+  padding: 2px 2px 6px;
+}
+
+.community-module-carousel-item {
+  min-width: 340px;
+  width: 340px;
+  max-width: 340px;
+  /* Allow full card height in horizontal strip (overflow:hidden clipped playlist rows) */
+  overflow: visible;
+}
+
+.community-module-carousel-item .community-trending-card,
+.community-module-carousel-item .community-playlist-strip {
+  min-height: 176px;
+  display: flex;
+  align-items: center;
+}
+
+.community-module-carousel-item .community-trending-jacket {
+  width: 170px !important;
+  height: 104px !important;
+  display: block;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.community-module-carousel-item .community-trending-card .mantine-Group-root {
+  align-items: center !important;
+}
+
+.community-module-carousel-item .community-trending-card .mantine-Text-root {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Feed post: flat social-style engagement (divider + stats + icon row) */
+.community-post-engagement {
+  border-top: 1px solid var(--theme-border);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
+
+.community-post-engagement-stats {
+  line-height: 1.4;
+  display: flex !important;
+  gap: 0 !important;
+  align-items: center;
+}
+
+.community-post-engagement-stats-sep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.community-post-engagement-stat {
+  padding: 0 !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--mantine-radius-sm);
+  transition: background 0.12s ease;
+  display: inline-flex !important;
+  align-items: center;
+}
+
+.community-post-engagement-stat:hover .mantine-Text-root {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.community-post-engagement-stat:focus-visible {
+  outline: 2px solid var(--mantine-color-blue-filled);
+  outline-offset: 2px;
+}
+
+.community-post-engagement-bar {
+  width: 100%;
+  row-gap: 0.75rem;
+  column-gap: 0.5rem;
+}
+
+.community-post-engagement-stats-slot {
+  display: flex;
+  align-items: center;
+  min-height: 2.25rem;
+}
+
+.community-post-comments-panel {
+  padding-top: 0.15rem;
+}
+
+.community-post-engagement-actions {
+  justify-content: flex-end;
+}
+
+.community-post-engagement-btn {
+  padding: 6px 10px;
+  margin: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--mantine-radius-md);
+  color: var(--community-text, var(--mantine-color-text));
+  transition: background 0.12s ease, box-shadow 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hover only on devices that support real hover — touch taps otherwise keep :hover stuck and look “selected” */
+@media (hover: hover) and (pointer: fine) {
+  .community-post-engagement-btn:hover:not(.community-post-engagement-btn--comments-open) {
+    background: var(--mantine-color-default-hover);
+  }
+}
+
+/* Open thread */
+.community-post-engagement-btn--comments-open {
+  background: color-mix(in srgb, var(--mantine-color-default-hover) 100%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mantine-color-blue-filled) 35%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .community-post-engagement-btn--comments-open:hover {
+    background: color-mix(in srgb, var(--mantine-color-default-hover) 100%, transparent);
+  }
+}
+
+@media (max-width: 36em) {
+  /* Post: stack stats above actions on narrow screens */
+  .community-post-engagement-bar {
+    flex-direction: column;
+    align-items: stretch;
+    row-gap: 0.85rem;
+  }
+
+  .community-post-engagement-stats-slot {
+    min-height: 0;
+    justify-content: flex-start;
+    padding-bottom: 0.1rem;
+  }
+
+  .community-post-engagement-actions {
+    justify-content: space-between;
+    gap: 0.35rem;
+  }
+
+  /* Comments: keep one row — stats left, Like+Dislike grouped right (not stretched apart) */
+  .community-comment-engagement-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.5rem;
+  }
+
+  .community-comment-engagement-actions {
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    margin-left: auto;
+  }
+}
+
+.community-engagement-cluster {
+  padding: 4px 6px;
+  border-radius: var(--mantine-radius-md);
+  transition: background 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .community-engagement-cluster:hover {
+    background: var(--mantine-color-default-hover);
+  }
+}
+
+.community-post-engagement-count-hit {
+  padding: 2px 4px;
+  margin: 0;
+  min-width: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--mantine-radius-sm);
+}
+
+.community-post-engagement-count-hit:focus-visible {
+  outline: 2px solid var(--mantine-color-blue-filled);
+  outline-offset: 1px;
+}
+
+/* Comment thread: same engagement affordances as posts */
+.community-comment-engagement {
+  margin-top: 2px;
+}
+
+.community-comment-engagement .community-engagement-cluster {
+  padding: 2px 6px;
+}
+
+.community-comment-engagement-bar {
+  width: 100%;
+}
+
+.community-comment-engagement-stats {
+  margin-bottom: 0;
 }
 
 .community-sidebar-empty {
@@ -171,6 +518,18 @@ body[data-theme='dark'] .community-feed-page {
   .community-panel-title {
     font-size: 1.4rem;
   }
+
+  .community-suggested-carousel .community-player-carousel-item {
+    min-width: 250px;
+    width: 250px;
+    max-width: 250px;
+  }
+
+  .community-module-carousel-item {
+    min-width: 300px;
+    width: 300px;
+    max-width: 300px;
+  }
 }
 
 @media (max-width: 48em) {
@@ -184,10 +543,44 @@ body[data-theme='dark'] .community-feed-page {
     min-width: 130px;
   }
 
+  .community-suggested-carousel .community-player-carousel-item {
+    min-width: 200px;
+    width: 200px;
+    max-width: 200px;
+  }
+
+  .community-suggested-carousel .community-player-carousel-item .community-player-row {
+    min-height: 86px;
+  }
+
+  .community-module-carousel-item {
+    min-width: 260px;
+    width: 260px;
+    max-width: 260px;
+  }
+
+  .community-player-follow-label {
+    display: none;
+  }
+
+  .community-player-follow-button {
+    min-width: 34px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+  }
+
+  .community-player-follow-mobile {
+    min-width: 34px;
+    min-height: 34px;
+  }
+
+  .community-module-carousel-item .community-trending-jacket {
+    width: 118px !important;
+    height: 88px !important;
+  }
+
   .community-feed-page::before {
-    background:
-      radial-gradient(circle at 15% 8%, color-mix(in srgb, var(--theme-primary) 25%, transparent), transparent 28%),
-      radial-gradient(circle at 88% 24%, color-mix(in srgb, var(--theme-secondary) 25%, transparent), transparent 34%),
-      linear-gradient(130deg, var(--community-bg-a), var(--community-bg-b));
+    content: none;
   }
 }

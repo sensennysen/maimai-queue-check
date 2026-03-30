@@ -1,0 +1,134 @@
+/* Shared Playlists Page — inherits feed design language */
+.playlists-feed-page {
+  --community-surface: var(--theme-surface);
+  --community-border: var(--theme-border);
+  --community-text: var(--theme-text-primary);
+  --community-muted: var(--theme-text-muted);
+  color: var(--community-text);
+}
+
+.playlists-feed-page .community-panel {
+  background: var(--theme-surface) !important;
+  border: none !important;
+}
+
+.playlists-feed-page .community-trending-card {
+  background: var(--theme-surface) !important;
+  border: 1px solid var(--theme-border) !important;
+}
+
+/* Embedded playlist card within a post */
+.playlist-embed-card {
+  background: color-mix(in srgb, var(--theme-surface) 80%, var(--theme-background) 20%) !important;
+  border: 1px solid color-mix(in srgb, var(--theme-border) 80%, transparent) !important;
+  transition: border-color 0.15s ease;
+}
+
+.playlist-embed-card:hover {
+  border-color: color-mix(in srgb, var(--theme-primary) 45%, transparent) !important;
+}
+
+/* Playlist cover stack */
+.playlist-cover-mosaic {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3px;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 1;
+}
+
+.playlist-cover-mosaic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.playlist-cover-single {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.playlist-cover-single img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.playlist-cover-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--theme-primary) 30%, var(--theme-surface)),
+    color-mix(in srgb, var(--theme-secondary) 30%, var(--theme-surface))
+  );
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--theme-text-primary);
+  opacity: 0.7;
+}
+
+/* View Details button styled as inline text link */
+.playlist-view-btn {
+  padding: 0 !important;
+  height: auto !important;
+  font-size: var(--mantine-font-size-xs) !important;
+  color: var(--theme-primary) !important;
+  background: none !important;
+  border: none !important;
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: opacity 0.12s ease;
+  text-decoration: none;
+}
+
+.playlist-view-btn:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Comments toggle section */
+.playlist-post-comments-panel {
+  padding-top: 0.15rem;
+}
+
+/* Scrollbar suppression for horizontal song list */
+.playlist-song-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.playlist-song-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Song chip inside horizontal list */
+.playlist-song-chip {
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.playlist-song-chip:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--theme-primary) 55%, transparent) !important;
+}
+
+/* Empty state */
+.playlists-empty-state {
+  padding: 5rem 1rem;
+  text-align: center;
+}
