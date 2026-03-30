@@ -208,7 +208,7 @@ export function AddToPlaylistModal({
               Add to Playlist
             </Text>
             <Text size="xs" style={{ color: 'var(--theme-primary-contrast)', opacity: 0.8, marginTop: 2 }}>
-              {songData?.title || 'Select a song to add'}
+              {songData?.title}
             </Text>
           </Box>
         </Group>
@@ -269,7 +269,7 @@ export function AddToPlaylistModal({
                 disabled={saving}
                 searchable={playlists.length > 5}
                 nothingFoundMessage="No playlists found"
-                comboboxProps={{ 
+                comboboxProps={{
                   withinPortal: false,
                   offset: 4,
                   position: 'bottom'

@@ -147,8 +147,7 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
         classNames={{ content: 'profile-modal-pop' }}
       >
         {songToSelectLevel && (
-          <Stack align="center">
-            <Text fw={700} ta="center">{songToSelectLevel.title}</Text>
+          <Stack align="center" style={{ marginTop: '0.5rem' }}>
             <Text size="sm" c="dimmed" ta="center">Pick the levels you want to add. Deselect to remove.</Text>
             <Group justify="center" gap="sm">
               {songToSelectLevel.sheets?.map(sheet => {

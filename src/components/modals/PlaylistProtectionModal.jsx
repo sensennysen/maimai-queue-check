@@ -72,7 +72,7 @@ export function PlaylistProtectionModal({ opened, onClose, onConfirm, type = 'de
               Irreversible Action
             </Text>
             <Text size="xs" style={{ color: 'var(--theme-error-contrast)', opacity: 0.8, marginTop: 2 }}>
-              Please confirm your intent
+              Review action
             </Text>
           </Box>
         </Group>

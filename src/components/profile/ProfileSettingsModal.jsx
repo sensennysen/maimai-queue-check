@@ -111,7 +111,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
 
   const handleSaveSlug = async () => {
     if (!slug.trim()) return;
-    
+
     // Simple validation: alphanumeric and hyphens
     const slugRegex = /^[a-zA-Z0-9-]+$/;
     if (!slugRegex.test(slug)) {
@@ -153,16 +153,16 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
       radius={24}
       withCloseButton={false}
       styles={{
-        content: { 
-          overflow: 'hidden', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          maxHeight: 'calc(100vh - 40px)' 
+        content: {
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: 'calc(100vh - 40px)'
         },
-        body: { 
-          padding: 0, 
-          display: 'flex', 
-          flexDirection: 'column', 
+        body: {
+          padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
           flex: 1,
           overflow: 'hidden'
         },
@@ -271,7 +271,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
           <SettingsCard icon={IconWorld} label="Branch Preferences" accent="#00D2FF">
             <MultiSelect
               label="Selected Branches"
-              description="Quickly filter the queue for these specific arcades"
+              description="Show where you usually play"
               placeholder="Select one or more branches"
               data={allBranches.map(b => ({ value: String(b.id), label: b.short_name || b.arcade_name }))}
               value={selectedBranches}
@@ -294,13 +294,13 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
                 onChange={(e) => setSlug(e.currentTarget.value)}
                 style={{ flex: 1 }}
                 maxLength={30}
-                description="queue.smf.ph/u/..."
+                description="mpqcheckph.vercel.app/u/..."
                 variant="filled"
                 styles={{ input: { background: 'var(--theme-bg-soft)', border: '1px solid var(--theme-border)' } }}
               />
-              <Button 
-                variant="light" 
-                color="yellow" 
+              <Button
+                variant="light"
+                color="yellow"
                 onClick={handleSaveSlug}
                 loading={isSavingSlug}
                 radius="md"

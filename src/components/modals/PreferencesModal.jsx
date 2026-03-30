@@ -66,10 +66,10 @@ const PreferencesModal = ({ opened, onClose }) => {
                 lineHeight: 1.1,
               }}
             >
-              App Settings
+              Theme Selector
             </Text>
             <Text size="xs" style={{ color: 'var(--theme-primary-contrast)', opacity: 0.8, marginTop: 2 }}>
-              Personalize your experience
+              Choose your preferred theme
             </Text>
           </Box>
         </Group>
