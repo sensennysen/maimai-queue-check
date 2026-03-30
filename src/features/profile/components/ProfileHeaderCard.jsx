@@ -1,10 +1,7 @@
 import { useState } from 'react';
-import { Paper, Group, Box, Avatar, Stack, Title, Tooltip, Badge, Text, ActionIcon, Button, Divider } from '@mantine/core';
+import { Paper, Group, Box, Avatar, Stack, Title, Text, ActionIcon, Button, Divider, Badge } from '@mantine/core';
 import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
 import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
-import IconCode from '@tabler/icons-react/dist/esm/icons/IconCode.mjs';
-import IconGitPullRequest from '@tabler/icons-react/dist/esm/icons/IconGitPullRequest.mjs';
-import IconBug from '@tabler/icons-react/dist/esm/icons/IconBug.mjs';
 import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
 import IconStar from '@tabler/icons-react/dist/esm/icons/IconStar.mjs';
 import IconListDetails from '@tabler/icons-react/dist/esm/icons/IconListDetails.mjs';
@@ -18,6 +15,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { notifications } from '@mantine/notifications';
 import { userService } from '../../../services/supabase';
 import { sanitizeHtml } from '../../../utils/sanitizeHtml';
+import { UserAttributionBadges } from '../../../components/common/UserAttributionBadges';
 
 /** Inline rich-text editor for the introduction */
 function IntroductionEditor({ initialContent, onSave, onCancel }) {
@@ -179,31 +177,10 @@ export function ProfileHeaderCard({
                 {profile.display_name || 'Anonymous Player'}
               </Title>
 
-              {profile.user_attributions?.attributions?.length > 0 && (
-                <Group gap={6} align="center" mt={4}>
-                  {profile.user_attributions.attributions.includes('DEVELOPER') && (
-                    <Tooltip label="Developer" withArrow position="top">
-                      <Badge variant="light" color="primary" leftSection={<IconCode size={14} />}>
-                        Developer
-                      </Badge>
-                    </Tooltip>
-                  )}
-                  {profile.user_attributions.attributions.includes('CONTRIBUTOR') && (
-                    <Tooltip label="Contributor" withArrow position="top">
-                      <Badge variant="light" color="accent" leftSection={<IconGitPullRequest size={14} />}>
-                        Contributor
-                      </Badge>
-                    </Tooltip>
-                  )}
-                  {profile.user_attributions.attributions.includes('TESTER') && (
-                    <Tooltip label="Tester" withArrow position="top">
-                      <Badge variant="light" color="var(--theme-success)" leftSection={<IconBug size={14} />}>
-                        Tester
-                      </Badge>
-                    </Tooltip>
-                  )}
-                </Group>
-              )}
+              <UserAttributionBadges
+                attributions={profile.user_attributions?.attributions}
+                size="sm"
+              />
             </Group>
 
             {(privacy.show_main_branch || isOwner) && mainBranchName && (

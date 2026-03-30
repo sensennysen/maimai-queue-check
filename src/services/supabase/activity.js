@@ -28,7 +28,7 @@ export const activityService = {
         .from(TABLES.PLAYLIST_POSTS)
         .select(`
           id, content, created_at, user_id,
-          author:${TABLES.USER_PROFILES}!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
+          author:${TABLES.USER_PROFILES}!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions)),
           playlist:${TABLES.USER_PLAYLISTS}!playlist_id(
             id, title, comment, is_public,
             songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
@@ -43,7 +43,7 @@ export const activityService = {
         .from(TABLES.SONG_COMMENTS)
         .select(`
           id, song_id, content, created_at, user_id,
-          author:${TABLES.USER_PROFILES}!song_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url)
+          author:${TABLES.USER_PROFILES}!song_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions))
         `)
         .in('user_id', followingIds)
         .order('created_at', { ascending: false })
@@ -52,10 +52,10 @@ export const activityService = {
         .from(TABLES.PLAYLIST_COMMENTS)
         .select(`
           id, post_id, content, created_at, user_id,
-          author:${TABLES.USER_PROFILES}!playlist_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+          author:${TABLES.USER_PROFILES}!playlist_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions)),
           post:${TABLES.PLAYLIST_POSTS}!post_id(
             id, content, created_at,
-            author:${TABLES.USER_PROFILES}!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
+            author:${TABLES.USER_PROFILES}!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions)),
             playlist:${TABLES.USER_PLAYLISTS}!playlist_id(
               id, title, comment, is_public,
               songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
@@ -69,7 +69,7 @@ export const activityService = {
         .from(TABLES.FEED_POSTS)
         .select(`
           id, content, created_at, user_id, visibility, attached_song_id, attached_playlist_id, image_url,
-          author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+          author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions)),
           attached_playlist:${TABLES.USER_PLAYLISTS}!attached_playlist_id(
             id, title, comment, is_public,
             songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
@@ -169,7 +169,7 @@ export const activityService = {
   async getSongsWithRecentDiscussions(limit = LIMITS.RECENT_DISCUSSIONS) {
     const { data, error } = await supabase
       .from(TABLES.SONG_COMMENTS)
-      .select(`song_id, created_at, user_profiles:${TABLES.USER_PROFILES}!song_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url, slug), content`)
+      .select(`song_id, created_at, user_profiles:${TABLES.USER_PROFILES}!song_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions), slug), content`)
       .order('created_at', { ascending: false })
       .limit(limit * 3);
 
@@ -192,10 +192,10 @@ export const activityService = {
     const { data, error } = await supabase
       .from(TABLES.PLAYLIST_COMMENTS)
       .select(`
-        post_id, created_at, user_profiles:${TABLES.USER_PROFILES}!playlist_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url, slug),
+        post_id, created_at, user_profiles:${TABLES.USER_PROFILES}!playlist_comments_user_id_fkey(display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions), slug),
         post:${TABLES.PLAYLIST_POSTS}!post_id(
           id, content, created_at,
-          author:${TABLES.USER_PROFILES}!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url),
+          author:${TABLES.USER_PROFILES}!user_id(id, slug, display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions)),
           playlist:${TABLES.USER_PLAYLISTS}!playlist_id(
             id, title, comment, is_public,
             songs:${TABLES.PLAYLIST_SONGS}(song_id, level, order_index)
@@ -227,7 +227,7 @@ export const activityService = {
 
     const { data, error } = await supabase
       .from(TABLES.USER_PROFILES)
-      .select(`id, display_name, slug, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, is_public, user_roles:${TABLES.USER_ROLES}(queue_name)`)
+      .select(`id, display_name, slug, display_photo_url, dx_display_photo_url, user_attributions(attributions), main_branch, preferred_branches, is_public, user_roles:${TABLES.USER_ROLES}(queue_name)`)
       .neq('id', userId)
       .eq('is_public', true)
       .not('slug', 'is', null)

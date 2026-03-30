@@ -5,6 +5,7 @@ import IconThumbDown from '@tabler/icons-react/dist/esm/icons/IconThumbDown.mjs'
 import IconThumbUpFilled from '@tabler/icons-react/dist/esm/icons/IconThumbUpFilled.mjs';
 import IconThumbDownFilled from '@tabler/icons-react/dist/esm/icons/IconThumbDownFilled.mjs';
 import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
+import { UserAttributionBadges } from '../common/UserAttributionBadges';
 
 export function CommentRow({
   comment: c,
@@ -30,7 +31,7 @@ export function CommentRow({
         </Avatar>
         <Box style={{ flex: 1 }}>
           <Group justify="space-between" align="flex-start" wrap="nowrap">
-            <Group gap={6} align="baseline">
+            <Group gap={6} align="center" wrap="nowrap">
               <Text
                 size="xs"
                 fw={700}
@@ -39,6 +40,11 @@ export function CommentRow({
               >
                 {c.author?.display_name || 'Unknown'}
               </Text>
+              <UserAttributionBadges
+                attributions={c.author?.user_attributions?.attributions}
+                size="xs"
+                gap={4}
+              />
               <Text size="xs" c="dimmed">{getRelativeTime(c.created_at)}</Text>
             </Group>
             {currentUser && c.author?.id === currentUser.id && (

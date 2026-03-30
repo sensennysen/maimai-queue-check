@@ -3,6 +3,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import IconUserPlus from '@tabler/icons-react/dist/esm/icons/IconUserPlus.mjs';
 import IconUserCheck from '@tabler/icons-react/dist/esm/icons/IconUserCheck.mjs';
 import { getProfileImageUrl } from '../../utils/formatters';
+import { UserAttributionBadges } from '../common/UserAttributionBadges';
 
 export function FeedPlayerCard({ player, isFollowing, onFollow, onClick, branchMap = {}, className }) {
   const isMobile = useMediaQuery('(max-width: 48em)');
@@ -34,10 +35,15 @@ export function FeedPlayerCard({ player, isFollowing, onFollow, onClick, branchM
             <Avatar src={getProfileImageUrl(player)} radius="xl" size={36} color="blue" style={{ flexShrink: 0 }}>
               {displayName.charAt(0).toUpperCase()}
             </Avatar>
-            <Stack gap={4} style={{ overflow: 'hidden', flex: 1, minWidth: 0 }} justify="center">
+            <Stack gap={2} style={{ overflow: 'hidden', flex: 1, minWidth: 0 }} justify="center">
               <Text fw={600} size="sm" lineClamp={1}>
                 {displayName}
               </Text>
+              <UserAttributionBadges
+                attributions={player.user_attributions?.attributions}
+                size="xs"
+                gap={3}
+              />
               {(homeBranchName || preferredBranchNames.length > 0) && (
                 <Group gap={4} wrap="wrap" className="community-player-tags-row">
                   {homeBranchName && (
@@ -102,7 +108,11 @@ export function FeedPlayerCard({ player, isFollowing, onFollow, onClick, branchM
             <Text fw={600} size="sm" lineClamp={1}>
               {displayName}
             </Text>
-
+            <UserAttributionBadges
+              attributions={player.user_attributions?.attributions}
+              size="xs"
+              gap={3}
+            />
             {(homeBranchName || preferredBranchNames.length > 0) && (
               <Group gap={4} wrap="wrap" className="community-player-tags-row">
                 {homeBranchName && (

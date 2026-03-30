@@ -33,7 +33,7 @@ export const postsService = {
       })
       .select(`
         id, content, visibility, attached_song_id, attached_playlist_id, image_url, created_at, updated_at,
-        author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions)),
         votes:${TABLES.FEED_POST_VOTES}(vote_type, user_id),
         attached_playlist:${TABLES.USER_PLAYLISTS}!attached_playlist_id(
           id, title, comment, is_public,
@@ -63,7 +63,7 @@ export const postsService = {
       .from(TABLES.FEED_POSTS)
       .select(`
         id, content, visibility, attached_song_id, attached_playlist_id, image_url, created_at, updated_at,
-        author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions)),
         votes:${TABLES.FEED_POST_VOTES}(vote_type, user_id),
         comments:${TABLES.FEED_POST_COMMENTS}(id),
         attached_playlist:${TABLES.USER_PLAYLISTS}!attached_playlist_id(
@@ -111,7 +111,7 @@ export const postsService = {
       .from(TABLES.FEED_POSTS)
       .select(`
         id, content, visibility, attached_song_id, attached_playlist_id, image_url, created_at, updated_at,
-        author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        author:${TABLES.USER_PROFILES}!feed_posts_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions)),
         votes:${TABLES.FEED_POST_VOTES}(vote_type, user_id),
         comments:${TABLES.FEED_POST_COMMENTS}(id),
         attached_playlist:${TABLES.USER_PLAYLISTS}!attached_playlist_id(
@@ -171,7 +171,7 @@ export const postsService = {
       .from(TABLES.FEED_POST_COMMENTS)
       .select(`
         id, content, created_at,
-        author:${TABLES.USER_PROFILES}!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url),
+        author:${TABLES.USER_PROFILES}!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions)),
         votes:${TABLES.FEED_POST_COMMENT_VOTES}(vote_type, user_id)
       `)
       .eq('post_id', postId)
@@ -202,7 +202,7 @@ export const postsService = {
     const { data, error } = await supabase
       .from(TABLES.FEED_POST_COMMENTS)
       .insert({ post_id: postId, user_id: userId, content: content.trim() })
-      .select(`id, content, created_at, author:${TABLES.USER_PROFILES}!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url)`)
+      .select(`id, content, created_at, author:${TABLES.USER_PROFILES}!feed_post_comments_user_id_fkey(id, slug, display_name, display_photo_url, dx_display_photo_url, user_attributions(attributions))`)
       .single();
     if (error) throw error;
     return data;

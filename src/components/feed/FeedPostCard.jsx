@@ -24,6 +24,7 @@ import { FeedSongCard } from './FeedSongCard';
 import { FeedPlaylistCard } from './FeedPlaylistCard';
 import { VoterListModal } from '../common/VoterListModal';
 import { ImagePreviewModal } from '../common/ImagePreviewModal';
+import { UserAttributionBadges } from '../common/UserAttributionBadges';
 import { feedService } from '../../services/supabase';
 import '../../pages/FeedPage.css';
 
@@ -161,9 +162,16 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
               {(post.author?.display_name || '?').charAt(0)}
             </Avatar>
             <Stack gap={0}>
-              <Text fw={700} size="sm">
-                {post.author?.display_name || 'Unknown'}
-              </Text>
+              <Group gap={6} align="center" wrap="nowrap">
+                <Text fw={700} size="sm">
+                  {post.author?.display_name || 'Unknown'}
+                </Text>
+                <UserAttributionBadges
+                  attributions={post.author?.user_attributions?.attributions}
+                  size="sm"
+                  gap={4}
+                />
+              </Group>
               <Group gap={4} align="center">
                 <Text size="sm" c="dimmed" title={new Date(post.created_at).toLocaleString()}>
                   {getRelativeTime(post.created_at)}
