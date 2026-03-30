@@ -34,6 +34,7 @@
 .community-trending-card {
   background: var(--theme-surface) !important;
   border: 1px solid var(--theme-border) !important;
+  box-shadow: none;
 }
 
 .community-release-row {
@@ -45,6 +46,7 @@
   min-width: 150px;
   cursor: pointer;
   background: var(--theme-surface) !important;
+  box-shadow: none;
 }
 
 .community-release-card:hover {
@@ -70,11 +72,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    140deg,
-    color-mix(in srgb, var(--theme-primary) 55%, transparent),
-    color-mix(in srgb, var(--theme-secondary) 55%, transparent)
-  );
+  background: linear-gradient(140deg,
+      color-mix(in srgb, var(--theme-primary) 55%, transparent),
+      color-mix(in srgb, var(--theme-secondary) 55%, transparent));
   color: var(--theme-text-primary);
 }
 
@@ -83,6 +83,7 @@
 .community-player-row {
   background: var(--theme-surface) !important;
   border: 1px solid var(--theme-border) !important;
+  box-shadow: none;
 }
 
 .community-sidebar {
@@ -158,15 +159,30 @@
   z-index: 0;
   overflow-x: auto;
   overflow-y: visible;
-  width: 100%;
+  width: auto;
+  /* Fix width issues with negative margins */
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
+
+  /* Give internal padding so hover/focus shadows aren't clipped by overflow context,
+     and negative margin so it doesn't affect the outer flex layout spacing */
+  padding: 1rem 0;
+  margin: -1rem 0;
 }
 
+/* Hard reset for webkit scrollbar artifacts that sometimes paint track backgrounds */
 .community-carousel-scroll-row::-webkit-scrollbar {
-  display: none;
-  height: 0;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+.community-carousel-scroll-row::-webkit-scrollbar-track,
+.community-carousel-scroll-row::-webkit-scrollbar-corner {
+  background: transparent !important;
+  display: none !important;
 }
 
 /* Overlay controls on top of cards (no side fades — buttons only) */
@@ -251,7 +267,7 @@
 }
 
 .community-module-panel {
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--theme-primary) 8%, transparent);
+  box-shadow: none;
 }
 
 .community-module-panel .mantine-Stack-root {
@@ -418,6 +434,7 @@
 }
 
 @media (max-width: 36em) {
+
   /* Post: stack stats above actions on narrow screens */
   .community-post-engagement-bar {
     flex-direction: column;

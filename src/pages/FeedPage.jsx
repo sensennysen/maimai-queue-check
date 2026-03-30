@@ -146,7 +146,7 @@ export default function FeedPage() {
         title="New Songs"
         rightSection={<Button variant="subtle" size="sm" rightSection={<IconChevronRight size={14} />} onClick={() => navigate('/songs')} style={{ marginTop: '0.5rem' }}  >View all</Button>}
       />
-      {songsLoading ? ( 
+      {songsLoading ? (
         <SectionSkeleton rows={1} height={180} />
       ) : newSongs.length === 0 ? (
         <Text c="dimmed" size="md" ta="center" py="md">No songs found</Text>
@@ -272,10 +272,10 @@ export default function FeedPage() {
           <Grid.Col span={{ base: 12, md: 7 }}>
             <Stack gap="lg">
               {user && (
-                <FeedPostComposer 
-                  user={user} 
-                  profileData={userRoles} 
-                  onSubmit={createPost} 
+                <FeedPostComposer
+                  user={user}
+                  profileData={userRoles}
+                  onSubmit={createPost}
                 />
               )}
 
@@ -328,7 +328,7 @@ export default function FeedPage() {
             {isDesktop && (
               <Box
                 component="div"
-                className="community-sidebar community-sidebar-scroll-area"
+                className="community-sidebar"
               >
                 <Stack gap="lg" pr={4} pb="sm">
                   {newSongsBlock}
