@@ -6,6 +6,7 @@ import IconUpload from '@tabler/icons-react/dist/esm/icons/IconUpload.mjs';
 import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
 import { Link } from 'react-router-dom';
 import { CompactScoreCard } from './CompactScoreCard';
+import { NEW_VERSIONS } from '../../../config/maimai-constants';
 
 /**
  * Compact Best 50 preview card for the profile sidebar.
@@ -49,7 +50,7 @@ export function Best50PreviewCard({
           <IconTrophy size={22} style={{ color: 'var(--theme-accent)', flexShrink: 0 }} />
           <Title order={2}>Best 50</Title>
         </Group>
-        
+
         {/* Play count badges */}
         {scores.total_play_count && (privacy.show_play_count !== false || isOwner) && (
           <Stack gap={2} align="flex-end">
@@ -67,7 +68,7 @@ export function Best50PreviewCard({
       {bestNewScores.length > 0 && (
         <Box mb="xs">
           <Text size="9px" fw={800} c="dimmed" tt="uppercase" mb={4} style={{ letterSpacing: 0.5 }}>
-            Current Version
+            {NEW_VERSIONS.join(' + ')}
           </Text>
           <SimpleGrid cols={3} spacing={6}>
             {bestNewScores.map((score, i) => (

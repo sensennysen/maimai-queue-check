@@ -1,4 +1,4 @@
-import { Modal, Stack, Text, Button, Group, Box } from '@mantine/core';
+import { Modal, Stack, Text, Button, Group, Box, UnstyledButton } from '@mantine/core';
 import IconAlertTriangle from '@tabler/icons-react/dist/esm/icons/IconAlertTriangle.mjs';
 
 const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loading, confirmLabel }) => {
@@ -28,10 +28,10 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loadi
         },
       }}
     >
-      {/* ── Fixed Red Header ─────────────────────────────────────── */}
+      {/* ── Fixed Theme Header ─────────────────────────────────────── */}
       <Box
         style={{
-          background: 'linear-gradient(135deg, var(--theme-error), color-mix(in srgb, var(--theme-error), var(--theme-primary) 35%))',
+          background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
           position: 'relative',
           overflow: 'hidden',
@@ -51,7 +51,7 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loadi
               boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
             }}
           >
-            <IconAlertTriangle size={18} color="var(--theme-error-contrast)" strokeWidth={2.2} />
+            <IconAlertTriangle size={18} color="var(--theme-primary-contrast)" strokeWidth={2.2} />
           </Box>
           <Box>
             <Text
@@ -59,18 +59,39 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loadi
               fw={800}
               style={{
                 fontFamily: 'var(--font-heading)',
-                color: 'var(--theme-error-contrast)',
+                color: 'var(--theme-primary-contrast)',
                 letterSpacing: '-0.02em',
                 lineHeight: 1.1,
               }}
             >
               {title || 'Confirm Deletion'}
             </Text>
-            <Text size="xs" style={{ color: 'var(--theme-error-contrast)', opacity: 0.8, marginTop: 2 }}>
+            <Text size="xs" style={{ color: 'var(--theme-primary-contrast)', opacity: 0.8, marginTop: 2 }}>
               This action cannot be undone
             </Text>
           </Box>
         </Group>
+
+        <UnstyledButton
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 20,
+            padding: '4px 12px',
+            borderRadius: 20,
+            background: 'rgba(255,255,255,0.2)',
+            color: 'var(--theme-primary-contrast)',
+            fontSize: 12,
+            fontWeight: 700,
+            backdropFilter: 'blur(4px)',
+            transition: 'all 0.2s ease',
+            zIndex: 10,
+          }}
+          className="header-close-pill"
+        >
+          Cancel
+        </UnstyledButton>
       </Box>
 
       {/* ── Body ─────────────────────────────────────────────────── */}
@@ -107,11 +128,11 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loadi
             <Button
               onClick={onConfirm}
               loading={loading}
-              color="red"
+              color="primary"
               variant="filled"
               style={{
-                background: 'var(--theme-error)',
-                boxShadow: '0 4px 12px color-mix(in srgb, var(--theme-error), transparent 70%)',
+                background: 'var(--theme-primary)',
+                boxShadow: '0 4px 12px color-mix(in srgb, var(--theme-primary), transparent 70%)',
               }}
             >
               {confirmLabel || 'Delete'}

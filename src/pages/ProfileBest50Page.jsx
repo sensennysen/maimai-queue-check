@@ -14,6 +14,7 @@ import { usePublicProfile } from '../features/profile/hooks/usePublicProfile';
 import { Best50Section } from '../features/profile/components/Best50Section';
 import MaimaiImportModal from '../components/profile/MaimaiImportModal';
 import MaimaiSongDetailModal from '../components/profile/MaimaiSongDetailModal';
+import { NEW_VERSIONS } from '../config/maimai-constants';
 
 /**
  * Dedicated page for viewing a user's full Best 50 scores.
@@ -31,6 +32,7 @@ const ProfileBest50Page = () => {
     error,
     isRestricted,
     fetchData,
+    clearMaimaiData
   } = usePublicProfile(slug, user);
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -126,7 +128,7 @@ const ProfileBest50Page = () => {
                   {profile.display_name}'s Best 50
                 </Title>
                 <Text size="sm" c="dimmed">
-                  Full score breakdown — Current Version &amp; Past Versions
+                  Full score breakdown — {NEW_VERSIONS.join(' + ')}  &amp; Past Versions
                 </Text>
               </Stack>
             </Group>
@@ -160,6 +162,7 @@ const ProfileBest50Page = () => {
             isOwner={isOwner}
             isMalformedBest50={isMalformedBest50}
             onImportClick={() => setIsImportModalOpen(true)}
+            onClearData={clearMaimaiData}
             onScoreClick={(score) => {
               setSelectedSong(songMapByTitle?.get(score.title));
               setSelectedScore(score);

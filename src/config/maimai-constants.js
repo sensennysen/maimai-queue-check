@@ -51,7 +51,7 @@ export const GRADE_THRESHOLDS = [
 ];
 
 // Versions considered "New" for Best 50 calculation
-export const NEW_VERSIONS = ['PRiSM PLUS', 'CiRCLE'];
+export const NEW_VERSIONS = ['CiRCLE', 'PRiSM PLUS'];
 
 // Chronological version order (Oldest to Newest)
 export const VERSION_ORDER = [
