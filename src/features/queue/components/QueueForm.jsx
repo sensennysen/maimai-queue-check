@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Group, Button, Stack, Alert, Checkbox, Modal, Text, Autocomplete, Loader } from '@mantine/core';
+import { Group, Button, Stack, Alert, Checkbox, Modal, Text, Autocomplete, Loader, Box } from '@mantine/core';
 import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
 import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
+import IconAlertTriangle from '@tabler/icons-react/dist/esm/icons/IconAlertTriangle.mjs';
 import { sanitizeHtml } from '../../../utils/sanitizeHtml';
 import './QueueForm.css';
 import { usePlayerSuggestions } from '../../../hooks/usePlayerSuggestions';
@@ -125,72 +126,49 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
 
 
   return (
-    <div>
+    <Box>
       <form onSubmit={handleSubmit} onKeyDown={(e) => { if (isBusy) { e.preventDefault(); e.stopPropagation(); } }}>
         <Stack gap="md">
           {errors.general && (
-            <Alert color="red" variant="light">
+            <Alert color="red" variant="light" radius="md">
               {errors.general}
             </Alert>
           )}
 
           {locationError && !locationVerified && !isSuperAdmin && (
-            <Alert color="orange" variant="light">
+            <Alert color="orange" variant="light" radius="md">
               {locationError}
             </Alert>
           )}
 
-          <Stack gap="md">
-            <Autocomplete
-              label="Player 1 Side"
-              placeholder="Enter Player 1 name"
-              data={player1.trim().length > 0 && !loading ? suggestions : []}
-              value={player1}
-              onChange={(val) => {
-                setPlayer1(val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '').slice(0, 10));
-              }}
-              error={errors.player1}
-              maxLength={10}
-              disabled={isBusy || (!locationVerified && !isSuperAdmin)}
-              style={{ marginTop: '1rem' }}
-              rightSection={loading ? <Loader size="sm" /> : null}
-              comboboxProps={{ withinPortal: false }}
-              filter={({ options, search }) => {
-                const splittedSearch = search.toLowerCase().trim().split(' ');
-                return (
-                  options.filter((option) =>
-                    splittedSearch.every((searchPart) => option.label.toLowerCase().includes(searchPart))
-                  )
-                );
-              }}
-            />
-
-            <Checkbox
-              label="Playing Solo"
-              checked={playingSolo}
-              onChange={(e) => {
-                setPlayingSolo(e.currentTarget.checked);
-                if (e.currentTarget.checked) {
-                  setPlayer2('');
-                }
-              }}
-              disabled={isBusy || (!locationVerified && !isSuperAdmin)}
-            />
-
-            {!playingSolo && (
+          <Box
+            style={{
+              borderRadius: 18,
+              padding: '16px',
+              background: 'var(--theme-surface)',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              border: '1px solid var(--theme-border)',
+            }}
+          >
+            <Stack gap="md">
               <Autocomplete
-                label="Player 2 Side"
-                placeholder="Enter Player 2 name"
-                data={player2.trim().length > 0 && !loading ? suggestions : []}
-                value={player2}
+                label={<Text size="sm" fw={700} style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.02em' }}>Player 1 Side</Text>}
+                placeholder="Enter Player 1 name"
+                data={player1.trim().length > 0 && !loading ? suggestions : []}
+                value={player1}
                 onChange={(val) => {
-                  setPlayer2(val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '').slice(0, 10));
+                  setPlayer1(val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '').slice(0, 10));
                 }}
-                error={errors.player2}
+                error={errors.player1}
                 maxLength={10}
+                variant="filled"
+                styles={{
+                  input: { background: 'var(--theme-bg-soft)', borderRadius: 12, minHeight: 46 },
+                  root: { flex: 1 }
+                }}
                 disabled={isBusy || (!locationVerified && !isSuperAdmin)}
                 rightSection={loading ? <Loader size="sm" /> : null}
-                comboboxProps={{ withinPortal: false }}
+                comboboxProps={{ withinPortal: false, position: 'bottom' }}
                 filter={({ options, search }) => {
                   const splittedSearch = search.toLowerCase().trim().split(' ');
                   return (
@@ -200,17 +178,62 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
                   );
                 }}
               />
-            )}
-          </Stack>
 
-          <Group justify="flex-end">
+              <Checkbox
+                label={<Text size="sm" fw={600}>Playing Solo</Text>}
+                checked={playingSolo}
+                color="var(--theme-primary)"
+                onChange={(e) => {
+                  setPlayingSolo(e.currentTarget.checked);
+                  if (e.currentTarget.checked) {
+                    setPlayer2('');
+                  }
+                }}
+                disabled={isBusy || (!locationVerified && !isSuperAdmin)}
+              />
+
+              {!playingSolo && (
+                <Autocomplete
+                  label={<Text size="sm" fw={700} style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.02em' }}>Player 2 Side</Text>}
+                  placeholder="Enter Player 2 name"
+                  data={player2.trim().length > 0 && !loading ? suggestions : []}
+                  value={player2}
+                  onChange={(val) => {
+                    setPlayer2(val.replace(/[^a-zA-Z0-9 @#!\-_.,&'()]/g, '').slice(0, 10));
+                  }}
+                  error={errors.player2}
+                  maxLength={10}
+                  variant="filled"
+                  styles={{
+                    input: { background: 'var(--theme-bg-soft)', borderRadius: 12, minHeight: 46 }
+                  }}
+                  disabled={isBusy || (!locationVerified && !isSuperAdmin)}
+                  rightSection={loading ? <Loader size="sm" /> : null}
+                  comboboxProps={{ withinPortal: false, position: 'bottom' }}
+                  filter={({ options, search }) => {
+                    const splittedSearch = search.toLowerCase().trim().split(' ');
+                    return (
+                      options.filter((option) =>
+                        splittedSearch.every((searchPart) => option.label.toLowerCase().includes(searchPart))
+                      )
+                    );
+                  }}
+                />
+              )}
+            </Stack>
+          </Box>
+
+          <Group justify="flex-end" gap="sm" pt={4}>
             <Button
               type="submit"
               leftSection={editingId ? <IconEdit size={16} /> : <IconPlus size={16} />}
               variant="filled"
+              size="md"
+              radius="lg"
               disabled={isBusy || (!locationVerified && !isSuperAdmin)}
+              style={{ flex: 1 }}
             >
-              {editingId ? 'Update Entry' : 'Add to Queue'}
+              {editingId ? 'Update Entry' : 'Join Queue'}
             </Button>
           </Group>
         </Stack>
@@ -219,20 +242,89 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
       <Modal
         opened={showSimilarityModal}
         onClose={() => setShowSimilarityModal(false)}
-        title="Similar Entry Detected"
         centered
+        padding={0}
+        radius={24}
+        withCloseButton={false}
+        styles={{
+          content: { overflow: 'hidden' },
+          body: { padding: 0 }
+        }}
       >
-        <Stack>
-          <Text size="sm" style={{ marginTop: '1rem' }} >
-            One of the names in this entry seems to be similar with another entry on the queue. Are you sure you want to proceed?
-          </Text>
-          <Group justify="flex-end">
-            <Button variant="default" onClick={() => setShowSimilarityModal(false)}>Cancel</Button>
-            <Button onClick={executeSubmit} style={{ backgroundColor: 'var(--theme-warning)', color: 'white' }}>Proceed</Button>
+        {/* ── Fixed Warning Header ─────────────────────────────────────────── */}
+        <Box
+          style={{
+            background: 'linear-gradient(135deg, var(--theme-warning), color-mix(in srgb, var(--theme-warning), #fff 20%))',
+            padding: '24px 24px 20px',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
+            <Box
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
+              }}
+            >
+              <IconAlertTriangle size={18} color="#fff" strokeWidth={2.2} />
+            </Box>
+            <Box>
+              <Text
+                size="lg"
+                fw={800}
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  color: '#fff',
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1.1,
+                }}
+              >
+                Similar Name
+              </Text>
+              <Text size="xs" style={{ color: '#fff', opacity: 0.9, marginTop: 2 }}>
+                We found a matching entry
+              </Text>
+            </Box>
+          </Group>
+        </Box>
+
+        <Stack gap="md" p="lg">
+          <Box
+            style={{
+              borderRadius: 18,
+              padding: '16px',
+              background: 'var(--theme-surface)',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              border: '1px solid var(--theme-border)',
+            }}
+          >
+            <Text size="sm" style={{ lineHeight: 1.5 }}>
+              One of the names in this entry seems to be similar with another entry on the queue. Are you sure you want to proceed?
+            </Text>
+          </Box>
+
+          <Group justify="flex-end" gap="sm">
+            <Button variant="subtle" onClick={() => setShowSimilarityModal(false)} color="gray">
+              Cancel
+            </Button>
+            <Button
+              onClick={executeSubmit}
+              color="orange"
+              radius="md"
+            >
+              Proceed Anyway
+            </Button>
           </Group>
         </Stack>
       </Modal>
-    </div >
+    </Box>
   );
 }
 

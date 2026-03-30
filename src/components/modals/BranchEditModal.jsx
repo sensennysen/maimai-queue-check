@@ -6,18 +6,19 @@ import {
   NumberInput,
   Button,
   Group,
-  Title,
   Text,
-  Divider,
-  Paper,
   Checkbox,
   Table,
   ScrollArea,
   Select,
+  Box,
+  UnstyledButton,
 } from '@mantine/core';
 import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
 import IconBuildingStore from '@tabler/icons-react/dist/esm/icons/IconBuildingStore.mjs';
-import IconClock from '@tabler/icons-react/dist/esm/icons/IconClock.mjs';
+import IconChevronLeft from '@tabler/icons-react/dist/esm/icons/IconChevronLeft.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconArrowRight from '@tabler/icons-react/dist/esm/icons/IconArrowRight.mjs';
 import { notifications } from '@mantine/notifications';
 import { adminService, supabase } from '../../services/supabase';
 import { requestUserLocation } from '../../services/geolocation';
@@ -115,7 +116,7 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
   };
 
   const handleBranchSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
 
     // Validation
     if (!arcadeName.trim()) {
@@ -311,155 +312,251 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={
-        <Group gap="xs">
-          <IconBuildingStore size={24} />
-          <Title order={3}>{mode === 'edit' ? 'Edit Branch' : 'Add a Branch'}</Title>
-        </Group>
-      }
       size="lg"
+      radius={24}
+      padding={0}
+      withCloseButton={false}
       centered
+      styles={{
+        content: {
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: 'calc(100vh - 60px)'
+        },
+        body: {
+          padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          overflow: 'hidden'
+        },
+      }}
     >
-      <Stack gap="md">
-        {step === 1 ? (
-          // Branch Form
-          <form onSubmit={handleBranchSubmit}>
+      {/* ── Fixed Header ─────────────────────────────────────────── */}
+      <Box
+        style={{
+          background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
+          padding: '24px 24px 20px',
+          position: 'relative',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+      >
+        <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
+          <Box
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
+            }}
+          >
+            <IconBuildingStore size={18} color="var(--theme-primary-contrast)" strokeWidth={2.2} />
+          </Box>
+          <Box>
+            <Text
+              size="lg"
+              fw={800}
+              style={{
+                fontFamily: 'var(--font-heading)',
+                color: 'var(--theme-primary-contrast)',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
+              }}
+            >
+              {mode === 'edit' ? 'Edit Branch' : 'Add Branch'}
+            </Text>
+            <Text size="xs" style={{ color: 'var(--theme-primary-contrast)', opacity: 0.8, marginTop: 2 }}>
+              {step === 1 ? 'Details & Location' : 'Operating Schedule'}
+            </Text>
+          </Box>
+        </Group>
+
+        <UnstyledButton
+          onClick={() => handleClose(false)}
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 20,
+            padding: '4px 12px',
+            borderRadius: 20,
+            background: 'rgba(255,255,255,0.2)',
+            color: 'var(--theme-primary-contrast)',
+            fontSize: 12,
+            fontWeight: 700,
+            backdropFilter: 'blur(4px)',
+            transition: 'all 0.2s ease',
+            zIndex: 10,
+          }}
+          className="header-close-pill"
+        >
+          Cancel
+        </UnstyledButton>
+      </Box>
+
+      {/* ── Scrollable Body ──────────────────────────────────────── */}
+      <Box style={{ flex: 1, overflowY: 'auto' }}>
+        <Stack gap="lg" p="lg">
+          {step === 1 ? (
             <Stack gap="md">
-              <Text size="sm" c="secondary" fw={500} style={{ marginTop: '1rem' }}>
-                {mode === 'edit' ? 'Edit Branch Information' : 'Step 1 of 2: Branch Information'}
-              </Text>
-
-              <TextInput
-                label="Arcade Name"
-                placeholder="Enter arcade name"
-                value={arcadeName}
-                onChange={(e) => setArcadeName(e.target.value)}
-                required
-                leftSection={<IconBuildingStore size={16} />}
-              />
-
-              <Group grow>
-                <TextInput
-                  label="Short Name"
-                  placeholder="e.g. SM North"
-                  value={shortName}
-                  onChange={(e) => setShortName(e.target.value)}
-                  leftSection={<IconBuildingStore size={16} />}
-                />
-                <TextInput
-                  label="Acronym"
-                  placeholder="e.g. SMN"
-                  value={acronym}
-                  onChange={(e) => setAcronym(e.target.value.toUpperCase())}
-                  leftSection={<IconBuildingStore size={16} />}
-                />
-              </Group>
-
-              <Divider label="Location" labelPosition="center" />
-
-              <Group grow>
-                <NumberInput
-                  label="Latitude"
-                  placeholder="e.g., 14.5995"
-                  value={latitude}
-                  onChange={(value) => setLatitude(value === '' ? '' : value.toString())}
-                  decimalScale={6}
-                  step={0.000001}
-                  hideControls
-                />
-                <NumberInput
-                  label="Longitude"
-                  placeholder="e.g., 120.9842"
-                  value={longitude}
-                  onChange={(value) => setLongitude(value === '' ? '' : value.toString())}
-                  decimalScale={6}
-                  step={0.000001}
-                  hideControls
-                />
-              </Group>
-
-              <Button
-                variant="light"
-                leftSection={<IconMapPin size={16} />}
-                onClick={handleUseCurrentLocation}
-                loading={loadingLocation}
-                fullWidth
+              {/* General Info */}
+              <Box
+                style={{
+                  padding: '16px 20px',
+                  borderRadius: 18,
+                  background: 'var(--theme-surface)',
+                  border: '1px solid var(--theme-border)',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
+                }}
               >
-                Use Current Location
-              </Button>
+                <Text size="xs" fw={700} c="dimmed" mb="md" style={{ textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                  Branch Details
+                </Text>
+                <Stack gap="sm">
+                  <TextInput
+                    label="Arcade Name"
+                    placeholder="e.g. Quantum Amusement"
+                    value={arcadeName}
+                    onChange={(e) => setArcadeName(e.target.value)}
+                    required
+                    styles={{ input: { borderRadius: 10, background: 'var(--theme-bg-soft)' } }}
+                  />
+                  <Group grow>
+                    <TextInput
+                      label="Short Name"
+                      placeholder="e.g. SM North"
+                      value={shortName}
+                      onChange={(e) => setShortName(e.target.value)}
+                      styles={{ input: { borderRadius: 10, background: 'var(--theme-bg-soft)' } }}
+                    />
+                    <TextInput
+                      label="Acronym"
+                      placeholder="e.g. SMN"
+                      value={acronym}
+                      onChange={(e) => setAcronym(e.target.value.toUpperCase())}
+                      styles={{ input: { borderRadius: 10, textTransform: 'uppercase', background: 'var(--theme-bg-soft)' } }}
+                    />
+                  </Group>
+                  <Group grow align="flex-end">
+                    <Select
+                      label="Region"
+                      placeholder="Select region"
+                      data={regions}
+                      value={regionId}
+                      onChange={setRegionId}
+                      clearable
+                      searchable
+                      loading={loadingRegions}
+                      comboboxProps={{ withinPortal: false, position: 'bottom' }}
+                      styles={{ input: { borderRadius: 10, background: 'var(--theme-bg-soft)' } }}
+                    />
+                    <NumberInput
+                      label="Cabinets"
+                      value={cabCount}
+                      onChange={(v) => setCabCount(v)}
+                      min={1}
+                      styles={{ input: { borderRadius: 10, background: 'var(--theme-bg-soft)' } }}
+                    />
+                  </Group>
+                  <Checkbox
+                    label="Active & Visible"
+                    checked={enabled}
+                    onChange={(e) => setEnabled(e.currentTarget.checked)}
+                    mt="xs"
+                  />
+                </Stack>
+              </Box>
 
-              <NumberInput
-                label="Cabinet Count"
-                placeholder="Number of cabinets"
-                value={cabCount}
-                onChange={(value) => setCabCount(value)}
-                required
-                min={1}
-                step={1}
-              />
-
-              <Select
-                label="Region"
-                placeholder="Select region"
-                data={regions}
-                value={regionId}
-                onChange={setRegionId}
-                clearable
-                searchable
-                nothingFoundMessage="No regions found"
-                loading={loadingRegions}
-                comboboxProps={{ withinPortal: false }}
-              />
-
-              <Checkbox
-                label="Enabled"
-                checked={enabled}
-                onChange={(e) => setEnabled(e.currentTarget.checked)}
-              />
-
-              <Group justify="flex-end" mt="md">
-                <Button variant="subtle" onClick={handleClose}>
-                  Cancel
-                </Button>
-                <Button type="submit" loading={loading}>
-                  {mode === 'edit' ? 'Update Branch' : 'Next: Set Schedule'}
-                </Button>
-              </Group>
+              {/* Location Info */}
+              <Box
+                style={{
+                  padding: '16px 20px',
+                  borderRadius: 18,
+                  background: 'var(--theme-surface)',
+                  border: '1px solid var(--theme-border)',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
+                }}
+              >
+                <Group justify="space-between" mb="md">
+                  <Text size="xs" fw={700} c="dimmed" style={{ textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                    Coordinates
+                  </Text>
+                  <Button
+                    size="compact-xs"
+                    variant="light"
+                    leftSection={<IconMapPin size={12} />}
+                    loading={loadingLocation}
+                    onClick={handleUseCurrentLocation}
+                    radius="md"
+                    style={{ fontWeight: 700 }}
+                  >
+                    Use Current
+                  </Button>
+                </Group>
+                
+                <Group grow>
+                  <NumberInput
+                    label="Latitude"
+                    placeholder="e.g. 14.5995"
+                    value={latitude}
+                    onChange={(v) => setLatitude(v.toString())}
+                    decimalScale={6}
+                    hideControls
+                    styles={{ input: { borderRadius: 10, background: 'var(--theme-bg-soft)' } }}
+                  />
+                  <NumberInput
+                    label="Longitude"
+                    placeholder="e.g. 120.9842"
+                    value={longitude}
+                    onChange={(v) => setLongitude(v.toString())}
+                    decimalScale={6}
+                    hideControls
+                    styles={{ input: { borderRadius: 10, background: 'var(--theme-bg-soft)' } }}
+                  />
+                </Group>
+                <Text size="xs" c="dimmed" mt="xs">
+                  Required for region-based filtering and distance calculation.
+                </Text>
+              </Box>
             </Stack>
-          </form>
-        ) : (
-          // Schedule Form
-          <form onSubmit={handleScheduleSubmit}>
+          ) : (
             <Stack gap="md">
-              <Text size="sm" c="secondary" fw={500} style={{ marginTop: '1rem' }}>
-                {mode === 'edit' ? 'Editing Branch' : 'Creating Branch'}: {arcadeName}
-              </Text>
-
-              <Paper p="md" withBorder className="schedule-container">
-                <ScrollArea>
-                  <Table minWidth={500}>
-                    <Table.Thead>
+              {/* Schedule Form */}
+              <Box
+                style={{
+                  borderRadius: 18,
+                  overflow: 'hidden',
+                  background: 'var(--theme-surface)',
+                  border: '1px solid var(--theme-border)',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
+                }}
+              >
+                <ScrollArea h={400}>
+                  <Table verticalSpacing="sm">
+                    <Table.Thead style={{ background: 'var(--theme-bg-soft)' }}>
                       <Table.Tr>
-                        <Table.Th>Day</Table.Th>
-                        <Table.Th style={{ textAlign: 'center' }}>Opening Time</Table.Th>
-                        <Table.Th style={{ textAlign: 'center' }}>Closing Time</Table.Th>
+                        <Table.Th style={{ paddingLeft: 20 }}>Day</Table.Th>
+                        <Table.Th style={{ textAlign: 'center' }}>Open</Table.Th>
+                        <Table.Th style={{ textAlign: 'center' }}>Close</Table.Th>
                       </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
                       {schedules.map((schedule, index) => (
                         <Table.Tr key={schedule.day}>
-                          <Table.Td>
-                            <Text size="sm" fw={500}>
-                              {schedule.day}
-                            </Text>
+                          <Table.Td style={{ paddingLeft: 20 }}>
+                            <Text size="sm" fw={700}>{schedule.day}</Text>
                           </Table.Td>
                           <Table.Td>
                             <TextInput
                               type="time"
                               value={schedule.time_open}
                               onChange={(e) => handleScheduleChange(index, 'time_open', e.target.value)}
-                              leftSection={<IconClock size={16} />}
-                              styles={{ input: { textAlign: 'center' } }}
+                              styles={{ input: { borderRadius: 8, height: 32, textAlign: 'center', background: 'var(--theme-bg-soft)' } }}
                             />
                           </Table.Td>
                           <Table.Td>
@@ -467,8 +564,7 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
                               type="time"
                               value={schedule.time_close}
                               onChange={(e) => handleScheduleChange(index, 'time_close', e.target.value)}
-                              leftSection={<IconClock size={16} />}
-                              styles={{ input: { textAlign: 'center' } }}
+                              styles={{ input: { borderRadius: 8, height: 32, textAlign: 'center', background: 'var(--theme-bg-soft)' } }}
                             />
                           </Table.Td>
                         </Table.Tr>
@@ -476,25 +572,66 @@ const BranchEditModal = ({ opened, onClose, mode = 'create', branchToEdit = null
                     </Table.Tbody>
                   </Table>
                 </ScrollArea>
-              </Paper>
-
-              <Group justify="space-between" mt="md">
-                <Button variant="subtle" onClick={() => setStep(1)}>
-                  Back
-                </Button>
-                <Group>
-                  <Button variant="subtle" onClick={handleClose}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" loading={loading}>
-                    Create Branch
-                  </Button>
-                </Group>
-              </Group>
+              </Box>
+              <Text size="xs" c="dimmed" ta="center">
+                Check-ins are allowed between these hours.
+              </Text>
             </Stack>
-          </form>
-        )}
-      </Stack>
+          )}
+        </Stack>
+      </Box>
+
+      {/* ── Footer Actions ───────────────────────────────────────── */}
+      <Box 
+        p="lg" 
+        style={{ 
+          borderTop: '1px solid var(--theme-border)',
+          background: 'var(--theme-surface)',
+          flexShrink: 0
+        }}
+      >
+        <Group justify="space-between">
+          {step === 2 ? (
+            <Button
+              variant="subtle"
+              leftSection={<IconChevronLeft size={16} />}
+              onClick={() => setStep(1)}
+              radius="xl"
+              style={{ fontWeight: 600 }}
+            >
+              Back to Details
+            </Button>
+          ) : (
+            <Box />
+          )}
+
+          <Group gap="sm">
+            <Button 
+              variant="default" 
+              onClick={() => handleClose(false)} 
+              radius="xl"
+              style={{ fontWeight: 600 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={step === 1 ? handleBranchSubmit : handleScheduleSubmit}
+              loading={loading}
+              radius="xl"
+              rightSection={step === 1 && mode === 'create' ? <IconArrowRight size={18} /> : <IconCheck size={18} />}
+              color="var(--theme-primary)"
+              style={{ 
+                fontWeight: 700,
+                paddingLeft: 24,
+                paddingRight: 24,
+                boxShadow: '0 4px 12px rgba(var(--theme-primary-rgb), 0.2)'
+              }}
+            >
+              {mode === 'edit' ? 'Save Changes' : step === 1 ? 'Next: Schedule' : 'Create Branch'}
+            </Button>
+          </Group>
+        </Group>
+      </Box>
     </Modal>
   );
 };

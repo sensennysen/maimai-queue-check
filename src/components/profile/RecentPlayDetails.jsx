@@ -4,7 +4,7 @@ import {
   Divider, Table, Stack, Flex
 } from '@mantine/core';
 import { DIFFICULTY_COLORS, normalizeDifficulty, BASE_JACKET_URL } from '../../config/maimai-constants';
-import { getRelativeTime } from '../../utils/formatters';
+
 import { getGrade } from '../../utils/maimai-calc';
 
 /* ─────────────────────────── Details Content ─────────────────────────── */
@@ -55,7 +55,6 @@ export const RecentPlayDetails = memo(({ play, isMobile, songMap }) => {
             >
               {diffLabel} {play.level}
             </Box>
-            <Text size="sm" c="dimmed">{getRelativeTime(play.played_at)}</Text>
           </Group>
           <Group gap={4} align="baseline">
             <Text fw={900} size="xl" style={{ color: 'var(--theme-secondary)' }}>

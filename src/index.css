@@ -100,12 +100,12 @@ body::after {
 .mantine-Menu-dropdown {
   background: var(--theme-surface) !important;
   border: none !important;
-  /* Signature Claymorphism Shadow: Double outer drop + double inner highlight/shadow */
+  /* Premium Balanced Shadow: No colored glow, just depth */
   box-shadow:
-    8px 8px 16px rgba(0, 0, 0, 0.06),
-    -6px -6px 14px rgba(255, 255, 255, 0.5),
-    inset 2px 2px 5px color-mix(in srgb, var(--theme-primary) 4%, rgba(255, 255, 255, 0.45)),
-    inset -2px -2px 5px rgba(0, 0, 0, 0.04) !important;
+    0 12px 28px rgba(0, 0, 0, 0.08),
+    0 4px 10px rgba(0, 0, 0, 0.04),
+    -4px -4px 10px rgba(255, 255, 255, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3) !important;
   border-radius: 24px !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -118,10 +118,9 @@ body::after {
 [data-mantine-color-scheme="dark"] .mantine-Menu-dropdown {
   background: var(--theme-surface) !important;
   box-shadow:
-    8px 8px 16px rgba(0, 0, 0, 0.4),
-    -8px -8px 16px rgba(255, 255, 255, 0.02),
-    inset 2px 2px 6px rgba(255, 255, 255, 0.05),
-    inset -2px -2px 6px rgba(0, 0, 0, 0.2) !important;
+    0 12px 36px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
 }
 
 /* Mobile adjustments */

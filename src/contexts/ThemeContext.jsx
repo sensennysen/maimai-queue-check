@@ -90,6 +90,9 @@ export const ThemeProvider = ({ children }) => {
     root.style.setProperty('--theme-border', cssVars.border);
     root.style.setProperty('--theme-tab-highlight', cssVars.tabHighlight || cssVars.primary);
 
+    // Dynamic soft backgrounds for inputs/cards
+    root.style.setProperty('--theme-bg-soft', isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)');
+
     // Derived colors could be calculated or added to theme config
     // For now, let's just set some basic derivatives based on primary/secondary
     // Or we could have added them to the theme config.
@@ -127,6 +130,10 @@ export const ThemeProvider = ({ children }) => {
     // Pick the text color that has the better contrast ratio on primary buttons.
     const contrastColor = getReadableTextColor(cssVars.primary);
     root.style.setProperty('--theme-primary-contrast', contrastColor);
+
+    // Also for status colors
+    root.style.setProperty('--theme-error-contrast', getReadableTextColor(isDark ? '#FF6B6B' : '#D63352'));
+    root.style.setProperty('--theme-success-contrast', getReadableTextColor(isDark ? '#88FF00' : '#2DA74F'));
 
     // Set hover variations (slightly darker for light mode, lighter for dark mode)
     root.style.setProperty('--theme-primary-hover', isDark ? 

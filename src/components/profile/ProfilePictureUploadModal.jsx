@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { Modal, Stack, Group, Button, Text, Image, FileButton, Alert, Loader, Box, Slider } from '@mantine/core';
+import { Modal, Stack, Group, Button, Text, Image, FileButton, Alert, Box, Slider, LoadingOverlay, UnstyledButton } from '@mantine/core';
 import IconUpload from '@tabler/icons-react/dist/esm/icons/IconUpload.mjs';
 import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
@@ -172,138 +172,229 @@ const ProfilePictureUploadModal = ({ opened, onClose, userId, currentPhotoUrl, o
     <Modal
       opened={opened}
       onClose={handleClose}
-      title="Update Profile Picture"
       size="md"
-      radius="md"
-    >
-      <Stack gap="md" py="xs">
-        <Text size="sm" c="dimmed">
-          Custom profile pictures will be shown instead of your maimai DX icon.
-          Max 20MB. Drag and zoom to reposition.
-        </Text>
-
-        <Box style={{
-          position: 'relative',
-          height: 300,
-          background: 'var(--mantine-color-gray-0)',
-          borderRadius: 'var(--mantine-radius-md)',
+      radius={24}
+      padding={0}
+      withCloseButton={false}
+      centered
+      styles={{
+        content: {
           overflow: 'hidden',
-          border: '1px dashed var(--mantine-color-gray-3)'
-        }}>
-          {imageSrc ? (
-            <Cropper
-              image={imageSrc}
-              crop={crop}
-              zoom={zoom}
-              aspect={1}
-              onCropChange={setCrop}
-              onCropComplete={onCropComplete}
-              onZoomChange={setZoom}
-              cropShape="round"
-              showGrid={false}
-            />
-          ) : currentPhotoUrl ? (
-            <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <Image
-                src={currentPhotoUrl}
-                w={200}
-                h={200}
-                radius={200}
-                fit="cover"
-                alt="Profile Preview"
-                fallbackSrc="https://placehold.co/200x200?text=No+Preview"
-              />
-            </Box>
-          ) : (
-            <Stack align="center" justify="center" gap="xs" style={{ height: '100%' }}>
-              <IconCamera size={48} stroke={1.5} color="var(--mantine-color-gray-4)" />
-              <Text size="sm" c="dimmed">No photo selected</Text>
-            </Stack>
-          )}
+          display: 'flex',
+          flexDirection: 'column',
+        },
+        body: {
+          padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+        },
+      }}
+    >
+      <LoadingOverlay visible={isUploading} zIndex={100} overlayProps={{ radius: 'md', blur: 2 }} />
 
-          {isUploading && (
-            <Box style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(255,255,255,0.7)',
+      {/* ── Fixed Header ─────────────────────────────────────────── */}
+      <Box
+        style={{
+          background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
+          padding: '24px 24px 20px',
+          position: 'relative',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+      >
+        <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
+          <Box
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              zIndex: 10
-            }}>
-              <Loader size="lg" />
-            </Box>
-          )}
-        </Box>
-
-        {imageSrc && (
-          <Stack gap={4}>
-            <Text size="xs" fw={500} c="dimmed">Zoom</Text>
-            <Slider
-              value={zoom}
-              min={1}
-              max={3}
-              step={0.1}
-              onChange={setZoom}
-              label={null}
-            />
-          </Stack>
-        )}
-
-        {error && (
-          <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light">
-            {error}
-          </Alert>
-        )}
-
-        {success && (
-          <Alert icon={<IconCheck size={16} />} color="green" variant="light">
-            Profile picture updated successfully!
-          </Alert>
-        )}
-
-        <Group justify="space-between">
-          <Group gap="xs">
-            <FileButton
-              onChange={handleFileChange}
-              accept={ALLOWED_TYPES.join(',')}
-              resetRef={resetRef}
+              boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
+            }}
+          >
+            <IconCamera size={18} color="var(--theme-primary-contrast)" strokeWidth={2.2} />
+          </Box>
+          <Box>
+            <Text
+              size="lg"
+              fw={800}
+              style={{
+                fontFamily: 'var(--font-heading)',
+                color: 'var(--theme-primary-contrast)',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
+              }}
             >
-              {(props) => (
-                <Button {...props} leftSection={file ? <IconRotate size={18} /> : <IconUpload size={18} />} variant="light">
-                  {file ? 'Change Photo' : 'Select Photo'}
+              Profile Picture
+            </Text>
+            <Text size="xs" style={{ color: 'var(--theme-primary-contrast)', opacity: 0.8, marginTop: 2 }}>
+              Update your account avatar
+            </Text>
+          </Box>
+        </Group>
+
+        <UnstyledButton
+          onClick={handleClose}
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 20,
+            padding: '4px 12px',
+            borderRadius: 20,
+            background: 'rgba(255,255,255,0.2)',
+            color: 'var(--theme-primary-contrast)',
+            fontSize: 12,
+            fontWeight: 700,
+            backdropFilter: 'blur(4px)',
+            transition: 'all 0.2s ease',
+            zIndex: 10,
+          }}
+          className="header-close-pill"
+        >
+          Cancel
+        </UnstyledButton>
+      </Box>
+
+      {/* ── Body ─────────────────────────────────────────────────── */}
+      <Box style={{ flex: 1, overflowY: 'auto' }}>
+        <Stack gap="md" p="lg">
+          <Box
+            style={{
+              borderRadius: 18,
+              padding: '16px',
+              background: 'var(--theme-surface)',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              border: '1px solid var(--theme-border)',
+            }}
+          >
+            <Text size="xs" fw={700} c="dimmed" mb="md" style={{ textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+              Preview & Crop
+            </Text>
+
+            <Box style={{
+              position: 'relative',
+              height: 280,
+              background: 'var(--theme-bg-soft)',
+              borderRadius: 14,
+              overflow: 'hidden',
+              border: '1px dashed var(--theme-border)'
+            }}>
+              {imageSrc ? (
+                <Cropper
+                  image={imageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
+                  cropShape="round"
+                  showGrid={false}
+                />
+              ) : currentPhotoUrl ? (
+                <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <Image
+                    src={currentPhotoUrl}
+                    w={180}
+                    h={180}
+                    radius={100}
+                    fit="cover"
+                    alt="Profile Preview"
+                    fallbackSrc="https://placehold.co/180x180?text=No+Preview"
+                    style={{ border: '4px solid var(--theme-surface)', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
+                  />
+                </Box>
+              ) : (
+                <Stack align="center" justify="center" gap="xs" style={{ height: '100%' }}>
+                  <IconCamera size={42} stroke={1.5} color="var(--theme-border)" />
+                  <Text size="xs" fw={600} c="dimmed">Tap 'Select Photo' to start</Text>
+                </Stack>
+              )}
+            </Box>
+
+            {imageSrc && (
+              <Stack gap={2} mt="md">
+                <Text size="xs" fw={700} c="dimmed">Zoom Level</Text>
+                <Slider
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  onChange={setZoom}
+                  label={null}
+                  styles={{
+                    track: { background: 'var(--theme-border)' },
+                    bar: { background: 'var(--theme-primary)' },
+                    thumb: { border: '2px solid var(--theme-primary)' }
+                  }}
+                />
+              </Stack>
+            )}
+          </Box>
+
+          {error && (
+            <Alert icon={<IconAlertCircle size={18} />} color="red" radius="lg" variant="light">
+              <Text size="sm" fw={600}>{error}</Text>
+            </Alert>
+          )}
+
+          {success && (
+            <Alert icon={<IconCheck size={18} />} color="green" radius="lg" variant="light">
+              <Text size="sm" fw={600}>Profile picture updated successfully!</Text>
+            </Alert>
+          )}
+
+          <Group justify="space-between" align="center" gap="md" style={{ flexWrap: 'wrap' }}>
+            <Group gap="xs" style={{ flex: '1 1 auto', minWidth: 200 }}>
+              <FileButton
+                onChange={handleFileChange}
+                accept={ALLOWED_TYPES.join(',')}
+                resetRef={resetRef}
+              >
+                {(props) => (
+                  <Button 
+                    {...props} 
+                    leftSection={file ? <IconRotate size={18} /> : <IconUpload size={18} />} 
+                    variant="light"
+                    radius="xl"
+                    style={{ fontWeight: 700, flex: 1 }}
+                  >
+                    {file ? 'Change' : 'Select Photo'}
+                  </Button>
+                )}
+              </FileButton>
+              {currentPhotoUrl && !file && (
+                <Button
+                  variant="subtle"
+                  color="red"
+                  onClick={handleRemove}
+                  disabled={isUploading}
+                  leftSection={<IconTrash size={18} />}
+                  radius="xl"
+                  style={{ fontWeight: 600, flex: 1 }}
+                >
+                  Remove
                 </Button>
               )}
-            </FileButton>
-            {currentPhotoUrl && !file && (
-              <Button
-                variant="subtle"
-                color="red"
-                onClick={handleRemove}
-                disabled={isUploading}
-                leftSection={<IconTrash size={18} />}
-              >
-                Remove
-              </Button>
-            )}
-          </Group>
+            </Group>
 
-          <Group gap="xs">
-            <Button variant="default" onClick={handleClose}>Cancel</Button>
             <Button
               onClick={handleUpload}
               loading={isUploading}
               disabled={!imageSrc || !!error || success}
-              color="blue"
+              color="var(--theme-primary)"
+              radius="xl"
+              style={{ fontWeight: 700, paddingLeft: 24, paddingRight: 24, flex: '1 1 auto' }}
             >
-              Upload
+              Save Changes
             </Button>
           </Group>
-        </Group>
-      </Stack>
+        </Stack>
+      </Box>
     </Modal>
   );
 };

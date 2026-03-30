@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Alert, Modal, Skeleton, LoadingOverlay, TextInput } from '@mantine/core';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Alert, Modal, Skeleton, LoadingOverlay, TextInput, Box, UnstyledButton } from '@mantine/core';
 import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
+import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import IconAlertTriangle from '@tabler/icons-react/dist/esm/icons/IconAlertTriangle.mjs';
 import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
@@ -404,21 +406,106 @@ function QueueManager() {
           <Modal
             opened={queueNameModalOpen}
             onClose={() => setQueueNameModalOpen(false)}
-            title={<Text fw={600}>Change Queue Name</Text>}
             centered
             size="sm"
+            padding={0}
+            radius={24}
+            withCloseButton={false}
+            styles={{
+              content: { overflow: 'hidden' },
+              body: { padding: 0 }
+            }}
           >
-            <Stack gap="md">
-              <Text size="sm" c="dimmed">Name shown in queue autocomplete (max 10 chars)</Text>
-              <TextInput
-                placeholder="Your queue name"
-                value={queueName}
-                onChange={(e) => setQueueName(e.currentTarget.value.slice(0, 10))}
-                maxLength={10}
-                disabled={queueNameLoading}
-              />
-              <Group justify="flex-end">
-                <Button variant="default" onClick={() => setQueueNameModalOpen(false)}>
+            {/* ── Fixed Header ─────────────────────────────────────────── */}
+            <Box
+              style={{
+                background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
+                padding: '24px 24px 20px',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
+                <Box
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
+                  }}
+                >
+                  <IconPlus size={18} color="var(--theme-primary-contrast)" strokeWidth={2.2} />
+                </Box>
+                <Box>
+                  <Text
+                    size="lg"
+                    fw={800}
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      color: 'var(--theme-primary-contrast)',
+                      letterSpacing: '-0.02em',
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    Queue Name
+                  </Text>
+                  <Text size="xs" style={{ color: 'var(--theme-primary-contrast)', opacity: 0.8, marginTop: 2 }}>
+                    Update your display name in the queue
+                  </Text>
+                </Box>
+              </Group>
+
+              <UnstyledButton
+                onClick={() => setQueueNameModalOpen(false)}
+                style={{
+                  position: 'absolute',
+                  top: 20,
+                  right: 20,
+                  padding: '4px 12px',
+                  borderRadius: 20,
+                  background: 'rgba(255,255,255,0.2)',
+                  color: 'var(--theme-primary-contrast)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  backdropFilter: 'blur(4px)',
+                  transition: 'all 0.2s ease',
+                  zIndex: 10,
+                }}
+                className="header-close-pill"
+              >
+                Cancel
+              </UnstyledButton>
+            </Box>
+
+            <Stack gap="md" p="lg">
+              <Box
+                style={{
+                  borderRadius: 18,
+                  padding: '16px',
+                  background: 'var(--theme-surface)',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                  border: '1px solid var(--theme-border)',
+                }}
+              >
+                <TextInput
+                  label={<Text size="sm" fw={700} style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.02em' }}>Queue Display Name</Text>}
+                  placeholder="Your queue name"
+                  description="Visible when joining or being added by others"
+                  value={queueName}
+                  onChange={(e) => setQueueName(e.currentTarget.value.slice(0, 10))}
+                  maxLength={10}
+                  variant="filled"
+                  styles={{ input: { background: 'var(--theme-bg-soft)', borderRadius: 12, minHeight: 46 } }}
+                  disabled={queueNameLoading}
+                />
+              </Box>
+
+              <Group justify="flex-end" gap="sm">
+                <Button variant="subtle" onClick={() => setQueueNameModalOpen(false)} color="gray">
                   Cancel
                 </Button>
                 <Button
@@ -428,8 +515,9 @@ function QueueManager() {
                   }}
                   loading={queueNameSaving}
                   disabled={queueNameLoading || queueName.trim() === queueNameOriginal}
+                  leftSection={<IconCheck size={16} />}
                 >
-                  Save
+                  Save Name
                 </Button>
               </Group>
             </Stack>
@@ -463,23 +551,115 @@ function QueueManager() {
       <Modal
         opened={user && !scheduleLoading && isMallOpen && (showForm || editingId)}
         onClose={cancelEdit}
-        title={editingId ? 'Edit Queue' : 'Add Queue'}
         centered
+        padding={0}
+        radius={24}
+        withCloseButton={false}
+        styles={{
+          content: {
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: 'calc(100vh - 40px)'
+          },
+          body: {
+            padding: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            overflow: 'hidden'
+          }
+        }}
       >
-        <Suspense fallback={<Skeleton height={400} />}>
-          <QueueForm
-            key={editingId || 'new'}
-            onSubmit={editingId ? updateQueueEntry : addQueueEntry}
-            editingId={editingId}
-            editingData={editingId ? queue.find(item => item.id === editingId) : null}
-            isBusy={isMutating}
-            locationVerified={locationVerified}
-            locationError={locationError}
-            isSuperAdmin={isSuperAdmin}
-            queue={queue}
-            nowPlaying={nowPlaying}
-          />
-        </Suspense>
+        {/* ── Fixed Header ─────────────────────────────────────────── */}
+        <Box
+          style={{
+            background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
+            padding: '24px 24px 20px',
+            position: 'relative',
+            overflow: 'hidden',
+            flexShrink: 0,
+          }}
+        >
+          <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
+            <Box
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
+              }}
+            >
+              {editingId ? (
+                <IconEdit size={18} color="var(--theme-primary-contrast)" strokeWidth={2.2} />
+              ) : (
+                <IconPlus size={18} color="var(--theme-primary-contrast)" strokeWidth={2.2} />
+              )}
+            </Box>
+            <Box>
+              <Text
+                size="lg"
+                fw={800}
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  color: 'var(--theme-primary-contrast)',
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1.1,
+                }}
+              >
+                {editingId ? 'Edit Queue Entry' : 'Add to Queue'}
+              </Text>
+              <Text size="xs" style={{ color: 'var(--theme-primary-contrast)', opacity: 0.8, marginTop: 2 }}>
+                {editingId ? 'Modify existing players' : 'Join the current waiting list'}
+              </Text>
+            </Box>
+          </Group>
+
+          <UnstyledButton
+            onClick={cancelEdit}
+            style={{
+              position: 'absolute',
+              top: 20,
+              right: 20,
+              padding: '4px 12px',
+              borderRadius: 20,
+              background: 'rgba(255,255,255,0.2)',
+              color: 'var(--theme-primary-contrast)',
+              fontSize: 12,
+              fontWeight: 700,
+              backdropFilter: 'blur(4px)',
+              transition: 'all 0.2s ease',
+              zIndex: 10,
+            }}
+            className="header-close-pill"
+          >
+            Cancel
+          </UnstyledButton>
+        </Box>
+
+        <Box style={{ flex: 1, overflowY: 'auto' }}>
+          <Stack gap="md" p="lg">
+            <Suspense fallback={<Skeleton height={400} />}>
+              <QueueForm
+                key={editingId || 'new'}
+                onSubmit={editingId ? updateQueueEntry : addQueueEntry}
+                editingId={editingId}
+                editingData={editingId ? queue.find(item => item.id === editingId) : null}
+                isBusy={isMutating}
+                locationVerified={locationVerified}
+                locationError={locationError}
+                isSuperAdmin={isSuperAdmin}
+                queue={queue}
+                nowPlaying={nowPlaying}
+                onCancel={cancelEdit}
+              />
+            </Suspense>
+          </Stack>
+        </Box>
       </Modal>
 
       <AccessRequestModal

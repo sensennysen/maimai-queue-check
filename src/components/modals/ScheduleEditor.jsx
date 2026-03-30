@@ -5,14 +5,14 @@ import {
   TextInput,
   Button,
   Group,
-  Title,
   Text,
-  Paper,
   Table,
-  ScrollArea,
+  Box,
+  UnstyledButton,
+  Loader
 } from '@mantine/core';
-import IconCalendar from '@tabler/icons-react/dist/esm/icons/IconCalendar.mjs';
 import IconClock from '@tabler/icons-react/dist/esm/icons/IconClock.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import { notifications } from '@mantine/notifications';
 import { adminService } from '../../services/supabase';
 
@@ -82,7 +82,7 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
 
     if (!branch) return;
 
@@ -149,78 +149,190 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
     <Modal
       opened={opened}
       onClose={onClose}
-      title={
-        <Group gap="xs">
-          <IconCalendar size={24} />
-          <Title order={3}>Edit Schedule</Title>
-        </Group>
-      }
       size="lg"
+      radius={24}
+      padding={0}
+      withCloseButton={false}
       centered
+      styles={{
+        content: {
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: 'calc(100vh - 60px)'
+        },
+        body: {
+          padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          overflow: 'hidden'
+        },
+      }}
     >
-      <form onSubmit={handleSubmit}>
-        <Stack gap="md">
-          <Text size="sm" c="secondary" fw={500} style={{ marginTop: '1rem' }}>
-            Editing schedule for: {branch?.arcade_name}
-          </Text>
+      {/* ── Fixed Header ─────────────────────────────────────────── */}
+      <Box
+        style={{
+          background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
+          padding: '24px 24px 20px',
+          position: 'relative',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+      >
+        <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
+          <Box
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
+            }}
+          >
+            <IconClock size={18} color="var(--theme-primary-contrast)" strokeWidth={2.2} />
+          </Box>
+          <Box>
+            <Text
+              size="lg"
+              fw={800}
+              style={{
+                fontFamily: 'var(--font-heading)',
+                color: 'var(--theme-primary-contrast)',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
+              }}
+            >
+              Edit Schedule
+            </Text>
+            <Text size="xs" style={{ color: 'var(--theme-primary-contrast)', opacity: 0.8, marginTop: 2 }}>
+              {branch?.arcade_name || 'Operating Hours'}
+            </Text>
+          </Box>
+        </Group>
 
+        <UnstyledButton
+          onClick={() => onClose(false)}
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 20,
+            padding: '4px 12px',
+            borderRadius: 20,
+            background: 'rgba(255,255,255,0.2)',
+            color: 'var(--theme-primary-contrast)',
+            fontSize: 12,
+            fontWeight: 700,
+            backdropFilter: 'blur(4px)',
+            transition: 'all 0.2s ease',
+            zIndex: 10,
+          }}
+          className="header-close-pill"
+        >
+          Cancel
+        </UnstyledButton>
+      </Box>
+
+      {/* ── Scrollable Body ──────────────────────────────────────── */}
+      <Box style={{ flex: 1, overflowY: 'auto' }}>
+        <Stack gap="lg" p="lg">
           {loadingData ? (
-            <Text ta="center" c="secondary" fw={500}>Loading schedules...</Text>
+            <Group justify="center" p="xl">
+              <Loader size="sm" color="var(--theme-primary)" />
+              <Text size="sm" fw={500}>Fetching schedule details…</Text>
+            </Group>
           ) : (
-            <Paper p="md" withBorder className="schedule-container">
-              <ScrollArea>
-                <Table minWidth={500}>
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th>Day</Table.Th>
-                      <Table.Th style={{ textAlign: 'center' }}>Opening Time</Table.Th>
-                      <Table.Th style={{ textAlign: 'center' }}>Closing Time</Table.Th>
+            <Box
+              style={{
+                borderRadius: 18,
+                overflow: 'hidden',
+                background: 'var(--theme-surface)',
+                border: '1px solid var(--theme-border)',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
+              }}
+            >
+              <Table verticalSpacing="sm">
+                <Table.Thead style={{ background: 'var(--theme-bg-soft)' }}>
+                  <Table.Tr>
+                    <Table.Th style={{ paddingLeft: 24 }}>Day</Table.Th>
+                    <Table.Th style={{ textAlign: 'center' }}>Open</Table.Th>
+                    <Table.Th style={{ textAlign: 'center' }}>Close</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {schedules.map((schedule, index) => (
+                    <Table.Tr key={schedule.day}>
+                      <Table.Td style={{ paddingLeft: 24 }}>
+                        <Text size="sm" fw={700}>{schedule.day}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <TextInput
+                          type="time"
+                          value={schedule.time_open}
+                          onChange={(e) => handleScheduleChange(index, 'time_open', e.target.value)}
+                          styles={{ input: { borderRadius: 8, height: 32, textAlign: 'center' } }}
+                        />
+                      </Table.Td>
+                      <Table.Td>
+                        <TextInput
+                          type="time"
+                          value={schedule.time_close}
+                          onChange={(e) => handleScheduleChange(index, 'time_close', e.target.value)}
+                          styles={{ input: { borderRadius: 8, height: 32, textAlign: 'center' } }}
+                        />
+                      </Table.Td>
                     </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {schedules.map((schedule, index) => (
-                      <Table.Tr key={schedule.day}>
-                        <Table.Td>
-                          <Text size="sm" fw={500}>
-                            {schedule.day}
-                          </Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <TextInput
-                            type="time"
-                            value={schedule.time_open}
-                            onChange={(e) => handleScheduleChange(index, 'time_open', e.target.value)}
-                            leftSection={<IconClock size={16} />}
-                            styles={{ input: { textAlign: 'center' } }}
-                          />
-                        </Table.Td>
-                        <Table.Td>
-                          <TextInput
-                            type="time"
-                            value={schedule.time_close}
-                            onChange={(e) => handleScheduleChange(index, 'time_close', e.target.value)}
-                            leftSection={<IconClock size={16} />}
-                            styles={{ input: { textAlign: 'center' } }}
-                          />
-                        </Table.Td>
-                      </Table.Tr>
-                    ))}
-                  </Table.Tbody>
-                </Table>
-              </ScrollArea>
-            </Paper>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </Box>
           )}
 
-          <Group justify="flex-end" mt="md">
-            <Button variant="subtle" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" loading={loading} disabled={loadingData}>
-              Update Schedule
-            </Button>
-          </Group>
+          <Text size="xs" c="dimmed" ta="center">
+            Set the operating hours for this branch. Leave blank if closed on a specific day.
+          </Text>
         </Stack>
-      </form>
+      </Box>
+
+      {/* ── Footer ───────────────────────────────────────────────── */}
+      <Box 
+        p="lg" 
+        style={{ 
+          borderTop: '1px solid var(--theme-border)',
+          background: 'var(--theme-surface)',
+          flexShrink: 0
+        }}
+      >
+        <Group justify="flex-end">
+          <Button 
+            variant="default" 
+            onClick={() => onClose(false)}
+            radius="xl"
+            style={{ fontWeight: 600 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            loading={loading}
+            disabled={loadingData}
+            radius="xl"
+            leftSection={<IconCheck size={18} />}
+            color="var(--theme-primary)"
+            style={{ 
+              fontWeight: 700,
+              paddingLeft: 24,
+              paddingRight: 24,
+              boxShadow: '0 4px 12px rgba(var(--theme-primary-rgb), 0.2)'
+            }}
+          >
+            Update Schedule
+          </Button>
+        </Group>
+      </Box>
     </Modal>
   );
 };

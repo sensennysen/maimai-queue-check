@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, memo } from 'react';
 import {
   Paper, Group, Title, Box, Text, ActionIcon, Image,
-  Modal
+  Modal, UnstyledButton
 } from '@mantine/core';
 import { useMediaQuery, useDisclosure } from '@mantine/hooks';
 import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
@@ -328,22 +328,108 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
       <Modal
         opened={opened}
         onClose={close}
-        title={<Text fw={900} style={{ fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Play Details</Text>}
         centered
         size="lg"
-        radius="md"
+        radius={24}
+        padding={0}
+        withCloseButton={false}
         overlayProps={{
           backgroundOpacity: 0.55,
           blur: 3,
         }}
         transitionProps={{ transition: 'slide-up', duration: 250 }}
+        styles={{
+          content: {
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: 'calc(100vh - 60px)'
+          },
+          body: {
+            padding: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            overflow: 'hidden'
+          },
+        }}
       >
         {selectedPlay && (
-          <RecentPlayDetails
-            play={selectedPlay}
-            isMobile={isMobile}
-            songMap={songMap}
-          />
+          <>
+            <Box
+              style={{
+                background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
+                padding: '24px 24px 20px',
+                position: 'relative',
+                overflow: 'hidden',
+                flexShrink: 0,
+              }}
+            >
+              <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
+                <Box
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
+                  }}
+                >
+                  <IconHistory size={20} color="var(--theme-primary-contrast)" strokeWidth={2.2} />
+                </Box>
+                <Box>
+                  <Text
+                    size="lg"
+                    fw={800}
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      color: 'var(--theme-primary-contrast)',
+                      letterSpacing: '-0.02em',
+                      lineHeight: 1.1,
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    Play Details
+                  </Text>
+                  <Text size="xs" style={{ color: 'var(--theme-primary-contrast)', opacity: 0.8, marginTop: 2 }}>
+                    Played {getRelativeTime(selectedPlay.played_at)}
+                  </Text>
+                </Box>
+              </Group>
+
+              <UnstyledButton
+                onClick={close}
+                className="header-close-pill"
+                style={{
+                  position: 'absolute',
+                  top: 20,
+                  right: 20,
+                  padding: '4px 12px',
+                  borderRadius: 20,
+                  background: 'rgba(255,255,255,0.2)',
+                  color: 'var(--theme-primary-contrast)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  backdropFilter: 'blur(4px)',
+                  transition: 'all 0.2s ease',
+                  zIndex: 10,
+                }}
+              >
+                Close
+              </UnstyledButton>
+            </Box>
+
+            <Box style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+              <RecentPlayDetails
+                play={selectedPlay}
+                isMobile={isMobile}
+                songMap={songMap}
+              />
+            </Box>
+          </>
         )}
       </Modal>
     </Paper>

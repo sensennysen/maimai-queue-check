@@ -1,13 +1,27 @@
-import { Modal, Image, Text, Group, Stack, Tooltip, SimpleGrid, TextInput, ActionIcon, Divider, Badge, Button, Box } from '@mantine/core';
+import { 
+  Modal, 
+  Image, 
+  Text, 
+  Group, 
+  Stack, 
+  Tooltip, 
+  SimpleGrid, 
+  TextInput, 
+  ActionIcon, 
+  Badge, 
+  Button, 
+  Box,
+  UnstyledButton
+} from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
-import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 import IconStarFilled from '@tabler/icons-react/dist/esm/icons/IconStarFilled.mjs';
 import { useState, useEffect } from 'react';
 import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty, BASE_JACKET_URL } from '../../config/maimai-constants';
 import { Link } from 'react-router-dom';
 import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
+import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
 
 function MaimaiSongDetailModal({
   song,
@@ -16,7 +30,6 @@ function MaimaiSongDetailModal({
   comment: initialComment,
   playCount,
   difficulty,
-  title = "Song Details",
   isOwnProfile,
   onCommentSave,
   best50Score
@@ -62,201 +75,359 @@ function MaimaiSongDetailModal({
   const effectiveBest50Score = best50Score || null;
   const b50DxStar = effectiveBest50Score?.dxStar;
 
+  // Header background color based on difficulty
+  const headerBg = difficulty ? DIFFICULTY_COLORS[normalizedDifficulty] || 'var(--theme-primary)' : 'var(--theme-primary)';
+
   return (
     <Modal
       opened={opened}
       onClose={onClose}
-      title={<Text fw={700} style={{ fontFamily: 'var(--font-heading)' }}>{title}</Text>}
       size="lg"
-      radius="md"
+      radius={24}
+      padding={0}
+      withCloseButton={false}
       centered
-      transitionProps={{ transition: 'fade', duration: 0 }}
-      classNames={{ content: 'profile-modal-pop' }}
-      overlayProps={{
-        backgroundOpacity: 0.55,
-        blur: 3,
-      }}
       styles={{
-        header: {
-          marginBottom: '0.5rem',
-          borderBottom: '1px solid var(--mantine-color-default-border)'
+        content: {
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: 'calc(100vh - 60px)'
         },
         body: {
-          padding: 'var(--mantine-spacing-xl)',
-        }
+          padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          overflow: 'hidden'
+        },
       }}
     >
-      <Stack gap="md">
-        {/* Header Section with Image and Basic Info */}
-        <Group align="center" justify="center" gap="xl" wrap="nowrap" style={{ paddingBottom: '1rem' }}>
-          <Image
-            src={song.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
-            alt={song.title}
-            radius="md"
-            w={{ base: 140, xs: 180, sm: 220 }}
-            h={{ base: 140, xs: 180, sm: 220 }}
-            fallbackSrc="https://placehold.co/240x240?text=No+Image"
-            style={{ boxShadow: 'var(--mantine-shadow-md)', flexShrink: 0 }}
-          />
-          <Stack gap="sm" style={{ flex: 1, minWidth: 0 }}>
-            <Tooltip label="Click to copy title" withArrow position="top">
-              <Text
-                size="xl"
-                fw={700}
-                style={{ fontFamily: 'var(--font-heading)', lineHeight: 1.2, cursor: 'pointer' }}
-                onClick={handleTitleClick}
-              >
-                {song.title}
-              </Text>
-            </Tooltip>
+      {/* ── Fixed Header ─────────────────────────────────────────── */}
+      <Box
+        style={{
+          background: `linear-gradient(135deg, ${headerBg}, color-mix(in srgb, ${headerBg}, #000 20%))`,
+          padding: '24px 24px 20px',
+          position: 'relative',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+      >
+        <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
+          <Box
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
+            }}
+          >
+            <IconMusic size={18} color="#fff" strokeWidth={2.2} />
+          </Box>
+          <Box>
+            <Text
+              size="lg"
+              fw={800}
+              style={{
+                fontFamily: 'var(--font-heading)',
+                color: '#fff',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
+              }}
+            >
+              {song.title}
+            </Text>
+            <Text size="xs" style={{ color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
+              {song.artist}
+            </Text>
+          </Box>
+        </Group>
 
-            <Stack gap={0}>
-              <Text size="sm" c="dimmed" fw={700} tt="uppercase">Artist</Text>
-              <Text fw={600} lineClamp={1}>{song.artist || 'Unknown'}</Text>
-            </Stack>
-            <SimpleGrid cols={2} spacing="md">
-              <Stack gap={0}>
-                <Text size="sm" c="dimmed" fw={700} tt="uppercase">Category</Text>
-                <Text fw={600}>{CATEGORY_TRANSLATION[song.category] || song.category || 'Unknown'}</Text>
-              </Stack>
-              <Stack gap={0}>
-                <Text size="sm" c="dimmed" fw={700} tt="uppercase">Version</Text>
-                <Text fw={600} lineClamp={1}>{VERSION_MAPPING[song.version] || song.version || 'Unknown'}</Text>
-              </Stack>
-            </SimpleGrid>
-            <SimpleGrid cols={2} spacing="md">
-              <Stack gap={0}>
-                <Text size="sm" c="dimmed" fw={700} tt="uppercase">Type</Text>
-                <Text fw={600}>{song.cardType?.toUpperCase() || 'Standard'}</Text>
-              </Stack>
-              {song.bpm && (
-                <Stack gap={0}>
-                  <Text size="sm" c="dimmed" fw={700} tt="uppercase">BPM</Text>
-                  <Text fw={600}>{song.bpm}</Text>
-                </Stack>
-              )}
-            </SimpleGrid>
+        <UnstyledButton
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 20,
+            padding: '4px 12px',
+            borderRadius: 20,
+            background: 'rgba(255,255,255,0.2)',
+            color: '#fff',
+            fontSize: 12,
+            fontWeight: 700,
+            backdropFilter: 'blur(4px)',
+            transition: 'all 0.2s ease',
+            zIndex: 10,
+          }}
+          className="header-close-pill"
+        >
+          Close
+        </UnstyledButton>
+      </Box>
 
-            {(playCount !== undefined || difficulty) && (
-              <Stack gap={2} mt="md">
-                <Group gap={8} align="center">
-                  {playCount !== undefined && (
-                    <Group gap={4} align="baseline">
-                      <Text fw={900} size="xl" lh={1}>{playCount}</Text>
-                      <Text size="sm" fw={700} c="dimmed">plays</Text>
-                    </Group>
-                  )}
-                  {difficulty && (
-                    <Badge
-                      color={DIFFICULTY_COLORS[normalizedDifficulty] || 'gray'}
-                      variant="filled"
-                      size="lg"
-                    >
-                      {normalizedDifficulty}
-                    </Badge>
-                  )}
-                </Group>
-              </Stack>
-            )}
-
-            {effectiveBest50Score && (
-              <Stack gap="xs" mt="md">
-                <Box mt="xs">
-                  <Divider mb="md" label={<Text size="sm" c="dimmed" fw={700} tt="uppercase">Best 50 Details</Text>} labelPosition="center" />
-                  <SimpleGrid cols={3} spacing="sm">
-                    <div className="stat-item">
-                      <Text size="sm" c="dimmed" fw={700} tt="uppercase">Achievement</Text>
-                      <Text fw={750} size="lg">{parseFloat(effectiveBest50Score.achievement).toFixed(4)}%</Text>
-                    </div>
-                    <div className="stat-item">
-                      <Text size="sm" c="dimmed" fw={700} tt="uppercase">Rating</Text>
-                      <Text fw={750} size="lg">{effectiveBest50Score.rating}</Text>
-                    </div>
-                    <div className="stat-item">
-                      <Text size="sm" c="dimmed" fw={700} tt="uppercase">DX Score</Text>
-                      <Text fw={750} size="lg">{effectiveBest50Score.dxScore}</Text>
-                    </div>
-                  </SimpleGrid>
-                  <SimpleGrid cols={2} spacing="md" mt="sm">
-                    <div className="stat-item">
-                      <Text size="sm" c="dimmed" fw={700} tt="uppercase">DX Stars</Text>
-                      <Group gap={4}>
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <IconStarFilled key={i} size={16} style={{ color: i < (b50DxStar || 0) ? 'var(--mantine-color-yellow-6)' : 'var(--mantine-color-gray-3)' }} />
-                        ))}
-                      </Group>
-                    </div>
-                    <div className="stat-item">
-                      <Text size="sm" c="dimmed" fw={700} tt="uppercase">Last Played</Text>
-                      <Text fw={600}>{effectiveBest50Score.lastPlayed ?? effectiveBest50Score.last_played ?? 'N/A'}</Text>
-                    </div>
-                  </SimpleGrid>
+      {/* ── Scrollable Body ──────────────────────────────────────── */}
+      <Box style={{ flex: 1, overflowY: 'auto' }}>
+        <Stack gap="lg" p="lg">
+          {/* Top Info Section */}
+          <Group align="flex-start" gap="xl" wrap={{ base: 'wrap', sm: 'nowrap' }}>
+            <Box style={{ position: 'relative', flexShrink: 0 }}>
+              <Image
+                src={song.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
+                alt={song.title}
+                radius={16}
+                w={{ base: 140, sm: 200 }}
+                h={{ base: 140, sm: 200 }}
+                fallbackSrc="https://placehold.co/240x240?text=No+Image"
+                style={{ 
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                  border: '3px solid #fff'
+                }}
+              />
+              <Tooltip label="Click to copy title" withArrow position="top">
+                <Box
+                  onClick={handleTitleClick}
+                  style={{
+                    position: 'absolute',
+                    top: 10,
+                    right: 10,
+                    background: 'rgba(255,255,255,0.85)',
+                    borderRadius: '50%',
+                    padding: 6,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                  }}
+                >
+                  <IconCheck size={14} color="var(--theme-primary)" />
                 </Box>
-              </Stack>
-            )}
+              </Tooltip>
+            </Box>
 
-            {(comment || isOwnProfile) && (
-              <Stack gap={4} mt="md">
-                <Group justify="space-between" align="center">
-                  <Text size="sm" c="dimmed" fw={700} tt="uppercase">User Comment</Text>
-                  {isOwnProfile && !isEditing && (
-                    <ActionIcon variant="subtle" size="sm" onClick={() => setIsEditing(true)}>
-                      <IconEdit size={14} />
-                    </ActionIcon>
-                  )}
-                </Group>
-
-                {isEditing ? (
-                  <Stack gap="xs">
-                    <TextInput
-                      value={comment}
-                      onChange={(e) => setComment(e.currentTarget.value)}
-                      placeholder="Add a comment..."
-                      maxLength={100}
-                      autoFocus
-                    />
-                    <Group gap="xs" justify="flex-end">
-                      <ActionIcon variant="light" color="red" onClick={() => { setIsEditing(false); setComment(initialComment || ''); }}>
-                        <IconX size={14} />
-                      </ActionIcon>
-                      <ActionIcon variant="filled" color="green" onClick={handleSaveComment} loading={isSaving}>
-                        <IconCheck size={14} />
-                      </ActionIcon>
-                    </Group>
+            <Stack gap="md" style={{ flex: 1 }}>
+              <Box
+                p="md"
+                style={{
+                  borderRadius: 16,
+                  background: 'var(--theme-surface)',
+                  border: '1px solid var(--theme-border)',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.05)'
+                }}
+              >
+                <SimpleGrid cols={2} spacing="md">
+                  <Stack gap={2}>
+                    <Text size="xs" c="dimmed" fw={800} tt="uppercase" style={{ letterSpacing: '0.05em' }}>Category</Text>
+                    <Text fw={700} size="sm">{CATEGORY_TRANSLATION[song.category] || song.category || 'Unknown'}</Text>
                   </Stack>
-                ) : (
+                  <Stack gap={2}>
+                    <Text size="xs" c="dimmed" fw={800} tt="uppercase" style={{ letterSpacing: '0.05em' }}>Version</Text>
+                    <Text fw={700} size="sm" lineClamp={1}>{VERSION_MAPPING[song.version] || song.version || 'Unknown'}</Text>
+                  </Stack>
+                  <Stack gap={2}>
+                    <Text size="xs" c="dimmed" fw={800} tt="uppercase" style={{ letterSpacing: '0.05em' }}>Type</Text>
+                    <Text fw={700} size="sm">{song.cardType?.toUpperCase() || 'Standard'}</Text>
+                  </Stack>
+                  {song.bpm && (
+                    <Stack gap={2}>
+                      <Text size="xs" c="dimmed" fw={800} tt="uppercase" style={{ letterSpacing: '0.05em' }}>BPM</Text>
+                      <Text fw={700} size="sm">{song.bpm}</Text>
+                    </Stack>
+                  )}
+                </SimpleGrid>
+              </Box>
+
+              {(playCount !== undefined || difficulty) && (
+                <Box
+                  p="md"
+                  style={{
+                    borderRadius: 16,
+                    background: 'var(--theme-bg-soft)',
+                    border: '1px solid var(--theme-border)',
+                  }}
+                >
+                  <Group justify="space-between" align="center">
+                    <Group gap="xs">
+                      <Text size="xs" fw={800} c="dimmed" tt="uppercase">Performance</Text>
+                      <Badge 
+                        variant="filled" 
+                        radius="sm" 
+                        size="xs"
+                        color={DIFFICULTY_COLORS[normalizedDifficulty] || 'gray'}
+                      >
+                        {normalizedDifficulty}
+                      </Badge>
+                    </Group>
+                    <Group gap={4} align="baseline">
+                      <Text fw={900} size="xl" lh={1} c="var(--theme-primary)">{playCount || 0}</Text>
+                      <Text size="xs" fw={700} c="dimmed">plays</Text>
+                    </Group>
+                  </Group>
+                </Box>
+              )}
+            </Stack>
+          </Group>
+
+          {/* Best 50 Details Section */}
+          {effectiveBest50Score && (
+            <Box
+              p="md"
+              style={{
+                borderRadius: 20,
+                background: 'var(--theme-surface)',
+                border: '1px solid var(--theme-border)',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
+              }}
+            >
+              <Text fw={800} size="xs" tt="uppercase" style={{ letterSpacing: '0.05em' }} c="var(--theme-text-muted)" mb="md">
+                Best 50 Details
+              </Text>
+              
+              <SimpleGrid cols={{ base: 3, xs: 3 }} spacing="sm">
+                <Stack gap={2} align="center">
+                  <Text size="xs" c="dimmed" fw={800} tt="uppercase">Achievement</Text>
+                  <Text fw={800} size="lg" c="var(--theme-text)">{parseFloat(effectiveBest50Score.achievement).toFixed(4)}%</Text>
+                </Stack>
+                <Stack gap={2} align="center">
+                  <Text size="xs" c="dimmed" fw={800} tt="uppercase">Rating</Text>
+                  <Text fw={800} size="lg" c="var(--theme-text)">{effectiveBest50Score.rating}</Text>
+                </Stack>
+                <Stack gap={2} align="center">
+                  <Text size="xs" c="dimmed" fw={800} tt="uppercase">DX Score</Text>
+                  <Text fw={800} size="lg" c="var(--theme-text)">{effectiveBest50Score.dxScore}</Text>
+                </Stack>
+              </SimpleGrid>
+
+              <Group justify="space-between" mt="md" pt="sm" style={{ borderTop: '1px solid var(--theme-border)' }}>
+                <Box>
+                  <Text size="xs" c="dimmed" fw={800} tt="uppercase" mb={4}>DX Stars</Text>
+                  <Group gap={2}>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <IconStarFilled key={i} size={14} style={{ color: i < (b50DxStar || 0) ? '#fcc419' : 'var(--theme-border)' }} />
+                    ))}
+                  </Group>
+                </Box>
+                <Box style={{ textAlign: 'right' }}>
+                  <Text size="xs" c="dimmed" fw={800} tt="uppercase" mb={2}>Last Played</Text>
+                  <Text fw={700} size="sm">{effectiveBest50Score.lastPlayed ?? effectiveBest50Score.last_played ?? 'N/A'}</Text>
+                </Box>
+              </Group>
+            </Box>
+          )}
+
+          {/* User Comment Section */}
+          {(comment || isOwnProfile) && (
+            <Box
+              p="md"
+              style={{
+                borderRadius: 20,
+                background: 'var(--theme-surface)',
+                border: '1px solid var(--theme-border)',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
+              }}
+            >
+              <Group justify="space-between" align="center" mb="xs">
+                <Text fw={800} size="xs" tt="uppercase" style={{ letterSpacing: '0.05em' }} c="var(--theme-text-muted)">
+                   User Note
+                </Text>
+                {isOwnProfile && !isEditing && (
+                  <ActionIcon variant="light" size="sm" radius="md" onClick={() => setIsEditing(true)}>
+                    <IconEdit size={14} />
+                  </ActionIcon>
+                )}
+              </Group>
+
+              {isEditing ? (
+                <Stack gap="xs">
+                  <TextInput
+                    value={comment}
+                    onChange={(e) => setComment(e.currentTarget.value)}
+                    placeholder="Add a comment..."
+                    maxLength={100}
+                    autoFocus
+                    variant="filled"
+                    styles={{ input: { borderRadius: 12, fontWeight: 500 } }}
+                  />
+                  <Group gap="xs" justify="flex-end">
+                    <Button 
+                      size="xs" 
+                      variant="subtle" 
+                      color="gray" 
+                      radius="xl"
+                      onClick={() => { setIsEditing(false); setComment(initialComment || ''); }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      size="xs" 
+                      radius="xl" 
+                      leftSection={<IconCheck size={14} />}
+                      onClick={handleSaveComment} 
+                      loading={isSaving}
+                    >
+                      Save Note
+                    </Button>
+                  </Group>
+                </Stack>
+              ) : (
+                <Box p="sm" radius="md" bg="var(--theme-bg-soft)" style={{ border: '1px solid var(--theme-border)' }}>
                   <Text
                     size="sm"
+                    italic
+                    fw={500}
                     style={{
-                      fontFamily: 'var(--font-body)',
                       fontStyle: 'italic',
-                      lineHeight: 1.5,
-                      color: 'var(--theme-text-muted)',
+                      color: 'var(--theme-text)',
                       wordBreak: 'break-word'
                     }}
                   >
-                    {comment ? `"${comment}"` : <Text span c="dimmed" fs="italic">No comment added.</Text>}
+                    {comment ? `"${comment}"` : "No comment added."}
                   </Text>
-                )}
-              </Stack>
-            )}
+                </Box>
+              )}
+            </Box>
+          )}
+        </Stack>
+      </Box>
 
-            <Button
-              component={Link}
-              to={`/songs/${song.songId}`}
-              state={{ cardType: song.cardType }}
-              variant="light"
-              color="indigo"
-              fullWidth
-              mt="md"
-              leftSection={<IconMessageCircle size={18} />}
-            >
-              Discuss this Song
-            </Button>
-          </Stack>
+      {/* ── Footer ───────────────────────────────────────────────── */}
+      <Box 
+        p="lg" 
+        style={{ 
+          borderTop: '1px solid var(--theme-border)',
+          background: 'var(--theme-surface)',
+          flexShrink: 0
+        }}
+      >
+        <Group justify="flex-end">
+          <Button 
+            variant="default" 
+            onClick={onClose} 
+            radius="xl"
+            style={{ fontWeight: 600 }}
+          >
+            Close
+          </Button>
+          <Button
+            component={Link}
+            to={`/songs/${song.songId}`}
+            state={{ cardType: song.cardType }}
+            radius="xl"
+            leftSection={<IconMessageCircle size={18} />}
+            color="var(--theme-primary)"
+            style={{ 
+              fontWeight: 700,
+              paddingLeft: 24,
+              paddingRight: 24,
+              boxShadow: '0 4px 12px rgba(var(--theme-primary-rgb), 0.2)'
+            }}
+          >
+            Discuss Song
+          </Button>
         </Group>
-      </Stack >
-    </Modal >
+      </Box>
+    </Modal>
   );
 }
 
