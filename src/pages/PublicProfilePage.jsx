@@ -1,16 +1,16 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMediaQuery } from '@mantine/hooks';
 import {
   Container, Paper, Stack, Group, Title, Text, Avatar,
   Badge, SimpleGrid, Loader, Button, Alert,
-  Divider, ThemeIcon, Box, ActionIcon, Image, Tooltip
+  Divider, ThemeIcon, Box, ActionIcon, Image, Tooltip, Modal
 } from '@mantine/core';
 import {
   IconUser, IconTrophy, IconMapPin, IconAlertCircle,
   IconStar, IconLock, IconLogin,
   IconUpload, IconCamera, IconTrash,
-  IconShare, IconCode, IconBug, IconGitPullRequest, IconListDetails
+  IconShare, IconCode, IconBug, IconGitPullRequest, IconListDetails, IconCloudRain
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import MaimaiImportModal from '../components/profile/MaimaiImportModal';
@@ -29,9 +29,19 @@ import { ScoreCard } from '../components/maimai/ScoreCard';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { useMouseDragScroll } from '../hooks/useMouseDragScroll';
 import { DIFFICULTY_COLORS, BASE_JACKET_URL } from '../config/maimai-constants';
+import {
+  buildAprilFoolsBest50,
+  buildAprilFoolsMostPlayed,
+  canShowAprilFoolsToggle,
+  getAprilFoolsSong,
+  isAprilFoolsPreviewEnabled,
+  setAprilFoolsPreviewEnabled,
+} from '../utils/aprilFools';
 import Footer from '../components/layout/Footer';
+import './PublicProfilePage.css';
 
 const PublicProfilePage = () => {
+  const aprilFoolsAudioUrl = 'https://www.youtube.com/embed/onIvXsqFpH8?autoplay=1&loop=1&playlist=onIvXsqFpH8&controls=0&disablekb=1&playsinline=1&rel=0';
   const { slug } = useParams();
   const [profile, setProfile] = useState(null);
   const [branches, setBranches] = useState([]);
@@ -54,6 +64,10 @@ const PublicProfilePage = () => {
   const [selectedBest50Score, setSelectedBest50Score] = useState(null);
   const [introduction, setIntroduction] = useState(null);
   const [viewAsPublic, setViewAsPublic] = useState(false);
+  const [aprilFoolsEnabled, setAprilFoolsEnabled] = useState(() => isAprilFoolsPreviewEnabled());
+  const [rainBurstVisible, setRainBurstVisible] = useState(false);
+  const [avatarCurseVisible, setAvatarCurseVisible] = useState(false);
+  const [rainConfirmOpen, setRainConfirmOpen] = useState(false);
 
   const { requestFetch, songMapByTitle } = useSongDatabaseContext();
   const { scrollRef, isDragging } = useMouseDragScroll();
@@ -152,6 +166,19 @@ const PublicProfilePage = () => {
 
   const isRealOwner = profile?.id === user?.id;
   const isOwner = isRealOwner && !viewAsPublic;
+  const showAprilFoolsToggle = canShowAprilFoolsToggle();
+  const rainDropCount = isMobile ? 14 : 28;
+  const rainDrops = useMemo(
+    () => Array.from({ length: rainDropCount }, (_, index) => ({
+      id: index,
+      left: `${(index * (100 / rainDropCount)) + ((index % 3) * 1.7)}%`,
+      delay: `${(index % 7) * 0.17}s`,
+      duration: `${1 + ((index * 0.09) % 0.7)}s`,
+      height: `${36 + ((index * 9) % 42)}px`,
+      opacity: 0.38 + ((index % 5) * 0.08),
+    })),
+    [rainDropCount]
+  );
 
   useEffect(() => {
     if (!isRealOwner) return;
@@ -169,6 +196,91 @@ const PublicProfilePage = () => {
     nextParams.delete('settings');
     setSearchParams(nextParams, { replace: true });
   }, [searchParams, setSearchParams]);
+
+  const privacy = profile?.privacy_settings || {
+    show_dx_rating: true,
+    show_best_50: true,
+    show_best_50_details: true,
+    show_most_played: true,
+    show_most_played_details: true,
+    show_favorite_songs: true,
+    show_playlists: true,
+    show_main_branch: true,
+    show_preferred_branches: true,
+    show_introduction: true,
+    show_play_count: true,
+    show_maimai_name: true,
+    show_circle: true,
+    show_recent_plays: true,
+    show_posts: true
+  };
+
+  const getBranchName = (id, useAcronym = false) => {
+    if (!id) return null;
+    const branch = branches.find(b => String(b.id) === String(id));
+    if (!branch) return 'Unknown Branch';
+    if (useAcronym && branch.acronym) return branch.acronym;
+    return branch.short_name || branch.arcade_name;
+  };
+
+  const mainBranchName = profile?.main_branch ? getBranchName(profile.main_branch) : null;
+  const preferredBranchNames = profile?.preferred_branches?.map(id => getBranchName(id, true)) || [];
+  const displayedBest50 = (() => {
+    if (!aprilFoolsEnabled) return profile?.maimai_best_scores;
+
+    const aprilSong = getAprilFoolsSong(songMapByTitle);
+    if (!aprilSong) return profile?.maimai_best_scores;
+
+    return buildAprilFoolsBest50(aprilSong, profile?.maimai_best_scores);
+  })();
+  const displayedMostPlayed = (() => {
+    const sourceMostPlayed = displayedBest50?.most_played || profile?.maimai_best_scores?.most_played || [];
+    if (!aprilFoolsEnabled) return sourceMostPlayed;
+
+    const aprilSong = getAprilFoolsSong(songMapByTitle);
+    if (!aprilSong) return sourceMostPlayed;
+
+    return buildAprilFoolsMostPlayed(aprilSong, sourceMostPlayed);
+  })();
+  const aprilFoolsSong = aprilFoolsEnabled ? getAprilFoolsSong(songMapByTitle) : null;
+  const displayedProfilePhoto = aprilFoolsEnabled
+    ? (aprilFoolsSong?.imageUrl || profile?.display_photo_url || profile?.dx_display_photo_url)
+    : (profile?.display_photo_url || profile?.dx_display_photo_url);
+
+  const enableRainMode = useCallback(() => {
+    setAprilFoolsPreviewEnabled(true);
+    setAprilFoolsEnabled(true);
+    setRainBurstVisible(true);
+    setAvatarCurseVisible(true);
+    window.setTimeout(() => {
+      setRainBurstVisible(false);
+    }, 900);
+    window.setTimeout(() => {
+      setAvatarCurseVisible(false);
+    }, 850);
+  }, []);
+
+  const disableRainMode = useCallback(() => {
+    setAprilFoolsPreviewEnabled(false);
+    setAprilFoolsEnabled(false);
+    setRainBurstVisible(true);
+    setAvatarCurseVisible(true);
+    window.setTimeout(() => {
+      setRainBurstVisible(false);
+    }, 900);
+    window.setTimeout(() => {
+      setAvatarCurseVisible(false);
+    }, 850);
+  }, []);
+
+  const isMalformedBest50 = displayedBest50 && (
+    !displayedBest50.best_new ||
+    !displayedBest50.best_old ||
+    !Array.isArray(displayedBest50.best_new?.songs) ||
+    !Array.isArray(displayedBest50.best_old?.songs) ||
+    !displayedBest50.most_played ||
+    typeof displayedBest50.total_play_count === 'undefined'
+  );
 
   if (loading) {
     return (
@@ -237,46 +349,39 @@ const PublicProfilePage = () => {
     );
   }
 
-  const privacy = profile?.privacy_settings || {
-    show_dx_rating: true,
-    show_best_50: true,
-    show_best_50_details: true,
-    show_most_played: true,
-    show_most_played_details: true,
-    show_favorite_songs: true,
-    show_playlists: true,
-    show_main_branch: true,
-    show_preferred_branches: true,
-    show_introduction: true,
-    show_play_count: true,
-    show_maimai_name: true,
-    show_circle: true,
-    show_recent_plays: true,
-    show_posts: true
-  };
-
-  const getBranchName = (id, useAcronym = false) => {
-    if (!id) return null;
-    const branch = branches.find(b => String(b.id) === String(id));
-    if (!branch) return 'Unknown Branch';
-    if (useAcronym && branch.acronym) return branch.acronym;
-    return branch.short_name || branch.arcade_name;
-  };
-
-  const mainBranchName = profile.main_branch ? getBranchName(profile.main_branch) : null;
-  const preferredBranchNames = profile.preferred_branches?.map(id => getBranchName(id, true)) || [];
-
-  const isMalformedBest50 = profile?.maimai_best_scores && (
-    !profile.maimai_best_scores.best_new ||
-    !profile.maimai_best_scores.best_old ||
-    !Array.isArray(profile.maimai_best_scores.best_new?.songs) ||
-    !Array.isArray(profile.maimai_best_scores.best_old?.songs) ||
-    !profile.maimai_best_scores.most_played ||
-    typeof profile.maimai_best_scores.total_play_count === 'undefined'
-  );
-
   return (
-    <Container size="xl" py="xl">
+    <Container size="xl" py="xl" className="public-profile-shell">
+      {(aprilFoolsEnabled || rainBurstVisible) && (
+        <div
+          className={`profile-rain-overlay ${aprilFoolsEnabled ? 'active' : ''} ${rainBurstVisible ? 'burst' : ''}`}
+          aria-hidden="true"
+        >
+          {rainDrops.map((drop) => (
+            <span
+              key={drop.id}
+              className="rain-drop"
+              style={{
+                left: drop.left,
+                animationDelay: drop.delay,
+                animationDuration: drop.duration,
+                height: drop.height,
+                opacity: drop.opacity,
+                ['--rain-duration']: drop.duration,
+              }}
+            />
+          ))}
+        </div>
+      )}
+      {aprilFoolsEnabled && (
+        <iframe
+          key="april-fools-rain-audio"
+          className="profile-rain-audio-frame"
+          src={aprilFoolsAudioUrl}
+          title="April rain audio"
+          allow="autoplay; encrypted-media"
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
+      )}
       <Stack gap="lg">
         {/* View as Public Banner */}
         {viewAsPublic && isRealOwner && (
@@ -299,6 +404,27 @@ const PublicProfilePage = () => {
         )}
 
         <Group justify="flex-end">
+          {showAprilFoolsToggle && (
+            <Group gap="xs">
+              <Button
+                variant={aprilFoolsEnabled ? 'filled' : 'light'}
+                color={aprilFoolsEnabled ? 'cyan' : 'gray'}
+                leftSection={<IconCloudRain size={18} />}
+                onClick={() => {
+                  if (aprilFoolsEnabled) {
+                    disableRainMode();
+                    return;
+                  }
+
+                  setRainConfirmOpen(true);
+                }}
+                className="animate-fade-in"
+              >
+                {aprilFoolsEnabled ? 'Disable Rain' : 'Enable Rain'}
+              </Button>
+            </Group>
+          )}
+
           {/* Action Buttons only for owner */}
           {isRealOwner && !viewAsPublic && (
             <Group gap="xs">
@@ -425,14 +551,15 @@ const PublicProfilePage = () => {
                   cursor: isOwner ? 'pointer' : 'default',
                   transition: 'transform 0.1s ease'
                 }}
-                className={isOwner ? 'hover-scale' : ''}
+                className={`${isOwner ? 'hover-scale ' : ''}profile-avatar-shell${avatarCurseVisible ? ' cursed' : ''}`}
                 onClick={() => isOwner && setIsUploadModalOpen(true)}
               >
                 <Avatar
-                  src={profile.display_photo_url || profile.dx_display_photo_url}
+                  src={displayedProfilePhoto}
                   size={90}
                   radius={90}
                   color="primary"
+                  className={`profile-avatar-image${avatarCurseVisible ? ' cursed' : ''}`}
                 >
                   <IconUser size={45} />
                 </Avatar>
@@ -598,7 +725,7 @@ const PublicProfilePage = () => {
         {
           (privacy.show_favorite_songs || isOwner) && (
             <div className="animate-fade-in delay-300">
-              <FavoriteSongsSection userId={profile.id} isOwnProfile={isOwner} />
+              <FavoriteSongsSection userId={profile.id} isOwnProfile={isOwner} aprilFoolsEnabled={aprilFoolsEnabled} />
             </div>
           )
         }
@@ -607,18 +734,18 @@ const PublicProfilePage = () => {
         {
           (privacy.show_playlists || isOwner) && (
             <div className="animate-fade-in delay-350">
-              <PlaylistSection userId={profile.id} isOwnProfile={isOwner} />
+              <PlaylistSection userId={profile.id} isOwnProfile={isOwner} aprilFoolsEnabled={aprilFoolsEnabled} />
             </div>
           )
         }
 
         {/* Most Played Songs Section */}
         {
-          (privacy.show_most_played !== false || isOwner) && profile.maimai_best_scores?.most_played?.length > 0 && (
+          (privacy.show_most_played !== false || isOwner) && displayedMostPlayed?.length > 0 && (
             <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-400">
               <Group gap="xs" mb="md">
                 <IconStar size={24} style={{ color: 'var(--mantine-color-pink-5)' }} />
-                <Title order={2}>Most Played Songs</Title>
+                <Title order={2}>{aprilFoolsEnabled ? 'Rain Report' : 'Most Played Songs'}</Title>
               </Group>
               <div
                 className="hide-scrollbar"
@@ -632,7 +759,7 @@ const PublicProfilePage = () => {
                   cursor: 'grab'
                 }}
               >
-                {profile.maimai_best_scores.most_played.map((song, index) => {
+                {displayedMostPlayed.map((song, index) => {
                   const matchedSong = songMapByTitle?.get(song.title);
                   return (
                     <Paper
@@ -778,18 +905,18 @@ const PublicProfilePage = () => {
                 <Stack gap={0}>
                   <Group gap="xs">
                     <IconTrophy size={24} style={{ color: 'var(--mantine-color-yellow-6)' }} />
-                    <Title order={2}>Best 50</Title>
+                    <Title order={2}>{aprilFoolsEnabled ? 'Best 雨0' : 'Best 50'}</Title>
                     {isOwner && privacy.show_play_count === false && (
                       <Badge variant="subtle" color="gray" size="xs">Hidden to public</Badge>
                     )}
                   </Group>
-                  {profile.maimai_best_scores?.total_play_count && (privacy.show_play_count !== false || isOwner) && (
+                  {displayedBest50?.total_play_count && (privacy.show_play_count !== false || isOwner) && (
                     <Group gap="xs" mt={4}>
                       <Badge variant="subtle" color="pink" size="lg">
-                        Version: {profile.maimai_best_scores.current_version_play_count || 0} plays
+                        Version: {displayedBest50.current_version_play_count || 0} plays
                       </Badge>
                       <Badge variant="subtle" color="cyan" size="lg">
-                        Total: {profile.maimai_best_scores.total_play_count} plays
+                        Total: {displayedBest50.total_play_count} plays
                       </Badge>
                     </Group>
                   )}
@@ -802,9 +929,9 @@ const PublicProfilePage = () => {
                       size="sm"
                       onClick={() => setIsImportModalOpen(true)}
                     >
-                      {isMobile ? 'Import' : 'Import Scores'}
+                      {aprilFoolsEnabled ? (isMobile ? 'Seed' : 'Seed Clouds') : (isMobile ? 'Import' : 'Import Scores')}
                     </Button>
-                    {profile.maimai_best_scores && (
+                    {displayedBest50 && (
                       <>
                         <Button
                           leftSection={<IconCamera size={18} />}
@@ -813,7 +940,7 @@ const PublicProfilePage = () => {
                           size="sm"
                           onClick={() => window.open('/profile/export', '_blank')}
                         >
-                          {isMobile ? 'Export' : 'Export Image'}
+                          {aprilFoolsEnabled ? (isMobile ? 'Snap' : 'Capture Storm') : (isMobile ? 'Export' : 'Export Image')}
                         </Button>
                         <Button
                           leftSection={<IconTrash size={18} />}
@@ -822,7 +949,7 @@ const PublicProfilePage = () => {
                           size="sm"
                           onClick={handleClearData}
                         >
-                          {isMobile ? 'Clear' : 'Clear Data'}
+                          {aprilFoolsEnabled ? (isMobile ? 'Calm' : 'Dispel Rain') : (isMobile ? 'Clear' : 'Clear Data')}
                         </Button>
                       </>
                     )}
@@ -830,13 +957,13 @@ const PublicProfilePage = () => {
                 )}
               </Group>
 
-              {profile.maimai_best_scores ? (
+              {displayedBest50 ? (
                 <Stack gap="md">
                   <div>
                     <Title order={3} mb="md">Best 15 (New)</Title>
-                    {profile.maimai_best_scores.best_new?.songs?.length > 0 ? (
+                    {displayedBest50.best_new?.songs?.length > 0 ? (
                       <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                        {profile.maimai_best_scores.best_new.songs.map((score, index) => (
+                        {displayedBest50.best_new.songs.map((score, index) => (
                           <ScoreCard
                             key={`new-${index}`}
                             score={score}
@@ -866,9 +993,9 @@ const PublicProfilePage = () => {
                   <div>
                     <Divider my="md" />
                     <Title order={3} mb="md">Best 35 (Old)</Title>
-                    {profile.maimai_best_scores.best_old?.songs?.length > 0 ? (
+                    {displayedBest50.best_old?.songs?.length > 0 ? (
                       <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                        {profile.maimai_best_scores.best_old.songs.map((score, index) => (
+                        {displayedBest50.best_old.songs.map((score, index) => (
                           <ScoreCard
                             key={`old-${index}`}
                             score={score}
@@ -910,13 +1037,45 @@ const PublicProfilePage = () => {
         {
           (privacy.show_recent_plays !== false || isOwner) && (
             <div className="animate-fade-in delay-450">
-              <RecentPlaysSection userId={profile.id} initialData={profile.recent_plays} />
+              <RecentPlaysSection userId={profile.id} initialData={profile.recent_plays} aprilFoolsEnabled={aprilFoolsEnabled} />
             </div>
           )
         }
 
         <Footer />
       </Stack >
+
+      <Modal
+        opened={rainConfirmOpen}
+        onClose={() => setRainConfirmOpen(false)}
+        title={<Text fw={700}>Enable Rain?</Text>}
+        centered
+        size="sm"
+      >
+        <Stack gap="md">
+          <Text size="sm">
+            Are you sure you want to enable rain?
+          </Text>
+          <Text size="sm" c="dimmed">
+            Audio will play, so lower your volume first.
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setRainConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              color="cyan"
+              leftSection={<IconCloudRain size={16} />}
+              onClick={() => {
+                setRainConfirmOpen(false);
+                enableRainMode();
+              }}
+            >
+              Enable Rain
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
 
       {/* Modals for Owner */}
       {

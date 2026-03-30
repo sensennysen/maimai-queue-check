@@ -9,10 +9,16 @@ import { PlaylistDetailModal } from './PlaylistDetailModal';
 import { PlaylistManageModal } from './PlaylistManageModal';
 import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
 import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
+import {
+  buildAprilFoolsPlaylists,
+  buildAprilFoolsPlaylistSongs,
+  getAprilFoolsSong,
+  isAprilFoolsActive,
+} from '../../utils/aprilFools';
 import './PlaylistStack.css';
 
-export function PlaylistSection({ userId, isOwnProfile }) {
-  const { loading: songsLoading, songMapById } = useSongDatabaseContext();
+export function PlaylistSection({ userId, isOwnProfile, aprilFoolsEnabled = isAprilFoolsActive() }) {
+  const { loading: songsLoading, songMapById, songMapByTitle } = useSongDatabaseContext();
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -89,6 +95,14 @@ export function PlaylistSection({ userId, isOwnProfile }) {
 
   const getPlaylistSongs = useCallback((playlist) => {
     if (!playlist || !playlist.songs) return [];
+
+    if (aprilFoolsEnabled) {
+      const aprilSong = getAprilFoolsSong(songMapByTitle);
+      if (aprilSong) {
+        return buildAprilFoolsPlaylistSongs(aprilSong, playlist.songs.length || 1);
+      }
+    }
+
     return playlist.songs
       .map(entry => {
         const fullSong = songMapById?.get(entry.song_id);
@@ -96,7 +110,16 @@ export function PlaylistSection({ userId, isOwnProfile }) {
         return { ...fullSong, level: entry.level }; // Inject level from DB
       })
       .filter(Boolean);
-  }, [songMapById]);
+  }, [aprilFoolsEnabled, songMapById, songMapByTitle]);
+
+  const displayedPlaylists = useCallback(() => {
+    if (!aprilFoolsEnabled) return playlists;
+
+    const aprilSong = getAprilFoolsSong(songMapByTitle);
+    if (!aprilSong) return playlists;
+
+    return buildAprilFoolsPlaylists(aprilSong, playlists);
+  }, [aprilFoolsEnabled, playlists, songMapByTitle]);
 
   const handleCreateNew = () => {
     setSelectedPlaylist(null);
@@ -120,7 +143,9 @@ export function PlaylistSection({ userId, isOwnProfile }) {
 
   const isEverythingLoading = loading || songsLoading;
 
-  if (isEverythingLoading && playlists.length === 0) {
+  const visiblePlaylists = displayedPlaylists();
+
+  if (isEverythingLoading && visiblePlaylists.length === 0) {
     return (
       <Paper shadow="sm" p="lg" radius="md" withBorder style={{ minHeight: 150 }}>
         <LoadingOverlay visible={true} />
@@ -133,7 +158,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
       <Group justify="space-between" mb="lg">
         <Group gap="xs">
           <IconPlaylist size={24} style={{ color: 'var(--theme-primary)' }} />
-          <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>My Playlists</Title>
+          <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>{aprilFoolsEnabled ? 'April Showers' : 'My Playlists'}</Title>
         </Group>
 
         {isOwnProfile && (
@@ -146,7 +171,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
                 onClick={() => setIsManageModalOpen(true)}
                 leftSection={<IconPlaylist size={18} />}
               >
-                Manage Order
+                {aprilFoolsEnabled ? 'Reorder Rain' : 'Manage Order'}
               </Button>
             )}
             <Indicator color="orange" size={10} processing disabled={!hasDraft}>
@@ -155,14 +180,14 @@ export function PlaylistSection({ userId, isOwnProfile }) {
                 variant="light"
                 onClick={handleCreateNew}
               >
-                New Playlist
+                {aprilFoolsEnabled ? 'Cloud Seed' : 'New Playlist'}
               </Button>
             </Indicator>
           </Group>
         )}
       </Group>
 
-      {playlists.length === 0 ? (
+      {visiblePlaylists.length === 0 ? (
         <Alert icon={<IconAlertCircle size={16} />} title="No Playlists" color="gray" variant="light">
           {isOwnProfile
             ? "Showcase your recent grind set here!"
@@ -183,7 +208,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
           }}
         >
           <Group wrap="nowrap" gap="xs" style={{ overflow: 'visible' }}>
-            {playlists.map((pl) => (
+            {visiblePlaylists.map((pl) => (
               <Box key={pl.id} style={{ minWidth: '200px', width: '220px', overflow: 'visible' }}>
                 <PlaylistStack
                   playlist={pl}
@@ -226,7 +251,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
         opened={isManageModalOpen}
         onClose={() => setIsManageModalOpen(false)}
         userId={userId}
-        playlists={playlists}
+        playlists={visiblePlaylists}
         onSave={(updatedList) => setPlaylists(updatedList)}
       />
     </Paper >

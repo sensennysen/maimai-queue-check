@@ -12,6 +12,11 @@ import { songsService } from '../../services/songs';
 import { DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
 import { getRelativeTime } from '../../utils/formatters';
 import { getGrade } from '../../utils/maimai-calc';
+import {
+  buildAprilFoolsRecentPlays,
+  getAprilFoolsSong,
+  isAprilFoolsActive,
+} from '../../utils/aprilFools';
 
 // Memoized individual play item component to prevent unnecessary re-renders
 const RecentPlayItem = memo(({ play, isOpened, onToggle, index, isMobile, isTablet, songMap }) => {
@@ -185,7 +190,7 @@ const RecentPlayItem = memo(({ play, isOpened, onToggle, index, isMobile, isTabl
 
 RecentPlayItem.displayName = 'RecentPlayItem';
 
-export const RecentPlaysSection = memo(({ userId, initialData }) => {
+export const RecentPlaysSection = memo(({ userId, initialData, aprilFoolsEnabled = isAprilFoolsActive() }) => {
   const [plays, setPlays] = useState(initialData || []);
   const [loading, setLoading] = useState(!initialData);
   const [songMap, setSongMap] = useState(new Map());
@@ -219,7 +224,13 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
         ]);
 
         if (isMounted.current) {
-          if (playsData) setPlays(playsData);
+          const aprilSong = getAprilFoolsSong(new Map(songs.map((song) => [song.title, song])));
+          const displayedPlays =
+            aprilFoolsEnabled && aprilSong
+              ? buildAprilFoolsRecentPlays(aprilSong, playsData || [])
+              : (playsData || []);
+
+          setPlays(displayedPlays);
 
           // Build map for image lookup
           const map = new Map();
@@ -233,7 +244,7 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
       }
     }
     if (userId) init();
-  }, [userId, initialData]);
+  }, [aprilFoolsEnabled, userId, initialData]);
 
   if (loading) return null;
   if (plays.length === 0) return null;
@@ -244,7 +255,7 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
     <Paper shadow="sm" p="lg" radius="md" withBorder>
       <Group gap="xs" mb="lg">
         <IconHistory size={24} style={{ color: 'var(--mantine-color-blue-5)' }} />
-        <Title order={2}>Recent Plays</Title>
+        <Title order={2}>{aprilFoolsEnabled ? 'Recent Downpours' : 'Recent Plays'}</Title>
         <Badge variant="light" size="lg">{plays.length} entries</Badge>
       </Group>
 

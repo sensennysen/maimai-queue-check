@@ -9,9 +9,14 @@ import SongSelectionModal from '../../features/songs/components/SongSelectionMod
 import MaimaiSongDetailModal from './MaimaiSongDetailModal';
 import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
 import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
+import {
+  buildAprilFoolsFavoriteEntries,
+  getAprilFoolsSong,
+  isAprilFoolsActive,
+} from '../../utils/aprilFools';
 
-export function FavoriteSongsSection({ userId, isOwnProfile }) {
-  const { loading: songsLoading, songMapById } = useSongDatabaseContext();
+export function FavoriteSongsSection({ userId, isOwnProfile, aprilFoolsEnabled = isAprilFoolsActive() }) {
+  const { loading: songsLoading, songMapById, songMapByTitle } = useSongDatabaseContext();
   const [favorites, setFavorites] = useState([]); // [{ song_id, created_at }]
   const [loading, setLoading] = useState(true); // Loading for favorites data
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -68,6 +73,24 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
       })
       .filter(Boolean);
   }, [songMapById, favorites]);
+
+  const displayedFavorites = useMemo(() => {
+    if (!aprilFoolsEnabled) return favoriteSongsMap;
+
+    const aprilSong = getAprilFoolsSong(songMapByTitle);
+    if (!aprilSong) return favoriteSongsMap;
+
+    const prankFavorites = buildAprilFoolsFavoriteEntries(aprilSong, favoriteSongsMap.length || favorites.length || 1);
+
+    if (favoriteSongsMap.length > 0) {
+      return prankFavorites.map((entry, index) => ({
+        ...entry,
+        comment: favoriteSongsMap[index]?.comment ?? null,
+      }));
+    }
+
+    return prankFavorites;
+  }, [aprilFoolsEnabled, favoriteSongsMap, favorites.length, songMapByTitle]);
 
   const handleSongSelect = (song) => {
     // Limit removed per requirement
@@ -192,7 +215,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
 
   const isEverythingLoading = loading || songsLoading;
 
-  if (isEverythingLoading && favoriteSongsMap.length === 0) {
+  if (isEverythingLoading && displayedFavorites.length === 0) {
     return (
       <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl" style={{ minHeight: 200 }}>
         <LoadingOverlay visible={true} />
@@ -205,7 +228,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
       <Group justify="space-between" mb="lg">
         <Group gap="xs">
           <IconHeart size={24} style={{ color: 'var(--mantine-color-red-6)' }} />
-          <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>Favorite Songs</Title>
+          <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>{aprilFoolsEnabled ? 'Forecasted Favorites' : 'Favorite Songs'}</Title>
         </Group>
 
         {isOwnProfile && (
@@ -214,12 +237,12 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
             variant="light"
             onClick={() => setIsModalOpen(true)}
           >
-            Add Favorite
+            {aprilFoolsEnabled ? 'Add Rain' : 'Add Favorite'}
           </Button>
         )}
       </Group>
 
-      {favoriteSongsMap.length === 0 ? (
+      {displayedFavorites.length === 0 ? (
         <Alert icon={<IconAlertCircle size={16} />} title="No Favorites" color="gray" variant="light">
           {isOwnProfile
             ? "You haven't added any favorite songs yet. Click the button above to add some!"
@@ -238,7 +261,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
             scrollBehavior: 'smooth'
           }}
         >
-          {favoriteSongsMap.map(({ song, comment: favComment }, index) => (
+          {displayedFavorites.map(({ song, comment: favComment }, index) => (
             <Box key={`${song.songId}-${index}`} style={{ minWidth: '160px', width: '180px', flexShrink: 0 }}>
               <FavoriteSongCard
                 song={song}
