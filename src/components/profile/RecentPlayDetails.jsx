@@ -16,7 +16,7 @@ export const RecentPlayDetails = memo(({ play, isMobile, songMap }) => {
 
   return (
     <Stack gap="md">
-      <Group align="flex-start" wrap="nowrap" style={{ marginTop: '1rem' }}>
+      <Group align="flex-start" wrap="nowrap">
         <Box
           style={{
             width: 80,
