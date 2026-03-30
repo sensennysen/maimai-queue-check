@@ -13,7 +13,7 @@ import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 import { userService } from '../../services/supabase';
 import NotificationCenter from './NotificationCenter';
 import ThemeToggle from './ThemeToggle';
-import LoginForm from '../LoginForm';
+import UserAccountMenu from '../UserAccountMenu';
 import PreferencesModal from '../modals/PreferencesModal';
 import './GlobalNavbar.css';
 
@@ -319,7 +319,7 @@ export default function GlobalNavbar() {
               {/* Mobile menu removed in favor of floating bottom dock */}
               {user && <NotificationCenter />}
               {!isCompact && <ThemeToggle />}
-              <LoginForm
+              <UserAccountMenu
                 onOpenPreferences={() => setShowPreferencesModal(true)}
                 showThemeToggleInMenu={isCompact}
               />

@@ -11,6 +11,8 @@ import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
 import IconMail from '@tabler/icons-react/dist/esm/icons/IconMail.mjs';
 import IconShieldLock from '@tabler/icons-react/dist/esm/icons/IconShieldLock.mjs';
 import IconFileText from '@tabler/icons-react/dist/esm/icons/IconFileText.mjs';
+import IconLayoutDashboard from '@tabler/icons-react/dist/esm/icons/IconLayoutDashboard.mjs';
+import IconPalette from '@tabler/icons-react/dist/esm/icons/IconPalette.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';
@@ -20,17 +22,19 @@ import { userService } from '../services/supabase';
 import ProfileSettingsModal from './profile/ProfileSettingsModal';
 import PrivacySettingsModal from './profile/PrivacySettingsModal';
 import ChangelogModal from './modals/ChangelogModal';
-import './LoginForm.css';
+import './UserAccountMenu.css';
 
 /**
- * Component for user authentication and profile management.
- * Provides social login buttons, a user menu with profile settings, and theme toggling.
- * @param {Object} props - Component props.
- * @param {Function} props.onOpenPreferences - Callback to open the app preferences modal.
- * @param {boolean} [props.showThemeToggleInMenu=false] - Whether to show the theme toggle within the user menu.
- * @returns {JSX.Element} The rendered login form or user menu.
+ * User account menu displayed in the navbar.
+ * Shows a Google login button when unauthenticated, or an avatar-triggered
+ * dropdown menu when authenticated. Menu is organised into logical groups:
+ * identity → primary navigation → settings → admin → support/info → legal → destructive.
+ *
+ * @param {Object}   props
+ * @param {Function} props.onOpenPreferences        - Opens the app preferences modal.
+ * @param {boolean}  [props.showThemeToggleInMenu]  - Renders the light/dark toggle inside the menu.
  */
-const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
+const UserAccountMenu = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
   const { user, loading, signInWithProvider, signOut, userRoles, refreshUserRoles } = useAuth();
   const { branches, allEnabledBranches } = useBranch();
   const { isDark, toggleTheme } = useTheme();
@@ -102,6 +106,7 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
     await loadProfileData();
   }, [loadProfileData, refreshUserRoles]);
 
+  // ── Loading skeleton ────────────────────────────────────────────────────────
   if (loading) {
     return (
       <ActionIcon variant="subtle" size="xl" className="login-icon">
@@ -110,6 +115,7 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
     );
   }
 
+  // ── Authenticated: avatar + dropdown ────────────────────────────────────────
   if (user) {
     return (
       <>
@@ -128,6 +134,7 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
           </Menu.Target>
 
           <Menu.Dropdown>
+            {/* ── Identity ── */}
             <Menu.Label>
               <Stack gap={2}>
                 <Text size="sm" fw={500}>
@@ -138,7 +145,10 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
                 </Text>
               </Stack>
             </Menu.Label>
+
             <Divider />
+
+            {/* ── Primary Navigation ── */}
             <Menu.Item
               leftSection={<IconUser size={16} />}
               onClick={() => {
@@ -151,6 +161,11 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
             >
               Profile
             </Menu.Item>
+
+            <Divider />
+
+            {/* ── Settings ── */}
+            <Menu.Label>Settings</Menu.Label>
             <Menu.Item
               leftSection={<IconSettings size={16} />}
               onClick={handleOpenProfileSettings}
@@ -166,7 +181,7 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
               Privacy Settings
             </Menu.Item>
             <Menu.Item
-              leftSection={<IconSettings size={16} />}
+              leftSection={<IconPalette size={16} />}
               onClick={onOpenPreferences}
             >
               Select Theme
@@ -179,25 +194,25 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
                 {isDark ? 'Light Mode' : 'Dark Mode'}
               </Menu.Item>
             )}
+
+            {/* ── Admin (conditional) ── */}
             {(userRoles?.is_admin || userRoles?.is_super_admin) && (
               <>
+                <Divider />
+                <Menu.Label>Administration</Menu.Label>
                 <Menu.Item
-                  leftSection={<IconSettings size={16} />}
+                  leftSection={<IconLayoutDashboard size={16} />}
                   onClick={() => navigate('/admin')}
                 >
                   Admin Panel
                 </Menu.Item>
               </>
             )}
+
             <Divider />
-            <Menu.Item
-              leftSection={<IconLogout size={16} />}
-              onClick={handleLogout}
-              color="red"
-            >
-              Sign Out
-            </Menu.Item>
-            <Divider />
+
+            {/* ── Support / Info ── */}
+            <Menu.Label>Info</Menu.Label>
             <Menu.Item
               leftSection={<IconHistory size={16} />}
               onClick={() => setChangelogOpened(true)}
@@ -210,7 +225,10 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
             >
               Contact
             </Menu.Item>
+
             <Divider />
+
+            {/* ── Legal ── */}
             <Menu.Item
               leftSection={<IconShieldLock size={16} />}
               onClick={() => navigate('/privacy')}
@@ -222,6 +240,17 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
               onClick={() => navigate('/terms')}
             >
               Terms of Service
+            </Menu.Item>
+
+            <Divider />
+
+            {/* ── Destructive ── */}
+            <Menu.Item
+              leftSection={<IconLogout size={16} />}
+              onClick={handleLogout}
+              color="red"
+            >
+              Sign Out
             </Menu.Item>
           </Menu.Dropdown>
         </Menu>
@@ -250,7 +279,7 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
     );
   }
 
-  // When not authenticated, show a prominent login button with a legal tooltip.
+  // ── Unauthenticated: Google login button ────────────────────────────────────
   return (
     <div className="login-button-container">
       <Tooltip
@@ -296,4 +325,4 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
   );
 };
 
-export default LoginForm;
+export default UserAccountMenu;
