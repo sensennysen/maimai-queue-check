@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button, Box, Group, Text, Paper, Title, Indicator, Alert, ActionIcon } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconPlaylist, IconPlaylistAdd, IconMusicOff, IconSortAscending } from '@tabler/icons-react';
+import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
+import IconPlaylistAdd from '@tabler/icons-react/dist/esm/icons/IconPlaylistAdd.mjs';
+import IconMusicOff from '@tabler/icons-react/dist/esm/icons/IconMusicOff.mjs';
+import IconSortAscending from '@tabler/icons-react/dist/esm/icons/IconSortAscending.mjs';
 import { notifications } from '@mantine/notifications';
 import { playlistService } from '../../services/supabase';
 import { PlaylistEditModal } from './PlaylistEditModal';

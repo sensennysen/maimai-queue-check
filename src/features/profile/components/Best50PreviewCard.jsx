@@ -1,5 +1,9 @@
 import { Paper, Stack, Group, Title, Text, Badge, Button, SimpleGrid, Alert, Box } from '@mantine/core';
-import { IconTrophy, IconChevronRight, IconAlertCircle, IconUpload, IconCamera } from '@tabler/icons-react';
+import IconTrophy from '@tabler/icons-react/dist/esm/icons/IconTrophy.mjs';
+import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconUpload from '@tabler/icons-react/dist/esm/icons/IconUpload.mjs';
+import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
 import { Link } from 'react-router-dom';
 import { CompactScoreCard } from './CompactScoreCard';
 

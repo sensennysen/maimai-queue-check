@@ -4,7 +4,9 @@ import {
   Container, Stack, Group, Button, Title, Loader,
   Alert, Paper, ThemeIcon, Text, Badge
 } from '@mantine/core';
-import { IconArrowLeft, IconTrophy, IconAlertCircle } from '@tabler/icons-react';
+import IconArrowLeft from '@tabler/icons-react/dist/esm/icons/IconArrowLeft.mjs';
+import IconTrophy from '@tabler/icons-react/dist/esm/icons/IconTrophy.mjs';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
 import { usePublicProfile } from '../features/profile/hooks/usePublicProfile';

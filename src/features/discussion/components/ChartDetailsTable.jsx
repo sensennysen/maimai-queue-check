@@ -1,5 +1,5 @@
 import { Paper, Stack, Group, Title, Text, Badge, ScrollArea, Table } from '@mantine/core';
-import { IconWorld } from '@tabler/icons-react';
+import IconWorld from '@tabler/icons-react/dist/esm/icons/IconWorld.mjs';
 import { DIFFICULTY_COLORS, normalizeDifficulty } from '../../../config/maimai-constants';
 
 /**

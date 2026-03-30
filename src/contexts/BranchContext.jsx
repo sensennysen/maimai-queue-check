@@ -266,7 +266,8 @@ export const BranchProvider = ({ children }) => {
       const location = await requestUserLocation();
       setUserLocation(location);
       return location;
-    } catch {
+    } catch (err) {
+      console.warn('Failed to get user location:', err);
       return null;
     }
   };

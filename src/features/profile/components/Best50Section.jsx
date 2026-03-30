@@ -1,5 +1,8 @@
 import { Paper, Alert, Group, Stack, Title, Badge, Button, SimpleGrid } from '@mantine/core';
-import { IconAlertCircle, IconTrophy, IconUpload, IconCamera } from '@tabler/icons-react';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconTrophy from '@tabler/icons-react/dist/esm/icons/IconTrophy.mjs';
+import IconUpload from '@tabler/icons-react/dist/esm/icons/IconUpload.mjs';
+import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
 import { ScoreCard } from '../../../components/maimai/ScoreCard';
 
 /**

@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Button, Text, Box, Paper, Title, TextInput, Modal as MantineModal, Stack, Group, Alert, ActionIcon } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconPlus, IconHeart, IconMusicOff } from '@tabler/icons-react';
+import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
+import IconHeart from '@tabler/icons-react/dist/esm/icons/IconHeart.mjs';
+import IconMusicOff from '@tabler/icons-react/dist/esm/icons/IconMusicOff.mjs';
 import { notifications } from '@mantine/notifications';
 import { useFavorites } from '../../features/profile/hooks/useFavorites';
 import FavoriteSongCard from './FavoriteSongCard';

@@ -1,5 +1,7 @@
 import { Paper, Group, Title, Tooltip, ActionIcon, Stack, Loader, Badge, HoverCard, Text, Center, Autocomplete, Avatar, Box } from '@mantine/core';
-import { IconBook, IconX, IconPlus } from '@tabler/icons-react';
+import IconBook from '@tabler/icons-react/dist/esm/icons/IconBook.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
+import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
 import { getProfileImageUrl } from '../../../utils/formatters';
 
 /**

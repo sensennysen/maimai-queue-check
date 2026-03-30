@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Modal, Stack, Group, SimpleGrid, Switch, Paper, Box, Text, Button } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconLock, IconCheck } from '@tabler/icons-react';
+import IconLock from '@tabler/icons-react/dist/esm/icons/IconLock.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import { userService } from '../../services/supabase';
 
 const PrivacySettingsModal = ({ opened, onClose, userId, initialData, onSuccess }) => {

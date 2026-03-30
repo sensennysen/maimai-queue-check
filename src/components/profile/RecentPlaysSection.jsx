@@ -4,10 +4,10 @@ import {
   Modal
 } from '@mantine/core';
 import { useMediaQuery, useDisclosure } from '@mantine/hooks';
-import {
-  IconHistory, IconChevronLeft, IconChevronRight,
-  IconInfoCircle
-} from '@tabler/icons-react';
+import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
+import IconChevronLeft from '@tabler/icons-react/dist/esm/icons/IconChevronLeft.mjs';
+import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
+import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
 import { useRecentPlays } from '../../features/profile/hooks/useRecentPlays';
 import { DIFFICULTY_COLORS, normalizeDifficulty, BASE_JACKET_URL } from '../../config/maimai-constants';
 import { getRelativeTime } from '../../utils/formatters';

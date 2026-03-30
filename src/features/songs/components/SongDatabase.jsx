@@ -1,5 +1,6 @@
 import { Container, Group, Stack, Text } from '@mantine/core';
-import { IconBrandGithub, IconBrandTwitter } from '@tabler/icons-react';
+import IconBrandGithub from '@tabler/icons-react/dist/esm/icons/IconBrandGithub.mjs';
+import IconBrandTwitter from '@tabler/icons-react/dist/esm/icons/IconBrandTwitter.mjs';
 import { useSongDatabase } from '../../../hooks/useSongDatabase';
 import SongFilters from './SongFilters';
 import SongList from './SongList';

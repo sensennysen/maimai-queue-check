@@ -46,17 +46,17 @@ const LoginForm = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
     try {
       setIsLoading(true);
       await signInWithProvider(provider);
-    } catch {
+    } catch (err) {
       setIsLoading(false);
-      // Error handled silently
+      console.error(`Failed to sign in with ${provider}:`, err);
     }
   };
 
   const handleLogout = async () => {
     try {
       await signOut();
-    } catch {
-      // Error handled silently
+    } catch (err) {
+      console.error('Failed to sign out:', err);
     }
   };
 

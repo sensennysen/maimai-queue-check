@@ -1,6 +1,10 @@
 import { Paper, Group, Avatar, Stack, Text, ActionIcon } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import { IconTrash, IconThumbUpFilled, IconThumbUp, IconThumbDownFilled, IconThumbDown } from '@tabler/icons-react';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
+import IconThumbUpFilled from '@tabler/icons-react/dist/esm/icons/IconThumbUpFilled.mjs';
+import IconThumbUp from '@tabler/icons-react/dist/esm/icons/IconThumbUp.mjs';
+import IconThumbDownFilled from '@tabler/icons-react/dist/esm/icons/IconThumbDownFilled.mjs';
+import IconThumbDown from '@tabler/icons-react/dist/esm/icons/IconThumbDown.mjs';
 import { getProfileImageUrl } from '../../../utils/formatters';
 
 /**

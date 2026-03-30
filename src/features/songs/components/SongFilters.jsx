@@ -1,5 +1,7 @@
 import { TextInput, MultiSelect, Select, Text, Stack, Paper, Collapse, Button, Group, Box, Switch } from '@mantine/core';
-import { IconSearch, IconFilter, IconX } from '@tabler/icons-react';
+import IconSearch from '@tabler/icons-react/dist/esm/icons/IconSearch.mjs';
+import IconFilter from '@tabler/icons-react/dist/esm/icons/IconFilter.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 import { useState, useMemo } from 'react';
 
 // Helper for level conversion

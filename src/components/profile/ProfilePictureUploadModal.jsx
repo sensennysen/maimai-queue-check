@@ -1,6 +1,11 @@
 import { useState, useRef, useCallback } from 'react';
 import { Modal, Stack, Group, Button, Text, Image, FileButton, Alert, Loader, Box, Slider } from '@mantine/core';
-import { IconUpload, IconTrash, IconAlertCircle, IconCheck, IconCamera, IconRotate } from '@tabler/icons-react';
+import IconUpload from '@tabler/icons-react/dist/esm/icons/IconUpload.mjs';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
+import IconRotate from '@tabler/icons-react/dist/esm/icons/IconRotate.mjs';
 import Cropper from 'react-easy-crop';
 import { userService } from '../../services/supabase';
 

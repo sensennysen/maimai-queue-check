@@ -242,7 +242,7 @@ export const postsService = {
           if (post && post.user_id !== userId) {
             await activityNotificationService.createActivityNotification({ recipientId: post.user_id, actorId: userId, type: 'post_like', entityId: postId, entityType: 'feed_post', postId: postId });
           }
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error('Failed to send post like notification:', e); }
       }
       return data;
     }
@@ -269,7 +269,7 @@ export const postsService = {
           if (comment && comment.user_id !== userId) {
             await activityNotificationService.createActivityNotification({ recipientId: comment.user_id, actorId: userId, type: 'comment_like', entityId: commentId, entityType: 'feed_post_comment', postId: comment.post_id });
           }
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error('Failed to send comment like notification:', e); }
       }
       return data;
     }

@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { Modal, Stack, Text, Textarea, Button, Group, Box, Divider, Loader, TextInput, Switch, Alert } from '@mantine/core';
-import { IconPlus, IconTrash, IconPlaylistAdd, IconDeviceFloppy, IconFileAlert } from '@tabler/icons-react';
+import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
+import IconPlaylistAdd from '@tabler/icons-react/dist/esm/icons/IconPlaylistAdd.mjs';
+import IconDeviceFloppy from '@tabler/icons-react/dist/esm/icons/IconDeviceFloppy.mjs';
+import IconFileAlert from '@tabler/icons-react/dist/esm/icons/IconFileAlert.mjs';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
 import { PlaylistProtectionModal } from '../modals/PlaylistProtectionModal';
 import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';

@@ -3,10 +3,11 @@ import {
   Modal, TextInput, Stack, Text, Group, UnstyledButton, 
   Avatar, ScrollArea, Loader, ActionIcon, Paper
 } from '@mantine/core';
-import { 
-  IconSearch, IconMusic, IconPlaylist, IconX,
-  IconChevronRight 
-} from '@tabler/icons-react';
+import IconSearch from '@tabler/icons-react/dist/esm/icons/IconSearch.mjs';
+import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
+import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
+import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
 import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 import { playlistService } from '../../services/supabase';
 import { useAuth } from '../../hooks/useAuth';

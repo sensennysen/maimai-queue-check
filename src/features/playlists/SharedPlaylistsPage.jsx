@@ -1,5 +1,6 @@
 import { Container, Stack, Text, Loader, Alert, Button, Paper, Box } from '@mantine/core';
-import { IconAlertCircle, IconRefresh } from '@tabler/icons-react';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
 import { useSharedPlaylists } from './hooks/useSharedPlaylists';
 import { PlaylistPostCard } from './components/PlaylistPostCard';
 import { useSearchParams } from 'react-router-dom';

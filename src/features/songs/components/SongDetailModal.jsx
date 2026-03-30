@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Modal, Image, Text, Group, Stack, Badge, Table, ScrollArea, Tooltip, SimpleGrid, Button } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconCheck, IconMessageCircle, IconPlaylistAdd } from '@tabler/icons-react';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
+import IconPlaylistAdd from '@tabler/icons-react/dist/esm/icons/IconPlaylistAdd.mjs';
 import { Link } from 'react-router-dom';
 import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty, BASE_JACKET_URL } from '../../../config/maimai-constants';
 import { AddToPlaylistModal } from '../../../components/modals/AddToPlaylistModal';

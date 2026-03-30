@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Modal, Stack, Group, SimpleGrid, TextInput, Select, MultiSelect, Divider, Paper, Input, Text, Button } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconSettings, IconCheck, IconLink } from '@tabler/icons-react';
+import IconSettings from '@tabler/icons-react/dist/esm/icons/IconSettings.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconLink from '@tabler/icons-react/dist/esm/icons/IconLink.mjs';
 import { userService } from '../../services/supabase';
 
 const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranches, onSuccess }) => {

@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Paper, Group, Title, Text, ActionIcon, Button, Stack } from '@mantine/core';
-import { IconQuote, IconPencil, IconX, IconCheck } from '@tabler/icons-react';
+import IconQuote from '@tabler/icons-react/dist/esm/icons/IconQuote.mjs';
+import IconPencil from '@tabler/icons-react/dist/esm/icons/IconPencil.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';

@@ -1,5 +1,7 @@
 import { Modal, Stack, Text, Button, Group } from '@mantine/core';
-import { IconAlertTriangle, IconTrash, IconLock } from '@tabler/icons-react';
+import IconAlertTriangle from '@tabler/icons-react/dist/esm/icons/IconAlertTriangle.mjs';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
+import IconLock from '@tabler/icons-react/dist/esm/icons/IconLock.mjs';
 
 export function PlaylistProtectionModal({ opened, onClose, onConfirm, type = 'delete', loading = false }) {
   const isDelete = type === 'delete';

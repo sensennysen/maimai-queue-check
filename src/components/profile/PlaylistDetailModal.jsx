@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { Modal, Stack, Text, Group, SimpleGrid, Box, Divider, Button, Image, Badge, Textarea, Switch } from '@mantine/core';
-import { IconPlaylist, IconEdit, IconMusic, IconTrash, IconMessageCircle, IconShare } from '@tabler/icons-react';
+import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
+import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
+import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
+import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
+import IconShare from '@tabler/icons-react/dist/esm/icons/IconShare.mjs';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import FavoriteSongCard from './FavoriteSongCard';

@@ -1,5 +1,7 @@
 import { Paper, Image, Box, Stack, Text, Group, Badge, ActionIcon } from '@mantine/core';
-import { IconArrowUp, IconArrowDown, IconTrash } from '@tabler/icons-react';
+import IconArrowUp from '@tabler/icons-react/dist/esm/icons/IconArrowUp.mjs';
+import IconArrowDown from '@tabler/icons-react/dist/esm/icons/IconArrowDown.mjs';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import { DIFFICULTY_COLORS, BASE_JACKET_URL } from '../../config/maimai-constants';
 
 export function PlaylistSongRow({ song, index, totalSongs, moveSong, handleRemoveSong }) {

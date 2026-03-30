@@ -1,9 +1,17 @@
 import { useState } from 'react';
 import { Paper, Group, Box, Avatar, Stack, Title, Tooltip, Badge, Text, ActionIcon, Button, Divider } from '@mantine/core';
-import {
-  IconUser, IconCamera, IconCode, IconGitPullRequest, IconBug,
-  IconMapPin, IconStar, IconListDetails, IconQuote, IconPencil, IconX, IconCheck
-} from '@tabler/icons-react';
+import IconUser from '@tabler/icons-react/dist/esm/icons/IconUser.mjs';
+import IconCamera from '@tabler/icons-react/dist/esm/icons/IconCamera.mjs';
+import IconCode from '@tabler/icons-react/dist/esm/icons/IconCode.mjs';
+import IconGitPullRequest from '@tabler/icons-react/dist/esm/icons/IconGitPullRequest.mjs';
+import IconBug from '@tabler/icons-react/dist/esm/icons/IconBug.mjs';
+import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
+import IconStar from '@tabler/icons-react/dist/esm/icons/IconStar.mjs';
+import IconListDetails from '@tabler/icons-react/dist/esm/icons/IconListDetails.mjs';
+import IconQuote from '@tabler/icons-react/dist/esm/icons/IconQuote.mjs';
+import IconPencil from '@tabler/icons-react/dist/esm/icons/IconPencil.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';

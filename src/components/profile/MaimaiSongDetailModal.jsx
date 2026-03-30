@@ -1,10 +1,13 @@
 import { Modal, Image, Text, Group, Stack, Tooltip, SimpleGrid, TextInput, ActionIcon, Divider, Badge, Button, Box } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconCheck, IconEdit, IconX, IconStarFilled } from '@tabler/icons-react';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
+import IconStarFilled from '@tabler/icons-react/dist/esm/icons/IconStarFilled.mjs';
 import { useState, useEffect } from 'react';
 import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty, BASE_JACKET_URL } from '../../config/maimai-constants';
 import { Link } from 'react-router-dom';
-import { IconMessageCircle } from '@tabler/icons-react';
+import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
 
 function MaimaiSongDetailModal({
   song,

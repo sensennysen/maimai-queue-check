@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Modal, Stack, Text, Divider, Alert, Group, Button, CopyButton, Code, Loader } from '@mantine/core';
-import { IconCheck, IconAlertCircle } from '@tabler/icons-react';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import { BookmarkletInstructions } from '../BookmarkletInstructions';
 import { userService, mostPlayedService, createImportSession, getImportSession, deleteImportSession } from '../../services/supabase';
 import { fetchSongConstants, calculateBest50 } from '../../utils/maimai-calc';

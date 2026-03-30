@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Modal, Stack, Text, Button, Group, ActionIcon, Paper, ThemeIcon } from '@mantine/core';
-import { IconArrowUp, IconArrowDown, IconPlaylist, IconDeviceFloppy, IconSelector } from '@tabler/icons-react';
+import IconArrowUp from '@tabler/icons-react/dist/esm/icons/IconArrowUp.mjs';
+import IconArrowDown from '@tabler/icons-react/dist/esm/icons/IconArrowDown.mjs';
+import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
+import IconDeviceFloppy from '@tabler/icons-react/dist/esm/icons/IconDeviceFloppy.mjs';
+import IconSelector from '@tabler/icons-react/dist/esm/icons/IconSelector.mjs';
 import { notifications } from '@mantine/notifications';
 import { playlistService } from '../../services/supabase';
 

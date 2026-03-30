@@ -1,7 +1,9 @@
 import { useState, useRef } from 'react';
 import { Paper, Group, Title, Box, Image, Text, ActionIcon } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconStar, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import IconStar from '@tabler/icons-react/dist/esm/icons/IconStar.mjs';
+import IconChevronLeft from '@tabler/icons-react/dist/esm/icons/IconChevronLeft.mjs';
+import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
 import { DIFFICULTY_COLORS, BASE_JACKET_URL } from '../../../config/maimai-constants';
 
 /**

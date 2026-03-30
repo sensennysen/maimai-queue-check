@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Stack, Text, Textarea, Group, Box, Paper, Avatar, ActionIcon, Loader, Center, Divider } from '@mantine/core';
-import { IconTrash, IconAlertCircle, IconThumbUp, IconThumbDown, IconSend, IconThumbUpFilled, IconThumbDownFilled } from '@tabler/icons-react';
+import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconThumbUp from '@tabler/icons-react/dist/esm/icons/IconThumbUp.mjs';
+import IconThumbDown from '@tabler/icons-react/dist/esm/icons/IconThumbDown.mjs';
+import IconSend from '@tabler/icons-react/dist/esm/icons/IconSend.mjs';
+import IconThumbUpFilled from '@tabler/icons-react/dist/esm/icons/IconThumbUpFilled.mjs';
+import IconThumbDownFilled from '@tabler/icons-react/dist/esm/icons/IconThumbDownFilled.mjs';
 import { notifications } from '@mantine/notifications';
 import { useAuth } from '../../hooks/useAuth';
 import { playlistService } from '../../services/supabase';

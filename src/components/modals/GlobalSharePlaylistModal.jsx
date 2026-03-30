@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Modal, Stack, Button, Select, Textarea, Text, Group, LoadingOverlay, Box, Alert } from '@mantine/core';
-import { IconShare, IconInfoCircle, IconPlaylist } from '@tabler/icons-react';
+import IconShare from '@tabler/icons-react/dist/esm/icons/IconShare.mjs';
+import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
+import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
 import { notifications } from '@mantine/notifications';
 import { playlistService } from '../../services/supabase';
 import { useAuth } from '../../hooks/useAuth';

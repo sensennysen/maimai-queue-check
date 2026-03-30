@@ -1,6 +1,6 @@
 import React from 'react';
 import { Paper, Text, Box, Image, ActionIcon, Badge } from '@mantine/core';
-import { IconX } from '@tabler/icons-react';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 import dxImage from '../../assets/music_dx.png';
 import standardImage from '../../assets/music_standard.png';
 import { DIFFICULTY_COLORS, normalizeDifficulty, BASE_JACKET_URL } from '../../config/maimai-constants';

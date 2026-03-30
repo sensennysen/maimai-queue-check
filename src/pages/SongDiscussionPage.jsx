@@ -2,7 +2,9 @@ import { useState, useCallback, useMemo } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { Container, Stack, Group, Title, Text, Button, Loader, Alert, Grid, Modal, ScrollArea, Paper } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconAlertCircle, IconRefresh, IconPlaylistAdd } from '@tabler/icons-react';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
+import IconPlaylistAdd from '@tabler/icons-react/dist/esm/icons/IconPlaylistAdd.mjs';
 
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';

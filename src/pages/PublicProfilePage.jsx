@@ -5,9 +5,10 @@ import {
   Container, Paper, Stack, Group, Title, Text,
   Loader, Button, Alert, ThemeIcon, Tooltip
 } from '@mantine/core';
-import {
-  IconLock, IconLogin, IconAlertCircle, IconShare
-} from '@tabler/icons-react';
+import IconLock from '@tabler/icons-react/dist/esm/icons/IconLock.mjs';
+import IconLogin from '@tabler/icons-react/dist/esm/icons/IconLogin.mjs';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconShare from '@tabler/icons-react/dist/esm/icons/IconShare.mjs';
 import { notifications } from '@mantine/notifications';
 
 // Modals

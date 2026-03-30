@@ -3,9 +3,8 @@ import {
   Paper, Stack, Group, Text, Badge,
   Table, Box, Divider, Collapse, ActionIcon, Avatar, Flex
 } from '@mantine/core';
-import {
-  IconChevronDown, IconChevronUp
-} from '@tabler/icons-react';
+import IconChevronDown from '@tabler/icons-react/dist/esm/icons/IconChevronDown.mjs';
+import IconChevronUp from '@tabler/icons-react/dist/esm/icons/IconChevronUp.mjs';
 import { DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
 import { getRelativeTime } from '../../utils/formatters';
 import { getGrade } from '../../utils/maimai-calc';

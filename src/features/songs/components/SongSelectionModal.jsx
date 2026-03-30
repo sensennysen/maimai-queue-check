@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal, Group, Text, Button, Box, LoadingOverlay } from '@mantine/core';
-import { IconCheck } from '@tabler/icons-react';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import { useSongDatabase } from '../../../hooks/useSongDatabase';
 import SongFilters from './SongFilters';
 import SongList from './SongList';
