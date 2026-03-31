@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Badge,
   Container,
   Stack,
   Button,
@@ -8,6 +9,7 @@ import {
   Text,
   Paper,
   Tabs,
+  ThemeIcon,
 } from '@mantine/core';
 import IconBuildingStore from '@tabler/icons-react/dist/esm/icons/IconBuildingStore.mjs';
 import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
@@ -15,6 +17,8 @@ import IconMessageReport from '@tabler/icons-react/dist/esm/icons/IconMessageRep
 import IconFileText from '@tabler/icons-react/dist/esm/icons/IconFileText.mjs';
 import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
 import IconTags from '@tabler/icons-react/dist/esm/icons/IconTags.mjs';
+import IconSettings from '@tabler/icons-react/dist/esm/icons/IconSettings.mjs';
+import IconShieldLock from '@tabler/icons-react/dist/esm/icons/IconShieldLock.mjs';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../contexts/BranchContext';
@@ -37,20 +41,63 @@ const AdminPage = () => {
     ? branches.find(b => b.id === userRoles.admin_branch)?.arcade_name
     : null;
 
+  const adminSections = [
+    {
+      value: 'branches',
+      label: 'Branch Control',
+      icon: IconBuildingStore,
+      visible: isSuperAdmin,
+    },
+    {
+      value: 'users',
+      label: 'People Access',
+      icon: IconUsers,
+      visible: true,
+    },
+    {
+      value: 'reports',
+      label: 'Report Desk',
+      icon: IconMessageReport,
+      visible: isSuperAdmin,
+    },
+    {
+      value: 'rules',
+      label: 'Queue Rules',
+      icon: IconFileText,
+      visible: true,
+    },
+    {
+      value: 'tags',
+      label: 'Tag Library',
+      icon: IconTags,
+      visible: isSuperAdmin,
+    },
+  ].filter(section => section.visible);
+
   const [activeTab, setActiveTab] = useState(() => {
     // If target is requests, we need to show users tab
     if (targetTab === 'requests') return 'users';
     return isSuperAdmin ? 'branches' : 'users';
   });
 
+  const branchScopeLabel = isSuperAdmin
+    ? `${branches.length || 0} branch${branches.length === 1 ? '' : 'es'}`
+    : (adminBranchName || 'Assigned branch');
+  const accessLabel = isSuperAdmin ? 'Super admin' : 'Branch admin';
+
 
   if (!userRoles?.is_admin && !isSuperAdmin) {
     return (
-      <Container size="xl" py="xl">
-        <Paper p="xl" withBorder>
+      <Container size="xl" py="xl" className="admin-page">
+        <Paper className="admin-page__denied">
           <Stack align="center" gap="md">
+            <ThemeIcon size={54} radius="xl" variant="light" color="red">
+              <IconShieldLock size={28} />
+            </ThemeIcon>
             <Title order={3}>Access Denied</Title>
-            <Text>You do not have permission to view this page.</Text>
+            <Text ta="center" maw={420}>
+              You do not have permission to view this page.
+            </Text>
           </Stack>
         </Paper>
       </Container>
@@ -58,84 +105,90 @@ const AdminPage = () => {
   }
 
   return (
-    <Container size="xl" py="xl">
+    <Container size="xl" py="xl" className="admin-page">
       <Stack gap="lg">
-        <Paper p="md" radius="md" withBorder>
+        <Paper className="admin-page__hero">
           <Group justify="space-between" align="center">
-            <Group gap="md">
-              <Title order={2}>Admin Panel{adminBranchName ? ` (${adminBranchName})` : ''}</Title>
-            </Group>
+            <Stack gap="xs" className="admin-page__hero-copy">
+              <Group gap="sm" wrap="wrap">
+                <Text className="admin-page__eyebrow">
+                  <IconSettings size={14} />
+                  Administration
+                </Text>
+              </Group>
+            </Stack>
+
             {isSuperAdmin && (
-              <Button
-                variant="subtle"
-                leftSection={<IconHistory size={16} />}
-                onClick={() => navigate('/audit-logs')}
-                title="View audit logs"
-              >
-                Audit Logs
-              </Button>
+              <Group gap="sm" className="admin-page__hero-badges">
+                <Button
+                  variant="subtle"
+                  leftSection={<IconHistory size={16} />}
+                  onClick={() => navigate('/audit-logs')}
+                  title="View audit logs"
+                >
+                  Audit Logs
+                </Button>
+              </Group>
             )}
           </Group>
         </Paper>
 
         <Tabs value={activeTab} onChange={setActiveTab}>
-          <Tabs.List>
+          <Paper className="admin-page__tabs-shell">
+            <Tabs.List className="admin-page__tabs-list">
+              {adminSections.map((section) => {
+                const SectionIcon = section.icon;
+                return (
+                  <Tabs.Tab
+                    key={section.value}
+                    value={section.value}
+                    className="admin-page__tab"
+                    leftSection={<SectionIcon size={18} />}
+                  >
+                    <span className="admin-page__tab-body">
+                      <span className="admin-page__tab-label">{section.label}</span>
+                    </span>
+                  </Tabs.Tab>
+                );
+              })}
+            </Tabs.List>
+          </Paper>
+
+          <Paper className="admin-page__panel">
             {isSuperAdmin && (
-              <Tabs.Tab value="branches" leftSection={<IconBuildingStore size={16} />}>
-                Branch Management
-              </Tabs.Tab>
+              <Tabs.Panel value="branches">
+                <BranchList isSuperAdmin={isSuperAdmin} />
+              </Tabs.Panel>
             )}
-            <Tabs.Tab value="users" leftSection={<IconUsers size={16} />}>
-              User Management
-            </Tabs.Tab>
+
+            <Tabs.Panel value="users">
+              <UserManager
+                isSuperAdmin={isSuperAdmin}
+                currentUserRoles={userRoles}
+                initialTab={(targetTab === 'requests' || activeTab === 'requests') ? 'requests' : 'users'}
+                key={(targetTab === 'requests' || activeTab === 'requests') ? 'requests' : 'users'}
+              />
+            </Tabs.Panel>
+
             {isSuperAdmin && (
-              <Tabs.Tab value="reports" leftSection={<IconMessageReport size={16} />}>
-                Reports
-              </Tabs.Tab>
+              <Tabs.Panel value="reports">
+                <ReportsManager />
+              </Tabs.Panel>
             )}
-            <Tabs.Tab value="rules" leftSection={<IconFileText size={16} />}>
-              Queue Rule
-            </Tabs.Tab>
+
+            <Tabs.Panel value="rules">
+              <QueueRuleManager
+                isSuperAdmin={isSuperAdmin}
+                currentUserRoles={userRoles}
+              />
+            </Tabs.Panel>
+
             {isSuperAdmin && (
-              <Tabs.Tab value="tags" leftSection={<IconTags size={16} />}>
-                Tag Management
-              </Tabs.Tab>
+              <Tabs.Panel value="tags">
+                <TagManager isSuperAdmin={isSuperAdmin} />
+              </Tabs.Panel>
             )}
-          </Tabs.List>
-
-          {isSuperAdmin && (
-            <Tabs.Panel value="branches" pt="md">
-              <BranchList isSuperAdmin={isSuperAdmin} />
-            </Tabs.Panel>
-          )}
-
-          <Tabs.Panel value="users" pt="md">
-            <UserManager
-              isSuperAdmin={isSuperAdmin}
-              currentUserRoles={userRoles}
-              initialTab={(targetTab === 'requests' || activeTab === 'requests') ? 'requests' : 'users'}
-              key={(targetTab === 'requests' || activeTab === 'requests') ? 'requests' : 'users'}
-            />
-          </Tabs.Panel>
-
-          {isSuperAdmin && (
-            <Tabs.Panel value="reports" pt="md">
-              <ReportsManager />
-            </Tabs.Panel>
-          )}
-
-          <Tabs.Panel value="rules" pt="md">
-            <QueueRuleManager
-              isSuperAdmin={isSuperAdmin}
-              currentUserRoles={userRoles}
-            />
-          </Tabs.Panel>
-
-          {isSuperAdmin && (
-            <Tabs.Panel value="tags" pt="md">
-              <TagManager isSuperAdmin={isSuperAdmin} />
-            </Tabs.Panel>
-          )}
+          </Paper>
         </Tabs>
       </Stack>
     </Container>
