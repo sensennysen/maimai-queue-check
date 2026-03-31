@@ -34,7 +34,7 @@ import {
   buildAprilFoolsMostPlayed,
   canShowAprilFoolsToggle,
   getAprilFoolsSong,
-  isAprilFoolsPreviewEnabled,
+  isAprilFoolsActive,
   setAprilFoolsPreviewEnabled,
 } from '../utils/aprilFools';
 import Footer from '../components/layout/Footer';
@@ -64,7 +64,7 @@ const PublicProfilePage = () => {
   const [selectedBest50Score, setSelectedBest50Score] = useState(null);
   const [introduction, setIntroduction] = useState(null);
   const [viewAsPublic, setViewAsPublic] = useState(false);
-  const [aprilFoolsEnabled, setAprilFoolsEnabled] = useState(() => isAprilFoolsPreviewEnabled());
+  const [aprilFoolsEnabled, setAprilFoolsEnabled] = useState(() => isAprilFoolsActive());
   const [rainBurstVisible, setRainBurstVisible] = useState(false);
   const [avatarCurseVisible, setAvatarCurseVisible] = useState(false);
   const [rainConfirmOpen, setRainConfirmOpen] = useState(false);
@@ -190,6 +190,12 @@ const PublicProfilePage = () => {
       setIsPrivacyModalOpen(true);
     }
   }, [isRealOwner, searchParams]);
+
+  useEffect(() => {
+    if (!canShowAprilFoolsToggle() && aprilFoolsEnabled) {
+      setAprilFoolsEnabled(false);
+    }
+  }, [aprilFoolsEnabled]);
 
   const clearSettingsParam = useCallback(() => {
     const nextParams = new URLSearchParams(searchParams);
@@ -350,7 +356,7 @@ const PublicProfilePage = () => {
   }
 
   return (
-    <Container size="xl" py="xl" className="public-profile-shell">
+    <Container size="xl" py="xl" className={`public-profile-shell${rainBurstVisible ? ' curse-burst' : ''}`}>
       {(aprilFoolsEnabled || rainBurstVisible) && (
         <div
           className={`profile-rain-overlay ${aprilFoolsEnabled ? 'active' : ''} ${rainBurstVisible ? 'burst' : ''}`}

@@ -3,12 +3,20 @@ import { normalizeDifficulty } from '../config/maimai-constants';
 export const APRIL_FOOLS_SONG_TITLE = '\u56db\u6708\u306e\u96e8';
 export const APRIL_FOOLS_PLAYLIST_TITLE = 'April Showers';
 export const APRIL_FOOLS_PREVIEW_ENABLED = false;
-export const APRIL_FOOLS_TOGGLE_FORCE_VISIBLE = true;
 const APRIL_FOOLS_STORAGE_KEY = 'april-fools-preview-enabled';
-const APRIL_FOOLS_TOGGLE_START_PH = '2026-04-01T00:00:00+08:00';
+const APRIL_FOOLS_START_PH = '2026-04-01T00:00:00+08:00';
+const APRIL_FOOLS_END_PH = '2026-04-02T00:00:00+08:00';
+
+function isWithinAprilFoolsWindow(date = new Date()) {
+  const timestamp = date.getTime();
+  return (
+    timestamp >= new Date(APRIL_FOOLS_START_PH).getTime() &&
+    timestamp < new Date(APRIL_FOOLS_END_PH).getTime()
+  );
+}
 
 export function isAprilFoolsActive(date = new Date()) {
-  return isAprilFoolsPreviewEnabled() || (date.getMonth() === 3 && date.getDate() === 1);
+  return isWithinAprilFoolsWindow(date) && isAprilFoolsPreviewEnabled();
 }
 
 export function isAprilFoolsPreviewEnabled() {
@@ -21,12 +29,15 @@ export function isAprilFoolsPreviewEnabled() {
 
 export function setAprilFoolsPreviewEnabled(enabled) {
   if (typeof window === 'undefined') return;
+  if (!isWithinAprilFoolsWindow()) {
+    window.localStorage.removeItem(APRIL_FOOLS_STORAGE_KEY);
+    return;
+  }
   window.localStorage.setItem(APRIL_FOOLS_STORAGE_KEY, String(enabled));
 }
 
 export function canShowAprilFoolsToggle(date = new Date()) {
-  if (APRIL_FOOLS_TOGGLE_FORCE_VISIBLE) return true;
-  return date.getTime() >= new Date(APRIL_FOOLS_TOGGLE_START_PH).getTime();
+  return isWithinAprilFoolsWindow(date);
 }
 
 export function getAprilFoolsSong(songMapByTitle) {
