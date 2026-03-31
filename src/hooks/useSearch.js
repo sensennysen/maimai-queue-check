@@ -16,7 +16,7 @@ export function useSearch(debouncedQuery, typeFilter, songs) {
 
   // ── Profile Search ──
   useEffect(() => {
-    if (!debouncedQuery || typeFilter === 'song') {
+    if (!debouncedQuery || typeFilter === 'song' || typeFilter === 'playlist') {
       setProfileResults([]);
       setProfilesError(null);
       return;
@@ -69,7 +69,7 @@ export function useSearch(debouncedQuery, typeFilter, songs) {
 
   // ── Playlist Search ──
   useEffect(() => {
-    if (!debouncedQuery || songResults.length === 0) {
+    if (!debouncedQuery || songResults.length === 0 || typeFilter === 'profile') {
       setPlaylistGroups({});
       setPlaylistsError(null);
       return;
@@ -112,7 +112,7 @@ export function useSearch(debouncedQuery, typeFilter, songs) {
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery, songResults]);
+  }, [debouncedQuery, songResults, typeFilter]);
 
   return {
     profileResults,

@@ -1,0 +1,138 @@
+.search-page-shell {
+  --search-shell-border: color-mix(in srgb, var(--theme-border) 70%, transparent);
+}
+
+.search-hero {
+  background: color-mix(in srgb, var(--theme-surface) 92%, var(--theme-background) 8%) !important;
+  border: 1px solid var(--search-shell-border) !important;
+}
+
+.search-hero-top {
+  align-items: flex-start;
+}
+
+.search-hero-copy {
+  max-width: 760px;
+}
+
+.search-hero-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.search-hero-subtitle {
+  max-width: 52ch;
+}
+
+.search-summary-text {
+  padding-top: 0.2rem;
+}
+
+.search-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.search-toolbar-input .mantine-Input-input {
+  min-height: 62px;
+  padding-left: 3rem;
+  border: 1px solid color-mix(in srgb, var(--theme-border) 80%, transparent);
+  background: color-mix(in srgb, var(--theme-surface) 88%, white 12%);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.search-toolbar-input .mantine-Input-input::placeholder {
+  color: color-mix(in srgb, var(--theme-text-muted) 88%, transparent);
+}
+
+.search-toolbar-input .mantine-Input-input:focus,
+.search-toolbar-input .mantine-Input-input:focus-visible {
+  border-color: color-mix(in srgb, var(--theme-primary) 52%, var(--theme-border) 48%);
+  box-shadow: var(--focus-ring);
+}
+
+.search-toolbar-submit {
+  min-width: 152px;
+  background: var(--theme-primary) !important;
+  color: white !important;
+}
+
+.search-toolbar-footer {
+  align-items: center;
+}
+
+.search-toolbar-hint {
+  white-space: nowrap;
+}
+
+.search-filter-control {
+  background: color-mix(in srgb, var(--theme-surface) 86%, transparent);
+  border-radius: 999px;
+  padding: 0.2rem;
+}
+
+.search-filter-control .mantine-SegmentedControl-control {
+  border-radius: 999px;
+}
+
+.search-filter-control .mantine-SegmentedControl-label {
+  font-weight: 700;
+}
+
+.search-prompt-card,
+.search-section,
+.search-playlist-cluster,
+.search-side-summary {
+  border: 1px solid var(--search-shell-border) !important;
+  background: color-mix(in srgb, var(--theme-surface) 94%, var(--theme-background) 6%) !important;
+}
+
+.search-section-icon {
+  background: color-mix(in srgb, var(--theme-primary) 12%, transparent);
+  color: color-mix(in srgb, var(--theme-primary) 68%, var(--theme-text-primary) 32%);
+}
+
+.search-section-title {
+  font-family: var(--font-heading);
+  line-height: 1;
+}
+
+.search-section-count {
+  align-self: flex-start;
+}
+
+.search-playlist-cluster-title {
+  font-family: var(--font-heading);
+  line-height: 1.1;
+}
+
+@media (max-width: 900px) {
+  .search-hero-top,
+  .search-toolbar-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-toolbar-hint {
+    white-space: normal;
+  }
+
+  .search-summary-text {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .search-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .search-toolbar-submit {
+    width: 100%;
+  }
+}

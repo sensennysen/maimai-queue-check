@@ -272,6 +272,10 @@ body[data-palette='festival'] .global-top-nav .global-top-link .mantine-Button-s
   position: static;
 }
 
+.global-search-dropdown {
+  max-width: min(360px, calc(100vw - 2rem));
+}
+
 .global-top-search .mantine-Input-input {
   background: color-mix(in srgb, var(--nav-surface) 84%, transparent);
   border: 1px solid color-mix(in srgb, var(--nav-border) 80%, transparent);
