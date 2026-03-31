@@ -1,4 +1,5 @@
-import { Paper, Flex, Box, Image, Grid, Stack, Title, Text, Badge, Group } from '@mantine/core';
+import { Paper, Flex, Box, Image, Grid, Stack, Title, Text, Badge, Group, Button } from '@mantine/core';
+import IconPlaylistAdd from '@tabler/icons-react/dist/esm/icons/IconPlaylistAdd.mjs';
 import { CATEGORY_TRANSLATION, VERSION_MAPPING } from '../../../config/maimai-constants';
 
 /**
@@ -6,8 +7,9 @@ import { CATEGORY_TRANSLATION, VERSION_MAPPING } from '../../../config/maimai-co
  * @param {object} song - The song object
  * @param {string} activeCardType - The current chart type (dx, standard, etc)
  * @param {boolean} isMobileOrTablet - Media query state
+ * @param {Function} onAddToPlaylist - Handler for opening the playlist modal
  */
-export function SongHeader({ song, activeCardType, isMobileOrTablet }) {
+export function SongHeader({ song, activeCardType, isMobileOrTablet, onAddToPlaylist }) {
   if (!song) return null;
 
   return (
@@ -35,6 +37,15 @@ export function SongHeader({ song, activeCardType, isMobileOrTablet }) {
                   {song.title}
                 </Title>
                 <Text size={isMobileOrTablet ? "sm" : "md"} mt={-8}>Artist: <Text span fw={500}>{song.artist}</Text></Text>
+                <Button
+                  variant="light"
+                  color="teal"
+                  leftSection={<IconPlaylistAdd size={16} />}
+                  onClick={onAddToPlaylist}
+                  size={isMobileOrTablet ? 'sm' : 'md'}
+                >
+                  Add to Playlist
+                </Button>
               </Stack>
             </Grid.Col>
 
@@ -46,7 +57,6 @@ export function SongHeader({ song, activeCardType, isMobileOrTablet }) {
                   <Grid.Col span={{ base: 6, lg: 5 }}>
                     <Stack gap="md" align={isMobileOrTablet ? 'center' : 'flex-start'} ta={isMobileOrTablet ? 'center' : 'left'} h="100%" justify="center">
                       <Box>
-                        <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={4}>CATEGORY</Text>
                         <Text size="sm" c="dimmed" tt="uppercase" fw={700} mb={4}>CATEGORY</Text>
                         <Badge variant="light" color="blue" size="md" radius="sm" style={{ whiteSpace: 'normal', height: 'auto', padding: '4px 8px' }}>
                           {CATEGORY_TRANSLATION[song.category] || song.category}

@@ -4,7 +4,6 @@ import { Container, Stack, Group, Title, Text, Button, Loader, Alert, Grid, Moda
 import { useMediaQuery } from '@mantine/hooks';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
-import IconPlaylistAdd from '@tabler/icons-react/dist/esm/icons/IconPlaylistAdd.mjs';
 
 import { useAuth } from '../hooks/useAuth';
 import { useSongDatabaseContext } from '../hooks/useSongDatabaseContext';
@@ -111,17 +110,6 @@ export default function SongDiscussionPage() {
   return (
     <Container size="xl" py="xl" className="animate-fade-in">
       <Stack gap="xl">
-        <Group justify="space-between">
-          <Button
-            variant="light"
-            color="teal"
-            leftSection={<IconPlaylistAdd size={16} />}
-            onClick={() => setAddToPlaylistOpened(true)}
-          >
-            Add to Playlist
-          </Button>
-        </Group>
-
         {error && (
           <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red">
             <Group justify="space-between" align="center">
@@ -137,6 +125,7 @@ export default function SongDiscussionPage() {
           song={song} 
           activeCardType={activeCardType} 
           isMobileOrTablet={isMobileOrTablet} 
+          onAddToPlaylist={() => setAddToPlaylistOpened(true)}
         />
 
         <ChartDetailsTable 
@@ -193,7 +182,7 @@ export default function SongDiscussionPage() {
       <AddToPlaylistModal 
         opened={addToPlaylistOpened} 
         onClose={() => setAddToPlaylistOpened(false)} 
-        songId={id} 
+        songData={song} 
       />
 
       <Modal opened={glossaryOpened} onClose={() => setGlossaryOpened(false)} title="Tag Glossary" size="lg">
