@@ -50,44 +50,54 @@ const typeConfig = {
   },
 };
 
+const handleItemKeyDown = (event, onActivate) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    onActivate();
+  }
+};
+
 export function ActivityItem({ item, onMarkRead, onNavigate, isFollowingActor, onFollowBack, followLoading }) {
-  const config = typeConfig[item.type] || { icon: <IconInfoCircle size={14} />, color: 'gray', message: (a) => `${a} interacted with you` };
+  const config = typeConfig[item.type] || { icon: <IconInfoCircle size={14} />, color: 'gray', message: (actor) => `${actor} interacted with you` };
   const actorName = item.actor?.display_name || 'Someone';
 
   return (
-    <Group
-      wrap="nowrap"
-      align="flex-start"
-      p="xs"
-      style={{
-        cursor: 'pointer',
-        backgroundColor: item.read ? 'transparent' : 'var(--mantine-color-default-hover)',
-        borderRadius: 'var(--mantine-radius-sm)',
-        transition: 'background 0.15s ease',
-      }}
+    <div
+      role="button"
+      tabIndex={0}
+      className={`notification-feed-item notification-feed-item-activity tone-${config.color} ${item.read ? '' : 'is-unread'}`}
       onClick={() => onNavigate(item)}
+      onKeyDown={(event) => handleItemKeyDown(event, () => onNavigate(item))}
     >
-      <ThemeIcon color={config.color} variant="light" size="md" radius="xl" mt={2}>
-        {config.icon}
-      </ThemeIcon>
+      <div className="notification-feed-item-leading">
+        <ThemeIcon color={config.color} variant="light" size="lg" radius="xl" className="notification-feed-item-icon">
+          {config.icon}
+        </ThemeIcon>
+        {!item.read && <span className="notification-feed-item-dot" aria-hidden="true" />}
+      </div>
 
-      <Group gap="xs" style={{ flex: 1, overflow: 'hidden' }} align="flex-start">
+      <Group gap="xs" className="notification-feed-item-body" align="flex-start" wrap="nowrap">
         <Avatar
           src={getProfileImageUrl(item.actor)}
-          size={24}
+          size={34}
           radius="xl"
           color={config.color}
-          style={{ flexShrink: 0, marginTop: 1 }}
+          style={{ flexShrink: 0 }}
         >
           {actorName.charAt(0).toUpperCase()}
         </Avatar>
-        <Stack gap={0} style={{ flex: 1 }}>
-          <Text size="sm" lineClamp={2}>
-            {config.message(actorName)}
-          </Text>
-          <Group gap="xs" mt={2}>
-            <Text size="sm" c="dimmed">
+        <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
+          <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
+            <Text className="notification-feed-item-title" lineClamp={2}>
+              {config.message(actorName)}
+            </Text>
+            <Text className="notification-feed-item-time">
               {getRelativeTime(item.created_at)}
+            </Text>
+          </Group>
+          <Group gap="xs" mt={8} className="notification-feed-item-footer">
+            <Text className="notification-feed-item-meta">
+              {item.actor?.slug ? `@${item.actor.slug}` : 'Recent activity'}
             </Text>
             {item.type === 'new_follower' && !isFollowingActor && (
               <Button
@@ -95,7 +105,10 @@ export function ActivityItem({ item, onMarkRead, onNavigate, isFollowingActor, o
                 size="compact-sm"
                 color="blue"
                 loading={followLoading}
-                onClick={(e) => { e.stopPropagation(); onFollowBack(item.actor_id); }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onFollowBack(item.actor_id);
+                }}
               >
                 Follow Back
               </Button>
@@ -112,12 +125,15 @@ export function ActivityItem({ item, onMarkRead, onNavigate, isFollowingActor, o
           size="sm"
           variant="subtle"
           color="blue"
-          onClick={(e) => { e.stopPropagation(); onMarkRead(item.id); }}
+          onClick={(event) => {
+            event.stopPropagation();
+            onMarkRead(item.id);
+          }}
           title="Mark as read"
         >
           <IconCheck size={12} />
         </ActionIcon>
       )}
-    </Group>
+    </div>
   );
 }
