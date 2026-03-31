@@ -130,38 +130,12 @@ export default function SongDiscussionPage() {
 
         <ChartDetailsTable 
           currentSheets={song.sheets} 
-          isMobile={isMobile} 
+          isMobile={isMobile}
+          song={song}
         />
 
-        <Grid gutter="lg">
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <Stack gap="lg">
-              <RatingSection 
-                discussionData={discussionData}
-                loading={discussionLoading}
-                user={user}
-                isRatingLoading={isRatingLoading}
-                onRatingChange={handleRatingChange}
-              />
-
-              <TagSection 
-                discussionData={discussionData}
-                loading={discussionLoading}
-                user={user}
-                userRoles={userRoles}
-                availableTags={availableTags}
-                isTaggingLoading={isTaggingLoading}
-                newTagValue={newTagValue}
-                setNewTagValue={setNewTagValue}
-                onAddTag={addTag}
-                onRemoveTag={removeTag}
-                onCreateAndAddTag={createAndAddTag}
-                onOpenGlossary={() => setGlossaryOpened(true)}
-              />
-            </Stack>
-          </Grid.Col>
-
-          <Grid.Col span={{ base: 12, md: 8 }}>
+        {isMobileOrTablet ? (
+          <Stack gap="lg">
             <CommentSection 
               comments={discussionData.comments}
               loading={discussionLoading}
@@ -173,9 +147,80 @@ export default function SongDiscussionPage() {
               onVoteComment={voteComment}
               onShowVoters={handleShowVoters}
               getRelativeTimeCb={getRelativeTimeCb}
+              isMobile={isMobile}
             />
-          </Grid.Col>
-        </Grid>
+
+            <RatingSection 
+              discussionData={discussionData}
+              loading={discussionLoading}
+              user={user}
+              isRatingLoading={isRatingLoading}
+              onRatingChange={handleRatingChange}
+            />
+
+            <TagSection 
+              discussionData={discussionData}
+              loading={discussionLoading}
+              user={user}
+              userRoles={userRoles}
+              availableTags={availableTags}
+              isTaggingLoading={isTaggingLoading}
+              newTagValue={newTagValue}
+              setNewTagValue={setNewTagValue}
+              onAddTag={addTag}
+              onRemoveTag={removeTag}
+              onCreateAndAddTag={createAndAddTag}
+              onOpenGlossary={() => setGlossaryOpened(true)}
+              isMobile={isMobile}
+            />
+          </Stack>
+        ) : (
+          <Grid gutter="lg">
+            <Grid.Col span={{ base: 12, md: 4 }}>
+              <Stack gap="lg">
+                <RatingSection 
+                  discussionData={discussionData}
+                  loading={discussionLoading}
+                  user={user}
+                  isRatingLoading={isRatingLoading}
+                  onRatingChange={handleRatingChange}
+                />
+
+                <TagSection 
+                  discussionData={discussionData}
+                  loading={discussionLoading}
+                  user={user}
+                  userRoles={userRoles}
+                  availableTags={availableTags}
+                  isTaggingLoading={isTaggingLoading}
+                  newTagValue={newTagValue}
+                  setNewTagValue={setNewTagValue}
+                  onAddTag={addTag}
+                  onRemoveTag={removeTag}
+                  onCreateAndAddTag={createAndAddTag}
+                  onOpenGlossary={() => setGlossaryOpened(true)}
+                  isMobile={isMobile}
+                />
+              </Stack>
+            </Grid.Col>
+
+            <Grid.Col span={{ base: 12, md: 8 }}>
+              <CommentSection 
+                comments={discussionData.comments}
+                loading={discussionLoading}
+                user={user}
+                userRoles={userRoles}
+                isSubmittingComment={isSubmittingComment}
+                onAddComment={postComment}
+                onDeleteComment={deleteComment}
+                onVoteComment={voteComment}
+                onShowVoters={handleShowVoters}
+                getRelativeTimeCb={getRelativeTimeCb}
+                isMobile={isMobile}
+              />
+            </Grid.Col>
+          </Grid>
+        )}
       </Stack>
 
       {/* Shared Modals */}

@@ -15,7 +15,8 @@ export function CommentSection({
   onDeleteComment,
   onVoteComment,
   onShowVoters,
-  getRelativeTimeCb
+  getRelativeTimeCb,
+  isMobile = false,
 }) {
   const [newCommentValue, setNewCommentValue] = useState('');
 
@@ -44,6 +45,7 @@ export function CommentSection({
             <Group justify="flex-end">
               <Button
                 size="sm"
+                fullWidth={isMobile}
                 loading={isSubmittingComment}
                 disabled={!newCommentValue.trim()}
                 onClick={handlePostComment}

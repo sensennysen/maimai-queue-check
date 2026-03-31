@@ -1,4 +1,4 @@
-import { Paper, Flex, Box, Image, Grid, Stack, Title, Text, Badge, Group, Button } from '@mantine/core';
+import { Paper, Flex, Box, Image, Grid, Stack, Title, Text, Badge, Group, Button, SimpleGrid } from '@mantine/core';
 import IconPlaylistAdd from '@tabler/icons-react/dist/esm/icons/IconPlaylistAdd.mjs';
 import { CATEGORY_TRANSLATION, VERSION_MAPPING } from '../../../config/maimai-constants';
 
@@ -12,11 +12,42 @@ import { CATEGORY_TRANSLATION, VERSION_MAPPING } from '../../../config/maimai-co
 export function SongHeader({ song, activeCardType, isMobileOrTablet, onAddToPlaylist }) {
   if (!song) return null;
 
+  const infoItems = [
+    {
+      label: 'Category',
+      value: (
+        <Badge variant="light" color="blue" size="md" radius="sm" style={{ whiteSpace: 'normal', height: 'auto', padding: '4px 8px' }}>
+          {CATEGORY_TRANSLATION[song.category] || song.category}
+        </Badge>
+      ),
+    },
+    {
+      label: 'Version',
+      value: <Text size="sm" fw={600}>{VERSION_MAPPING[song.version] || song.version || '-'}</Text>,
+    },
+    {
+      label: 'Type',
+      value: activeCardType === 'dx' || activeCardType === 'dx_plus' ? (
+        <img src={new URL('../../../assets/music_dx.png', import.meta.url).href} alt="DX" style={{ height: 24, objectFit: 'contain' }} />
+      ) : (
+        <img src={new URL('../../../assets/music_standard.png', import.meta.url).href} alt="Standard" style={{ height: 24, objectFit: 'contain' }} />
+      ),
+    },
+    song.bpm && {
+      label: 'BPM',
+      value: <Text size="sm" fw={600}>{song.bpm}</Text>,
+    },
+    song.releaseDate && {
+      label: 'Released',
+      value: <Text size="sm" fw={600}>{isMobileOrTablet ? song.releaseDate.split('-')[0] : song.releaseDate}</Text>,
+    },
+  ].filter(Boolean);
+
   return (
     <Paper p={{ base: 'md', md: 'lg' }} radius="md" withBorder>
-      <Flex direction={{ base: 'column', md: 'row' }} gap={{ base: 'md', md: 'xl' }} align="center">
+      <Flex direction={{ base: 'column', md: 'row' }} gap={{ base: 'md', md: 'xl' }} align={{ base: 'stretch', md: 'center' }}>
         {/* Image */}
-        <Box style={{ flexShrink: 0, width: isMobileOrTablet ? 160 : 180 }}>
+        <Box style={{ flexShrink: 0, width: isMobileOrTablet ? 132 : 180, marginInline: isMobileOrTablet ? 'auto' : 0 }}>
           <Image
             src={import.meta.env.VITE_SONG_JACKETS_URL + song.imageName}
             alt={song.title}
@@ -29,78 +60,50 @@ export function SongHeader({ song, activeCardType, isMobileOrTablet, onAddToPlay
 
         {/* Content for the rest */}
         <Box flex={1} w="100%">
-          <Grid gutter={{ base: 'md', md: 'xl' }} align="center">
+          <Grid gutter={{ base: 'md', md: 'xl' }} align="flex-start">
             {/* Box 1: Title and Artist */}
             <Grid.Col span={{ base: 12, md: 5 }}>
               <Stack gap="sm" align={isMobileOrTablet ? 'center' : 'flex-start'} ta={isMobileOrTablet ? 'center' : 'left'}>
                 <Title order={2} className="mobile-song-title" style={{ fontFamily: 'var(--font-heading)', wordBreak: 'break-word', marginTop: '4px' }}>
                   {song.title}
                 </Title>
-                <Text size={isMobileOrTablet ? "sm" : "md"} mt={-8}>Artist: <Text span fw={500}>{song.artist}</Text></Text>
+                <Text size={isMobileOrTablet ? 'sm' : 'md'} c="dimmed" mt={-4}>
+                  Artist: <Text span fw={600} c="inherit">{song.artist}</Text>
+                </Text>
                 <Button
                   variant="light"
                   color="teal"
                   leftSection={<IconPlaylistAdd size={16} />}
                   onClick={onAddToPlaylist}
                   size={isMobileOrTablet ? 'sm' : 'md'}
+                  fullWidth={isMobileOrTablet}
                 >
                   Add to Playlist
                 </Button>
               </Stack>
             </Grid.Col>
 
-            {/* Box 2 & 3: Info container on mobile/tablet */}
+            {/* Chart metadata */}
             <Grid.Col span={{ base: 12, md: 7 }}>
-              <Box>
-                <Grid gutter={{ base: 'xs', sm: 'md', md: 'xl' }} align="center">
-                  {/* Category and Version */}
-                  <Grid.Col span={{ base: 6, lg: 5 }}>
-                    <Stack gap="md" align={isMobileOrTablet ? 'center' : 'flex-start'} ta={isMobileOrTablet ? 'center' : 'left'} h="100%" justify="center">
-                      <Box>
-                        <Text size="sm" c="dimmed" tt="uppercase" fw={700} mb={4}>CATEGORY</Text>
-                        <Badge variant="light" color="blue" size="md" radius="sm" style={{ whiteSpace: 'normal', height: 'auto', padding: '4px 8px' }}>
-                          {CATEGORY_TRANSLATION[song.category] || song.category}
-                        </Badge>
-                      </Box>
-
-                      <Box>
-                        <Text size="sm" c="dimmed" tt="uppercase" fw={700} mb={4}>VERSION</Text>
-                        <Text size="md" fw={500}>{VERSION_MAPPING[song.version] || song.version || '-'}</Text>
-                      </Box>
-                    </Stack>
-                  </Grid.Col>
-
-                  {/* Type, BPM, Released */}
-                  <Grid.Col span={{ base: 6, lg: 7 }}>
-                    <Stack gap="md" align={isMobileOrTablet ? 'center' : 'flex-start'} ta={isMobileOrTablet ? 'center' : 'left'} h="100%" justify="center">
-                      <Box>
-                        <Text size="sm" c="dimmed" tt="uppercase" fw={700} mb={4}>TYPE</Text>
-                        {activeCardType === 'dx' || activeCardType === 'dx_plus' ? (
-                          <img src={new URL('../../../assets/music_dx.png', import.meta.url).href} alt="DX" style={{ height: 26, objectFit: 'contain' }} />
-                        ) : (
-                          <img src={new URL('../../../assets/music_standard.png', import.meta.url).href} alt="Standard" style={{ height: 26, objectFit: 'contain' }} />
-                        )}
-                      </Box>
-
-                      <Group gap="xl" align="flex-start" justify={isMobileOrTablet ? 'center' : 'flex-start'} wrap="nowrap">
-                        {song.bpm && (
-                          <Box mt={isMobileOrTablet ? 0 : 2}>
-                            <Text size="sm" c="dimmed" tt="uppercase" fw={700} mb={4}>BPM</Text>
-                            <Text size="base" fw={500}>{song.bpm}</Text>
-                          </Box>
-                        )}
-
-                        {song.releaseDate && (
-                          <Box mt={isMobileOrTablet ? 0 : 2} style={(song.bpm && !isMobileOrTablet) ? { borderLeft: '1px solid var(--mantine-color-default-border)', paddingLeft: 'var(--mantine-spacing-xl)' } : {}}>
-                            <Text size="sm" c="dimmed" tt="uppercase" fw={700} mb={4}>RELEASED</Text>
-                            <Text size="base" fw={500}>{isMobileOrTablet ? song.releaseDate.split('-')[0] : song.releaseDate}</Text>
-                          </Box>
-                        )}
-                      </Group>
-                    </Stack>
-                  </Grid.Col>
-                </Grid>
-              </Box>
+              <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="sm" verticalSpacing="sm">
+                {infoItems.map((item) => (
+                  <Box
+                    key={item.label}
+                    p="sm"
+                    style={{
+                      border: '1px solid var(--mantine-color-default-border)',
+                      borderRadius: 'var(--mantine-radius-md)',
+                      background: 'var(--mantine-color-default-hover)',
+                      minHeight: 78,
+                    }}
+                  >
+                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb={6} style={{ letterSpacing: '0.04em' }}>
+                      {item.label}
+                    </Text>
+                    {item.value}
+                  </Box>
+                ))}
+              </SimpleGrid>
             </Grid.Col>
           </Grid>
         </Box>
