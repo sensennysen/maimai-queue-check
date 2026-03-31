@@ -41,7 +41,7 @@ import Footer from '../components/layout/Footer';
 import './PublicProfilePage.css';
 
 const PublicProfilePage = () => {
-  const aprilFoolsAudioUrl = 'https://www.youtube.com/embed/onIvXsqFpH8?autoplay=1&loop=1&playlist=onIvXsqFpH8&controls=0&disablekb=1&playsinline=1&rel=0';
+  const aprilFoolsAudioUrl = '/audio/april-rain.mp3';
   const { slug } = useParams();
   const [profile, setProfile] = useState(null);
   const [branches, setBranches] = useState([]);
@@ -72,6 +72,7 @@ const PublicProfilePage = () => {
   const { requestFetch, songMapByTitle } = useSongDatabaseContext();
   const { scrollRef, isDragging } = useMouseDragScroll();
   const isMounted = useRef(true);
+  const rainAudioRef = useRef(null);
 
   useEffect(() => {
     isMounted.current = true;
@@ -195,6 +196,25 @@ const PublicProfilePage = () => {
     if (!canShowAprilFoolsToggle() && aprilFoolsEnabled) {
       setAprilFoolsEnabled(false);
     }
+  }, [aprilFoolsEnabled]);
+
+  useEffect(() => {
+    const audio = rainAudioRef.current;
+    if (!audio) return;
+
+    if (aprilFoolsEnabled) {
+      audio.currentTime = 0;
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch((error) => {
+          console.warn('Rain audio failed to start:', error);
+        });
+      }
+      return;
+    }
+
+    audio.pause();
+    audio.currentTime = 0;
   }, [aprilFoolsEnabled]);
 
   const clearSettingsParam = useCallback(() => {
@@ -378,16 +398,13 @@ const PublicProfilePage = () => {
           ))}
         </div>
       )}
-      {aprilFoolsEnabled && (
-        <iframe
-          key="april-fools-rain-audio"
-          className="profile-rain-audio-frame"
-          src={aprilFoolsAudioUrl}
-          title="April rain audio"
-          allow="autoplay; encrypted-media"
-          referrerPolicy="strict-origin-when-cross-origin"
-        />
-      )}
+      <audio
+        ref={rainAudioRef}
+        src={aprilFoolsAudioUrl}
+        loop
+        preload="auto"
+        style={{ display: 'none' }}
+      />
       <Stack gap="lg">
         {/* View as Public Banner */}
         {viewAsPublic && isRealOwner && (
@@ -1064,6 +1081,9 @@ const PublicProfilePage = () => {
           </Text>
           <Text size="sm" c="dimmed">
             Audio will play, so lower your volume first.
+          </Text>
+          <Text size="xs" c="dimmed">
+            Uses a local asset at <b>/audio/april-rain.mp3</b>.
           </Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={() => setRainConfirmOpen(false)}>

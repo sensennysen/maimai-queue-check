@@ -78,17 +78,6 @@
   animation-duration: calc(var(--rain-duration, 1.2s) * 0.72);
 }
 
-.profile-rain-audio-frame {
-  position: fixed;
-  width: 220px;
-  height: 220px;
-  left: -9999px;
-  top: -9999px;
-  border: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
 .profile-avatar-shell {
   position: relative;
   isolation: isolate;
