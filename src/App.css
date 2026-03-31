@@ -36,12 +36,24 @@
 .branch-selector-button {
   width: 250px;
   justify-content: space-between;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
+  transform: none !important;
 }
 
 .branch-selector-button .mantine-Button-label {
   overflow: hidden;
   width: 100%;
   justify-content: flex-start;
+}
+
+.branch-selector-button:hover,
+.branch-selector-button:active,
+.branch-selector-button:focus-visible {
+  transform: none !important;
+}
+
+.branch-selector-button:hover {
+  filter: brightness(1.03);
 }
 
 @media (max-width: 768px) {

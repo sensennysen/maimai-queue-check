@@ -79,6 +79,13 @@ function BranchSelector() {
       position="bottom-start"
       shadow="md"
       width={280}
+      styles={{
+        dropdown: {
+          maxHeight: 'min(22rem, calc(100vh - 8rem))',
+          overflowY: 'auto',
+          overscrollBehavior: 'contain',
+        },
+      }}
     >
       <Menu.Target>
         <Button
