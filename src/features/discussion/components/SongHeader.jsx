@@ -1,4 +1,4 @@
-import { Paper, Flex, Box, Image, Grid, Stack, Title, Text, Badge, Group, Button, SimpleGrid } from '@mantine/core';
+import { Paper, Flex, Box, Image, Grid, Stack, Title, Text, Badge, Button, SimpleGrid } from '@mantine/core';
 import IconPlaylistAdd from '@tabler/icons-react/dist/esm/icons/IconPlaylistAdd.mjs';
 import { CATEGORY_TRANSLATION, VERSION_MAPPING } from '../../../config/maimai-constants';
 
