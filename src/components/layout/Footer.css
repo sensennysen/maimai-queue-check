@@ -3,34 +3,31 @@
   padding: 2rem 1rem 6rem; /* Extra bottom padding for mobile dock */
   text-align: center;
   font-family: var(--font-heading);
+  color: var(--theme-text-muted);
 }
 
-.footer-link-group {
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   color: var(--theme-text-muted);
+  text-decoration: none;
   transition: all 0.3s ease;
   opacity: 0.8;
 }
 
-.footer-link-group:hover {
+.footer-link:hover {
   color: var(--theme-primary);
   opacity: 1;
   transform: translateY(-2px);
 }
 
-.footer-link-text {
-  transition: color 0.3s ease;
-}
-
-.footer-email {
-  text-decoration: none;
-}
-
-.footer-divider {
-  opacity: 0.5;
-  user-select: none;
+.footer-link svg {
+  color: currentColor;
 }
 
 .footer-copyright {
+  color: color-mix(in srgb, var(--theme-text-muted) 78%, var(--theme-secondary));
   opacity: 0.6;
   margin-top: 0.5rem;
 }
@@ -41,11 +38,7 @@
     margin-top: 2rem;
   }
 
-  .footer-divider {
-    display: none;
-  }
-
-  .footer-link-group {
+  .footer-link {
     font-size: 0.875rem;
   }
 

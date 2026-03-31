@@ -18,9 +18,8 @@ function Footer() {
           <Anchor
             component="button"
             size="sm"
-            c="dimmed"
             onClick={() => navigate('/privacy')}
-            style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+            className="footer-link"
           >
             <IconShieldLock size={14} />
             Privacy Policy
@@ -28,16 +27,15 @@ function Footer() {
           <Anchor
             component="button"
             size="sm"
-            c="dimmed"
             onClick={() => navigate('/terms')}
-            style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+            className="footer-link"
           >
             <IconFileText size={14} />
             Terms of Service
           </Anchor>
         </Group>
 
-        <Text size="sm" c="secondary" className="footer-copyright">
+        <Text size="sm" className="footer-copyright">
           © {new Date().getFullYear()} Made with <IconHeart size={12} fill="var(--theme-primary)" color="var(--theme-primary)" style={{ verticalAlign: 'middle', marginBottom: 2 }} /> by Senny
         </Text>
       </Stack>
