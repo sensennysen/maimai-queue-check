@@ -1082,9 +1082,6 @@ const PublicProfilePage = () => {
           <Text size="sm" c="dimmed">
             Audio will play, so lower your volume first.
           </Text>
-          <Text size="xs" c="dimmed">
-            Uses a local asset at <b>/audio/april-rain.mp3</b>.
-          </Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={() => setRainConfirmOpen(false)}>
               Cancel
