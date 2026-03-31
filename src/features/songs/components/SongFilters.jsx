@@ -3,6 +3,7 @@ import IconSearch from '@tabler/icons-react/dist/esm/icons/IconSearch.mjs';
 import IconFilter from '@tabler/icons-react/dist/esm/icons/IconFilter.mjs';
 import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 import { useState, useMemo } from 'react';
+import { VERSION_ORDER } from '../../../config/maimai-constants';
 
 // Helper for level conversion
 const parseLevel = (levelStr) => {
@@ -26,6 +27,15 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
   const isInternal = filters.showInternalLevels;
 
   const levelOptions = useMemo(() => levels.map(l => ({ value: l, label: l })), [levels]);
+  const orderedVersions = useMemo(() => {
+    const reversedVersionOrder = [...VERSION_ORDER].reverse();
+    const knownVersions = reversedVersionOrder.filter(version => versions.includes(version));
+    const unknownVersions = versions
+      .filter(version => !VERSION_ORDER.includes(version))
+      .sort((a, b) => a.localeCompare(b));
+
+    return [...knownVersions, ...unknownVersions];
+  }, [versions]);
 
   // For internal levels: fill from 1.0 up to the lowest available DB value (in increments of 1), then use actual DB values
   const internalLevelOptions = useMemo(() => {
@@ -141,7 +151,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
       <MultiSelect
         label="Versions"
         placeholder="Select versions"
-        data={versions}
+        data={orderedVersions}
         value={filters.versions}
         onChange={(val) => updateFilter('versions', val)}
         searchable
