@@ -28,6 +28,12 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
   }, [song.sheets, hideDifficulties]);
 
   const typeImage = song.cardType === 'dx' ? dxImage : standardImage;
+  const topRowSheets = sortedSheets.slice(0, 2);
+  const bottomRowSheets = sortedSheets.slice(2);
+
+  const getDifficultyBadgeWidth = (count) => (
+    count > 0 ? `calc((100% - ${(count - 1) * 4}px) / ${count})` : 'auto'
+  );
 
   return (
     <Paper
@@ -178,39 +184,62 @@ export const SongCard = React.memo(function SongCard({ song, onClick, hideDiffic
           </div>
 
           {/* Difficulty Bars */}
-          <Group gap={4} wrap="wrap" mt="sm">
-            {sortedSheets.map((sheet) => {
-              // Normalize difficulty string to match keys in DIFFICULTY_COLORS
-              const normalizedDiff = normalizeDifficulty(sheet.difficulty);
-              const diffColor = DIFFICULTY_COLORS[normalizedDiff] || 'gray';
+          <Stack gap={4} mt="sm">
+            {[topRowSheets, bottomRowSheets].filter(row => row.length > 0).map((rowSheets, rowIndex) => {
+              const difficultyBadgeWidth = getDifficultyBadgeWidth(rowSheets.length);
 
               return (
-                <Tooltip
-                  key={`${sheet.type}-${sheet.difficulty}`}
-                  label={`${sheet.difficulty}: ${sheet.level}${sheet.internalLevel ? ` (${sheet.internalLevel})` : ''}`}
-                  withArrow
-                  transitionProps={{ duration: 200 }}
-                >
-                  <Badge
-                    size="sm"
-                    variant="filled"
-                    style={{
-                      flex: 1,
-                      minWidth: 'auto',
-                      padding: '0 6px',
-                      cursor: 'default',
-                      fontSize: '12px',
-                      fontFamily: 'var(--font-body)',
-                      backgroundColor: diffColor,
-                      color: 'white'
-                    }}
-                  >
-                    {sheet.level}
-                  </Badge>
-                </Tooltip>
+                <Group key={`difficulty-row-${rowIndex}`} gap={4} wrap="nowrap">
+                  {rowSheets.map((sheet) => {
+                    // Normalize difficulty string to match keys in DIFFICULTY_COLORS
+                    const normalizedDiff = normalizeDifficulty(sheet.difficulty);
+                    const diffColor = DIFFICULTY_COLORS[normalizedDiff] || 'gray';
+
+                    return (
+                      <Tooltip
+                        key={`${sheet.type}-${sheet.difficulty}`}
+                        label={`${sheet.difficulty}: ${sheet.level}${sheet.internalLevel ? ` (${sheet.internalLevel})` : ''}`}
+                        withArrow
+                        transitionProps={{ duration: 200 }}
+                      >
+                        <Badge
+                          size="sm"
+                          variant="filled"
+                          styles={{
+                            label: {
+                              display: 'block',
+                              overflow: 'visible',
+                              textOverflow: 'clip',
+                              whiteSpace: 'nowrap',
+                              width: '100%',
+                              textAlign: 'center'
+                            }
+                          }}
+                          style={{
+                            flex: `0 0 ${difficultyBadgeWidth}`,
+                            width: difficultyBadgeWidth,
+                            minWidth: 0,
+                            padding: '0 4px',
+                            cursor: 'default',
+                            fontSize: '11px',
+                            lineHeight: 1.1,
+                            textAlign: 'center',
+                            justifyContent: 'center',
+                            fontVariantNumeric: 'tabular-nums',
+                            fontFamily: 'var(--font-body)',
+                            backgroundColor: diffColor,
+                            color: 'white'
+                          }}
+                        >
+                          {sheet.level}
+                        </Badge>
+                      </Tooltip>
+                    );
+                  })}
+                </Group>
               );
             })}
-          </Group>
+          </Stack>
         </Stack>
       </div>
     </Paper>

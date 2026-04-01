@@ -192,7 +192,7 @@ export default function ViewPage() {
             <Title
               order={1}
               className="app-title"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/queue')}
               style={{ cursor: 'pointer' }}
             >
               maiPaQueueCheck PH

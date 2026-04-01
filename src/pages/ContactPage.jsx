@@ -63,7 +63,7 @@ const ContactPage = () => {
         color: 'green',
       });
 
-      navigate('/'); // Redirect to main page
+      navigate('/queue'); // Redirect to queue page
     } catch (error) {
       notifications.show({
         title: 'Error',

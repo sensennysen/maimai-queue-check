@@ -19,8 +19,8 @@ import '../search/SearchAutocomplete.css';
 import './GlobalNavbar.css';
 
 const navItems = [
-  { label: 'Community Feed', desktopLabel: 'Community', compactLabel: 'Feed', mobileLabel: 'Feed', path: '/feed', icon: IconUsersGroup },
-  { label: 'Queue', compactLabel: 'Queue', mobileLabel: 'Queue', path: '/', icon: IconListDetails },
+  { label: 'Community', compactLabel: 'Community', mobileLabel: 'Feed', path: '/feed', icon: IconUsersGroup },
+  { label: 'Queue', compactLabel: 'Queue', mobileLabel: 'Queue', path: '/queue', icon: IconListDetails },
   { label: 'Songs', compactLabel: 'Songs', mobileLabel: 'Songs', path: '/songs', icon: IconMusic },
   { label: 'Playlists', compactLabel: 'Lists', mobileLabel: 'Lists', path: '/shared-playlists', icon: IconPlaylist },
 ];
@@ -29,8 +29,8 @@ function getActivePath(pathname) {
   if (pathname.startsWith('/p/') || pathname.startsWith('/profile')) return null;
   const exact = navItems.find((item) => pathname === item.path);
   if (exact) return exact.path;
-  const startsWith = navItems.find((item) => item.path !== '/' && pathname.startsWith(item.path));
-  return startsWith?.path || '/';
+  const startsWith = navItems.find((item) => pathname.startsWith(item.path));
+  return startsWith?.path || null;
 }
 
 export default function GlobalNavbar() {

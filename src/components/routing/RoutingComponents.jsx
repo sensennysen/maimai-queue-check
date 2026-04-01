@@ -8,11 +8,11 @@ export function ProfileRedirect() {
   const { user, userRoles, loading: authLoading } = useAuth();
   
   if (authLoading) return null;
-  if (!user) return <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/queue" replace />;
   if (userRoles?.slug) return <Navigate to={`/p/${userRoles.slug}`} replace />;
   
-  // If no slug yet, fallback to main app
-  return <Navigate to="/" replace />;
+  // If no slug yet, fallback to queue
+  return <Navigate to="/queue" replace />;
 }
 
 /**
@@ -22,7 +22,7 @@ export function ProtectedRoute({ children }) {
   const { user, loading: authLoading } = useAuth();
   
   if (authLoading) return null;
-  if (!user) return <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/queue" replace />;
   
   return children;
 }

@@ -6,7 +6,7 @@ import '@mantine/notifications/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/tiptap/styles.css';
 import { Analytics } from '@vercel/analytics/react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';
@@ -39,8 +39,8 @@ const FeedPage = lazy(() => import('./pages/FeedPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
 
-// The main application content (Queue check, Login, etc.)
-function MainApp() {
+// Queue page content
+function QueuePage() {
   return (
     <div className="App">
       <Container size="xl" py="xl">
@@ -53,6 +53,15 @@ function MainApp() {
       </Container>
     </div>
   );
+}
+
+function HomeRoute() {
+  const { user, loading } = useAuth();
+
+  if (loading) return null;
+  if (user) return <Navigate to="/feed" replace />;
+
+  return <Navigate to="/queue" replace />;
 }
 
 // Mantine must wrap ErrorBoundary so the boundary fallback (Mantine components) still has a provider.
@@ -94,6 +103,7 @@ function MantineAppShell() {
           <Routes>
             <Route path="/profile/export" element={<ExportBest50Page />} />
             <Route path="/profile" element={<ProfileRedirect />} />
+            <Route path="/queue" element={<QueuePage />} />
             <Route path="/view" element={<ViewPage />} />
             <Route path="/songs" element={<SongsPage />} />
             <Route path="/songs/:id" element={<SongDiscussionPage />} />
@@ -107,8 +117,8 @@ function MantineAppShell() {
             <Route path="/audit-logs" element={<AuditLogsPage />} />
             <Route path="/p/:slug" element={<PublicProfilePage />} />
             <Route path="/p/:slug/best50" element={<ProfileBest50Page />} />
-            <Route path="/" element={<MainApp />} />
-            <Route path="*" element={<MainApp />} />
+            <Route path="/" element={<HomeRoute />} />
+            <Route path="*" element={<QueuePage />} />
           </Routes>
         </Suspense>
         <Footer />
