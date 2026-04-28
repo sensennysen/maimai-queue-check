@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Paper, Title, Button, Text, Group, LoadingOverlay, Stack, Box, Alert } from '@mantine/core';
-import { IconPlus, IconHeart, IconAlertCircle } from '@tabler/icons-react';
+import { useState, useMemo } from 'react';
+import { Button, Text, Box, Paper, Title, TextInput, Modal as MantineModal, Stack, Group, Alert, ActionIcon } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
+import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
+import IconHeart from '@tabler/icons-react/dist/esm/icons/IconHeart.mjs';
+import IconMusicOff from '@tabler/icons-react/dist/esm/icons/IconMusicOff.mjs';
 import { notifications } from '@mantine/notifications';
-import { favoritesService } from '../../services/supabase';
-import { TextInput, Modal as MantineModal } from '@mantine/core';
+import { useFavorites } from '../../features/profile/hooks/useFavorites';
 import FavoriteSongCard from './FavoriteSongCard';
 import SongSelectionModal from '../../features/songs/components/SongSelectionModal';
 import MaimaiSongDetailModal from './MaimaiSongDetailModal';
@@ -11,58 +13,33 @@ import { useMouseDragScroll } from '../../hooks/useMouseDragScroll';
 import { useSongDatabaseContext } from '../../hooks/useSongDatabaseContext';
 
 export function FavoriteSongsSection({ userId, isOwnProfile }) {
+  const isMobile = useMediaQuery('(max-width: 500px)');
   const { loading: songsLoading, songMapById } = useSongDatabaseContext();
-  const [favorites, setFavorites] = useState([]); // [{ song_id, created_at }]
-  const [loading, setLoading] = useState(true); // Loading for favorites data
+  const {
+    favorites,
+    loading,
+    isAdding,
+    addFavorite,
+    removeFavorite,
+    updateComment
+  } = useFavorites(userId);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSongDetails, setSelectedSongDetails] = useState(null);
   const [selectedSongComment, setSelectedSongComment] = useState(null);
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [pendingSong, setPendingSong] = useState(null);
   const [comment, setComment] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
-
 
   const { scrollRef, isDragging } = useMouseDragScroll();
-  // const isMobile = useMediaQuery('(max-width: 48em)'); // Removed per requirement
-
-  // Fetch favorites data
-  useEffect(() => {
-    let mounted = true;
-    const fetchFavorites = async () => {
-      try {
-        setLoading(true);
-        const favsData = await favoritesService.getFavorites(userId);
-        if (mounted) {
-          setFavorites(favsData);
-        }
-      } catch (error) {
-        console.error("Error loading favorites:", error);
-        notifications.show({
-          title: 'Error',
-          message: 'Failed to load favorite songs',
-          color: 'red'
-        });
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    if (userId) {
-      fetchFavorites();
-    }
-
-    return () => { mounted = false; };
-  }, [userId]);
 
   const favoriteSongsMap = useMemo(() => {
-    // Map favorite song IDs to full song objects + the favorite comment metadata preserving order of favorites (newest first)
     return favorites
       .map(fav => {
         const songData = songMapById?.get(fav.song_id);
         if (!songData) return null;
         return {
-          song: { ...songData, favoriteId: fav.song_id }, // Inject original DB ID (handles cardId or old songId)
+          song: { ...songData, favoriteId: fav.song_id },
           comment: fav.comment
         };
       })
@@ -70,9 +47,6 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
   }, [songMapById, favorites]);
 
   const handleSongSelect = (song) => {
-    // Limit removed per requirement
-    // if (favorites.length >= 5) { ... }
-
     const songKey = song.cardId || song.songId;
     if (favorites.some(f => f.song_id === songKey)) {
       notifications.show({
@@ -86,144 +60,84 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
     setPendingSong(song);
     setComment('');
     setCommentModalOpen(true);
-    setIsModalOpen(false); // Close selection modal
+    setIsModalOpen(false);
   };
 
   const confirmAddFavorite = async () => {
     if (!pendingSong) return;
-
-    setIsAdding(true);
-    const pendingSongKey = pendingSong.cardId || pendingSong.songId;
-    try {
-      // Optimistic update
-      const newFav = {
-        song_id: pendingSongKey,
-        created_at: new Date().toISOString(),
-        comment: comment.trim() || null
-      };
-
-      setFavorites(prev => [newFav, ...prev]);
-
-      await favoritesService.addFavorite(userId, pendingSongKey, comment.trim() || null);
-
-      notifications.show({
-        title: 'Added',
-        message: `Added ${pendingSong.title} to favorites`,
-        color: 'green'
-      });
-
+    const success = await addFavorite(pendingSong, comment);
+    if (success) {
       setCommentModalOpen(false);
       setPendingSong(null);
       setComment('');
-    } catch (error) {
-      console.error(error);
-      // Revert on error
-      setFavorites(prev => prev.filter(f => f.song_id !== pendingSongKey));
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to add favorite',
-        color: 'red'
-      });
-    } finally {
-      setIsAdding(false);
     }
   };
 
-
   const handleUpdateComment = async (songId, newComment) => {
-    try {
-      // Optimistic update
-      setFavorites(prev => prev.map(f =>
-        f.song_id === songId ? { ...f, comment: newComment } : f
-      ));
-
-      await favoritesService.updateFavoriteComment(userId, songId, newComment);
-
-      notifications.show({
-        title: 'Updated',
-        message: 'Comment updated successfully',
-        color: 'green'
-      });
-
-      // Update selected comment if modal is open
+    const success = await updateComment(songId, newComment);
+    if (success) {
       if ((selectedSongDetails?.cardId || selectedSongDetails?.songId) === songId) {
         setSelectedSongComment(newComment);
       }
-    } catch (error) {
-      console.error(error);
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to update comment',
-        color: 'red'
-      });
-      // We should ideally revert but it's complex without original state. 
-      // User can just refresh.
     }
   };
 
   const handleRemoveFavorite = async (song) => {
-    const songId = song.favoriteId || song.cardId || song.songId;
-    const songTitle = song.title;
-    if (!confirm(`Remove ${songTitle} from favorites?`)) return;
-
-    try {
-      // Optimistic update
-      setFavorites(prev => prev.filter(f => f.song_id !== songId));
-
-      await favoritesService.removeFavorite(userId, songId);
-
-      notifications.show({
-        title: 'Removed',
-        message: `Removed ${songTitle} from favorites`,
-        color: 'green'
-      });
-    } catch (error) {
-      console.error(error);
-      // Revert
-      // We need to fetch again or just trust the previous state copy if we kept it
-      // For simplicity, just refetch or let it be (user can retry)
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to remove favorite',
-        color: 'red'
-      });
-    }
+    if (!confirm(`Remove ${song.title} from favorites?`)) return;
+    await removeFavorite(song);
   };
 
   const isEverythingLoading = loading || songsLoading;
 
-  if (isEverythingLoading && favoriteSongsMap.length === 0) {
-    return (
-      <Paper shadow="sm" p="lg" radius="md" withBorder mb="xl" style={{ minHeight: 200 }}>
-        <LoadingOverlay visible={true} />
-      </Paper>
-    );
-  }
+  if (isEverythingLoading && favoriteSongsMap.length === 0) return null;
+
+  const count = favoriteSongsMap.length;
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder pos="relative">
-      <Group justify="space-between" mb="lg">
-        <Group gap="xs">
-          <IconHeart size={24} style={{ color: 'var(--mantine-color-red-6)' }} />
-          <Title order={2} style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }} truncate>Favorite Songs</Title>
+    <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-200" pos="relative">
+      <Group justify="space-between" mb="md" align="center">
+        <Group gap="xs" align="center">
+          <IconHeart size={22} style={{ color: 'var(--theme-primary)', fill: 'var(--theme-primary)' }} />
+          <Title order={2}>Favorite Songs</Title>
+          {count > 0 && (
+            <Text size="sm" c="dimmed" fw={600} ml={4} mt={2}>
+              ({count})
+            </Text>
+          )}
         </Group>
 
         {isOwnProfile && (
-          <Button
-            leftSection={<IconPlus size={18} />}
-            variant="light"
-            onClick={() => setIsModalOpen(true)}
-          >
-            Add Favorite
-          </Button>
+          isMobile ? (
+            <ActionIcon
+              variant="light"
+              color="primary"
+              size="lg"
+              radius="xl"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <IconPlus size={20} />
+            </ActionIcon>
+          ) : (
+            <Button
+              leftSection={<IconPlus size={16} />}
+              variant="light"
+              color="primary"
+              size="sm"
+              onClick={() => setIsModalOpen(true)}
+              style={{ borderRadius: 999 }}
+            >
+              Add
+            </Button>
+          )
         )}
       </Group>
 
+      {/* Content */}
       {favoriteSongsMap.length === 0 ? (
-        <Alert icon={<IconAlertCircle size={16} />} title="No Favorites" color="gray" variant="light">
+        <Alert icon={<IconMusicOff size={16} />} title="No favorites" color="gray" variant="light">
           {isOwnProfile
-            ? "You haven't added any favorite songs yet. Click the button above to add some!"
-            : "This user hasn't added any favorite songs yet."}
+            ? "You haven't pinned any favorite tracks yet. Add the charts you love playing the most!"
+            : "This player hasn't pinned any favorite tracks yet."}
         </Alert>
       ) : (
         <div
@@ -231,15 +145,18 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
           className="hide-scrollbar"
           style={{
             display: 'flex',
-            gap: '12px',
-            paddingBottom: '12px',
-            paddingTop: '8px',
+            gap: '10px',
+            paddingBottom: '6px',
+            paddingTop: '4px',
             overflowX: 'auto',
             scrollBehavior: 'smooth'
           }}
         >
           {favoriteSongsMap.map(({ song, comment: favComment }, index) => (
-            <Box key={`${song.songId}-${index}`} style={{ minWidth: '160px', width: '180px', flexShrink: 0 }}>
+            <Box
+              key={`${song.songId}-${index}`}
+              style={{ minWidth: '148px', width: '168px', flexShrink: 0 }}
+            >
               <FavoriteSongCard
                 song={song}
                 comment={favComment}
@@ -257,6 +174,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
         </div>
       )}
 
+      {/* Modals */}
       {isOwnProfile && (
         <SongSelectionModal
           opened={isModalOpen}
@@ -265,7 +183,6 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
         />
       )}
 
-      {/* Comment Input Modal */}
       <MantineModal
         opened={commentModalOpen}
         onClose={() => !isAdding && setCommentModalOpen(false)}

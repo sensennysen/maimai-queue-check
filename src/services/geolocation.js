@@ -2,8 +2,9 @@ import { supabase } from './supabase';
 import { TABLES } from '../constants/database';
 
 /**
- * Check if geolocation permission is already granted
- * @returns {Promise<string>} Permission state: 'granted', 'denied', 'prompt', or 'unavailable'
+ * Evaluates the current state of geolocation permissions in the browser.
+ * Provides a fallback for browsers that do not support the Permissions API.
+ * @returns {Promise<string>} Permission state: 'granted', 'denied', 'prompt', or 'unavailable'.
  */
 export const checkGeolocationPermission = async () => {
   // Check if Permissions API is available
@@ -21,10 +22,10 @@ export const checkGeolocationPermission = async () => {
 };
 
 /**
- * Calculate distance between two coordinates using Haversine formula
- * @param {Object} coord1 - First coordinate {latitude, longitude}
- * @param {Object} coord2 - Second coordinate {latitude, longitude}
- * @returns {number} Distance in meters
+ * Calculates the geographical distance between two points using the Haversine formula.
+ * @param {Object} coord1 - The first coordinate {latitude, longitude}.
+ * @param {Object} coord2 - The second coordinate {latitude, longitude}.
+ * @returns {number} The calculated distance in meters.
  */
 export const getDistance = (coord1, coord2) => {
   const R = 6371e3; // Earth's radius in meters
@@ -42,8 +43,9 @@ export const getDistance = (coord1, coord2) => {
 };
 
 /**
- * Request user's current location
- * @returns {Promise<Object>} Promise that resolves to {latitude, longitude}
+ * Requests the user's current GPS coordinates via the browser's Geolocation API.
+ * Encapsulates the callback-based API into a modern Promise structure.
+ * @returns {Promise<Object>} A promise resolving to an object containing {latitude, longitude}.
  */
 export const requestUserLocation = () => {
   return new Promise((resolve, reject) => {
@@ -84,9 +86,10 @@ export const requestUserLocation = () => {
 };
 
 /**
- * Find the nearest branch to the user's location
- * @param {Object} userLocation - User's location {latitude, longitude}
- * @returns {Promise<Object>} Promise that resolves to {nearestBranch, distance}
+ * Identifies the arcade branch geographically closest to the user's current location.
+ * Queries the database for all enabled branches and computes distances.
+ * @param {Object} userLocation - User's current coordinates {latitude, longitude}.
+ * @returns {Promise<Object>} A promise resolving to an object with {nearestBranch, distance}.
  */
 export const findNearestBranch = async (userLocation) => {
   const { data: places, error } = await supabase
@@ -128,15 +131,12 @@ export const findNearestBranch = async (userLocation) => {
 };
 
 /**
- * Check if user is within allowed distance of any allowed place.
- * Requirement FRAG-04 Guard: Handles empty places gracefully and always returns
- * a valid structure {isAllowed: boolean, nearestPlace: Object|null, distance: number|null, error?: string}.
- * Callers rely on this structure.
- *
- * @param {Object} userLocation - User's location {latitude, longitude}
- * @param {number} maxDistance - Maximum allowed distance in meters (default: 100)
- * @param {string} branchId - Optional: Check proximity to specific branch only
- * @returns {Promise<Object>} Promise that resolves to {isAllowed, nearestPlace, distance}
+ * Verifies if the user is within a specified proximity threshold of a branch.
+ * Defaults to 100 meters unless overridden. Can target a specific branch or the entire network.
+ * @param {Object} userLocation - User's current coordinates {latitude, longitude}.
+ * @param {number} [maxDistance=100] - The maximum allow proximity in meters.
+ * @param {string} [branchId=null] - Optional ID of a specific branch to check against.
+ * @returns {Promise<Object>} A promise resolving to {isAllowed, nearestPlace, distance, error?}.
  */
 export const checkUserProximity = async (userLocation, maxDistance = 100, branchId = null) => {
   let query = supabase
@@ -198,9 +198,9 @@ export const checkUserProximity = async (userLocation, maxDistance = 100, branch
 };
 
 /**
- * Check if user has edit permissions
- * @param {string} userId - User's ID
- * @returns {Promise<boolean>} Promise that resolves to true if user has edit permissions
+ * Checks the database for a user's administrative or branch-specific edit permissions.
+ * @param {string} userId - The unique identifier of the user to check.
+ * @returns {Promise<Object>} A promise resolving to {can_edit: boolean, can_edit_on: Array<string>}.
  */
 export const checkEditPermissions = async (userId) => {
   try {
@@ -224,21 +224,12 @@ export const checkEditPermissions = async (userId) => {
 };
 
 /**
- * Verify user location and permissions.
- * Requirement FRAG-05: Preserve existing geolocation error handling and user-facing messages.
- * Note: Any permission/timeout changes must be thoroughly tested in browsers
- * that deny or lack geolocation.
- * 
- * Requirement FRAG-04 Context: This function returns a consistent structured object:
- * { allowed: boolean, reason: string, location: Object|null, proximity: Object|null, error?: string }
- * Callers (like useQueueActions and queue components) rely on this exact structure
- * to generate user-facing modals/messages. Null returns or empty objects will break
- * the UI guards. Always return the full structure.
- *
- * @param {string} userId - User's ID
- * @param {string} branchId - Optional: Verify proximity to specific branch
- * @param {boolean} isAdmin - Optional: If true, always allow
- * @returns {Promise<Object>} Promise that resolves to {allowed, reason, location, proximity}
+ * Performs a comprehensive validation of both geographical proximity and role-based permissions.
+ * This is the primary guard used by UI components to determine if a queue operation is allowed.
+ * @param {string} userId - The unique identifier of the user.
+ * @param {string} [branchId=null] - The ID of the branch the user is attempting to edit.
+ * @param {boolean} [isSuperAdmin=false] - Flag to bypass all location checks for administrators.
+ * @returns {Promise<Object>} A promise resolving to {allowed, reason, location, proximity, error?}.
  */
 export const verifyUserLocationAndPermissions = async (userId, branchId = null, isSuperAdmin = false) => {
   // console.log('[Geo] Verifying permissions', { userId, branchId, isSuperAdmin });

@@ -53,7 +53,7 @@ export const PlaylistStack = React.memo(function PlaylistStack({ playlist, songs
               <Text fw={800} size="sm" c="white" lineClamp={1} style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
                 {playlist.title}
               </Text>
-              <Text size="xs" c="rgba(255,255,255,0.8)" lineClamp={1} style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+              <Text size="sm" c="rgba(255,255,255,0.8)" lineClamp={1} style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
                 {songs.length} {songs.length === 1 ? 'Song' : 'Songs'}
               </Text>
             </Stack>

@@ -2,6 +2,11 @@
 import otogeDb from '../assets/otoge-db.json';
 import { RATING_RATES, GRADE_THRESHOLDS, NEW_VERSIONS } from '../config/maimai-constants';
 
+/**
+ * Determines the rating multiplier (rate) based on the achievement percentage.
+ * @param {number} achievement - The achievement percentage (0-101).
+ * @returns {number} The corresponding rating multiplier.
+ */
 const getRate = (achievement) => {
   for (const { min, rate } of RATING_RATES) {
     if (achievement >= min) return rate;
@@ -10,6 +15,11 @@ const getRate = (achievement) => {
 };
 
 // Helper: Normalize name for matching
+/**
+ * Normalizes a string by trimming leading and trailing whitespace.
+ * @param {string} str - The string to normalize.
+ * @returns {string} The trimmed string.
+ */
 const normalize = (str) => str.trim();
 
 // Map Difficulty Name to Index
@@ -22,15 +32,31 @@ const DIFFICULTY_MAP = {
   'Re:Master': 'remas'
 };
 
+/**
+ * Fetches the full song list from the local database.
+ * @returns {Promise<Array<Object>>} A promise resolving to the array of song objects.
+ */
 export const fetchSongConstants = async () => {
   // Return local DB songs array directly
   return otogeDb.songs;
 };
 
+/**
+ * Calculates the rating contribution for a single song performance.
+ * Formula: floor(internal_level * multiplier * achievement / 100)
+ * @param {number} achievement - The achievement percentage achieved.
+ * @param {number} level - The internal level value of the song sheet.
+ * @returns {number} The calculated rating value.
+ */
 export const calculateSongRating = (achievement, level) => {
   return Math.floor(level * getRate(achievement) * (Math.min(100.5, achievement) / 100)); 
 };
 
+/**
+ * Determines the grade (e.g., SSS+, SS) based on the achievement percentage.
+ * @param {number} achievement - The achievement percentage.
+ * @returns {string} The corresponding grade string.
+ */
 export const getGrade = (achievement) => {
   for (const { min, grade } of GRADE_THRESHOLDS) {
     if (achievement >= min) return grade;
@@ -40,6 +66,11 @@ export const getGrade = (achievement) => {
 
 /**
  * Build a Map of songs keyed by normalized title for fast lookup
+ */
+/**
+ * Constructs a Map of songs keyed by their normalized titles for O(1) lookups.
+ * @param {Array<Object>} songs - The array of song objects to index.
+ * @returns {Map<string, Object>} A Map mapping normalized titles to song objects.
  */
 const buildSongMap = (songs) => {
   const songMap = new Map();
@@ -51,6 +82,12 @@ const buildSongMap = (songs) => {
 
 /**
  * Find the matching sheet for a score based on type and difficulty
+ */
+/**
+ * Identifies the specific song sheet (Difficulty + Type) that matches a provided score record.
+ * @param {Object} song - The song object containing sheets.
+ * @param {Object} score - The score record with difficulty and type information.
+ * @returns {Object|undefined} The matching sheet object, or undefined if not found.
  */
 const findMatchingSheet = (song, score) => {
   const targetType = score.type === 'DX' ? 'dx' : 'std';
@@ -65,6 +102,11 @@ const findMatchingSheet = (song, score) => {
 /**
  * Parse achievement percentage from score string
  */
+/**
+ * Sanitizes and parses an achievement percentage value from various input types.
+ * @param {string|number} scoreStr - The raw score/achievement string or number.
+ * @returns {number} The parsed floating-point achievement value.
+ */
 const parseAchievement = (scoreStr) => {
   const achievementStr = String(scoreStr);
   const achievement = parseFloat(achievementStr.replace('%', ''));
@@ -73,6 +115,12 @@ const parseAchievement = (scoreStr) => {
 
 /**
  * Process a single score and return calculated score object
+ */
+/**
+ * Processes a raw score entry into a detailed performance object with rating and grade.
+ * @param {Object} score - The raw score entry to process.
+ * @param {Map<string, Object>} songMap - The pre-built song dictionary for lookup.
+ * @returns {Object|null} The processed score object, or null if song/sheet is missing.
  */
 const processScore = (score, songMap) => {
   const key = normalize(score.title);
@@ -127,6 +175,14 @@ const processScore = (score, songMap) => {
   };
 };
 
+/**
+ * Calculates the "Best 50" rating breakdown and list for a user.
+ * Supports both raw bulk scores and pre-processed Best 50 summaries from the database.
+ * @param {Array<Object>} rawScores - The list of all user scores.
+ * @param {Array<Object>} songs - The full song database constants.
+ * @param {Object} [rawBestFifty=null] - Optional pre-calculated Best 50 data from Supabase.
+ * @returns {Promise<Object>} A promise resolving to the Best 50 breakdown {best_new, best_old, total_rating}.
+ */
 export const calculateBest50 = async (rawScores, songs, rawBestFifty = null) => {
   const songMap = buildSongMap(songs);
   

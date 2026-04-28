@@ -8,6 +8,12 @@ import { usePermissions } from '../../../hooks/usePermissions';
 import { emptyQueueMessages } from '../../../data/subtitleMessages';
 import './QueueList.css';
 
+/**
+ * Component for displaying the full list of waiting queue entries.
+ * Orchestrates reordering, deletion, and game session initiation.
+ * @param {Object} props - Component props.
+ * @returns {JSX.Element} The rendered queue list.
+ */
 const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, loadingRoles = false, cabinetNum = null, hasMultipleCabinets = false, addedIds = null, movedIds = null, removingId = null }) {
   const { user, userRoles } = useAuth();
 

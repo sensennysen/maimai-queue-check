@@ -4,6 +4,16 @@ export const config = {
   runtime: 'nodejs',
 };
 
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+    .replaceAll('=', '&#61;');
+}
+
 export default async function handler(req, res) {
   const { slug } = req.query;
 
@@ -28,16 +38,36 @@ export default async function handler(req, res) {
     }
 
     // 2. Prepare metadata
-    const host = req.headers.host || 'mpqcheckph.vercel.app';
-    const protocol = host.includes('localhost') ? 'http' : 'https';
-    const baseUrl = `${protocol}://${host}`;
+    // Use a fixed production domain if possible, or fall back to VERCEL_URL.
+    // Host headers are user-controlled and unsafe for canonical URLs.
+    const productionHost = 'mpqcheckph.vercel.app';
+    const currentHost = process.env.VERCEL_URL || productionHost;
+    const protocol = currentHost.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${currentHost}`;
     
-    const name = profile.display_name || 'Anonymous Player';
-    const photo = profile.display_photo_url || profile.dx_display_photo_url || `${baseUrl}/icon.png`;
+    const name = (profile.display_name || 'Anonymous Player').trim();
+    // photo validation: only allow http(s) or relative paths to prevent data URIs or large payloads
+    let photo = profile.display_photo_url || profile.dx_display_photo_url || `${baseUrl}/icon.png`;
+    try {
+        const photoUrl = new URL(photo, baseUrl);
+        if (photoUrl.protocol !== 'http:' && photoUrl.protocol !== 'https:') {
+            photo = `${baseUrl}/icon.png`;
+        }
+    } catch {
+        photo = `${baseUrl}/icon.png`;
+    }
+
     const title = `${name} | maiPaQueueCheck PH`;
     const description = `Check out ${name}'s maimai profile and best scores on maiPaQueueCheck PH.`;
-    const url = `${baseUrl}/p/${slug}`;
+    const safeSlug = encodeURIComponent(String(slug));
+    const url = `${baseUrl}/p/${safeSlug}`;
     const siteName = 'maiPaQueueCheck PH';
+
+    const escTitle = escapeHtml(title);
+    const escDescription = escapeHtml(description);
+    const escUrl = escapeHtml(url);
+    const escPhoto = escapeHtml(photo);
+    const escSiteName = escapeHtml(siteName);
 
     // 3. Generate HTML with Meta Tags
     // We use a template based on the project's index.html
@@ -47,28 +77,28 @@ export default async function handler(req, res) {
   <meta charset="UTF-8" />
   <link rel="icon" type="image/jpeg" href="/icon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${title}</title>
+  <title>${escTitle}</title>
   
   <!-- Primary Meta Tags -->
-  <meta name="title" content="${title}">
-  <meta name="description" content="${description}">
+  <meta name="title" content="${escTitle}">
+  <meta name="description" content="${escDescription}">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="${url}">
-  <meta property="og:site_name" content="${siteName}">
-  <meta property="og:title" content="${title}">
-  <meta property="og:description" content="${description}">
-  <meta property="og:image" content="${photo}">
+  <meta property="og:url" content="${escUrl}">
+  <meta property="og:site_name" content="${escSiteName}">
+  <meta property="og:title" content="${escTitle}">
+  <meta property="og:description" content="${escDescription}">
+  <meta property="og:image" content="${escPhoto}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="${url}">
-  <meta property="twitter:title" content="${title}">
-  <meta property="twitter:description" content="${description}">
-  <meta property="twitter:image" content="${photo}">
+  <meta property="twitter:url" content="${escUrl}">
+  <meta property="twitter:title" content="${escTitle}">
+  <meta property="twitter:description" content="${escDescription}">
+  <meta property="twitter:image" content="${escPhoto}">
   <meta property="twitter:site" content="@maipaqueue">
 
   <!-- Fonts -->
@@ -81,7 +111,8 @@ export default async function handler(req, res) {
   <script>
     // Redirect to the actual profile page for regular users if they somehow land here
     // but the middleware should handle the rewrite so this is just a safety net
-    window.location.href = "${url}";
+    const target = ${JSON.stringify(url)};
+    window.location.assign(target);
   </script>
 </body>
 </html>`;

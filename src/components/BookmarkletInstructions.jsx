@@ -6,6 +6,11 @@ import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import IconCopy from '@tabler/icons-react/dist/esm/icons/IconCopy.mjs';
 import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
 
+/**
+ * Component providing instructions and code for the maimai score export bookmarklet.
+ * Supports desktop (drag-and-drop) and mobile (copy-paste) installation methods.
+ * @returns {JSX.Element} The rendered instructions view.
+ */
 export const BookmarkletInstructions = () => {
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://maipaqueuecheck.ph';
   const bookmarkletCode = `javascript:!function(){var s=document.createElement("script");s.src="${origin}/bookmarklet.js?v=" + Date.now();document.head.appendChild(s)}();`;
@@ -39,7 +44,7 @@ export const BookmarkletInstructions = () => {
               <Button
                 component="a"
                 ref={bookmarkletRef}
-                size="xs"
+                size="sm"
                 variant="outline"
                 color="pink"
                 mt="xs"
@@ -69,7 +74,7 @@ export const BookmarkletInstructions = () => {
               <Group mt="xs">
                 <CopyButton value={bookmarkletCode} timeout={2000}>
                   {({ copied, copy }) => (
-                    <Button color={copied ? 'teal' : 'blue'} onClick={copy} size="xs" leftSection={copied ? <IconCheck size={16} /> : <IconCopy size={16} />}>
+                    <Button color={copied ? 'teal' : 'blue'} onClick={copy} size="sm" leftSection={copied ? <IconCheck size={16} /> : <IconCopy size={16} />}>
                       {copied ? 'Copied' : 'Copy Code'}
                     </Button>
                   )}
@@ -91,7 +96,7 @@ export const BookmarkletInstructions = () => {
             </List.Item>
             <List.Item>
               <strong>To run it:</strong> Type <strong>"maimai Export"</strong> in the address bar and tap the <strong>bookmark suggestion</strong> (star icon).
-              <Text size="xs" c="red" mt={4}>
+              <Text size="sm" c="red" mt={4}>
                 Do not tap the "Search" result, or it won't work!
               </Text>
             </List.Item>

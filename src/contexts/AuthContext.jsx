@@ -5,6 +5,13 @@ import { notifications } from '@mantine/notifications';
 import { AuthContext } from './AuthContextProvider';
 import { TABLES } from '../constants/database';
 
+/**
+ * Provider component for the global Authentication context.
+ * Manages user session, role-based permissions, and synchronization with the database.
+ * @param {Object} props - Component props.
+ * @param {React.ReactNode} props.children - Child components to be wrapped by the provider.
+ * @returns {JSX.Element} The rendered context provider.
+ */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userRoles, setUserRoles] = useState(null);
@@ -12,31 +19,12 @@ export const AuthProvider = ({ children }) => {
 
   const { selectedBranch } = useBranch();
 
-  // Helper to manage local storage cache
-  const getCachedRoles = (uid) => {
-    try {
-      // SEC-04: Try new key first, fall back to old key for backward compatibility
-      let cached = localStorage.getItem(`user_roles_${uid}`);
-      if (!cached) {
-        cached = localStorage.getItem(`smf_user_roles_${uid}`);
-      }
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
-    }
-  };
 
-  const cacheRoles = (uid, roles) => {
-    try {
-      // SEC-04: write using new key
-      localStorage.setItem(`user_roles_${uid}`, JSON.stringify(roles));
-    } catch (e) {
-      console.warn('Failed to cache user roles', e);
-    }
-  };
-
-  // Define fetch roles logic as a reusable function
-  // Define fetch roles logic as a reusable function
+  /**
+   * Triggers a fresh fetch of user roles and permissions from the service layer.
+   * Includes a 5-second timeout safety and background caching.
+   * @returns {Promise<Object|null>} A promise resolving to the refreshed roles or null on failure.
+   */
   const refreshUserRoles = useCallback(async () => {
     if (!user) return null;
 
@@ -49,8 +37,12 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const roles = await Promise.race([rolesPromise, timeoutPromise]);
-      setUserRoles(roles);
-      cacheRoles(user.id, roles);
+      setUserRoles(prev => {
+        if (prev && roles && JSON.stringify(prev) === JSON.stringify(roles)) {
+          return prev;
+        }
+        return roles;
+      });
       return roles;
     } catch {
       // Set default permissions on error (keep existing permissions if available)
@@ -63,7 +55,7 @@ export const AuthProvider = ({ children }) => {
         }
       );
 
-      // Surface UI notification per FRAG-03 requirement
+      // Surface UI notification for error handling
       notifications.show({
         title: 'Roles could not be loaded',
         message: 'There was a problem loading your permissions. Some actions may be temporarily unavailable.',
@@ -84,15 +76,15 @@ export const AuthProvider = ({ children }) => {
     } = authService.onAuthStateChange(async (event, session) => {
       try {
         const currentUser = session?.user ?? null;
-        setUser(currentUser);
-
-        // Optimistically set roles from cache if available
-        if (currentUser) {
-          const cached = getCachedRoles(currentUser.id);
-          if (cached) {
-            setUserRoles(cached);
+        setUser(prev => {
+          if (!prev && !currentUser) return null;
+          if (prev && currentUser && prev.id === currentUser.id) {
+            // Keep the same object reference if the ID is the same
+            // This prevents widespread re-renders when token refreshes on focus
+            return prev;
           }
-        }
+          return currentUser;
+        });
 
         // Set loading to false immediately - don't wait for network fetch of roles
         setLoading(false);
@@ -176,7 +168,7 @@ export const AuthProvider = ({ children }) => {
         },
         () => {
           // Profile changed/added/deleted
-          // Just re-fetch the merged world state
+          // Just re-fetch the world state
           refreshUserRoles();
         }
       )
@@ -188,6 +180,11 @@ export const AuthProvider = ({ children }) => {
     };
   }, [user, refreshUserRoles]);
 
+  /**
+   * Initiates an external OAuth sign-in flow (e.g., Discord, Google).
+   * @param {string} provider - The case-sensitive name of the OAuth provider.
+   * @returns {Promise<void>} A promise that resolves when the flow is initiated.
+   */
   const signInWithProvider = async (provider) => {
     setLoading(true);
     try {
@@ -197,24 +194,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Terminates the current session and clears all local auth/role caches.
+   * @returns {Promise<void>} A promise that resolves when the sign-out is complete.
+   */
   const signOut = async () => {
     setLoading(true);
     try {
-      // SEC-01: Clear role cache before signing out
-      if (user?.id) {
-        localStorage.removeItem(`user_roles_${user.id}`);
-        localStorage.removeItem(`smf_user_roles_${user.id}`);
-      }
-
-      // Safety fallback: clear any lingering role caches from previous sessions
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('smf_user_roles_') || key.startsWith('user_roles_'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
 
       await authService.signOut();
       setUser(null);
@@ -234,4 +220,4 @@ export const AuthProvider = ({ children }) => {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+};

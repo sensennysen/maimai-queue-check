@@ -1,0 +1,76 @@
+.search-autocomplete-dropdown {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--theme-surface) 95%, white 5%),
+      color-mix(in srgb, var(--theme-surface) 88%, var(--theme-background) 12%)
+    ) !important;
+  border: 1px solid color-mix(in srgb, var(--theme-border) 72%, transparent) !important;
+}
+
+.search-autocomplete-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.search-autocomplete-section + .search-autocomplete-section {
+  padding-top: 0.25rem;
+  border-top: 1px solid color-mix(in srgb, var(--theme-border) 52%, transparent);
+}
+
+.search-autocomplete-item {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--theme-border) 48%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--theme-surface) 82%, transparent);
+  color: var(--theme-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.search-autocomplete-item:hover,
+.search-autocomplete-item:focus-visible {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--theme-primary) 45%, var(--theme-border) 55%);
+  background: color-mix(in srgb, var(--theme-surface-hover) 82%, var(--theme-primary) 18%);
+  outline: none;
+}
+
+.search-autocomplete-item-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.search-autocomplete-item-title {
+  font-weight: 800;
+  font-family: var(--font-heading);
+  line-height: 1.15;
+}
+
+.search-autocomplete-item-meta {
+  color: var(--theme-text-muted);
+  font-size: 0.84rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-autocomplete-item-tag {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 0.28rem 0.6rem;
+  background: color-mix(in srgb, var(--theme-secondary) 16%, transparent);
+  color: color-mix(in srgb, var(--theme-secondary) 72%, var(--theme-text-primary) 28%);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}

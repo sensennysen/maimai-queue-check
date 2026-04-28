@@ -1,19 +1,16 @@
 import { useState } from 'react';
 import { Paper, Group, Title, Text, ActionIcon, Button, Stack } from '@mantine/core';
-import { IconQuote, IconPencil, IconX, IconCheck } from '@tabler/icons-react';
+import IconQuote from '@tabler/icons-react/dist/esm/icons/IconQuote.mjs';
+import IconPencil from '@tabler/icons-react/dist/esm/icons/IconPencil.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import DOMPurify from 'dompurify';
 import { notifications } from '@mantine/notifications';
 import { userService } from '../../services/supabase';
 
-const ALLOWED_TAGS = ['p', 'strong', 'em', 's', 'ul', 'ol', 'li', 'a', 'br', 'blockquote'];
-const ALLOWED_ATTR = ['href', 'target', 'rel'];
-
-function sanitize(html) {
-  return DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR });
-}
+import { sanitizeHtml } from '../../utils/sanitizeHtml';
 
 function IntroductionEditor({ initialContent, onSave, onCancel }) {
   const [characterCount, setCharacterCount] = useState(0);
@@ -76,7 +73,7 @@ function IntroductionEditor({ initialContent, onSave, onCancel }) {
       </RichTextEditor>
 
       <Group gap="xs" justify="space-between">
-        <Text size="xs" c={isOverLimit ? 'red' : 'dimmed'} fw={isOverLimit ? 700 : 400}>
+        <Text size="sm" c={isOverLimit ? 'red' : 'dimmed'} fw={isOverLimit ? 700 : 400}>
           {characterCount} / 1000 characters
         </Text>
         <Group gap="xs">
@@ -95,7 +92,7 @@ function IntroductionEditor({ initialContent, onSave, onCancel }) {
             loading={isSaving}
             disabled={isOverLimit}
             size="sm"
-            color={isOverLimit ? 'red' : 'blue'}
+            color={isOverLimit ? 'var(--theme-error)' : 'primary'}
           >
             Save
           </Button>
@@ -129,7 +126,7 @@ export function IntroductionCard({ introduction, isOwnProfile, userId, onUpdate 
     <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-200">
       <Group justify="space-between" mb={isEditing || hasContent ? 'md' : 0}>
         <Group gap="xs">
-          <IconQuote size={24} style={{ color: 'var(--mantine-color-pink-5)' }} />
+          <IconQuote size={24} style={{ color: 'var(--theme-accent)' }} />
           <Title order={2}>Introduction</Title>
         </Group>
 
@@ -154,7 +151,7 @@ export function IntroductionCard({ introduction, isOwnProfile, userId, onUpdate 
       ) : hasContent ? (
         <div
           className="mantine-RichTextEditor-content"
-          dangerouslySetInnerHTML={{ __html: sanitize(introduction) }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(introduction, { mode: 'rich' }) }}
           style={{ lineHeight: 1.7 }}
         />
       ) : (

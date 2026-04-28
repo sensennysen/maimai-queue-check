@@ -1,3 +1,8 @@
+/**
+ * Converts a date string into a human-readable relative time format (e.g., "5 minutes ago").
+ * @param {string} dateString - The ISO date string to format.
+ * @returns {string} A string representing the time elapsed since the given date.
+ */
 export const getRelativeTime = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -33,10 +38,10 @@ export const getRelativeTime = (dateString) => {
 };
 
 /**
- * Returns the best available profile image URL for a user
- * Fallback priority: custom display photo -> maimai dx icon -> placeholder
- * @param {Object} profile - User profile object from Supabase
- * @returns {string|null} - Profile image URL or null if no profile
+ * Determines the best available profile image URL for a user based on a priority hierarchy.
+ * Priority: custom display photo > maimai DX icon > null.
+ * @param {Object} profile - The user profile object containing photo candidate URLs.
+ * @returns {string|null} The resolved image URL or null if no candidate is found.
  */
 export const getProfileImageUrl = (profile) => {
   if (!profile) return null;

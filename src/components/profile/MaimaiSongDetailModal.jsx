@@ -1,35 +1,27 @@
-import { Modal, Image, Text, Group, Stack, Tooltip, SimpleGrid, TextInput, ActionIcon, Divider } from '@mantine/core';
+import {
+  Modal,
+  Image,
+  Text,
+  Group,
+  Stack,
+  Tooltip,
+  SimpleGrid,
+  TextInput,
+  ActionIcon,
+  Badge,
+  Button,
+  Box,
+  UnstyledButton,
+} from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconCheck, IconEdit, IconCheck as IconSave, IconX, IconStarFilled } from '@tabler/icons-react';
+import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
+import IconStarFilled from '@tabler/icons-react/dist/esm/icons/IconStarFilled.mjs';
+import IconDisc from '@tabler/icons-react/dist/esm/icons/IconDisc.mjs';
+import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
 import { useState, useEffect } from 'react';
-import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
-import { Badge, Button } from '@mantine/core';
+import { VERSION_MAPPING, CATEGORY_TRANSLATION, DIFFICULTY_COLORS, normalizeDifficulty, BASE_JACKET_URL } from '../../config/maimai-constants';
 import { Link } from 'react-router-dom';
-import { IconMessageCircle } from '@tabler/icons-react';
-
-const formatComboAchievement = (value) => {
-  if (!value) return null;
-  const v = String(value).trim();
-  const lower = v.toLowerCase();
-  if (lower === 'fc') return 'FC';
-  if (lower === 'fcp') return 'FC+';
-  if (lower === 'ap') return 'AP';
-  if (lower === 'app') return 'AP+';
-  if (v === 'FC' || v === 'FC+' || v === 'AP' || v === 'AP+') return v;
-  return v;
-};
-
-const formatSyncType = (value) => {
-  if (!value) return null;
-  const v = String(value).trim();
-  const lower = v.toLowerCase();
-  if (lower === 'fs') return 'FS';
-  if (lower === 'fsp') return 'FS+';
-  if (lower === 'fdx') return 'FDX';
-  if (lower === 'fdxp') return 'FDX+';
-  if (v === 'FS' || v === 'FS+' || v === 'FDX' || v === 'FDX+') return v;
-  return v;
-};
 
 function MaimaiSongDetailModal({
   song,
@@ -38,7 +30,6 @@ function MaimaiSongDetailModal({
   comment: initialComment,
   playCount,
   difficulty,
-  title = "Song Details",
   isOwnProfile,
   onCommentSave,
   best50Score
@@ -80,258 +71,324 @@ function MaimaiSongDetailModal({
     }).catch(err => console.error('Failed to copy:', err));
   };
 
+  const normalizedDifficulty = normalizeDifficulty(difficulty);
+  const effectiveBest50Score = best50Score || null;
+  const b50DxStar = effectiveBest50Score?.dxStar;
+
   const typeImage = song.cardType === 'dx'
     ? new URL('../../assets/music_dx.png', import.meta.url).href
     : new URL('../../assets/music_standard.png', import.meta.url).href;
-
-  const normalizedDifficulty = normalizeDifficulty(difficulty);
-  const effectiveBest50Score = best50Score || null;
-  const b50ComboTag = formatComboAchievement(
-    effectiveBest50Score?.comboAchievement ?? effectiveBest50Score?.comboAchivement
-  );
-  const b50SyncTag = formatSyncType(
-    effectiveBest50Score?.syncType ?? effectiveBest50Score?.syncAchievement ?? effectiveBest50Score?.syncAchivement
-  );
-  const b50DxScore = effectiveBest50Score?.dxScore;
-  const b50TotalDxScore = effectiveBest50Score?.totalDxScore;
-  const b50DxStar = effectiveBest50Score?.dxStar;
-  const b50Achievement = effectiveBest50Score?.achievement;
-  const b50Rating = effectiveBest50Score?.rating;
-  const b50LastPlayed = effectiveBest50Score?.lastPlayed ?? effectiveBest50Score?.last_played;
 
   return (
     <Modal
       opened={opened}
       onClose={onClose}
-      title={<Text fw={700} style={{ fontFamily: 'var(--font-heading)' }}>{title}</Text>}
       size="lg"
-      radius="md"
+      radius={24}
+      padding={0}
+      withCloseButton={false}
       centered
-      transitionProps={{ transition: 'fade', duration: 0 }}
-      classNames={{ content: 'profile-modal-pop' }}
+      transitionProps={{ transition: 'fade', duration: 200 }}
       overlayProps={{
         backgroundOpacity: 0.55,
         blur: 3,
       }}
       styles={{
-        header: {
-          marginBottom: '0.5rem',
-          borderBottom: '1px solid var(--mantine-color-default-border)'
+        content: {
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: 'calc(100vh - 40px)'
         },
         body: {
-          padding: 'var(--mantine-spacing-xl)',
-        }
+          padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          overflow: 'hidden'
+        },
       }}
     >
-      <Stack gap="md">
-        {/* Header Section with Image and Basic Info */}
-        <Group align="center" justify="center" gap="xl" wrap="nowrap" style={{ paddingBottom: '1rem' }}>
-          <Image
-            src={song.imageUrl}
-            alt={song.title}
-            radius="md"
-            w={{ base: 140, xs: 180, sm: 220 }}
-            h={{ base: 140, xs: 180, sm: 220 }}
-            fallbackSrc="https://placehold.co/240x240?text=No+Image"
-            style={{ boxShadow: 'var(--mantine-shadow-md)', flexShrink: 0 }}
-          />
-          <Stack gap="sm" style={{ flex: 1, minWidth: 0 }}>
-            <Tooltip label="Click to copy title" withArrow position="top">
-              <Text
-                size="xl"
-                fw={700}
-                style={{ fontFamily: 'var(--font-heading)', lineHeight: 1.2, cursor: 'pointer' }}
-                onClick={handleTitleClick}
-              >
-                {song.title}
-              </Text>
-            </Tooltip>
+      {/* ── Fixed Gradient Header ─────────────────────────────────── */}
+      <Box
+        style={{
+          background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
+          padding: '24px 24px 20px',
+          position: 'relative',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+      >
+        <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
+          <Box
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
+            }}
+          >
+            <IconDisc size={18} color="var(--theme-primary-contrast)" strokeWidth={2.2} />
+          </Box>
+          <Box>
+            <Text
+              size="lg"
+              fw={800}
+              style={{
+                fontFamily: 'var(--font-heading)',
+                color: 'var(--theme-primary-contrast)',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
+              }}
+            >
+              Song Details
+            </Text>
+          </Box>
+        </Group>
 
-            <Stack gap={2}>
-              <Text size="xs" c="dimmed" fw={700} tt="uppercase">Artist</Text>
-              <Text size="sm" lineClamp={2} title={song.artist}>{song.artist}</Text>
-            </Stack>
+        <UnstyledButton
+          onClick={onClose}
+          className="header-close-pill"
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 20,
+            padding: '4px 12px',
+            borderRadius: 20,
+            background: 'rgba(255,255,255,0.2)',
+            color: 'var(--theme-primary-contrast)',
+            fontSize: 12,
+            fontWeight: 700,
+            backdropFilter: 'blur(4px)',
+            transition: 'all 0.2s ease',
+            zIndex: 10,
+          }}
+        >
+          Close
+        </UnstyledButton>
+      </Box>
 
-            <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm" mt="xs">
-              <Stack gap={2}>
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Category</Text>
-                <Text size="sm" lineClamp={1} title={CATEGORY_TRANSLATION[song.category] || song.category}>
-                  {CATEGORY_TRANSLATION[song.category] || song.category}
+      {/* ── Scrollable Body ───────────────────────────────────────── */}
+      <Box style={{ flex: 1, overflowY: 'auto' }}>
+        <Stack gap="md" p="xl">
+
+          {/* Hero: Image + Info */}
+          <Group align="center" justify="center" gap="xl" wrap="nowrap" style={{ paddingBottom: '1rem' }}>
+            <Image
+              src={song.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
+              alt={song.title}
+              radius="md"
+              w={{ base: 160, xs: 200, sm: 240 }}
+              h={{ base: 160, xs: 200, sm: 240 }}
+              fallbackSrc="https://placehold.co/240x240?text=No+Image"
+              style={{ boxShadow: 'var(--mantine-shadow-md)', flexShrink: 0 }}
+            />
+
+            <Stack gap="sm" style={{ flex: 1, minWidth: 0 }}>
+              <Tooltip label="Click to copy title" withArrow position="top">
+                <Text
+                  size="xl"
+                  fw={700}
+                  style={{ fontFamily: 'var(--font-heading)', lineHeight: 1.2, cursor: 'pointer' }}
+                  onClick={handleTitleClick}
+                >
+                  {song.title}
                 </Text>
-              </Stack>
+              </Tooltip>
 
               <Stack gap={2}>
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Version</Text>
-                <Text size="sm" lineClamp={1} title={VERSION_MAPPING[song.version] || song.version}>
-                  {VERSION_MAPPING[song.version] || song.version}
-                </Text>
+                <Text size="sm" c="secondary" fw={700} tt="uppercase">Artist</Text>
+                <Text size="md" lineClamp={2} title={song.artist}>{song.artist}</Text>
               </Stack>
 
-              <Stack gap={2}>
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Type</Text>
-                <img src={typeImage} alt={song.cardType} style={{ height: 20, maxWidth: '100%', objectFit: 'contain', alignSelf: 'flex-start' }} />
-              </Stack>
-
-              {song.bpm && (
+              <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm" mt="xs">
                 <Stack gap={2}>
-                  <Text size="xs" c="dimmed" fw={700} tt="uppercase">BPM</Text>
-                  <Text size="sm">{song.bpm}</Text>
+                  <Text size="sm" c="secondary" fw={700} tt="uppercase">Category</Text>
+                  <Text size="md" lineClamp={1}>
+                    {CATEGORY_TRANSLATION[song.category] || song.category || 'Unknown'}
+                  </Text>
                 </Stack>
-              )}
-            </SimpleGrid>
 
-            {(playCount !== undefined || difficulty) && (
-              <Stack gap={2} mt="md">
-                <Group gap={8} align="center">
-                  {playCount !== undefined && (
-                    <Group gap={4} align="baseline">
-                      <Text size="xl" fw={900} c="primary.6" style={{ lineHeight: 1 }}>{playCount}</Text>
-                      <Text size="xs" fw={700} c="dimmed">plays</Text>
-                    </Group>
-                  )}
-                  {difficulty && (
-                    <Badge
-                      color={DIFFICULTY_COLORS[normalizedDifficulty] || 'gray'}
-                      variant="filled"
-                      size="lg"
-                    >
-                      {normalizedDifficulty}
-                    </Badge>
-                  )}
-                </Group>
-              </Stack>
-            )}
+                <Stack gap={2}>
+                  <Text size="sm" c="secondary" fw={700} tt="uppercase">Version</Text>
+                  <Text size="md" lineClamp={1}>
+                    {VERSION_MAPPING[song.version] || song.version || 'Unknown'}
+                  </Text>
+                </Stack>
 
-            {effectiveBest50Score && (
-              <Stack gap="xs" mt="md">
-                <Divider />
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">Best 50 Details</Text>
+                <Stack gap={2}>
+                  <Text size="sm" c="secondary" fw={700} tt="uppercase">Type</Text>
+                  <img src={typeImage} alt={song.cardType} style={{ height: 20, maxWidth: '100%', objectFit: 'contain', alignSelf: 'flex-start' }} />
+                </Stack>
 
-                {(b50ComboTag || b50SyncTag) && (
-                  <Group gap={6} wrap="wrap">
-                    {b50ComboTag && (
-                      <Badge size="sm" variant="light" color="orange">
-                        {b50ComboTag}
-                      </Badge>
-                    )}
-                    {b50SyncTag && (
-                      <Badge size="sm" variant="light" color="cyan">
-                        {b50SyncTag}
-                      </Badge>
-                    )}
-                  </Group>
-                )}
-
-                <SimpleGrid cols={2} spacing="sm" verticalSpacing="xs">
-                  {b50Achievement !== undefined && b50Achievement !== null && (
-                    <Stack gap={2}>
-                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">Achievement</Text>
-                      <Text size="sm" fw={700}>{parseFloat(b50Achievement).toFixed(4)}%</Text>
-                    </Stack>
-                  )}
-
-                  {b50Rating !== undefined && b50Rating !== null && (
-                    <Stack gap={2}>
-                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">Rating</Text>
-                      <Text size="sm" fw={800}>{b50Rating}</Text>
-                    </Stack>
-                  )}
-
-                  {(b50DxScore !== undefined && b50DxScore !== null) && (
-                    <Stack gap={2}>
-                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">DX Score</Text>
-                      <Text size="sm" fw={700}>
-                        {b50DxScore}
-                        {b50TotalDxScore ? `/${b50TotalDxScore}` : ''}
-                      </Text>
-                    </Stack>
-                  )}
-
-                  {(b50DxStar !== undefined && b50DxStar !== null) && (
-                    <Stack gap={2}>
-                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">DX Stars</Text>
-                      <Group gap={6} align="center">
-                        <Group gap={2}>
-                          {Array.from({ length: Math.max(0, Math.min(5, Number(b50DxStar) || 0)) }).map((_, i) => (
-                            <IconStarFilled key={i} size={16} style={{ color: 'var(--mantine-color-yellow-6)' }} />
-                          ))}
-                        </Group>
-                      </Group>
-                    </Stack>
-                  )}
-
-                  {b50LastPlayed && (
-                    <Stack gap={2} style={{ gridColumn: '1 / -1' }}>
-                      <Text size="xs" c="dimmed" fw={700} tt="uppercase">Last Played</Text>
-                      <Text size="sm">{b50LastPlayed}</Text>
-                    </Stack>
-                  )}
-                </SimpleGrid>
-              </Stack>
-            )}
-
-            {(comment || isOwnProfile) && (
-              <Stack gap={2} mt="md">
-                <Group justify="space-between" align="center">
-                  <Text size="xs" c="dimmed" fw={700} tt="uppercase">User Comment</Text>
-                  {isOwnProfile && !isEditing && (
-                    <ActionIcon variant="subtle" size="sm" onClick={() => setIsEditing(true)}>
-                      <IconEdit size={14} />
-                    </ActionIcon>
-                  )}
-                </Group>
-
-                {isEditing ? (
-                  <Stack gap="xs">
-                    <TextInput
-                      value={comment}
-                      onChange={(e) => setComment(e.currentTarget.value)}
-                      placeholder="Add a comment..."
-                      maxLength={100}
-                      autoFocus
-                    />
-                    <Group gap="xs" justify="flex-end">
-                      <ActionIcon variant="light" color="red" onClick={() => { setIsEditing(false); setComment(initialComment || ''); }}>
-                        <IconX size={14} />
-                      </ActionIcon>
-                      <ActionIcon variant="filled" color="green" onClick={handleSaveComment} loading={isSaving}>
-                        <IconSave size={14} />
-                      </ActionIcon>
-                    </Group>
+                {song.bpm && (
+                  <Stack gap={2}>
+                    <Text size="sm" c="secondary" fw={700} tt="uppercase">BPM</Text>
+                    <Text size="md">{song.bpm}</Text>
                   </Stack>
-                ) : (
+                )}
+              </SimpleGrid>
+
+              {/* Performance chip — shown inline when difficulty/playCount available */}
+              {(playCount !== undefined || difficulty) && (
+                <Group gap="xs" align="center" mt="xs">
+                  <Badge
+                    variant="filled"
+                    radius="sm"
+                    size="sm"
+                    color={DIFFICULTY_COLORS[normalizedDifficulty] || 'gray'}
+                  >
+                    {normalizedDifficulty}
+                  </Badge>
+                  <Text size="sm" fw={700} c="var(--theme-primary)">
+                    {playCount || 0}
+                  </Text>
+                  <Text size="xs" fw={600} c="dimmed">plays</Text>
+                </Group>
+              )}
+
+              <Stack gap="sm" mt="md">
+                <Button
+                  component={Link}
+                  to={`/songs/${song.songId}`}
+                  state={{ cardType: song.cardType }}
+                  variant="light"
+                  color="indigo"
+                  leftSection={<IconMessageCircle size={18} />}
+                  fullWidth
+                >
+                  Discuss
+                </Button>
+              </Stack>
+            </Stack>
+          </Group>
+
+          {/* Best 50 Details */}
+          {effectiveBest50Score && (
+            <Box
+              p="md"
+              style={{
+                borderRadius: 18,
+                background: 'var(--theme-surface)',
+                border: '1px solid var(--theme-border)',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              }}
+            >
+              <Text fw={800} size="xs" tt="uppercase" style={{ letterSpacing: '0.05em' }} c="var(--theme-text-muted)" mb="md">
+                Best 50 Details
+              </Text>
+
+              <SimpleGrid cols={3} spacing="sm">
+                <Stack gap={2} align="center">
+                  <Text size="xs" c="dimmed" fw={800} tt="uppercase">Achievement</Text>
+                  <Text fw={800} size="lg">{parseFloat(effectiveBest50Score.achievement).toFixed(4)}%</Text>
+                </Stack>
+                <Stack gap={2} align="center">
+                  <Text size="xs" c="dimmed" fw={800} tt="uppercase">Rating</Text>
+                  <Text fw={800} size="lg">{effectiveBest50Score.rating}</Text>
+                </Stack>
+                <Stack gap={2} align="center">
+                  <Text size="xs" c="dimmed" fw={800} tt="uppercase">DX Score</Text>
+                  <Text fw={800} size="lg">{effectiveBest50Score.dxScore}</Text>
+                </Stack>
+              </SimpleGrid>
+
+              <Group justify="space-between" mt="md" pt="sm" style={{ borderTop: '1px solid var(--theme-border)' }}>
+                <Box>
+                  <Text size="xs" c="dimmed" fw={800} tt="uppercase" mb={4}>DX Stars</Text>
+                  <Group gap={2}>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <IconStarFilled key={i} size={14} style={{ color: i < (b50DxStar || 0) ? '#fcc419' : 'var(--theme-border)' }} />
+                    ))}
+                  </Group>
+                </Box>
+                <Box style={{ textAlign: 'right' }}>
+                  <Text size="xs" c="dimmed" fw={800} tt="uppercase" mb={2}>Last Played</Text>
+                  <Text fw={700} size="sm">{effectiveBest50Score.lastPlayed ?? effectiveBest50Score.last_played ?? 'N/A'}</Text>
+                </Box>
+              </Group>
+            </Box>
+          )}
+
+          {/* User Note */}
+          {(comment || isOwnProfile) && (
+            <Box
+              p="md"
+              style={{
+                borderRadius: 18,
+                background: 'var(--theme-surface)',
+                border: '1px solid var(--theme-border)',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              }}
+            >
+              <Group justify="space-between" align="center" mb="xs">
+                <Text fw={800} size="xs" tt="uppercase" style={{ letterSpacing: '0.05em' }} c="var(--theme-text-muted)">
+                  User Note
+                </Text>
+                {isOwnProfile && !isEditing && (
+                  <ActionIcon variant="light" size="sm" radius="md" onClick={() => setIsEditing(true)}>
+                    <IconEdit size={14} />
+                  </ActionIcon>
+                )}
+              </Group>
+
+              {isEditing ? (
+                <Stack gap="xs">
+                  <TextInput
+                    value={comment}
+                    onChange={(e) => setComment(e.currentTarget.value)}
+                    placeholder="Add a note..."
+                    maxLength={100}
+                    autoFocus
+                    variant="filled"
+                    styles={{ input: { borderRadius: 12, fontWeight: 500 } }}
+                  />
+                  <Group gap="xs" justify="flex-end">
+                    <Button
+                      size="xs"
+                      variant="subtle"
+                      color="gray"
+                      radius="xl"
+                      onClick={() => { setIsEditing(false); setComment(initialComment || ''); }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="xs"
+                      radius="xl"
+                      leftSection={<IconCheck size={14} />}
+                      onClick={handleSaveComment}
+                      loading={isSaving}
+                    >
+                      Save Note
+                    </Button>
+                  </Group>
+                </Stack>
+              ) : (
+                <Box p="sm" radius="md" bg="var(--theme-bg-soft)" style={{ border: '1px solid var(--theme-border)', borderRadius: 12 }}>
                   <Text
                     size="sm"
+                    fw={500}
                     style={{
-                      fontFamily: 'var(--font-body)',
                       fontStyle: 'italic',
-                      lineHeight: 1.5,
-                      color: 'var(--theme-text-muted)',
-                      wordBreak: 'break-word'
+                      color: 'var(--theme-text)',
+                      wordBreak: 'break-word',
                     }}
                   >
-                    {comment ? `"${comment}"` : <Text span c="dimmed" fs="italic">No comment added.</Text>}
+                    {comment ? `"${comment}"` : 'No note added.'}
                   </Text>
-                )}
-              </Stack>
-            )}
+                </Box>
+              )}
+            </Box>
+          )}
 
-            <Button
-              component={Link}
-              to={`/songs/${song.songId}`}
-              state={{ cardType: song.cardType }}
-              variant="light"
-              color="indigo"
-              fullWidth
-              mt="md"
-              leftSection={<IconMessageCircle size={18} />}
-            >
-              Discuss this Song
-            </Button>
-          </Stack>
-        </Group>
-      </Stack >
-    </Modal >
+        </Stack>
+      </Box>
+    </Modal>
   );
 }
 

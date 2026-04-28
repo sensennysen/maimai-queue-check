@@ -8,6 +8,13 @@ import { TABLES } from '../constants/database';
 import { FeatureFlagContext } from './FeatureFlagContextDef';
 
 
+/**
+ * Provider component for the Feature Flag context.
+ * Manages user-specific experimental feature toggles and persists them to the database.
+ * @param {Object} props - Component props.
+ * @param {React.ReactNode} props.children - Child components to be wrapped by the provider.
+ * @returns {JSX.Element} The rendered context provider.
+ */
 export const FeatureFlagProvider = ({ children }) => {
   const { user } = useAuth();
   const [experimentalEnabled, setExperimentalEnabled] = useState(false);
@@ -56,6 +63,11 @@ export const FeatureFlagProvider = ({ children }) => {
     loadFlags();
   }, [user]);
 
+  /**
+   * Toggles the global experimental features master switch for the current user.
+   * @param {boolean} enabled - Whether to enable or disable experimental features.
+   * @returns {Promise<void>} A promise that resolves when the update is complete.
+   */
   const toggleExperimentalFeatures = async (enabled) => {
     if (!user) return;
 
@@ -91,6 +103,13 @@ export const FeatureFlagProvider = ({ children }) => {
 
   const setExperimentalFeaturesEnabled = toggleExperimentalFeatures;
 
+  /**
+   * Toggles a specific experimental feature flag for the current user.
+   * Only functional if global experimental features are enabled.
+   * @param {string} featureId - The unique identifier of the feature flag to toggle.
+   * @param {boolean} enabled - The new state of the flag.
+   * @returns {Promise<void>} A promise that resolves when the update is complete.
+   */
   const toggleFlag = async (featureId, enabled) => {
     if (!user) return;
 

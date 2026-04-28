@@ -1,283 +1,437 @@
-import { useState, useEffect, memo, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, memo } from 'react';
 import {
-  Paper, Stack, Group, Title, Text, Badge,
-  Table, Box, Divider, Collapse, ActionIcon, Avatar, Flex, Pagination
+  Paper, Group, Title, Box, Text, ActionIcon, Image,
+  Modal, UnstyledButton
 } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
-import {
-  IconHistory, IconChevronDown, IconChevronUp
-} from '@tabler/icons-react';
-import { userService } from '../../services/supabase';
-import { songsService } from '../../services/songs';
-import { DIFFICULTY_COLORS, normalizeDifficulty } from '../../config/maimai-constants';
+import { useMediaQuery, useDisclosure } from '@mantine/hooks';
+import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
+import IconChevronLeft from '@tabler/icons-react/dist/esm/icons/IconChevronLeft.mjs';
+import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
+import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
+import { useRecentPlays } from '../../features/profile/hooks/useRecentPlays';
+import { DIFFICULTY_COLORS, normalizeDifficulty, BASE_JACKET_URL } from '../../config/maimai-constants';
 import { getRelativeTime } from '../../utils/formatters';
 import { getGrade } from '../../utils/maimai-calc';
+import { RecentPlayDetails } from './RecentPlayDetails';
 
-// Memoized individual play item component to prevent unnecessary re-renders
-const RecentPlayItem = memo(({ play, isOpened, onToggle, index, isMobile, isTablet, songMap }) => {
+const ITEMS_PER_PAGE = 10;
+
+/* ─────────────────────────── Row ─────────────────────────── */
+const RecentPlayRow = memo(({ play, globalIndex, onClick, isMobile, songMap }) => {
   const diffLabel = normalizeDifficulty(play.difficulty);
   const diffColor = DIFFICULTY_COLORS[diffLabel] || 'gray';
-
-  // Use image from our storage if available
   const jacketUrl = songMap?.get(play.title) || play.jacket_url;
   const grade = getGrade(play.achievement);
+  const isEven = globalIndex % 2 === 0;
 
   return (
-    <Paper
-      withBorder
-      radius="md"
-      p="sm"
-      style={{ backgroundColor: 'var(--mantine-color-body)' }}
+    <Box
+      onClick={() => onClick(play)}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '36px 1fr auto' : '44px 1fr auto',
+        alignItems: 'center',
+        gap: isMobile ? '8px' : '10px',
+        padding: '8px 6px',
+        borderRadius: 10,
+        cursor: 'pointer',
+        backgroundColor: isEven
+          ? 'transparent'
+          : 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)',
+        transition: 'background-color 0.15s ease, transform 0.15s ease',
+      }}
+      onMouseEnter={e => {
+        if (isMobile) return;
+        e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-secondary) 10%, transparent)';
+        e.currentTarget.style.transform = 'translateX(2px)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.backgroundColor = isEven
+          ? 'transparent'
+          : 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)';
+        e.currentTarget.style.transform = 'translateX(0)';
+      }}
     >
-      <Stack gap="xs">
-        <Group justify="space-between" wrap="nowrap" align={isMobile ? "flex-start" : "center"}>
-          <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }} align={isMobile ? "flex-start" : "center"}>
-            {jacketUrl && (
-              <Avatar src={jacketUrl} size="xl" radius="md" />
-            )}
-            <Box
-              w={4}
-              style={{
-                alignSelf: 'stretch',
-                backgroundColor: diffColor,
-                borderRadius: 2
-              }}
-            />
-            <Stack gap={isMobile ? 'xs' : 0} style={{ minWidth: 0, flex: 1 }}>
-              <Stack gap={0}>
-                <Text fw={700} size="lg" truncate="end" title={play.title}>
-                  {play.title}
-                </Text>
-                <Group gap={6}>
-                  {play.track_number && (
-                    <Badge size="md" variant="light" color="gray">{play.track_number}</Badge>
-                  )}
-                  <Badge size="md" color={diffColor} variant="filled">{diffLabel} {play.level}</Badge>
-                  <Text size="md" c="dimmed">{getRelativeTime(play.played_at)}</Text>
-                </Group>
-              </Stack>
+      {/* Jacket thumbnail */}
+      <Box
+        style={{
+          width: isMobile ? 36 : 44,
+          height: isMobile ? 36 : 44,
+          borderRadius: 8,
+          overflow: 'hidden',
+          flexShrink: 0,
+          background: 'var(--theme-surface)',
+          position: 'relative',
+        }}
+      >
+        <Box
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 3,
+            background: diffColor,
+            zIndex: 1,
+          }}
+        />
+        <Image
+          src={jacketUrl || (play.imageName ? `${BASE_JACKET_URL}${play.imageName}` : null)}
+          alt={play.title}
+          fit="cover"
+          fallbackSrc="https://placehold.co/44x44?text=?"
+          style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      </Box>
 
-              {isMobile && (
-                <Group gap="xs" align="baseline">
-                  <Text fw={900} size="xl" style={{ lineHeight: 1, fontSize: '1.5rem' }}>
-                    {parseFloat(play.achievement).toFixed(4)}%
-                  </Text>
-                  <Text fw={800} size="sm" c="blue" style={{ letterSpacing: '0.5px' }}>
-                    {grade}
-                  </Text>
-                </Group>
-              )}
-            </Stack>
-          </Group>
-
-          <Group gap="md" wrap="nowrap" align="center">
-            {!isMobile && (
-              <Group gap="xs" align="baseline">
-                <Text fw={900} size="xl" style={{ lineHeight: 1, fontSize: '1.5rem' }}>
-                  {parseFloat(play.achievement).toFixed(4)}%
-                </Text>
-                <Text fw={800} size="sm" c="blue" style={{ letterSpacing: '0.5px' }}>
-                  {grade}
-                </Text>
-              </Group>
-            )}
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              onClick={() => onToggle(index)}
-            >
-              {isOpened ? <IconChevronUp size={18} /> : <IconChevronDown size={18} />}
-            </ActionIcon>
-          </Group>
-        </Group>
-
-        <Collapse in={isOpened} transitionDuration={isMobile ? 0 : 200}>
-          <Box pt="sm" px="md">
-            <Divider mb="sm" variant="dashed" />
-            <Flex
-              direction={isMobile ? 'column' : 'row'}
-              gap={isMobile ? 'md' : (isTablet ? 32 : 64)}
-              align="center"
-            >
-              {/* Left & Middle: Stats */}
-              <Stack gap="xs" style={{ minWidth: isMobile ? '100%' : 200 }}>
-                <Group justify="space-between">
-                  <Text size="sm" fw={600} c="dimmed">DX Score</Text>
-                  <Text size="sm" fw={700}>{play.dx_score} / {play.dx_score_total}</Text>
-                </Group>
-                <Group justify="space-between">
-                  <Text size="sm" fw={600} c="dimmed">Rating</Text>
-                  <Group gap={4}>
-                    <Text size="sm" fw={700} c="blue">{play.rating}</Text>
-                    {play.rating_delta > 0 && (
-                      <Text size="sm" fw={700} c="green">+{play.rating_delta}</Text>
-                    )}
-                  </Group>
-                </Group>
-                <Group justify="space-between">
-                  <Text size="sm" fw={600} c="dimmed">Combo</Text>
-                  <Text size="sm" fw={700}>{play.max_combo || 0} / {play.max_combo_total || 0}</Text>
-                </Group>
-                <Group justify="space-between">
-                  <Text size="sm" fw={600} c="dimmed">Sync</Text>
-                  <Text size="sm" fw={700}>{play.max_sync || 0} / {play.max_sync_total || 0}</Text>
-                </Group>
-                <Group justify="space-between">
-                  <Text size="sm" fw={600} c="dimmed">Fast / Late</Text>
-                  <Group gap={4}>
-                    <Text size="sm" fw={700} c="orange">{play.fast_count}</Text>
-                    <Divider orientation="vertical" />
-                    <Text size="sm" fw={700} c="blue">{play.late_count}</Text>
-                  </Group>
-                </Group>
-              </Stack>
-
-              {/* Right: Notes Breakdown - Restoring Table for readability */}
-              <Box style={{ flex: 1, width: '100%', overflowX: 'auto' }}>
-                <Text size="sm" fw={700} mb={8} ta={isMobile ? 'center' : 'left'}>Notes Breakdown</Text>
-                <Table
-                  size="xs"
-                  verticalSpacing={4}
-                  horizontalSpacing={4}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    tableLayout: 'fixed',
-                    minWidth: isMobile ? 400 : 'auto'
-                  }}
-                >
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th w={60}>Type</Table.Th>
-                      <Table.Th style={{ color: 'var(--mantine-color-orange-7)', fontSize: '10px' }}>Critical Perfect</Table.Th>
-                      <Table.Th style={{ color: 'var(--mantine-color-yellow-7)', fontSize: '10px' }}>Perfect</Table.Th>
-                      <Table.Th style={{ color: 'var(--mantine-color-green-7)', fontSize: '10px' }}>Great</Table.Th>
-                      <Table.Th style={{ color: 'var(--mantine-color-blue-7)', fontSize: '10px' }}>Good</Table.Th>
-                      <Table.Th style={{ color: 'var(--mantine-color-red-7)', fontSize: '10px' }}>Miss</Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {['tap', 'hold', 'slide', 'touch', 'break'].map(type => {
-                      const n = play.notes?.[type] || {};
-                      const hasData = (n.critical_perfect || n.perfect || n.great || n.good || n.miss || n.total);
-                      if (!hasData && type !== 'break') return null;
-
-                      return (
-                        <Table.Tr key={type}>
-                          <Table.Td fw={700} style={{ textTransform: 'capitalize' }}>{type}</Table.Td>
-                          <Table.Td fw={700}>{n.critical_perfect || n.cp || 0}</Table.Td>
-                          <Table.Td fw={700}>{n.perfect || n.p || 0}</Table.Td>
-                          <Table.Td>{n.great || n.gr || 0}</Table.Td>
-                          <Table.Td>{n.good || n.gd || 0}</Table.Td>
-                          <Table.Td fw={700} c="red.7">{n.miss || 0}</Table.Td>
-                        </Table.Tr>
-                      );
-                    })}
-                  </Table.Tbody>
-                </Table>
-              </Box>
-            </Flex>
+      {/* Title + meta */}
+      <Box style={{ minWidth: 0 }}>
+        <Text
+          size="sm"
+          fw={700}
+          lineClamp={1}
+          style={{
+            fontFamily: 'var(--font-heading)',
+            color: 'var(--theme-text-primary)',
+            marginBottom: 2,
+            fontSize: isMobile ? '0.78rem' : '0.85rem',
+          }}
+        >
+          {play.title}
+        </Text>
+        <Group gap={6} align="center" wrap="nowrap">
+          <Box
+            style={{
+              background: diffColor,
+              color: 'white',
+              padding: '1px 6px',
+              borderRadius: 6,
+              fontSize: '8px',
+              fontWeight: 900,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              lineHeight: '13px',
+              flexShrink: 0,
+            }}
+          >
+            {diffLabel} {play.level}
           </Box>
-        </Collapse>
-      </Stack>
-    </Paper>
+          <Text
+            size="sm"
+            style={{ color: 'var(--theme-text-muted)', fontSize: '10px' }}
+          >
+            {getRelativeTime(play.played_at)}
+          </Text>
+        </Group>
+      </Box>
+
+      {/* Achievement */}
+      <Group gap={8} wrap="nowrap" align="center" style={{ flexShrink: 0 }}>
+        <Box style={{ textAlign: 'right' }}>
+          <Text
+            fw={900}
+            style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: isMobile ? '13px' : '15px',
+              lineHeight: 1,
+              color: 'var(--theme-secondary)',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {parseFloat(play.achievement).toFixed(isMobile ? 2 : 4)}%
+          </Text>
+          <Text
+            style={{
+              fontSize: '9px',
+              color: 'var(--theme-text-muted)',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}
+          >
+            {grade}
+          </Text>
+        </Box>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          size="sm"
+          onClick={e => { e.stopPropagation(); onClick(play); }}
+        >
+          <IconInfoCircle size={16} />
+        </ActionIcon>
+      </Group>
+    </Box>
   );
 });
+RecentPlayRow.displayName = 'RecentPlayRow';
 
-RecentPlayItem.displayName = 'RecentPlayItem';
-
+/* ─────────────────────────── Section ─────────────────────────── */
 export const RecentPlaysSection = memo(({ userId, initialData }) => {
-  const [plays, setPlays] = useState(initialData || []);
-  const [loading, setLoading] = useState(!initialData);
-  const [songMap, setSongMap] = useState(new Map());
-  const [openedIndex, setOpenedIndex] = useState(null);
-  const [activePage, setActivePage] = useState(1);
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(plays.length / itemsPerPage);
-  const isMobile = useMediaQuery('(max-width: 652px)');
-  const isTablet = useMediaQuery('(max-width: 992px)');
-  const isMounted = useRef(true);
+  const { plays, loading, songMap } = useRecentPlays(userId, initialData);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [direction, setDirection] = useState('next');
+  const [selectedPlay, setSelectedPlay] = useState(null);
+  const [opened, { open, close }] = useDisclosure(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
-  useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
+  // Swipe handling
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
+  const minSwipeDistance = 50;
 
-  const handleToggle = useCallback((index) => {
-    setOpenedIndex(current => current === index ? null : index);
-  }, []);
+  const totalPages = Math.ceil(plays.length / ITEMS_PER_PAGE);
+  const visiblePlays = plays.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE);
 
-  useEffect(() => {
-    async function init() {
-      try {
-        if (isMounted.current) setLoading(true);
-        // Load plays and song database in parallel
-        const [playsData, songs] = await Promise.all([
-          initialData ? Promise.resolve(initialData) : userService.getRecentPlays(userId),
-          songsService.getFullSongDatabase()
-        ]);
-
-        if (isMounted.current) {
-          if (playsData) setPlays(playsData);
-
-          // Build map for image lookup
-          const map = new Map();
-          songs.forEach(s => map.set(s.title, s.imageUrl));
-          setSongMap(map);
-        }
-      } catch (err) {
-        console.error('Failed to initialize recent plays:', err);
-      } finally {
-        if (isMounted.current) setLoading(false);
-      }
+  const handleNext = useCallback(() => {
+    if (currentPage < totalPages - 1) {
+      setDirection('next');
+      setCurrentPage(p => p + 1);
     }
-    if (userId) init();
-  }, [userId, initialData]);
+  }, [currentPage, totalPages]);
 
-  if (loading) return null;
-  if (plays.length === 0) return null;
+  const handlePrev = useCallback(() => {
+    if (currentPage > 0) {
+      setDirection('prev');
+      setCurrentPage(p => p - 1);
+    }
+  }, [currentPage]);
 
-  const currentPlays = plays.slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage);
+  const handleRowClick = useCallback((play) => {
+    setSelectedPlay(play);
+    open();
+  }, [open]);
+
+  const onTouchStart = (e) => {
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+  const onTouchMove = (e) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+  const onTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
+    if (Math.abs(distance) < minSwipeDistance) return;
+    if (distance > 0) handleNext();
+    else handlePrev();
+  };
+
+  if (loading || plays.length === 0) return null;
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder>
-      <Group gap="xs" mb="lg">
-        <IconHistory size={24} style={{ color: 'var(--mantine-color-blue-5)' }} />
-        <Title order={2}>Recent Plays</Title>
-        <Badge variant="light" size="lg">{plays.length} entries</Badge>
+    <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-500">
+      <style>{`
+        @keyframes recentSlideFromRight {
+          from { transform: translateX(20px); opacity: 0; }
+          to   { transform: translateX(0);    opacity: 1; }
+        }
+        @keyframes recentSlideFromLeft {
+          from { transform: translateX(-20px); opacity: 0; }
+          to   { transform: translateX(0);     opacity: 1; }
+        }
+        .recent-slide-next { animation: recentSlideFromRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .recent-slide-prev { animation: recentSlideFromLeft  0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      `}</style>
+
+      {/* Header */}
+      <Group justify="space-between" mb="md" align="center">
+        <Group gap="xs">
+          <IconHistory size={22} style={{ color: 'var(--theme-secondary)' }} />
+          <Title order={2}>Recent Plays</Title>
+        </Group>
+
+        {totalPages > 1 && !isMobile && (
+          <Group gap={6}>
+            <ActionIcon
+              variant="light"
+              color="secondary"
+              radius="xl"
+              onClick={handlePrev}
+              disabled={currentPage === 0}
+              size="sm"
+              style={{ opacity: currentPage === 0 ? 0.3 : 1, transition: 'all 0.2s ease' }}
+            >
+              <IconChevronLeft size={16} />
+            </ActionIcon>
+            <ActionIcon
+              variant="light"
+              color="secondary"
+              radius="xl"
+              onClick={handleNext}
+              disabled={currentPage === totalPages - 1}
+              size="sm"
+              style={{ opacity: currentPage === totalPages - 1 ? 0.3 : 1, transition: 'all 0.2s ease' }}
+            >
+              <IconChevronRight size={16} />
+            </ActionIcon>
+          </Group>
+        )}
       </Group>
 
-      <Stack gap="xs">
-        {currentPlays.map((play, index) => (
-          <RecentPlayItem
-            key={play.id || index}
-            play={play}
-            index={index}
-            isOpened={openedIndex === index}
-            onToggle={handleToggle}
-            isMobile={isMobile}
-            isTablet={isTablet}
-            songMap={songMap}
-          />
-        ))}
-
-        {totalPages > 1 && (
-          <Flex justify="center" mt="md">
-            <Pagination
-              total={totalPages}
-              value={activePage}
-              onChange={(p) => {
-                setActivePage(p);
-                setOpenedIndex(null);
-              }}
-              color="blue"
-              radius="md"
-              withEdges
+      {/* Play rows — animated on page change */}
+      <Box
+        key={currentPage}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        className={direction === 'next' ? 'recent-slide-next' : 'recent-slide-prev'}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0,
+          minHeight: 52 * ITEMS_PER_PAGE,
+          touchAction: 'pan-y',
+        }}
+      >
+        {visiblePlays.map((play, localIndex) => {
+          const globalIndex = currentPage * ITEMS_PER_PAGE + localIndex;
+          return (
+            <RecentPlayRow
+              key={play.id || globalIndex}
+              play={play}
+              globalIndex={globalIndex}
+              onClick={handleRowClick}
+              isMobile={isMobile}
+              songMap={songMap}
             />
-          </Flex>
+          );
+        })}
+      </Box>
+
+      {/* Dot page indicator */}
+      {totalPages > 1 && (
+        <Group justify="center" gap={6} mt="md">
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <Box
+              key={i}
+              onClick={() => {
+                setDirection(i > currentPage ? 'next' : 'prev');
+                setCurrentPage(i);
+              }}
+              style={{
+                width: i === currentPage ? 18 : 6,
+                height: 6,
+                borderRadius: 999,
+                background: i === currentPage
+                  ? 'var(--theme-secondary)'
+                  : 'color-mix(in srgb, var(--theme-secondary) 20%, transparent)',
+                cursor: 'pointer',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            />
+          ))}
+        </Group>
+      )}
+
+      {/* Play Details Modal */}
+      <Modal
+        opened={opened}
+        onClose={close}
+        centered
+        size="lg"
+        radius={24}
+        padding={0}
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        transitionProps={{ transition: 'slide-up', duration: 250 }}
+        styles={{
+          content: {
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: 'calc(100vh - 60px)'
+          },
+          body: {
+            padding: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            overflow: 'hidden'
+          },
+        }}
+      >
+        {selectedPlay && (
+          <>
+            <Box
+              style={{
+                background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
+                padding: '24px 24px 20px',
+                position: 'relative',
+                overflow: 'hidden',
+                flexShrink: 0,
+              }}
+            >
+              <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
+                <Box
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
+                  }}
+                >
+                  <IconHistory size={20} color="var(--theme-primary-contrast)" strokeWidth={2.2} />
+                </Box>
+                <Box>
+                  <Text
+                    size="lg"
+                    fw={800}
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      color: 'var(--theme-primary-contrast)',
+                      letterSpacing: '-0.02em',
+                      lineHeight: 1.1,
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    Play Details
+                  </Text>
+                  <Text size="xs" style={{ color: 'var(--theme-primary-contrast)', opacity: 0.8, marginTop: 2 }}>
+                    Played {getRelativeTime(selectedPlay.played_at)}
+                  </Text>
+                </Box>
+              </Group>
+
+              <UnstyledButton
+                onClick={close}
+                className="header-close-pill"
+                style={{
+                  position: 'absolute',
+                  top: 20,
+                  right: 20,
+                  padding: '4px 12px',
+                  borderRadius: 20,
+                  background: 'rgba(255,255,255,0.2)',
+                  color: 'var(--theme-primary-contrast)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  backdropFilter: 'blur(4px)',
+                  transition: 'all 0.2s ease',
+                  zIndex: 10,
+                }}
+              >
+                Close
+              </UnstyledButton>
+            </Box>
+
+            <Box style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+              <RecentPlayDetails
+                play={selectedPlay}
+                isMobile={isMobile}
+                songMap={songMap}
+              />
+            </Box>
+          </>
         )}
-      </Stack>
+      </Modal>
     </Paper>
   );
 });

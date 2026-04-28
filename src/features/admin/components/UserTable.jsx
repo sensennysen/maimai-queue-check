@@ -499,7 +499,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
             </Group>
           )}
 
-          <Text size="xs" c="secondary" ta="center">
+          <Text size="sm" c="secondary" ta="center">
             Showing {users.length} of {totalCount} users
           </Text>
         </Stack>
@@ -545,6 +545,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
               searchable
               clearable
               disabled={!isSuperAdmin}
+              comboboxProps={{ withinPortal: false }}
             />
           )}
 
@@ -564,6 +565,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
                   onChange={(selected) => setEditForm({ ...editForm, can_edit_on: selected.map(Number) })}
                   searchable
                   clearable
+                  comboboxProps={{ withinPortal: false }}
                 />
               </Stack>
             ) : (
@@ -601,6 +603,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
                     onChange={(val) => setEditForm({ ...editForm, admin_branch: val })}
                     searchable
                     clearable
+                    comboboxProps={{ withinPortal: false }}
                   />
                 )}
               </Stack>

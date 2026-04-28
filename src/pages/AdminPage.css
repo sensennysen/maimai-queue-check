@@ -1,10 +1,119 @@
-/* Styling for Branch Manager Page */
-
-.branch-manager-page {
-  min-height: 100vh;
+.admin-page {
+  --admin-shell-border: color-mix(in srgb, var(--theme-border) 78%, transparent);
+  --admin-shell-strong: color-mix(in srgb, var(--theme-primary) 20%, var(--theme-border) 80%);
+  --admin-shell-soft: color-mix(in srgb, var(--theme-surface) 82%, var(--theme-background) 18%);
+  --admin-shell-glow: color-mix(in srgb, var(--theme-primary) 10%, transparent);
+  --admin-shell-cyan: color-mix(in srgb, var(--theme-secondary) 18%, transparent);
 }
 
-/* Schedule grid layout */
+.admin-page__hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  background:
+    radial-gradient(circle at top right, var(--admin-shell-cyan), transparent 34%),
+    radial-gradient(circle at left center, var(--admin-shell-glow), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--theme-surface) 90%, white 10%), var(--admin-shell-soft));
+  border: 1px solid var(--admin-shell-border);
+}
+
+.admin-page__hero::after {
+  content: '';
+  position: absolute;
+  inset: auto -10% -35% auto;
+  width: 18rem;
+  height: 18rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--theme-secondary) 12%, transparent), transparent 66%);
+  pointer-events: none;
+}
+
+.admin-page__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--theme-primary) 55%, var(--theme-text-primary) 45%);
+}
+
+.admin-page__hero-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-page__hero-title {
+  margin: 0;
+}
+
+.admin-page__hero-badges {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-page__tabs-shell {
+  padding: 0.85rem;
+  border: 1px solid var(--admin-shell-border);
+  background: color-mix(in srgb, var(--theme-surface) 88%, white 12%);
+}
+
+.admin-page__tabs-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-page__tab {
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--theme-surface) 82%, transparent);
+  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.admin-page__tab:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--theme-secondary) 24%, var(--admin-shell-border) 76%);
+  background: color-mix(in srgb, var(--theme-surface) 70%, white 30%);
+}
+
+.admin-page__tab[data-active='true'] {
+  border-color: var(--admin-shell-strong);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--theme-primary) 10%, transparent), transparent 55%),
+    color-mix(in srgb, var(--theme-surface) 78%, white 22%);
+}
+
+.admin-page__tab-body {
+  display: block;
+  text-align: left;
+}
+
+.admin-page__tab-label {
+  display: block;
+  font-weight: 700;
+  color: var(--theme-text-primary);
+}
+
+.admin-page__panel {
+  padding: clamp(1rem, 2vw, 1.25rem);
+  border: 1px solid var(--admin-shell-border);
+  background: color-mix(in srgb, var(--theme-surface) 90%, white 10%);
+}
+
+.admin-page__denied {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid color-mix(in srgb, var(--theme-error) 35%, var(--theme-border) 65%);
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--theme-error) 10%, transparent), transparent 32%),
+    color-mix(in srgb, var(--theme-surface) 92%, white 8%);
+}
+
 .schedule-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -21,7 +130,6 @@
   box-shadow: var(--mantine-shadow-sm);
 }
 
-/* Schedule collapse styling */
 .schedule-collapse-content {
   background-color: var(--mantine-color-gray-0);
 }
@@ -30,10 +138,17 @@
   background-color: var(--mantine-color-dark-6);
 }
 
-/* Responsive table */
 @media (max-width: 768px) {
-  .branch-manager-table {
-    font-size: 0.875rem;
+  .admin-page__tabs-shell {
+    padding: 0.85rem;
+  }
+
+  .admin-page__tabs-list {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page__tab {
+    min-height: 50px;
   }
 
   .schedule-grid {

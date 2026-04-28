@@ -51,7 +51,7 @@ export const GRADE_THRESHOLDS = [
 ];
 
 // Versions considered "New" for Best 50 calculation
-export const NEW_VERSIONS = ['PRiSM PLUS', 'CiRCLE'];
+export const NEW_VERSIONS = ['CiRCLE', 'PRiSM PLUS'];
 
 // Chronological version order (Oldest to Newest)
 export const VERSION_ORDER = [
@@ -63,13 +63,13 @@ export const VERSION_ORDER = [
   'ORANGE PLUS',
   'PiNK',
   'PiNK PLUS',
-  'Murasaki',
+  'MURASAKi',
   'MURASAKi PLUS',
   'MiLK',
   'MiLK PLUS',
   'FiNALE',
-  'でらっくす',
-  'でらっくす PLUS',
+  'DX',
+  'DX PLUS',
   'Splash',
   'Splash PLUS',
   'UNiVERSE',
@@ -80,7 +80,8 @@ export const VERSION_ORDER = [
   'BUDDiES PLUS',
   'PRiSM',
   'PRiSM PLUS',
-  'CiRCLE'
+  'CiRCLE',
+  'CiRCLE PLUS'
 ];
 
 // Mapping for version aliases/variations

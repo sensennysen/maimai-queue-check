@@ -11,6 +11,7 @@ export const TABLES = {
   FEED_POST_VOTES: 'feed_post_votes',
   FEED_POST_COMMENT_VOTES: 'feed_post_comment_votes',
   PLAYLIST_COMMENT_VOTES: 'playlist_comment_votes',
+  PLAYLIST_POST_VOTES: 'playlist_post_votes',
   SONG_RATINGS: 'song_ratings',
   SONG_COMMENTS: 'song_comments',
   SONG_COMMENT_VOTES: 'song_comment_votes',
@@ -32,6 +33,7 @@ export const TABLES = {
   NOTIFICATIONS: 'notifications',
   USER_NOTIFICATION_READS: 'user_notification_reads',
   IMPORT_SESSIONS: 'import_sessions',
+  PLACES_REGIONS: 'places_regions',
 };
 
 export const BUCKETS = {
@@ -39,4 +41,5 @@ export const BUCKETS = {
   SONG_JACKETS: 'song_jackets',
   PROFILE_PICTURES: 'profile-pictures',
   CONTACT_UPLOADS: 'contact_uploads',
+  POST_IMAGES: 'community-media',
 };

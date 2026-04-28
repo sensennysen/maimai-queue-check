@@ -1,0 +1,43 @@
+.login-icon {
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
+  transform: none !important;
+}
+
+.login-icon:hover {
+  transform: none !important;
+  filter: brightness(1.04);
+}
+
+.login-icon:active,
+.login-icon:focus-visible {
+  transform: none !important;
+}
+
+.login-button-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.google-login-button {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .google-login-button {
+    width: auto;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .google-login-button .login-button-text {
+    display: none;
+  }
+
+  .google-login-button .mantine-Button-section {
+    margin: 0;
+  }
+}

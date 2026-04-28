@@ -1,6 +1,6 @@
 # Services — Architecture & Performance Notes
 
-> PERF-01 / PERF-02 documentation. Last updated: 2026-02-24.
+> Documentation last updated: 2026-02-24.
 
 ---
 
@@ -39,7 +39,7 @@ src/services/supabase/
 
 ---
 
-## Realtime Subscriptions (PERF-01)
+## Realtime Subscriptions
 
 ### Global Rate Limit
 
@@ -49,7 +49,7 @@ src/services/supabase/
 realtime: {
   params: {
     // Intentionally limited to 10 events per second globally to constrain
-    // client/server load. (PERF-01 tuned constraint)
+    // client/server load. (tuned constraint)
     eventsPerSecond: 10,
   },
 },

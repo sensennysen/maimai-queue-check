@@ -1,6 +1,9 @@
 import { TextInput, MultiSelect, Select, Text, Stack, Paper, Collapse, Button, Group, Box, Switch } from '@mantine/core';
-import { IconSearch, IconFilter, IconX } from '@tabler/icons-react';
+import IconSearch from '@tabler/icons-react/dist/esm/icons/IconSearch.mjs';
+import IconFilter from '@tabler/icons-react/dist/esm/icons/IconFilter.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 import { useState, useMemo } from 'react';
+import { VERSION_ORDER } from '../../../config/maimai-constants';
 
 // Helper for level conversion
 const parseLevel = (levelStr) => {
@@ -24,6 +27,15 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
   const isInternal = filters.showInternalLevels;
 
   const levelOptions = useMemo(() => levels.map(l => ({ value: l, label: l })), [levels]);
+  const orderedVersions = useMemo(() => {
+    const reversedVersionOrder = [...VERSION_ORDER].reverse();
+    const knownVersions = reversedVersionOrder.filter(version => versions.includes(version));
+    const unknownVersions = versions
+      .filter(version => !VERSION_ORDER.includes(version))
+      .sort((a, b) => a.localeCompare(b));
+
+    return [...knownVersions, ...unknownVersions];
+  }, [versions]);
 
   // For internal levels: fill from 1.0 up to the lowest available DB value (in increments of 1), then use actual DB values
   const internalLevelOptions = useMemo(() => {
@@ -120,6 +132,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         clearable
         variant="filled"
         radius="md"
+        comboboxProps={{ withinPortal: false }}
       />
 
       <MultiSelect
@@ -132,18 +145,20 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         clearable
         variant="filled"
         radius="md"
+        comboboxProps={{ withinPortal: false }}
       />
 
       <MultiSelect
         label="Versions"
         placeholder="Select versions"
-        data={versions}
+        data={orderedVersions}
         value={filters.versions}
         onChange={(val) => updateFilter('versions', val)}
         searchable
         clearable
         variant="filled"
         radius="md"
+        comboboxProps={{ withinPortal: false }}
       />
 
       <Select
@@ -158,6 +173,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         variant="filled"
         radius="md"
         clearable
+        comboboxProps={{ withinPortal: false }}
       />
 
       <Select
@@ -178,6 +194,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         variant="filled"
         radius="md"
         allowDeselect={false}
+        comboboxProps={{ withinPortal: false }}
       />
 
       <Stack gap="xs">
@@ -187,7 +204,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
             label="Use Internal Levels"
             checked={filters.showInternalLevels}
             onChange={handleToggleInternal}
-            size="xs"
+            size="sm"
           />
         </Group>
 
@@ -202,6 +219,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
             radius="md"
             clearable
             searchable
+            comboboxProps={{ withinPortal: false }}
           />
           <Select
             label="Max"
@@ -213,6 +231,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
             radius="md"
             clearable
             searchable
+            comboboxProps={{ withinPortal: false }}
           />
         </Group>
       </Stack>
@@ -240,12 +259,13 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         leftSection={<IconFilter size={16} />}
         rightSection={hasActiveFilters && <Box w={6} h={6} style={{ borderRadius: '50%', background: 'var(--theme-primary)' }} />}
         onClick={() => setIsOpen(!isOpen)}
-        fullWidth
         display={{ base: 'flex', md: 'none' }}
         radius="md"
-        size="md"
+        size="sm"
+        mt="xs"
+        m='sm'
       >
-        {isOpen ? 'Hide Filters' : 'Show Filters'}
+        {isOpen ? 'Close Filters' : 'Adjust Filters'}
       </Button>
 
       {/* Mobile Collapse content */}

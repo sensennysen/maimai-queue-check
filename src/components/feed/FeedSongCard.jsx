@@ -1,4 +1,4 @@
-﻿import { Paper, Group, Text, Avatar, Badge, Stack, Box } from '@mantine/core';
+import { Paper, Group, Text, Avatar, Badge, Stack, Box } from '@mantine/core';
 import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
 import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
 import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
@@ -33,7 +33,7 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
       }}
       className={`glass-effect-hover ${className || ''}`.trim()}
     >
-      <Group gap={isTrending ? 'md' : 'sm'} wrap="nowrap" align="flex-start">
+      <Group gap={isTrending ? 'md' : 'sm'} wrap="nowrap" align="center">
         <Box
           className={isTrending ? 'community-trending-jacket' : undefined}
           style={{
@@ -109,7 +109,7 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
                     "{latestComment.content}"
                   </Text>
                 )}
-              </Stack>
+               </Stack>
             </Group>
           )}
 

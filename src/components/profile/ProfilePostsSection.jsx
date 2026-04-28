@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Stack, Group, Text, Title, Paper, Skeleton, Button, Alert } from '@mantine/core';
+import { Stack, Group, Text, Title, Paper, Alert } from '@mantine/core';
 import IconPencil from '@tabler/icons-react/dist/esm/icons/IconPencil.mjs';
-import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
+
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import { feedService } from '../../services/supabase';
 import { FeedPostCard } from '../feed/FeedPostCard';
@@ -12,12 +12,9 @@ import { FeedPostCard } from '../feed/FeedPostCard';
 export function ProfilePostsSection({ userId, currentUser, isOwnProfile }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const fetchPosts = useCallback(async () => {
+    setLoading(true);
 
-  const fetchPosts = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    
     try {
       const data = await feedService.getUserFeedPosts(userId);
       setPosts(data || []);
@@ -25,7 +22,6 @@ export function ProfilePostsSection({ userId, currentUser, isOwnProfile }) {
       console.error('Failed to fetch user posts:', err);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, [userId]);
 
@@ -33,14 +29,7 @@ export function ProfilePostsSection({ userId, currentUser, isOwnProfile }) {
     fetchPosts();
   }, [fetchPosts]);
 
-  if (loading) {
-    return (
-      <Stack gap="md">
-        <Skeleton height={140} radius="md" />
-        <Skeleton height={140} radius="md" />
-      </Stack>
-    );
-  }
+  if (loading) return null;
 
   return (
     <Paper shadow="sm" p="lg" radius="md" withBorder>
@@ -49,17 +38,8 @@ export function ProfilePostsSection({ userId, currentUser, isOwnProfile }) {
           <Group gap="xs">
             <IconPencil size={24} style={{ color: 'var(--mantine-color-primary)' }} />
             <Title order={2}>Community Posts</Title>
-            <Text size="xs" c="dimmed" mt={4}>({posts.length})</Text>
+            <Text size="sm" c="dimmed" mt={4}>({posts.length})</Text>
           </Group>
-          <Button 
-            variant="subtle" 
-            size="xs" 
-            leftSection={<IconRefresh size={14} />} 
-            onClick={() => fetchPosts(true)}
-            loading={refreshing}
-          >
-            Refresh
-          </Button>
         </Group>
 
         {posts.length === 0 ? (

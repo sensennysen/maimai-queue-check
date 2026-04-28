@@ -15,14 +15,18 @@
   --theme-text-muted: #7B5A78;
 
   /* Derived colors */
-  --theme-primary-hover: #FF4CC3;
-  --theme-secondary-hover: #1ADDFF;
-  --theme-accent-hover: #FFEB3B;
-  --theme-surface-hover: rgba(248, 240, 248, 0.8);
+  --theme-primary-hover: color-mix(in srgb, var(--theme-primary), black 10%);
+  --theme-secondary-hover: color-mix(in srgb, var(--theme-secondary), black 10%);
+  --theme-accent-hover: color-mix(in srgb, var(--theme-accent), black 10%);
+  --theme-surface-hover: color-mix(in srgb, var(--theme-surface), white 10%);
   --theme-border: rgba(255, 168, 225, 0.5);
   --theme-error: #D63352;
   --theme-success: #2DA74F;
   --theme-warning: #FFD200;
+  --radius-panel: 16px;
+  --radius-control: 12px;
+  --radius-chip: 16px;
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--theme-primary), transparent 75%);
 
   color-scheme: light;
   color: var(--theme-text-primary);
@@ -47,87 +51,104 @@ body {
   padding: 0;
   font-family: var(--font-body);
   background-color: var(--theme-background);
-  background-image:
-    radial-gradient(at 0% 0%, rgba(255, 40, 169, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(0, 210, 255, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(255, 210, 0, 0.1) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(255, 40, 169, 0.1) 0px, transparent 50%);
-  background-attachment: scroll;
-  /* Changed from fixed for mobile performance */
-  background-size: 100% 100%;
-
-  /* Noise overlay */
+  /* Claymorphism prefers a clean, solid or very softly gradated background */
   position: relative;
   min-height: 100vh;
   color: var(--theme-text-primary);
   overflow-x: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
-body::before {
-  content: "";
+body::before,
+body::after {
+  content: '';
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  z-index: -1;
   pointer-events: none;
-  z-index: 9999;
-  opacity: 0.15;
-  /* Adjusted opacity to compensate for missing mix-blend */
-  /* mix-blend-mode: overlay; -> Disabled for GPU composite speed */
+  opacity: 0.3;
 }
 
-/* Glassmorphism / Hologram Look */
-/* Glassmorphism / Hologram Look */
+body::before {
+  background: radial-gradient(circle at 15% 8%, color-mix(in srgb, var(--theme-primary) 18%, transparent), transparent 45%);
+}
+
+body::after {
+  background: radial-gradient(circle at 88% 24%, color-mix(in srgb, var(--theme-secondary) 15%, transparent), transparent 50%);
+}
+
+[data-mantine-color-scheme="dark"] body::before {
+  opacity: 0.8;
+  background: radial-gradient(circle at 10% 5%, color-mix(in srgb, var(--theme-primary) 22%, transparent), transparent 60%);
+}
+
+[data-mantine-color-scheme="dark"] body::after {
+  opacity: 0.8;
+  background: radial-gradient(circle at 90% 20%, color-mix(in srgb, var(--theme-secondary) 18%, transparent), transparent 65%);
+}
+
+/* Removed noise and complex radial gradients to let the 3D clay elements pop against a clean surface */
+
+/* Claymorphism / 3D Tactile Look */
 .hologram-card,
 .mantine-Paper-root,
 .mantine-Modal-content,
 .mantine-Card-root,
 .mantine-Menu-dropdown {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.4)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  background: var(--theme-surface) !important;
+  border: none !important;
+  /* Premium Balanced Shadow: No colored glow, just depth */
   box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 10px 15px -3px rgba(0, 0, 0, 0.05),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.5) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border-radius: 20px !important;
+    0 12px 28px rgba(0, 0, 0, 0.08),
+    0 4px 10px rgba(0, 0, 0, 0.04),
+    -4px -4px 10px rgba(255, 255, 255, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3) !important;
+  border-radius: 24px !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Dark mode adjustment for glassmorphism */
+/* Dark mode adjustment for claymorphism */
 [data-mantine-color-scheme="dark"] .hologram-card,
 [data-mantine-color-scheme="dark"] .mantine-Paper-root,
 [data-mantine-color-scheme="dark"] .mantine-Modal-content,
 [data-mantine-color-scheme="dark"] .mantine-Card-root,
 [data-mantine-color-scheme="dark"] .mantine-Menu-dropdown {
-  background: linear-gradient(135deg, rgba(20, 20, 30, 0.6), rgba(20, 20, 30, 0.4)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: var(--theme-surface) !important;
   box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.2),
+    0 12px 36px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.3),
     inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Mobile glassmorphism fallback (Disable backdrop blur to fix scroll lag) */
+/* Mobile adjustments */
 @media (max-width: 768px) {
-
   .hologram-card,
   .mantine-Paper-root,
   .mantine-Modal-content,
   .mantine-Card-root,
   .mantine-Menu-dropdown {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: var(--theme-background) !important;
-    /* Maintain border and shadow but replace blur with solid/semi-solid background */
+    /* Slightly smaller shadows on mobile */
+    box-shadow:
+      4px 4px 10px rgba(0, 0, 0, 0.06),
+      -4px -4px 10px rgba(255, 255, 255, 0.5),
+      inset 1px 1px 4px color-mix(in srgb, var(--theme-primary) 4%, rgba(255, 255, 255, 0.4)),
+      inset -1px -1px 4px rgba(0, 0, 0, 0.04) !important;
+    border-radius: 20px !important;
   }
 
+  [data-mantine-color-scheme="dark"] .mantine-Paper-root,
   [data-mantine-color-scheme="dark"] .mantine-Modal-content,
   [data-mantine-color-scheme="dark"] .mantine-Card-root,
-  [data-mantine-color-scheme="dark"] .mantine-Menu-dropdown {
-    background: var(--theme-background) !important;
+  [data-mantine-color-scheme="dark"] .mantine-Menu-dropdown,
+  [data-mantine-color-scheme="dark"] .hologram-card {
+    box-shadow:
+      4px 4px 10px rgba(0, 0, 0, 0.4),
+      -4px -4px 10px rgba(255, 255, 255, 0.02),
+      inset 1px 1px 4px rgba(255, 255, 255, 0.05),
+      inset -1px -1px 4px rgba(0, 0, 0, 0.2) !important;
   }
 
   /* Fix for overly long modals on mobile */
@@ -150,19 +171,8 @@ body::before {
 .rendering-export .mantine-Paper-root,
 .rendering-export .mantine-Modal-content,
 .rendering-export .mantine-Card-root,
-.rendering-export .mantine-Menu-dropdown,
-.rendering-export .mantine-Card-root {
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.4)) !important;
-}
-
-[data-mantine-color-scheme="dark"] .rendering-export .hologram-card,
-[data-mantine-color-scheme="dark"] .rendering-export .mantine-Paper-root,
-[data-mantine-color-scheme="dark"] .rendering-export .mantine-Modal-content,
-[data-mantine-color-scheme="dark"] .rendering-export .mantine-Card-root,
-[data-mantine-color-scheme="dark"] .rendering-export .mantine-Menu-dropdown {
-  background: linear-gradient(135deg, rgba(20, 20, 30, 0.6), rgba(20, 20, 30, 0.4)) !important;
+.rendering-export .mantine-Menu-dropdown {
+  border-radius: 24px !important;
 }
 
 @media (max-width: 768px) {
@@ -191,9 +201,10 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-button:focus {
+button:focus-visible {
   outline: 2px solid var(--theme-primary);
   outline-offset: 2px;
+  box-shadow: var(--focus-ring);
 }
 
 button:active {
@@ -208,6 +219,22 @@ input {
 
 input:focus {
   outline: none;
+}
+
+:where(a, button, input, textarea, select, [role="button"]):focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Touch targets for mobile */
@@ -249,6 +276,39 @@ input:focus {
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+}
+
+/* Badges - 3D tactile look */
+.mantine-Badge-root {
+  text-transform: none !important;
+  letter-spacing: 0.02em !important;
+  font-weight: 600 !important;
+  height: auto !important;
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}
+
+.mantine-Badge-filled {
+  border: none !important;
+  box-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.1),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-palette] .mantine-Badge-filled[data-color="blue"],
+[data-palette] .mantine-Badge-filled[data-color="var(--theme-primary)"] {
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-primary-hover)) !important;
+  color: var(--theme-primary-contrast) !important;
+}
+
+.mantine-Badge-light {
+  background: color-mix(in srgb, var(--theme-primary), transparent 85%) !important;
+  color: var(--theme-primary) !important;
+  box-shadow: inset 0px 0px 4px rgba(255, 255, 255, 0.5) !important;
+}
+
+[data-mantine-color-scheme="dark"] .mantine-Badge-light {
+  background: color-mix(in srgb, var(--theme-primary), transparent 80%) !important;
 }
 
 /* Custom scrollbar for webkit browsers */
@@ -320,23 +380,101 @@ html {
 }
 
 /* Override Mantine Button colors to match theme */
-/* Override Mantine Button colors to match theme */
+/* Override Mantine Button colors to match theme with Clay effect */
 .mantine-Button-root {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, box-shadow 0.2s ease;
-  border-radius: 999px !important;
-  /* Pill shape */
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, background-color 0.15s ease;
+  border-radius: 999px !important; /* Pill shape */
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  font-family: var(--font-heading);
+  border: none !important;
+  /* Default padding for all buttons to ensure clay look has room */
+  padding-left: 1.25rem !important;
+  padding-right: 1.25rem !important;
+}
+
+.mantine-Button-root[data-variant="filled"] {
+  background-color: var(--theme-primary) !important;
+  color: var(--theme-primary-contrast) !important;
+  background: linear-gradient(135deg, var(--theme-primary), var(--theme-primary-hover)) !important;
+  box-shadow:
+    6px 6px 12px rgba(0, 0, 0, 0.12),
+    -4px -4px 12px rgba(255, 255, 255, 0.2),
+    inset 0px 4px 6px rgba(255, 255, 255, 0.3),
+    inset 0px -4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-mantine-color-scheme="dark"] .mantine-Button-root[data-variant="filled"] {
+  box-shadow:
+    4px 4px 8px rgba(0, 0, 0, 0.6),
+    -2px -2px 6px rgba(255, 255, 255, 0.05),
+    inset 0px 2px 4px rgba(255, 255, 255, 0.1),
+    inset 0px -4px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Subtle buttons shouldn't be puffy by default as they are often used in tight spots */
+.mantine-Button-root[data-variant="subtle"] {
+  box-shadow: none !important;
+  background: transparent !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+  color: var(--theme-primary) !important;
+}
+
+.mantine-Button-root[data-variant="subtle"][data-color="gray"] {
+  color: var(--theme-text-muted) !important;
+}
+
+.mantine-Button-root[data-variant="light"] {
+  background: color-mix(in srgb, var(--theme-primary), transparent 85%) !important;
+  color: var(--theme-primary) !important;
+  box-shadow: inset 0px 0px 4px rgba(255, 255, 255, 0.5) !important;
+}
+
+[data-mantine-color-scheme="dark"] .mantine-Button-root[data-variant="light"] {
+  background: color-mix(in srgb, var(--theme-primary), transparent 80%) !important;
 }
 
 .mantine-Button-root:hover {
-  transform: scale(1.05);
-  /* Bouncy effect */
+  transform: translateY(-3px) scale(1.02);
+  filter: brightness(1.05);
+}
+
+.mantine-Button-root[data-variant="filled"]:hover {
+  box-shadow:
+    8px 8px 16px rgba(0, 0, 0, 0.15),
+    -4px -4px 12px rgba(255, 255, 255, 0.3),
+    inset 0px 4px 6px rgba(255, 255, 255, 0.4),
+    inset 0px -4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.mantine-Button-root[data-variant="subtle"]:hover {
+  background: var(--theme-surface-hover) !important;
+  box-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0px 2px 2px rgba(255, 255, 255, 0.3) !important;
 }
 
 .mantine-Button-root:active {
-  transform: scale(0.95);
+  transform: translateY(2px) scale(0.98);
 }
+
+.mantine-Button-root[data-variant="filled"]:active {
+  /* Reverse the inner shadows to make it look physically pressed */
+  box-shadow:
+    1px 1px 2px rgba(0, 0, 0, 0.1),
+    -1px -1px 2px rgba(255, 255, 255, 0.1),
+    inset 2px 4px 8px rgba(0, 0, 0, 0.2),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-mantine-color-scheme="dark"] .mantine-Button-root[data-variant="filled"]:active {
+  box-shadow:
+    1px 1px 2px rgba(0, 0, 0, 0.4),
+    inset 2px 4px 8px rgba(0, 0, 0, 0.5),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.05) !important;
+}
+
 
 /* Ensure proper text contrast in different themes */
 /* .mantine-Text-root {

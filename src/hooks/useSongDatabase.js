@@ -2,7 +2,12 @@ import { useState, useMemo } from 'react';
 import { useSongDatabaseContext } from './useSongDatabaseContext';
 import { VERSION_ORDER, VERSION_MAPPING, CATEGORY_TRANSLATION } from '../config/maimai-constants';
 
-// Helper to convert level string (e.g., "13+") to number (13.7)
+/**
+ * Converts a level string (e.g., "13+") to its approximate numerical value (e.g., 13.7).
+ * Used for sorting and range filtering.
+ * @param {string} levelStr - The level string to parse.
+ * @returns {number} The parsed numerical level value.
+ */
 const parseLevel = (levelStr) => {
   if (!levelStr) return 0;
   const base = parseFloat(levelStr);
@@ -12,6 +17,11 @@ const parseLevel = (levelStr) => {
   return base;
 };
 
+/**
+ * Custom hook to interact with the song database.
+ * Provides filtered, sorted, and region-overridden song lists along with filter controls.
+ * @returns {Object} An object containing the song list, loading state, filters, and filter options.
+ */
 export function useSongDatabase() {
   const { songs, loading, error } = useSongDatabaseContext();
   const [filters, setFilters] = useState({

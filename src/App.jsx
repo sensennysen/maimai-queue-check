@@ -11,31 +11,36 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';
 import { SongDatabaseProvider } from './contexts/SongDatabaseContext';
-import { useAuth } from './hooks/useAuth';
+import { FeatureFlagProvider } from './contexts/FeatureFlagContext';
 import { theme as mantineTheme, themes } from './config/theme';
+import { ProtectedRoute, ProfileRedirect } from './components/routing/RoutingComponents';
 import QueueManager from './features/queue/components/QueueManager';
 import Footer from './components/layout/Footer';
 import GlobalNavbar from './components/layout/GlobalNavbar';
 import BranchSelector from './components/layout/BranchSelector';
+import ErrorBoundary from './components/layout/ErrorBoundary';
 import './App.css';
+import ConsentBanner from './components/legal/ConsentBanner';
+import { useAuth } from './hooks/useAuth';
 
 // Lazy load pages
 const AdminPage = lazy(() => import('./pages/AdminPage'));
-const AuditLogsPage = lazy(() => import('./pages/AuditLogsPage'));
-// ProfilePage is removed in favor of PublicProfilePage
+const AuditLogsPage = lazy(() => import('./features/admin/pages/AuditLogsPage'));
 const ExportBest50Page = lazy(() => import('./pages/ExportBest50Page'));
 const ViewPage = lazy(() => import('./pages/ViewPage'));
 const SongsPage = lazy(() => import('./pages/SongsPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 const SearchPage = lazy(() => import('./pages/SearchPage'));
-
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
+const ProfileBest50Page = lazy(() => import('./pages/ProfileBest50Page'));
 const SongDiscussionPage = lazy(() => import('./pages/SongDiscussionPage'));
-const SharedPlaylistsPage = lazy(() => import('./pages/SharedPlaylistsPage'));
+const SharedPlaylistsPage = lazy(() => import('./features/playlists/SharedPlaylistsPage'));
 const FeedPage = lazy(() => import('./pages/FeedPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage'));
 
-// The main application content (Queue check, Login, etc.)
-function MainApp() {
+// Queue page content
+function QueuePage() {
   return (
     <div className="App">
       <Container size="xl" py="xl">
@@ -50,9 +55,19 @@ function MainApp() {
   );
 }
 
-// Mantine wrapper that provides theme
-function AppProviders() {
+function HomeRoute() {
+  const { user, loading } = useAuth();
+
+  if (loading) return null;
+  if (user) return <Navigate to="/feed" replace />;
+
+  return <Navigate to="/queue" replace />;
+}
+
+// Mantine must wrap ErrorBoundary so the boundary fallback (Mantine components) still has a provider.
+function MantineAppShell() {
   const { isDark, currentTheme } = useTheme();
+  const { user } = useAuth();
 
   const dynamicTheme = useMemo(() => {
     const selectedPalette = themes[currentTheme] || themes.circle;
@@ -69,60 +84,50 @@ function AppProviders() {
     });
   }, [currentTheme]);
 
-  // Redirect /profile to the user's public slug
-  const ProfileRedirect = () => {
-    const { user, userRoles, loading: authLoading } = useAuth();
-    if (authLoading) return null;
-    if (!user) return <Navigate to="/" replace />;
-    if (userRoles?.slug) return <Navigate to={`/p/${userRoles.slug}`} replace />;
-    // If no slug yet, fallback to main app or a default view
-    return <Navigate to="/" replace />;
-  };
-
-  const ProtectedRoute = ({ children }) => {
-    const { user, loading: authLoading } = useAuth();
-    if (authLoading) return null;
-    if (!user) return <Navigate to="/" replace />;
-    return children;
-  };
+  // Check for per-user analytics opt-out
+  const analyticsKey = user ? `smf_analytics_opt_out_${user.id}` : 'smf_analytics_opt_out_guest';
+  const isOptedOut = localStorage.getItem(analyticsKey) === 'true';
 
   return (
     <MantineProvider theme={dynamicTheme} forceColorScheme={isDark ? 'dark' : 'light'}>
-      <Notifications position="top-right" />
-      <GlobalNavbar />
-      <Suspense fallback={
-        <Container size="xl" py="xl">
-          <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
-            <Loader size="xl" color="pink" type="bars" />
-          </Stack>
-        </Container>
-      }>
-        <Routes>
-          <Route path="/profile/export" element={<ExportBest50Page />} />
-          <Route path="/profile" element={<ProfileRedirect />} />
-          <Route path="/view" element={<ViewPage />} />
-          <Route path="/songs" element={<SongsPage />} />
-          <Route path="/songs/:id" element={<SongDiscussionPage />} />
-          <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
-          <Route path="/shared-playlists" element={<ProtectedRoute><SharedPlaylistsPage /></ProtectedRoute>} />
-          <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/audit-logs" element={<AuditLogsPage />} />
-          <Route path="/p/:slug" element={<PublicProfilePage />} />
-          <Route path="/" element={<MainApp />} />
-          <Route path="*" element={<MainApp />} />
-        </Routes>
-      </Suspense>
-      <Footer />
-      <Analytics />
+      <ErrorBoundary>
+        <Notifications position="top-right" />
+        <GlobalNavbar />
+        <Suspense fallback={
+          <Container size="xl" py="xl">
+            <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
+              <Loader size="xl" color="pink" type="bars" />
+            </Stack>
+          </Container>
+        }>
+          <Routes>
+            <Route path="/profile/export" element={<ExportBest50Page />} />
+            <Route path="/profile" element={<ProfileRedirect />} />
+            <Route path="/queue" element={<QueuePage />} />
+            <Route path="/view" element={<ViewPage />} />
+            <Route path="/songs" element={<SongsPage />} />
+            <Route path="/songs/:id" element={<SongDiscussionPage />} />
+            <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+            <Route path="/shared-playlists" element={<ProtectedRoute><SharedPlaylistsPage /></ProtectedRoute>} />
+            <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsOfServicePage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/audit-logs" element={<AuditLogsPage />} />
+            <Route path="/p/:slug" element={<PublicProfilePage />} />
+            <Route path="/p/:slug/best50" element={<ProfileBest50Page />} />
+            <Route path="/" element={<HomeRoute />} />
+            <Route path="*" element={<QueuePage />} />
+          </Routes>
+        </Suspense>
+        <Footer />
+        <ConsentBanner />
+        {!isOptedOut && <Analytics />}
+      </ErrorBoundary>
     </MantineProvider>
   );
 }
-
-import { FeatureFlagProvider } from './contexts/FeatureFlagContext';
-
-// ... (imports remain the same)
 
 function App() {
   return (
@@ -132,7 +137,7 @@ function App() {
           <AuthProvider>
             <SongDatabaseProvider>
               <FeatureFlagProvider>
-                <AppProviders />
+                <MantineAppShell />
               </FeatureFlagProvider>
             </SongDatabaseProvider>
           </AuthProvider>

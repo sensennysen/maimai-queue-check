@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Paper, Group, Avatar, Textarea, Button, Text, SegmentedControl, Center, Box } from '@mantine/core';
+import { Paper, Group, Avatar, Textarea, Button, Text, SegmentedControl, Center, Box, Stack, SimpleGrid } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import IconSend from '@tabler/icons-react/dist/esm/icons/IconSend.mjs';
 import IconWorld from '@tabler/icons-react/dist/esm/icons/IconWorld.mjs';
 import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
@@ -20,6 +21,7 @@ import { FEED_PLACEHOLDERS } from '../../constants/placeholders';
  * @param {{ user: object, profileData: object, onSubmit: (content: string, visibility: string, songId: string, playlistId: string) => Promise<void> }} props
  */
 export function FeedPostComposer({ user, profileData, onSubmit }) {
+  const isMobile = useMediaQuery('(max-width: 48em)');
   const [content, setContent] = useState('');
   const [visibility, setVisibility] = useState(APP_CONFIG.DEFAULT_VISIBILITY);
   const [loading, setLoading] = useState(false);
@@ -107,6 +109,30 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
     return FEED_PLACEHOLDERS[Math.floor(Math.random() * FEED_PLACEHOLDERS.length)];
   }, []);
 
+  const visibilitySegmentData = useMemo(
+    () => [
+      {
+        value: 'public',
+        label: (
+          <Center style={{ gap: 6 }}>
+            <IconWorld size={14} />
+            <span>Public</span>
+          </Center>
+        ),
+      },
+      {
+        value: 'followers',
+        label: (
+          <Center style={{ gap: 6 }}>
+            <IconUsers size={14} />
+            <span>Followers</span>
+          </Center>
+        ),
+      },
+    ],
+    []
+  );
+
   return (
     <Paper p="md" radius="xl" withBorder className="community-panel">
       <Group gap="sm" wrap="nowrap" align="flex-start">
@@ -122,7 +148,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
 
         <div style={{ flex: 1 }}>
           <Textarea
-            placeholder={`${placeholder} (Ctrl+Enter to post)`}
+            placeholder={`${placeholder}`}
             value={content}
             onChange={(e) => setContent(e.currentTarget.value)}
             onKeyDown={handleKeyDown}
@@ -130,7 +156,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
             autosize
             maxRows={6}
             radius="md"
-            styles={{ input: { fontSize: '0.9rem' } }}
+            styles={{ input: { fontSize: '1rem' } }}
             disabled={loading}
           />
 
@@ -160,105 +186,158 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
                     fit="cover" 
                   />
                   <ActionIcon 
-                    size="xs" 
+                    size="sm" 
                     color="red" 
                     variant="filled" 
                     radius="xl"
                     onClick={() => { setImageFile(null); setImagePreview(null); }}
                     style={{ position: 'absolute', top: -5, right: -5, zIndex: 1 }}
                   >
-                    <IconX size={10} />
+                    <IconX size={12} />
                   </ActionIcon>
                 </Box>
               )}
             </Group>
           )}
 
-          <Group justify="space-between" mt="xs" align="center">
-            <Group gap="xs">
-              <SegmentedControl
-                size="xs"
-                value={visibility}
-                onChange={setVisibility}
-                disabled={loading}
-                data={[
-                  {
-                    value: 'public',
-                    label: (
-                      <Center style={{ gap: 6 }}>
-                        <IconWorld size={14} />
-                        <span>Public</span>
-                      </Center>
-                    ),
-                  },
-                  {
-                    value: 'followers',
-                    label: (
-                      <Center style={{ gap: 6 }}>
-                        <IconUsers size={14} />
-                        <span>Followers</span>
-                      </Center>
-                    ),
-                  },
-                ]}
-              />
-              
-              <Group gap={4}>
-                <Tooltip label="Attach Song" withArrow>
-                  <ActionIcon 
-                    variant="subtle" 
-                    color="gray" 
+          <Stack gap="sm" mt="sm">
+            {isMobile ? (
+              <Stack gap="xs">
+                <SegmentedControl
+                  fullWidth
+                  size="sm"
+                  value={visibility}
+                  onChange={setVisibility}
+                  disabled={loading}
+                  data={visibilitySegmentData}
+                />
+                <SimpleGrid cols={3} spacing={6} verticalSpacing={6}>
+                  <Button
+                    type="button"
+                    variant="light"
+                    color="gray"
+                    size="sm"
+                    radius="md"
+                    leftSection={<IconMusic size={16} />}
                     onClick={() => setSongPickerOpened(true)}
                     disabled={loading || !!attachedSong}
                   >
-                    <IconMusic size={18} />
-                  </ActionIcon>
-                </Tooltip>
-                
-                <Tooltip label="Attach Playlist" withArrow>
-                  <ActionIcon 
-                    variant="subtle" 
-                    color="gray" 
+                    Song
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="light"
+                    color="gray"
+                    size="sm"
+                    radius="md"
+                    leftSection={<IconPlaylist size={16} />}
                     onClick={() => setPlaylistPickerOpened(true)}
                     disabled={loading || !!attachedPlaylist}
                   >
-                    <IconPlaylist size={18} />
-                  </ActionIcon>
-                </Tooltip>
-
-                <FileButton onChange={handleImageSelect} accept="image/png,image/jpeg,image/webp">
-                  {(props) => (
-                    <Tooltip label="Upload Image" withArrow>
-                      <ActionIcon 
+                    Playlist
+                  </Button>
+                  <FileButton onChange={handleImageSelect} accept="image/png,image/jpeg,image/webp">
+                    {(props) => (
+                      <Button
                         {...props}
-                        variant="subtle" 
-                        color="gray" 
+                        variant="light"
+                        color="gray"
+                        size="sm"
+                        radius="md"
+                        leftSection={<IconPhoto size={16} />}
                         disabled={loading || !!imageFile}
                       >
-                        <IconPhoto size={18} />
-                      </ActionIcon>
-                    </Tooltip>
-                  )}
-                </FileButton>
-              </Group>
+                        Photo
+                      </Button>
+                    )}
+                  </FileButton>
+                </SimpleGrid>
+              </Stack>
+            ) : (
+              <Group justify="space-between" align="center" wrap="wrap" gap="sm">
+                <SegmentedControl
+                  size="sm"
+                  value={visibility}
+                  onChange={setVisibility}
+                  disabled={loading}
+                  data={visibilitySegmentData}
+                />
 
+                <Group
+                  gap={2}
+                  wrap="nowrap"
+                  style={{
+                    padding: '2px 4px',
+                    borderRadius: 8,
+                    border: '1px solid var(--mantine-color-default-border)',
+                  }}
+                >
+                  <Tooltip label="Attach Song" withArrow>
+                    <ActionIcon
+                      variant="subtle"
+                      color="gray"
+                      size="sm"
+                      aria-label="Attach song"
+                      onClick={() => setSongPickerOpened(true)}
+                      disabled={loading || !!attachedSong}
+                    >
+                      <IconMusic size={18} />
+                    </ActionIcon>
+                  </Tooltip>
+
+                  <Tooltip label="Attach Playlist" withArrow>
+                    <ActionIcon
+                      variant="subtle"
+                      color="gray"
+                      size="sm"
+                      aria-label="Attach playlist"
+                      onClick={() => setPlaylistPickerOpened(true)}
+                      disabled={loading || !!attachedPlaylist}
+                    >
+                      <IconPlaylist size={18} />
+                    </ActionIcon>
+                  </Tooltip>
+
+                  <FileButton onChange={handleImageSelect} accept="image/png,image/jpeg,image/webp">
+                    {(props) => (
+                      <Tooltip label="Upload Image" withArrow>
+                        <ActionIcon
+                          {...props}
+                          variant="subtle"
+                          color="gray"
+                          size="sm"
+                          aria-label="Upload image"
+                          disabled={loading || !!imageFile}
+                        >
+                          <IconPhoto size={18} />
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
+                  </FileButton>
+                </Group>
+              </Group>
+            )}
+
+            <Group justify="space-between" align="center" wrap="nowrap" gap="md">
               <Text
-                size="xs"
+                size="sm"
+                ff="monospace"
                 c={isOver ? 'red' : remaining <= 50 ? 'yellow' : 'dimmed'}
               >
-                {remaining}
+                {content.length} / {APP_CONFIG.MAX_POST_LENGTH}
               </Text>
+              <Button
+                size={isMobile ? 'compact-sm' : 'sm'}
+                radius="xl"
+                leftSection={<IconSend size={isMobile ? 14 : 16} />}
+                onClick={handleSubmit}
+                loading={loading}
+                disabled={isDisabled}
+              >
+                Post
+              </Button>
             </Group>
-            <Button
-              size="xs"
-              leftSection={<IconSend size={14} />}
-              onClick={handleSubmit}
-              loading={loading}
-              disabled={isDisabled}
-            >
-              Post
-            </Button>
-          </Group>
+          </Stack>
         </div>
       </Group>
 

@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+ 
 /* The hook and provider are co-located intentionally (standard React context pattern).
    Splitting into separate files would add indirection without benefit. */
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
@@ -9,7 +9,33 @@ import { TABLES } from '../constants/database';
 const BranchContext = createContext(null);
 
 const STORAGE_KEY = 'maimai-selected-branch';
+const REGION_PRIORITY = {
+  'Metro Manila': 1,
+  'Luzon': 2,
+  'Visayas': 3,
+  'Mindanao': 4
+};
 
+const sortBranches = (branches) => {
+  return [...branches].sort((a, b) => {
+    const priorityA = REGION_PRIORITY[a.region_name] || 999;
+    const priorityB = REGION_PRIORITY[b.region_name] || 999;
+    
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
+    }
+    
+    return a.arcade_name.localeCompare(b.arcade_name);
+  });
+};
+
+/**
+ * Provider component for the global Branch context.
+ * Manages the list of available arcade branches, location-based auto-selection, and real-time updates.
+ * @param {Object} props - Component props.
+ * @param {React.ReactNode} props.children - Child components to be wrapped by the provider.
+ * @returns {JSX.Element} The rendered context provider.
+ */
 export const BranchProvider = ({ children }) => {
   const [branches, setBranches] = useState([]);
   const [allEnabledBranches, setAllEnabledBranches] = useState([]);
@@ -19,6 +45,11 @@ export const BranchProvider = ({ children }) => {
   const [userLocation, setUserLocation] = useState(null);
   const [hasManuallySelected, setHasManuallySelected] = useState(false);
 
+  /**
+   * Loads the initial list of branches and enabled branches from the database.
+   * Handles restoration of the user's previously selected branch from local storage.
+   * @returns {Promise<void>} A promise that resolves when the branches are loaded.
+   */
   const loadBranches = useCallback(async () => {
     try {
       setLoading(true);
@@ -30,8 +61,8 @@ export const BranchProvider = ({ children }) => {
         branchService.getAllEnabledBranches()
       ]);
 
-      setBranches(allBranches);
-      setAllEnabledBranches(allEnabled);
+      setBranches(sortBranches(allBranches));
+      setAllEnabledBranches(sortBranches(allEnabled));
 
       if (allBranches.length === 0) {
         setError('No branches found');
@@ -61,29 +92,36 @@ export const BranchProvider = ({ children }) => {
     }
   }, []); // Static loader
 
+  /**
+   * Sets the currently active branch and persists the selection to local storage.
+   * @param {Object} branch - The branch object to select.
+   * @returns {void}
+   */
   const setSelectedBranch = useCallback((branch) => {
     setSelectedBranchState(branch);
     setHasManuallySelected(true);
     localStorage.setItem(STORAGE_KEY, String(branch.id));
   }, []);
 
+  /**
+   * Handles real-time database change payloads for the branches table.
+   * Updates local state (INSERT/UPDATE/DELETE) while maintaining sorting and selection consistency.
+   * @param {Object} payload - The Supabase real-time change payload.
+   * @returns {void}
+   */
   const handleBranchChange = useCallback((payload) => {
     const { eventType, new: newRecord, old: oldRecord } = payload;
 
     if (eventType === 'INSERT') {
       // Add to allEnabledBranches if enabled
       if (newRecord.enabled) {
-        setAllEnabledBranches(prev => [...prev, newRecord].sort((a, b) =>
-          a.arcade_name.localeCompare(b.arcade_name)
-        ));
+        setAllEnabledBranches(prev => sortBranches([...prev, newRecord]));
       }
       // New branch added - only add if enabled and has coordinates
       if (newRecord.enabled && newRecord.latitude != null && newRecord.longitude != null) {
         // Note: we can't easily verify mall_schedule here, but coordinate presence is a good proxy 
         // until a full reload happens.
-        setBranches(prev => [...prev, newRecord].sort((a, b) =>
-          a.arcade_name.localeCompare(b.arcade_name)
-        ));
+        setBranches(prev => sortBranches([...prev, newRecord]));
       }
     } else if (eventType === 'UPDATE') {
       // Update allEnabledBranches
@@ -91,17 +129,7 @@ export const BranchProvider = ({ children }) => {
         const updated = prev.map(branch =>
           branch.id === newRecord.id ? newRecord : branch
         );
-        if (!newRecord.enabled) {
-          return updated.filter(b => b.id !== newRecord.id);
-        }
-        if (newRecord.enabled && !prev.find(b => b.id === newRecord.id)) {
-          return [...updated, newRecord].sort((a, b) =>
-            a.arcade_name.localeCompare(b.arcade_name)
-          );
-        }
-        return updated.sort((a, b) =>
-          a.arcade_name.localeCompare(b.arcade_name)
-        );
+        return sortBranches(updated);
       });
 
       // Branch updated
@@ -116,15 +144,7 @@ export const BranchProvider = ({ children }) => {
         }
 
         // If branch was enabled with coordinates, make sure it's in the list
-        if (newRecord.enabled && newRecord.latitude != null && newRecord.longitude != null && !prev.find(b => b.id === newRecord.id)) {
-          return [...updated, newRecord].sort((a, b) =>
-            a.arcade_name.localeCompare(b.arcade_name)
-          );
-        }
-
-        return updated.sort((a, b) =>
-          a.arcade_name.localeCompare(b.arcade_name)
-        );
+        return sortBranches(updated);
       });
 
       // Update selected branch state if it was updated
@@ -237,12 +257,17 @@ export const BranchProvider = ({ children }) => {
   }, [handleBranchChange, loadBranches]);
 
   // Refresh user location
+  /**
+   * Requests the user's current geographical coordinates and updates the context state.
+   * @returns {Promise<Object|null>} A promise resolving to the location object or null on failure.
+   */
   const refreshLocation = async () => {
     try {
       const location = await requestUserLocation();
       setUserLocation(location);
       return location;
-    } catch {
+    } catch (err) {
+      console.warn('Failed to get user location:', err);
       return null;
     }
   };
@@ -267,6 +292,12 @@ export const BranchProvider = ({ children }) => {
   );
 };
 
+/**
+ * Custom hook to access the global Branch context.
+ * Provides access to available branches, the selected branch, and location-related utilities.
+ * @returns {Object} The Branch context value.
+ * @throws {Error} If used outside of a BranchProvider.
+ */
 export const useBranch = () => {
   const context = useContext(BranchContext);
   if (!context) {

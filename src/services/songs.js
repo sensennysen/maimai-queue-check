@@ -3,12 +3,20 @@ import { BASE_JACKET_URL } from '../config/maimai-constants';
 let songDatabasePromise = null;
 
 export const songsService = {
-  // Clear cache (e.g. for admin updates or after a failed load)
+  /**
+   * Clears the cached song database promise.
+   * Useful for forcing a reload when data changes or recovery after failure.
+   * @returns {void}
+   */
   clearCache() {
     songDatabasePromise = null;
   },
 
-  // Fetch everything needed for the DB from the bundled JSON
+  /**
+   * Retrieves the full song database from the bundled JSON asset.
+   * Implements internal caching via a promise to prevent redundant loads.
+   * @returns {Promise<Array<Object>>} A promise resolving to an array of mapped song cards.
+   */
   getFullSongDatabase() {
     if (songDatabasePromise) return songDatabasePromise;
 
