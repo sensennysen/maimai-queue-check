@@ -1,5 +1,6 @@
 export const TABLES = {
   USER_PROFILES: 'user_profiles',
+  PUBLIC_USER_PROFILES: 'public_user_profiles',
   USER_ROLES: 'user_roles',
   USER_FOLLOWS: 'user_follows',
   USER_PLAYLISTS: 'user_playlists',

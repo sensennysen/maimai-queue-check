@@ -28,3 +28,7 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# Supabase source files and migrations are part of the database contract.
+# Keep the CLI's machine-local project metadata out of git.
+/supabase/.temp/

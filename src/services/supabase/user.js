@@ -158,14 +158,12 @@ export const userService = {
   async getProfileBySlug(slug) {
     if (!slug) return null;
 
-    const { data, error: profileError } = await supabase
-      .from(TABLES.USER_PROFILES)
-      .select(`id, display_name, ${TABLES.USER_ROLES}(queue_name), maimai_dx_name, circle_name, maimai_best_scores, maimai_scores_updated_at, recent_plays, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, privacy_settings, is_public, slug, slug_updated_at, introduction, user_attributions(attributions)`)
-      .eq('slug', slug.toLowerCase())
-      .maybeSingle();
+    const { data, error: profileError } = await supabase.rpc('get_public_profile_by_slug', {
+      p_slug: slug.toLowerCase()
+    });
 
     if (profileError) throw profileError;
-    return data;
+    return data || null;
   },
 
   // Search public profiles by display name or slug
@@ -175,7 +173,7 @@ export const userService = {
 
     const search = `%${trimmed}%`;
     const { data, error } = await supabase
-      .from(TABLES.USER_PROFILES)
+      .from(TABLES.PUBLIC_USER_PROFILES)
       .select('id, display_name, slug, display_photo_url, dx_display_photo_url, is_public')
       .eq('is_public', true)
       .or(`display_name.ilike.${search},slug.ilike.${search}`)

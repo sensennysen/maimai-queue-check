@@ -44,13 +44,82 @@ async function resolvesToBlockedIp(hostname) {
 
 const MAX_RESPONSE_SIZE = 5 * 1024 * 1024; // 5MB
 const FETCH_TIMEOUT = 5000; // 5 seconds
+const MAX_REDIRECTS = 5;
 const ALLOWED_CONTENT_TYPES = [
   'image/jpeg',
   'image/png',
   'image/webp',
   'image/gif',
-  'image/svg+xml',
 ];
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+
+class TargetValidationError extends Error {
+  constructor(status, error) {
+    super(error);
+    this.name = 'TargetValidationError';
+    this.status = status;
+    this.error = error;
+  }
+}
+
+async function validateTargetUrl(parsed) {
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new TargetValidationError(400, 'Only http(s) URLs are allowed');
+  }
+
+  const hostname = parsed.hostname;
+  if (isBlockedTargetHost(hostname)) {
+    throw new TargetValidationError(403, 'Target host is not allowed');
+  }
+
+  if (isIP(hostname) === 0) {
+    try {
+      if (await resolvesToBlockedIp(hostname)) {
+        throw new TargetValidationError(403, 'Target host is not allowed');
+      }
+    } catch (error) {
+      if (error instanceof TargetValidationError) {
+        throw error;
+      }
+
+      throw new TargetValidationError(400, 'Invalid "url" parameter');
+    }
+  }
+}
+
+async function fetchValidatedImageUrl(initialUrl, signal) {
+  let currentUrl = initialUrl;
+
+  for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
+    const response = await fetch(currentUrl.toString(), {
+      signal,
+      redirect: 'manual',
+    });
+
+    if (!REDIRECT_STATUSES.has(response.status)) {
+      return response;
+    }
+
+    const location = response.headers.get('location');
+    if (!location) {
+      return response;
+    }
+
+    if (redirectCount === MAX_REDIRECTS) {
+      throw new TargetValidationError(508, 'Too many redirects');
+    }
+
+    let redirectUrl;
+    try {
+      redirectUrl = new URL(location, currentUrl);
+    } catch {
+      throw new TargetValidationError(400, 'Invalid "url" parameter');
+    }
+
+    await validateTargetUrl(redirectUrl);
+    currentUrl = redirectUrl;
+  }
+}
 
 export default async function handler(req, res) {
   const { url } = req.query;
@@ -66,23 +135,14 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid "url" parameter' });
   }
 
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    return res.status(400).json({ error: 'Only http(s) URLs are allowed' });
-  }
-
-  const hostname = parsed.hostname;
-  if (isBlockedTargetHost(hostname)) {
-    return res.status(403).json({ error: 'Target host is not allowed' });
-  }
-
-  if (isIP(hostname) === 0) {
-    try {
-      if (await resolvesToBlockedIp(hostname)) {
-        return res.status(403).json({ error: 'Target host is not allowed' });
-      }
-    } catch {
-      return res.status(400).json({ error: 'Invalid "url" parameter' });
+  try {
+    await validateTargetUrl(parsed);
+  } catch (error) {
+    if (error instanceof TargetValidationError) {
+      return res.status(error.status).json({ error: error.error });
     }
+
+    throw error;
   }
 
   const controller = new AbortController();
@@ -90,9 +150,7 @@ export default async function handler(req, res) {
 
   try {
     // Use native fetch (available in Node.js 18+)
-    const response = await fetch(parsed.toString(), {
-      signal: controller.signal,
-    });
+    const response = await fetchValidatedImageUrl(parsed, controller.signal);
 
     if (!response.ok) {
       return res.status(response.status).send(`Failed to fetch image: ${response.statusText}`);
@@ -128,6 +186,10 @@ export default async function handler(req, res) {
     // Send the image data back to the browser
     return res.send(buffer);
   } catch (error) {
+    if (error instanceof TargetValidationError) {
+      return res.status(error.status).json({ error: error.error });
+    }
+
     if (error.name === 'AbortError') {
       return res.status(504).json({ error: 'Gateway Timeout' });
     }

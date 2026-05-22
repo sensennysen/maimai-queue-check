@@ -27,13 +27,11 @@ export default async function handler(req, res) {
 
   try {
     // 1. Fetch profile data
-    const { data: profile, error } = await supabase
-      .from('user_profiles')
-      .select('display_name, display_photo_url, dx_display_photo_url, is_public')
-      .eq('slug', slug.toLowerCase())
-      .maybeSingle();
+    const { data: profile, error } = await supabase.rpc('get_public_profile_by_slug', {
+      p_slug: slug.toLowerCase(),
+    });
 
-    if (error || !profile) {
+    if (error || !profile || profile.is_restricted || profile.is_public !== true) {
       return res.status(404).send('Profile not found');
     }
 
