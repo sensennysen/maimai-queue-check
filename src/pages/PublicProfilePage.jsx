@@ -283,7 +283,7 @@ const PublicProfilePage = () => {
               )}
 
               {hasRecentPlays && (
-                <RecentPlaysSection userId={profile.id} isOwnProfile={isOwner} />
+                <RecentPlaysSection userId={profile.id} initialData={profile.recent_plays || []} isOwnProfile={isOwner} />
               )}
             </div>
           </div>
@@ -294,7 +294,7 @@ const PublicProfilePage = () => {
               <ProfilePostsSection userId={profile.id} currentUser={user} isOwnProfile={isOwner} />
             )}
             {hasRecentPlays && (
-              <RecentPlaysSection userId={profile.id} isOwnProfile={isOwner} />
+              <RecentPlaysSection userId={profile.id} initialData={profile.recent_plays || []} isOwnProfile={isOwner} />
             )}
           </Stack>
         )}

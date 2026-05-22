@@ -68,6 +68,24 @@ describe('/api/proxy', () => {
     expect(res._state.body).toEqual({ error: 'Content type not allowed' });
   });
 
+  it('rejects SVG images instead of serving active content', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      headers: {
+        get: (key) => (String(key).toLowerCase() === 'content-type' ? 'image/svg+xml' : null),
+      },
+    })));
+
+    const req = createMockReq({ query: { url: 'https://example.com/badge.svg' } });
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res._state.status).toBe(403);
+    expect(res._state.body).toEqual({ error: 'Content type not allowed' });
+  });
+
   it('rejects large payloads via content-length', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
@@ -144,6 +162,49 @@ describe('/api/proxy', () => {
     expect(lookup).toHaveBeenCalledOnce();
     expect(res._state.status).toBe(403);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('blocks redirects to private targets before following them', async () => {
+    const fetchMock = vi.fn(async () => ({
+      status: 302,
+      headers: {
+        get: (key) => (String(key).toLowerCase() === 'location' ? 'http://127.0.0.1/private.png' : null),
+      },
+    }));
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const req = createMockReq({ query: { url: 'https://example.com/avatar.png' } });
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res._state.status).toBe(403);
+    expect(res._state.body).toEqual({ error: 'Target host is not allowed' });
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledWith('https://example.com/avatar.png', expect.objectContaining({
+      redirect: 'manual',
+    }));
+  });
+
+  it('blocks redirects to disallowed URL schemes before following them', async () => {
+    const fetchMock = vi.fn(async () => ({
+      status: 302,
+      headers: {
+        get: (key) => (String(key).toLowerCase() === 'location' ? 'file:///etc/passwd' : null),
+      },
+    }));
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const req = createMockReq({ query: { url: 'https://example.com/avatar.png' } });
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res._state.status).toBe(400);
+    expect(res._state.body).toEqual({ error: 'Only http(s) URLs are allowed' });
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
 });
 

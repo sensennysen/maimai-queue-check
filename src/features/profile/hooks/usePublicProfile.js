@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { userService, branchService, mostPlayedService, followService } from '../../../services/supabase';
+import { userService, branchService, followService } from '../../../services/supabase';
 
 /**
  * Hook to manage public profile data and follow logic
@@ -49,16 +49,9 @@ export function usePublicProfile(slug, user) {
       } else {
         const isOwner = userId && profileData.id === userId;
         
-        if (!profileData.is_public && !isOwner && !userId) {
+        if (profileData.is_restricted || (!profileData.is_public && !isOwner && !userId)) {
           if (isMounted.current) setIsRestricted(true);
         } else {
-          const mostPlayedData = await mostPlayedService.getMostPlayed(profileData.id);
-          if (profileData.maimai_best_scores) {
-            profileData.maimai_best_scores.most_played = mostPlayedData || [];
-          } else if (mostPlayedData && mostPlayedData.length > 0) {
-            profileData.maimai_best_scores = { most_played: mostPlayedData };
-          }
-
           if (isMounted.current) {
             setProfile(profileData);
             setBranches(branchesData);
