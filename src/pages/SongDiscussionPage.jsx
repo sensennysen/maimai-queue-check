@@ -24,6 +24,7 @@ import { useTagManagement } from '../features/discussion/hooks/useTagManagement'
 import { AddToPlaylistModal } from '../components/modals/AddToPlaylistModal';
 import { VoterListModal } from '../components/common/VoterListModal';
 import { discussionService } from '../services/supabase';
+import '../features/songs/components/SongDatabase.css';
 
 export default function SongDiscussionPage() {
   const { id } = useParams();
@@ -88,7 +89,7 @@ export default function SongDiscussionPage() {
 
   if (songsLoading) {
     return (
-      <Container size="xl" py="xl">
+      <Container size="xl" py={0}>
         <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
           <Loader size="xl" color="pink" type="bars" />
           <Text c="dimmed">Loading song details...</Text>
@@ -99,7 +100,7 @@ export default function SongDiscussionPage() {
 
   if (!song) {
     return (
-      <Container size="xl" py="xl">
+      <Container size="xl" py={0}>
         <Stack align="center" gap="md">
           <Title order={2}>Song Not Found</Title>
         </Stack>
@@ -108,7 +109,7 @@ export default function SongDiscussionPage() {
   }
 
   return (
-    <Container size="xl" py="xl" className="animate-fade-in">
+    <Container size="xl" py={0} pb="xl" className="animate-fade-in song-discussion-page">
       <Stack gap="xl">
         {error && (
           <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red">

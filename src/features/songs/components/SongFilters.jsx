@@ -2,6 +2,8 @@ import { TextInput, MultiSelect, Select, Text, Stack, Paper, Collapse, Button, G
 import IconSearch from '@tabler/icons-react/dist/esm/icons/IconSearch.mjs';
 import IconFilter from '@tabler/icons-react/dist/esm/icons/IconFilter.mjs';
 import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
+import IconChevronDown from '@tabler/icons-react/dist/esm/icons/IconChevronDown.mjs';
+import IconChevronUp from '@tabler/icons-react/dist/esm/icons/IconChevronUp.mjs';
 import { useState, useMemo } from 'react';
 import { VERSION_ORDER } from '../../../config/maimai-constants';
 
@@ -24,6 +26,7 @@ const toLevelLabel = (val) => {
 
 function SongFilters({ filters, onFilterChange, categories, versions, levels = [], internalLevels = [], artists = [] }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [desktopOpen, setDesktopOpen] = useState(true);
   const isInternal = filters.showInternalLevels;
 
   const levelOptions = useMemo(() => levels.map(l => ({ value: l, label: l })), [levels]);
@@ -111,13 +114,14 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
 
   // Inline the filter content instead of using a component function (avoids remount/focus loss)
   const filterContent = (
-    <Stack gap="lg" style={{ width: '100%', maxWidth: '100%' }}>
+    <Stack gap="md" className="song-filter-fields" style={{ width: '100%', maxWidth: '100%' }}>
       <TextInput
+        className="song-filter-search"
         placeholder="Search title, artist..."
         leftSection={<IconSearch size={16} />}
         value={filters.query}
         onChange={(e) => updateFilter('query', e.currentTarget.value)}
-        variant="filled"
+        variant="default"
         radius="md"
         size="md"
       />
@@ -130,7 +134,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         onChange={(val) => updateFilter('categories', val)}
         searchable
         clearable
-        variant="filled"
+        variant="default"
         radius="md"
         comboboxProps={{ withinPortal: false }}
       />
@@ -143,7 +147,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         onChange={(val) => updateFilter('artists', val)}
         searchable
         clearable
-        variant="filled"
+        variant="default"
         radius="md"
         comboboxProps={{ withinPortal: false }}
       />
@@ -156,7 +160,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         onChange={(val) => updateFilter('versions', val)}
         searchable
         clearable
-        variant="filled"
+        variant="default"
         radius="md"
         comboboxProps={{ withinPortal: false }}
       />
@@ -170,7 +174,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         ]}
         value={filters.type || null}
         onChange={(val) => updateFilter('type', val || '')}
-        variant="filled"
+        variant="default"
         radius="md"
         clearable
         comboboxProps={{ withinPortal: false }}
@@ -191,13 +195,13 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
         ]}
         value={filters.region || null}
         onChange={(val) => updateFilter('region', val || 'intl')}
-        variant="filled"
+        variant="default"
         radius="md"
         allowDeselect={false}
         comboboxProps={{ withinPortal: false }}
       />
 
-      <Stack gap="xs">
+      <Stack gap="xs" className="song-filter-levels">
         <Group justify="space-between">
           <Text size="sm" fw={500}>{isInternal ? 'Internal Level Range' : 'Level Range'}</Text>
           <Switch
@@ -215,7 +219,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
             data={isInternal ? internalLevelOptions : levelOptions}
             value={filters.levelMin || null}
             onChange={(val) => updateFilter('levelMin', val || '')}
-            variant="filled"
+            variant="default"
             radius="md"
             clearable
             searchable
@@ -227,7 +231,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
             data={isInternal ? internalLevelOptions : levelOptions}
             value={filters.levelMax || null}
             onChange={(val) => updateFilter('levelMax', val || '')}
-            variant="filled"
+            variant="default"
             radius="md"
             clearable
             searchable
@@ -238,6 +242,7 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
 
       {hasActiveFilters && (
         <Button
+          className="song-filter-reset"
           variant="light"
           color="red"
           leftSection={<IconX size={16} />}
@@ -255,40 +260,56 @@ function SongFilters({ filters, onFilterChange, categories, versions, levels = [
     <Stack gap="md" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
       {/* Mobile Toggle */}
       <Button
-        variant="light"
+        variant="default"
         leftSection={<IconFilter size={16} />}
         rightSection={hasActiveFilters && <Box w={6} h={6} style={{ borderRadius: '50%', background: 'var(--theme-primary)' }} />}
         onClick={() => setIsOpen(!isOpen)}
         display={{ base: 'flex', md: 'none' }}
         radius="md"
         size="sm"
-        mt="xs"
-        m='sm'
+        className="song-filter-toggle"
       >
         {isOpen ? 'Close Filters' : 'Adjust Filters'}
       </Button>
 
       {/* Mobile Collapse content */}
       <Collapse in={isOpen} transitionDuration={200} animateOpacity display={{ base: 'block', md: 'none' }}>
-        <Paper p="md" radius="lg" className="hologram-card" style={{ width: '100%', overflowX: 'hidden' }}>
+        <Paper p="md" radius="md" className="song-filter-panel" style={{ width: '100%', overflowX: 'hidden' }}>
           {filterContent}
         </Paper>
       </Collapse>
 
-      {/* Desktop View: Side panel */}
+      {/* Desktop View: Full-width filter toolbar */}
       <Paper
-        p="xl"
-        radius="lg"
-        className="hologram-card"
+        p={desktopOpen ? 'md' : 'xs'}
+        radius="md"
+        className="song-filter-panel song-filter-panel--toolbar"
         display={{ base: 'none', md: 'block' }}
-        style={{ position: 'sticky', top: '2rem' }}
       >
-        <Stack gap="lg">
-          <Group justify="space-between" align="center" wrap="nowrap">
-            <Text fw={700} size="lg" style={{ fontFamily: 'var(--font-heading)' }} truncate>Filters</Text>
-          </Group>
-          {filterContent}
-        </Stack>
+        <Group justify="space-between" align="center" wrap="nowrap" className="song-filter-toolbar-header">
+          <div>
+            <Text fw={700} size="md" style={{ fontFamily: 'var(--font-heading)' }}>Filters</Text>
+            {!desktopOpen && hasActiveFilters && (
+              <Text size="xs" c="dimmed">Active filters are still applied</Text>
+            )}
+          </div>
+          <Button
+            variant="subtle"
+            size="compact-sm"
+            onClick={() => setDesktopOpen((current) => !current)}
+            rightSection={desktopOpen ? <IconChevronUp size={15} /> : <IconChevronDown size={15} />}
+            aria-expanded={desktopOpen}
+            aria-controls="desktop-song-filters"
+          >
+            {desktopOpen ? 'Hide filters' : 'Show filters'}
+          </Button>
+        </Group>
+
+        <Collapse in={desktopOpen} transitionDuration={160}>
+          <div id="desktop-song-filters" className="song-filter-toolbar-content">
+            {filterContent}
+          </div>
+        </Collapse>
       </Paper>
     </Stack>
   );

@@ -159,7 +159,7 @@ export function AttachmentPreview({ type, item, onClear }) {
   if (!item) return null;
 
   return (
-    <Paper withBorder p="xs" radius="md" style={{ position: 'relative', background: 'var(--mantine-color-gray-0)' }}>
+    <Paper withBorder p="xs" radius="md" className="community-attachment-preview">
       <Group wrap="nowrap" gap="sm">
         {type === 'song' ? (
           <>

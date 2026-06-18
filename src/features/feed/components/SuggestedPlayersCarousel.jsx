@@ -16,7 +16,7 @@ export function SuggestedPlayersCarousel({
   const isDesktop = useMediaQuery('(min-width: 62em)');
 
   return (
-    <Paper p="md" radius="xl" withBorder className={`community-panel ${className || ''}`.trim()}>
+    <Paper p="md" radius="md" withBorder className={`community-panel community-discovery-panel ${className || ''}`.trim()}>
       <PanelHeader
         title="Suggested Players"
         loading={loading}

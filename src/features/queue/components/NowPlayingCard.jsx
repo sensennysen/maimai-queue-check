@@ -23,38 +23,43 @@ function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isL
 
   return (
     <div className={`now-playing ${justUpdated ? 'now-playing-updated' : ''}`}>
-      <div className="now-playing-header">
-        <h3>Now Playing</h3>
-        <PlayTimer startTime={nowPlaying.started_at} />
+      <div className="now-playing-title">
+        <span className="now-playing-status-dot" aria-hidden="true" />
+        <span>Now Playing</span>
       </div>
-      <div className="current-players">
-        <div className="player-display">
-          {hasPlayer1 && (
-            <div className={`playing-player player-1 ${isSolo ? 'player-solo' : ''}`}>
-              <span className="player-side-indicator player-side-1">P1</span>
-              <span className="player-name">{nowPlaying.player1}</span>
-            </div>
-          )}
 
-          {hasPlayer2 && (
-            <div className={`playing-player player-2 ${isSolo ? 'player-solo' : ''}`}>
-              <span className="player-side-indicator player-side-2">P2</span>
-              <span className="player-name">{nowPlaying.player2}</span>
-            </div>
-          )}
+      <div className="now-playing-grid">
+        <div className={`now-playing-player now-playing-player--p1 ${!hasPlayer1 ? 'is-empty' : ''}`}>
+          <span className="player-side-indicator player-side-1">P1</span>
+          <div>
+            <small>Player 1</small>
+            <strong>{hasPlayer1 ? nowPlaying.player1 : 'Open side'}</strong>
+          </div>
         </div>
 
-        {isLoggedIn && canActuallyEdit && (
-          <Button
-            className="finish-game-btn"
-            color="orange"
-            onClick={onFinishGame}
-            disabled={isBusy}
-            leftSection={<IconPlayerStop size={16} />}
-          >
-            Finish Game
-          </Button>
-        )}
+        <div className="now-playing-session">
+          <PlayTimer startTime={nowPlaying.started_at} />
+          {isLoggedIn && canActuallyEdit && (
+            <Button
+              className="finish-game-btn"
+              variant="outline"
+              onClick={onFinishGame}
+              disabled={isBusy}
+              leftSection={<IconPlayerStop size={16} />}
+            >
+              Finish Game
+            </Button>
+          )}
+          {isSolo && <span className="now-playing-solo">Solo session</span>}
+        </div>
+
+        <div className={`now-playing-player now-playing-player--p2 ${!hasPlayer2 ? 'is-empty' : ''}`}>
+          <span className="player-side-indicator player-side-2">P2</span>
+          <div>
+            <small>Player 2</small>
+            <strong>{hasPlayer2 ? nowPlaying.player2 : 'Open side'}</strong>
+          </div>
+        </div>
       </div>
     </div>
   );

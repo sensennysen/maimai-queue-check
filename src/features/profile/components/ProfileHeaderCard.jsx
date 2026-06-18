@@ -103,6 +103,7 @@ export function ProfileHeaderCard({
   // Introduction props
   introduction,
   onIntroductionUpdate,
+  actions,
 }) {
   const [isEditingIntro, setIsEditingIntro] = useState(false);
 
@@ -127,7 +128,7 @@ export function ProfileHeaderCard({
   };
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-100">
+    <Paper p={{ base: 'md', sm: 'lg' }} radius="md" className="profile-surface profile-hero animate-fade-in delay-100">
       {/* ── Top row: avatar + info ── */}
       <Group wrap="nowrap" justify="space-between" align="flex-start">
         <Group wrap="nowrap" style={{ flex: 1 }}>
@@ -137,8 +138,16 @@ export function ProfileHeaderCard({
               cursor: isOwner ? 'pointer' : 'default',
               transition: 'transform 0.1s ease'
             }}
-            className={isOwner ? 'hover-scale' : ''}
+            className={isOwner ? 'profile-avatar-button' : ''}
             onClick={onAvatarClick}
+            onKeyDown={(event) => {
+              if (isOwner && (event.key === 'Enter' || event.key === ' ')) {
+                event.preventDefault();
+                onAvatarClick();
+              }
+            }}
+            role={isOwner ? 'button' : undefined}
+            tabIndex={isOwner ? 0 : undefined}
           >
             <Avatar
               src={profile.display_photo_url || profile.dx_display_photo_url}
@@ -163,7 +172,6 @@ export function ProfileHeaderCard({
                   alignItems: 'center',
                   justifyContent: 'center',
                   border: '2px solid white',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                 }}
               >
                 <IconCamera size={16} />
@@ -231,7 +239,7 @@ export function ProfileHeaderCard({
           </Stack>
         </Group>
 
-        <Stack gap={0} align="flex-end" visibleFrom="sm">
+        <Stack gap={0} align="flex-end" visibleFrom="sm" className="profile-rating-block">
           {(privacy.show_maimai_name || isOwner) && profile.maimai_dx_name && (
             <Group gap={4}>
               <Text size="sm" c="secondary" fw={500}>maimai DX Name:</Text>
@@ -254,6 +262,12 @@ export function ProfileHeaderCard({
           )}
         </Stack>
       </Group>
+
+      {actions && (
+        <Group gap="sm" mt="lg" className="profile-hero-actions">
+          {actions}
+        </Group>
+      )}
 
       {/* ── Introduction section ── */}
       {introAllowed && showIntroSection && (
@@ -297,8 +311,8 @@ export function ProfileHeaderCard({
               c="dimmed"
               fs="italic"
               size="sm"
-              style={{ cursor: 'pointer' }}
-              onClick={() => setIsEditingIntro(true)}
+            className="profile-empty-introduction"
+            onClick={() => setIsEditingIntro(true)}
             >
               Click the pencil icon to add an introduction…
             </Text>

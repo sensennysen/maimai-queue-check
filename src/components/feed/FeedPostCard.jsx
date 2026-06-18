@@ -148,7 +148,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
       p="md"
       radius="md"
       withBorder
-      className={className}
+      className={`community-feed-post ${className || ''}`.trim()}
     >
       <Stack gap="sm">
         {/* Author row */}
@@ -379,49 +379,39 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
                 </Group>
               </UnstyledButton>
 
-              <Group
-                gap={6}
-                justify="center"
-                wrap="nowrap"
+              <UnstyledButton
+                type="button"
                 className="community-engagement-cluster"
-                style={{ cursor: 'pointer' }}
                 onClick={() => handleVote(1)}
+                disabled={voting}
+                aria-label={`Like post. ${likes} ${likes === 1 ? 'like' : 'likes'}`}
+                aria-pressed={userVote === 1}
               >
-                <ActionIcon
-                  variant={userVote === 1 ? 'light' : 'subtle'}
-                  color={userVote === 1 ? 'blue' : 'gray'}
-                  size="lg"
-                  aria-label="Like"
-                  loading={voting}
-                >
+                <span className="community-engagement-icon" aria-hidden="true">
                   {userVote === 1 ? <IconThumbUpFilled size={18} /> : <IconThumbUp size={18} />}
-                </ActionIcon>
+                </span>
                 <Text size="sm" fw={500}>
                   Like
                 </Text>
-              </Group>
+                {likes > 0 && <Text component="span" size="sm" c="dimmed">{likes}</Text>}
+              </UnstyledButton>
 
-              <Group
-                gap={6}
-                justify="center"
-                wrap="nowrap"
+              <UnstyledButton
+                type="button"
                 className="community-engagement-cluster"
-                style={{ cursor: 'pointer' }}
                 onClick={() => handleVote(-1)}
+                disabled={voting}
+                aria-label={`Dislike post. ${dislikes} ${dislikes === 1 ? 'dislike' : 'dislikes'}`}
+                aria-pressed={userVote === -1}
               >
-                <ActionIcon
-                  variant={userVote === -1 ? 'light' : 'subtle'}
-                  color={userVote === -1 ? 'red' : 'gray'}
-                  size="lg"
-                  aria-label="Dislike"
-                  loading={voting}
-                >
+                <span className="community-engagement-icon" aria-hidden="true">
                   {userVote === -1 ? <IconThumbDownFilled size={18} /> : <IconThumbDown size={18} />}
-                </ActionIcon>
+                </span>
                 <Text size="sm" fw={500}>
                   Dislike
                 </Text>
-              </Group>
+                {dislikes > 0 && <Text component="span" size="sm" c="dimmed">{dislikes}</Text>}
+              </UnstyledButton>
             </Group>
           </Group>
 

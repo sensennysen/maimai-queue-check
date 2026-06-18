@@ -8,26 +8,20 @@
 /* Dark theme special header style - REMOVED (using global glassmorphism) */
 
 .app-header:hover {
-  box-shadow: 0 8px 16px rgba(255, 51, 153, 0.15);
-  /* Maimai pink shadow */
+  box-shadow: none;
 }
 
 /* App Title styling */
 .app-title {
   font-size: 1.5rem !important;
   font-weight: 700 !important;
-  letter-spacing: 0.5px;
-  background: linear-gradient(90deg, var(--theme-primary), var(--theme-secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  letter-spacing: -0.02em;
+  color: var(--theme-text-primary);
 }
 
 /* Subtitle styling */
 .app-subtitle {
-  font-family: 'Outfit', system-ui, sans-serif !important;
+  font-family: var(--font-body) !important;
   font-weight: 400;
   color: var(--theme-text-muted) !important;
   opacity: 0.9;
@@ -81,12 +75,7 @@
 
   .profile-page-title {
     font-size: 1.25rem !important;
-    background: linear-gradient(90deg, var(--theme-primary), var(--theme-secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-fill-color: transparent;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    color: var(--theme-text-primary);
   }
 }
 

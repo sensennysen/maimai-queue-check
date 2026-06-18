@@ -1,12 +1,47 @@
-.songDbGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  align-items: start;
+.songDbHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.25rem;
 }
 
-@media (min-width: 992px) {
-  .songDbGrid {
-    grid-template-columns: 300px 1fr !important;
+.eyebrow {
+  margin-bottom: 0.25rem;
+  color: var(--theme-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.attribution {
+  justify-content: flex-end;
+}
+
+.attribution a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--theme-text-secondary);
+  text-decoration: none;
+}
+
+.attribution a:hover {
+  color: var(--theme-primary);
+}
+
+.songDbContent {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .songDbHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .attribution {
+    justify-content: flex-start;
   }
 }

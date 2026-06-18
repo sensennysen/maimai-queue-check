@@ -29,7 +29,7 @@ export function Best50PreviewCard({
   const canSeeDetails = isOwner || privacy.show_best_50_details !== false;
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder>
+    <Paper p="lg" radius="md" className="profile-surface">
       {isOwner && isMalformedBest50 && (
         <Alert
           icon={<IconAlertCircle size={14} />}
@@ -104,7 +104,7 @@ export function Best50PreviewCard({
       <Button
         component={Link}
         to={`/p/${slug}/best50`}
-        variant="light"
+        variant="default"
         color="primary"
         fullWidth
         size="sm"

@@ -91,7 +91,7 @@ const PublicProfilePage = () => {
 
   if (loading) {
     return (
-      <Container size="xl" py="xl">
+      <Container size="xl" py={0}>
         <Stack align="center" justify="center" style={{ minHeight: '60vh' }}>
           <Loader size="xl" color="var(--theme-primary)" type="bars" />
           <Text size="lg" fw={500} mt="md">Loading profile...</Text>
@@ -102,7 +102,7 @@ const PublicProfilePage = () => {
 
   if (isRestricted) {
     return (
-      <Container size="xl" py="xl">
+      <Container size="xl" py={0}>
         <Stack align="center" justify="center" style={{ minHeight: '70vh' }} gap="xl">
           <Paper shadow="xl" p={40} radius="lg" withBorder style={{ maxWidth: 500, width: '100%', textAlign: 'center', backgroundColor: 'var(--mantine-color-body)' }}>
             <ThemeIcon size={80} radius={80} variant="light" color="primary" mb="md">
@@ -128,7 +128,7 @@ const PublicProfilePage = () => {
 
   if (error || !profile) {
     return (
-      <Container size="xl" py="xl">
+      <Container size="xl" py={0}>
         <Stack align="center" justify="center" style={{ minHeight: '70vh' }} gap="xl">
           <Paper shadow="xl" p={40} radius="lg" withBorder style={{ maxWidth: 500, width: '100%', textAlign: 'center' }}>
             <ThemeIcon size={80} radius={80} variant="light" color="var(--theme-error)" mb="md">
@@ -172,8 +172,10 @@ const PublicProfilePage = () => {
   const hasSidebarContent = hasBest50 || hasMostPlayed || hasRecentPlays;
 
   return (
-    <Container size="xl" py="xl" {...touchHandlers}>
-      <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshingByPull} />
+    <Container size="xl" py={0} pb="xl" className="profile-page" {...touchHandlers}>
+      {(pullDistance > 0 || isRefreshingByPull) && (
+        <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshingByPull} />
+      )}
       <Stack gap="lg" mt={pullDistance > 0 || isRefreshingByPull ? 'sm' : 0}>
         {/* View-as-Public alert banner */}
         {viewAsPublic && isRealOwner && (
@@ -185,44 +187,6 @@ const PublicProfilePage = () => {
           </Alert>
         )}
 
-        {/* Top-right actions */}
-        <Group justify="flex-end">
-          {isRealOwner && !viewAsPublic && (
-            <Group gap="xs">
-              <Tooltip label="View as Public" withArrow>
-                <Button
-                  variant="light" color="gray"
-                  leftSection={<IconLogin size={18} />}
-                  onClick={() => setViewAsPublic(true)}
-                >
-                  {isMobile ? '' : 'View as Public'}
-                </Button>
-              </Tooltip>
-              <Button
-                variant="light" color="secondary"
-                leftSection={<IconShare size={18} />}
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  notifications.show({ title: 'Link Copied', message: 'Profile link copied to clipboard!', color: 'blue' });
-                }}
-              >
-                {isMobile ? '' : 'Share Profile'}
-              </Button>
-            </Group>
-          )}
-
-          {user && profile && profile.id !== user.id && (
-            <Button
-              variant={isFollowing ? 'light' : 'filled'}
-              color={isFollowing ? 'gray' : 'primary'}
-              loading={followLoading}
-              onClick={toggleFollow}
-            >
-              {isFollowing ? 'Following' : 'Follow'}
-            </Button>
-          )}
-        </Group>
-
         {/* Full-width: Profile header + introduction (merged) */}
         <ProfileHeaderCard
           profile={profile}
@@ -233,6 +197,45 @@ const PublicProfilePage = () => {
           onAvatarClick={() => isOwner && setIsUploadModalOpen(true)}
           introduction={introduction}
           onIntroductionUpdate={setIntroduction}
+          actions={
+            <>
+              {isRealOwner && !viewAsPublic && (
+                <>
+                  <Tooltip label="View as Public" withArrow>
+                    <Button
+                      variant="default"
+                      leftSection={<IconLogin size={18} />}
+                      onClick={() => setViewAsPublic(true)}
+                      aria-label="View profile as public"
+                    >
+                      {isMobile ? '' : 'View as Public'}
+                    </Button>
+                  </Tooltip>
+                  <Button
+                    variant="default"
+                    leftSection={<IconShare size={18} />}
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      notifications.show({ title: 'Link Copied', message: 'Profile link copied to clipboard!', color: 'blue' });
+                    }}
+                    aria-label="Share profile"
+                  >
+                    {isMobile ? '' : 'Share Profile'}
+                  </Button>
+                </>
+              )}
+
+              {user && profile.id !== user.id && (
+                <Button
+                  variant={isFollowing ? 'default' : 'filled'}
+                  loading={followLoading}
+                  onClick={toggleFollow}
+                >
+                  {isFollowing ? 'Following' : 'Follow'}
+                </Button>
+              )}
+            </>
+          }
         />
 
         {/* Full-width: Showcase sections */}

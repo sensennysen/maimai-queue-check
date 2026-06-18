@@ -128,7 +128,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
   const count = playlists.length;
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-200" style={{ overflow: 'hidden' }}>
+    <Paper p="lg" radius="md" className="profile-surface animate-fade-in delay-200" style={{ overflow: 'hidden' }}>
       <Group justify="space-between" mb="md" align="center">
         <Group gap="xs" align="center">
           <IconPlaylist size={22} style={{ color: 'var(--theme-secondary)' }} />
@@ -148,7 +148,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
                   variant="subtle"
                   color="gray"
                   size="lg"
-                  radius="xl"
+                  radius="md"
                   onClick={() => setIsManageModalOpen(true)}
                 >
                   <IconSortAscending size={20} />
@@ -160,7 +160,6 @@ export function PlaylistSection({ userId, isOwnProfile }) {
                   size="sm"
                   onClick={() => setIsManageModalOpen(true)}
                   leftSection={<IconSortAscending size={16} />}
-                  style={{ borderRadius: 999 }}
                 >
                   Order
                 </Button>
@@ -172,7 +171,7 @@ export function PlaylistSection({ userId, isOwnProfile }) {
                   variant="light"
                   color="secondary"
                   size="lg"
-                  radius="xl"
+                  radius="md"
                   onClick={handleCreateNew}
                 >
                   <IconPlaylistAdd size={20} />
@@ -180,11 +179,10 @@ export function PlaylistSection({ userId, isOwnProfile }) {
               ) : (
                 <Button
                   leftSection={<IconPlaylistAdd size={16} />}
-                  variant="light"
+                  variant="default"
                   color="secondary"
                   size="sm"
                   onClick={handleCreateNew}
-                  style={{ borderRadius: 999 }}
                 >
                   New
                 </Button>

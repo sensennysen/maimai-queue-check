@@ -44,7 +44,7 @@ export function SongHeader({ song, activeCardType, isMobileOrTablet, onAddToPlay
   ].filter(Boolean);
 
   return (
-    <Paper p={{ base: 'md', md: 'lg' }} radius="md" withBorder>
+    <Paper p={{ base: 'md', md: 'lg' }} radius="md" className="song-discussion-surface">
       <Flex direction={{ base: 'column', md: 'row' }} gap={{ base: 'md', md: 'xl' }} align={{ base: 'stretch', md: 'center' }}>
         {/* Image */}
         <Box style={{ flexShrink: 0, width: isMobileOrTablet ? 132 : 180, marginInline: isMobileOrTablet ? 'auto' : 0 }}>
@@ -54,7 +54,7 @@ export function SongHeader({ song, activeCardType, isMobileOrTablet, onAddToPlay
             radius="md"
             w="100%"
             fallbackSrc="https://placehold.co/240x240?text=No+Image"
-            style={{ boxShadow: 'var(--mantine-shadow-md)', aspectRatio: '1/1', objectFit: 'cover' }}
+            style={{ border: '1px solid var(--theme-border)', aspectRatio: '1/1', objectFit: 'cover' }}
           />
         </Box>
 
@@ -71,8 +71,7 @@ export function SongHeader({ song, activeCardType, isMobileOrTablet, onAddToPlay
                   Artist: <Text span fw={600} c="inherit">{song.artist}</Text>
                 </Text>
                 <Button
-                  variant="light"
-                  color="teal"
+                  variant="default"
                   leftSection={<IconPlaylistAdd size={16} />}
                   onClick={onAddToPlaylist}
                   size={isMobileOrTablet ? 'sm' : 'md'}
@@ -93,7 +92,7 @@ export function SongHeader({ song, activeCardType, isMobileOrTablet, onAddToPlay
                     style={{
                       border: '1px solid var(--mantine-color-default-border)',
                       borderRadius: 'var(--mantine-radius-md)',
-                      background: 'var(--mantine-color-default-hover)',
+                      background: 'var(--theme-background)',
                       minHeight: 78,
                     }}
                   >

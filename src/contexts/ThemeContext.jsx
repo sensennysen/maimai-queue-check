@@ -78,16 +78,31 @@ export const ThemeProvider = ({ children }) => {
     const themeConfig = themes[currentTheme] || themes.circle;
     const mode = isDark ? 'dark' : 'light';
     const cssVars = themeConfig.css[mode];
+    const surfaces = isDark
+      ? {
+          background: '#020617',
+          surface: '#0F172A',
+          textPrimary: '#F8FAFC',
+          textMuted: '#94A3B8',
+          border: '#334155',
+        }
+      : {
+          background: '#F8FAFC',
+          surface: '#FFFFFF',
+          textPrimary: '#0F172A',
+          textMuted: '#64748B',
+          border: '#E2E8F0',
+        };
 
     // Apply CSS variables
-    root.style.setProperty('--theme-background', cssVars.background);
-    root.style.setProperty('--theme-surface', cssVars.surface);
+    root.style.setProperty('--theme-background', surfaces.background);
+    root.style.setProperty('--theme-surface', surfaces.surface);
     root.style.setProperty('--theme-primary', cssVars.primary);
     root.style.setProperty('--theme-secondary', cssVars.secondary);
     root.style.setProperty('--theme-accent', cssVars.accent);
-    root.style.setProperty('--theme-text-primary', cssVars.textPrimary);
-    root.style.setProperty('--theme-text-muted', cssVars.textMuted);
-    root.style.setProperty('--theme-border', cssVars.border);
+    root.style.setProperty('--theme-text-primary', surfaces.textPrimary);
+    root.style.setProperty('--theme-text-muted', surfaces.textMuted);
+    root.style.setProperty('--theme-border', surfaces.border);
     root.style.setProperty('--theme-tab-highlight', cssVars.tabHighlight || cssVars.primary);
 
     // Dynamic soft backgrounds for inputs/cards
@@ -112,7 +127,7 @@ export const ThemeProvider = ({ children }) => {
     root.style.setProperty('--theme-primary-hover', cssVars.primary);
     root.style.setProperty('--theme-secondary-hover', cssVars.secondary);
     root.style.setProperty('--theme-accent-hover', cssVars.accent);
-    root.style.setProperty('--theme-surface-hover', cssVars.surface); // maybe slightly different?
+    root.style.setProperty('--theme-surface-hover', isDark ? '#1E293B' : '#F1F5F9');
 
     // Status colors - stick to defaults or theme specific?
     // Circle theme had specific ones. Prism doesn't specify.

@@ -34,7 +34,7 @@ export function ChartDetailsTable({ currentSheets, isMobile, song }) {
   })();
 
   return (
-    <Paper p={{ base: 'md', md: 'xl' }} radius="md" withBorder>
+    <Paper p={{ base: 'md', md: 'xl' }} radius="md" className="song-discussion-surface">
       <Stack gap="md">
         <Group justify="space-between" align="flex-end">
           <Title order={3}>Chart Details</Title>
@@ -73,7 +73,7 @@ export function ChartDetailsTable({ currentSheets, isMobile, song }) {
                   p="md"
                   radius="md"
                   withBorder
-                  bg="var(--mantine-color-default-hover)"
+                  bg="var(--theme-background)"
                 >
                   <Stack gap="sm">
                     <Group justify="space-between" align="flex-start" wrap="nowrap">

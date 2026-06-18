@@ -32,7 +32,7 @@ export function ProfilePostsSection({ userId, currentUser, isOwnProfile }) {
   if (loading) return null;
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder>
+    <Paper p="lg" radius="md" className="profile-surface">
       <Stack gap="md">
         <Group justify="space-between" align="center">
           <Group gap="xs">

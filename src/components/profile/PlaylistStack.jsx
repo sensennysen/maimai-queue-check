@@ -1,65 +1,38 @@
 import React from 'react';
-import { Box, Paper, Image, Text, Stack } from '@mantine/core';
+import { Box, Text } from '@mantine/core';
+import IconPlaylist from '@tabler/icons-react/dist/esm/icons/IconPlaylist.mjs';
 import './PlaylistStack.css';
 
 export const PlaylistStack = React.memo(function PlaylistStack({ playlist, songs = [], onClick, style = {} }) {
-  // Get up to 3 song images for the stack
-  const stackImages = songs.slice(0, 3).map(s => s.imageUrl).filter(Boolean);
-
-  // If no images, use a placeholder for the top card
-  if (stackImages.length === 0) {
-    stackImages.push('https://placehold.co/400x400?text=No+Songs');
-  }
+  const covers = songs
+    .map(song => song.imageUrl || song.image_url)
+    .filter(Boolean)
+    .slice(0, 4);
 
   return (
-    <Box
-      className="playlist-stack-container"
+    <button
+      type="button"
+      className="profile-playlist-card"
       onClick={onClick}
-      style={{ overflow: 'visible', ...style }}
+      style={style}
+      aria-label={`Open ${playlist.title || 'playlist'}`}
     >
-      <Box className="playlist-stack">
-        {/* Render background cards (offsets) */}
-        {stackImages.slice(1).reverse().map((img, idx) => (
-          <Paper
-            key={`bg-${idx}`}
-            className={`stack-card bg-card bg-card-${stackImages.length - idx - 1}`}
-            shadow="md"
-          >
-            <Image
-              src={img}
-              fallbackSrc="https://placehold.co/400x400?text=?"
-              alt=""
-              style={{ pointerEvents: 'none' }}
-              fit="cover"
-              h="100%"
-              loading="lazy"
-            />
-          </Paper>
+      <Box className="profile-playlist-card__cover">
+        {Array.from({ length: 4 }, (_, index) => (
+          covers[index]
+            ? <img key={index} src={covers[index]} alt="" loading="lazy" />
+            : <span key={index} aria-hidden="true"><IconPlaylist size={22} /></span>
         ))}
-
-        {/* Render the top card (main info) */}
-        <Paper className="stack-card top-card" shadow="xl">
-          <Image
-            src={stackImages[0]}
-            fallbackSrc="https://placehold.co/400x400?text=?"
-            alt={playlist.title}
-            style={{ pointerEvents: 'none' }}
-            fit="cover"
-            h="100%"
-            loading="lazy"
-          />
-          <Box className="stack-overlay">
-            <Stack gap={2}>
-              <Text fw={800} size="sm" c="white" lineClamp={1} style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
-                {playlist.title}
-              </Text>
-              <Text size="sm" c="rgba(255,255,255,0.8)" lineClamp={1} style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                {songs.length} {songs.length === 1 ? 'Song' : 'Songs'}
-              </Text>
-            </Stack>
-          </Box>
-        </Paper>
       </Box>
-    </Box>
+
+      <Box className="profile-playlist-card__content">
+        <Text fw={700} size="sm" lineClamp={2}>
+          {playlist.title || 'Untitled Playlist'}
+        </Text>
+        <Text size="xs" c="dimmed">
+          {songs.length} {songs.length === 1 ? 'song' : 'songs'}
+        </Text>
+      </Box>
+    </button>
   );
 });

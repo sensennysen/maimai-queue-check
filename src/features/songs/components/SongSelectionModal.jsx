@@ -72,7 +72,7 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
               <Button
                 size="sm"
                 px="xl"
-                radius="xl"
+                radius="md"
                 leftSection={<IconCheck size={16} />}
                 onClick={() => {
                   onSelect(selectedSongs);
@@ -80,11 +80,6 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
                   onClose();
                 }}
                 disabled={selectedSongs.length === 0}
-                className="hologram-card"
-                style={{
-                  background: 'linear-gradient(135deg, var(--mantine-color-primary-6) 0%, var(--mantine-color-primary-8) 100%)',
-                  border: 'none'
-                }}
               >
                 Confirm
               </Button>
@@ -120,7 +115,6 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
                   onClose();
                 }}
                 disabled={selectedSongs.length === 0}
-                className="hologram-card"
               >
                 Confirm Selection
               </Button>
@@ -129,7 +123,7 @@ function SongSelectionModal({ opened, onClose, onSelect, multiple = false, initi
         )}
 
         {/* Layout Grid */}
-        <div className={styles.songModalGrid} style={{ marginTop: '2rem' }}>
+        <div className={styles.songModalGrid} style={{ marginTop: '1rem' }}>
           <div style={{ position: 'relative', minWidth: 0, maxWidth: '100%' }}>
             <SongFilters
               filters={filters}

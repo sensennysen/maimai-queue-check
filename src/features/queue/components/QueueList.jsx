@@ -27,9 +27,12 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
   const queueTitle = hasMultipleCabinets && cabinetNum ? `Current Queue - Cabinet ${cabinetNum}` : 'Current Queue';
 
   return (
-    <Paper withBorder>
-      <Group justify="space-between" p="md" style={{ borderBottom: '1px solid var(--theme-border)', alignItems: 'center', minHeight: 48 }}>
-        <Title order={3} style={{ margin: 0 }}>{queueTitle}</Title>
+    <Paper withBorder className="queue-list">
+      <Group justify="space-between" className="queue-list-header">
+        <div>
+          <Text className="queue-list-eyebrow">Waiting list</Text>
+          <Title order={3}>{queueTitle}</Title>
+        </div>
         {!user && (
           <span className="sign-in-message">
             <span className="sign-in-desktop">
@@ -66,7 +69,7 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
         </Group>
       )}
       {queue.length === 0 ? (
-        <Center p="xl">
+        <Center p="xl" className="empty-queue">
           <Stack align="center" gap="md">
             <Text size="xl" fw={600} c="secondary">{emptyMessage}</Text>
             {user && (
@@ -75,29 +78,42 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
           </Stack>
         </Center>
       ) : (
-        <Stack gap={0}>
-          {queue.map((item, index) => (
-            <QueueItem
-              key={item.id}
-              item={item}
-              order={index + 1}
-              onEdit={onEdit}
-              onRemove={onRemove}
-              onMoveUp={onMoveUp}
-              onMoveDown={onMoveDown}
-              isFirst={index === 0}
-              isLast={index === queue.length - 1}
-              isNextUp={index === 0}
-              gameInProgress={!!nowPlaying}
-              canActuallyEdit={canActuallyEdit}
-              isBusy={isBusy}
-              loadingRoles={loadingRoles}
-              isAdded={addedIds?.has(item.id) || false}
-              isMoved={movedIds?.has(item.id) || false}
-              isRemoving={removingId === item.id}
-            />
-          ))}
-        </Stack>
+        <>
+          <div className="queue-header-row queue-header-row--desktop" aria-hidden="true">
+            <span className="col-order">Position</span>
+            <span>Player 1 (P1)</span>
+            <span>Player 2 (P2)</span>
+            <span className="col-actions">Actions</span>
+          </div>
+          <div className="queue-header-row queue-header-row--mobile" aria-hidden="true">
+            <span className="col-order">Pos.</span>
+            <span>Players</span>
+            <span className="col-actions">Actions</span>
+          </div>
+          <Stack gap={0} className="queue-items">
+            {queue.map((item, index) => (
+              <QueueItem
+                key={item.id}
+                item={item}
+                order={index + 1}
+                onEdit={onEdit}
+                onRemove={onRemove}
+                onMoveUp={onMoveUp}
+                onMoveDown={onMoveDown}
+                isFirst={index === 0}
+                isLast={index === queue.length - 1}
+                isNextUp={index === 0}
+                gameInProgress={!!nowPlaying}
+                canActuallyEdit={canActuallyEdit}
+                isBusy={isBusy}
+                loadingRoles={loadingRoles}
+                isAdded={addedIds?.has(item.id) || false}
+                isMoved={movedIds?.has(item.id) || false}
+                isRemoving={removingId === item.id}
+              />
+            ))}
+          </Stack>
+        </>
       )}
       {/* Show loading message for actions if roles are loading */}
       {loadingRoles && (

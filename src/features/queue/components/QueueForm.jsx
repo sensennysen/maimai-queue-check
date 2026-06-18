@@ -142,11 +142,12 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
           )}
 
           <Box
+            className="queue-form-panel"
             style={{
-              borderRadius: 18,
+              borderRadius: 6,
               padding: '16px',
               background: 'var(--theme-surface)',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              boxShadow: 'none',
               border: '1px solid var(--theme-border)',
             }}
           >
@@ -253,6 +254,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
       >
         {/* ── Fixed Warning Header ─────────────────────────────────────────── */}
         <Box
+          className="queue-modal-header queue-modal-header--warning"
           style={{
             background: 'linear-gradient(135deg, var(--theme-warning), color-mix(in srgb, var(--theme-warning), #fff 20%))',
             padding: '24px 24px 20px',
@@ -297,11 +299,12 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
 
         <Stack gap="md" p="lg">
           <Box
+            className="queue-form-panel"
             style={{
-              borderRadius: 18,
+              borderRadius: 6,
               padding: '16px',
               background: 'var(--theme-surface)',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+              boxShadow: 'none',
               border: '1px solid var(--theme-border)',
             }}
           >

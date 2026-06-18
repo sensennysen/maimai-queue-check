@@ -94,7 +94,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
   const count = favoriteSongsMap.length;
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-200" pos="relative">
+    <Paper p="lg" radius="md" className="profile-surface animate-fade-in delay-200" pos="relative">
       <Group justify="space-between" mb="md" align="center">
         <Group gap="xs" align="center">
           <IconHeart size={22} style={{ color: 'var(--theme-primary)', fill: 'var(--theme-primary)' }} />
@@ -112,7 +112,7 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
               variant="light"
               color="primary"
               size="lg"
-              radius="xl"
+              radius="md"
               onClick={() => setIsModalOpen(true)}
             >
               <IconPlus size={20} />
@@ -120,11 +120,10 @@ export function FavoriteSongsSection({ userId, isOwnProfile }) {
           ) : (
             <Button
               leftSection={<IconPlus size={16} />}
-              variant="light"
+              variant="default"
               color="primary"
               size="sm"
               onClick={() => setIsModalOpen(true)}
-              style={{ borderRadius: 999 }}
             >
               Add
             </Button>

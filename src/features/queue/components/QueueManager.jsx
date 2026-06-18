@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Badge, Alert, Modal, Skeleton, LoadingOverlay, TextInput, Box, UnstyledButton } from '@mantine/core';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Alert, Modal, Skeleton, LoadingOverlay, TextInput, Box, UnstyledButton } from '@mantine/core';
 import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
 import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
@@ -303,10 +303,16 @@ function QueueManager() {
   };
 
   const [loadingMessage] = useState(() => loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
+  const visibleQueue = isMallOpen ? filterQueue(queue) : [];
+  const creditCount = visibleQueue.reduce(
+    (sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0),
+    0,
+  );
 
   return (
     <Stack
       gap="md"
+      className="queue-manager-root"
       style={{ position: 'relative' }}
       aria-busy={isQueueDataLoading}
       onKeyDownCapture={(e) => {
@@ -335,6 +341,54 @@ function QueueManager() {
         opened={showLocationHelp}
         onClose={() => setShowLocationHelp(false)}
       />
+
+      <header className="queue-page-header">
+        <div className="queue-page-heading">
+          <Text className="queue-page-eyebrow">Live branch queue</Text>
+          <Title order={1}>{selectedBranch?.short_name || selectedBranch?.arcade_name || 'Queue'}</Title>
+          <Text className="queue-page-summary">
+            {queueLoading || scheduleLoading
+              ? loadingMessage
+              : `${visibleQueue.length} waiting ${visibleQueue.length === 1 ? 'entry' : 'entries'} · ${creditCount} credits`}
+          </Text>
+        </div>
+
+        <div className="queue-page-actions">
+          {user && (
+            <Button
+              onClick={() => setQueueNameModalOpen(true)}
+              loading={queueNameLoading}
+              size="sm"
+              variant="outline"
+            >
+              Queue Name
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            leftSection={<IconFileText size={14} />}
+            onClick={() => setShowRulesModal(true)}
+          >
+            Rules
+          </Button>
+          {(canEdit || isAdmin || isSuperAdmin) && (
+            <Button variant="outline" size="sm" onClick={() => setShowLogsModal(true)}>
+              Logs
+            </Button>
+          )}
+          {user && (
+            <Button
+              variant="outline"
+              size="sm"
+              leftSection={<IconExternalLink size={15} />}
+              onClick={() => window.open('/view', '_blank')}
+            >
+              View
+            </Button>
+          )}
+        </div>
+      </header>
 
       {/* Error alert */}
       {error && (
@@ -393,16 +447,6 @@ function QueueManager() {
 
       {user && (
         <>
-          <Group justify="flex-end" align="center" wrap="wrap" gap="md">
-            <Button
-              onClick={() => setQueueNameModalOpen(true)}
-              loading={queueNameLoading}
-              size="sm"
-            >
-              Change your queue name
-            </Button>
-          </Group>
-
           <Modal
             opened={queueNameModalOpen}
             onClose={() => setQueueNameModalOpen(false)}
@@ -418,6 +462,7 @@ function QueueManager() {
           >
             {/* ── Fixed Header ─────────────────────────────────────────── */}
             <Box
+              className="queue-modal-header"
               style={{
                 background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
                 padding: '24px 24px 20px',
@@ -573,6 +618,7 @@ function QueueManager() {
       >
         {/* ── Fixed Header ─────────────────────────────────────────── */}
         <Box
+          className="queue-modal-header"
           style={{
             background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
             padding: '24px 24px 20px',
@@ -679,88 +725,31 @@ function QueueManager() {
         branchId={selectedBranch?.id}
       />
 
-      {/* Header with credits and actions */}
-      <div>
-        {queueLoading || scheduleLoading ? (
-          <Group justify="space-between" align="center">
-            <Skeleton height={40} width={120} radius="md" />
-            <Text size="sm" c="secondary" fw={500} italic>{loadingMessage}</Text>
-          </Group>
-        ) : (
-          <Group justify="space-between" align="center">
-            <Group gap="md">
-              <Badge variant="light" size="lg">
-                Credits: {(isMallOpen ? filterQueue(queue) : []).reduce((sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0), 0)}
-              </Badge>
-              <Button
-                variant="subtle"
-                size="compact-xs"
-                leftSection={<IconFileText size={14} />}
-                onClick={() => setShowRulesModal(true)}
-                color="blue"
-              >
-                Queue Rules
-              </Button>
-              {(canEdit || isAdmin || isSuperAdmin) && (
-                <Button
-                  variant="subtle"
-                  size="compact-xs"
-                  onClick={() => setShowLogsModal(true)}
-                >
-                  Recent Logs
-                </Button>
-              )}
-            </Group>
-            <Group gap="sm">
-              {user && (
-                <Button
-                  variant="default"
-                  leftSection={<IconExternalLink size={16} />}
-                  onClick={() => window.open('/view', '_blank')}
-                >
-                  View Mode
-                </Button>
-              )}
-
-              {user && canActuallyEdit && isMallOpen && !showForm && !editingId && (
-                <Button
-                  leftSection={<IconPlus size={16} />}
-                  onClick={() => setShowForm(true)}
-                  variant="filled"
-                  disabled={isQueueDataLoading}
-                >
-                  Add Queue
-                </Button>
-              )}
-              {user && !canEdit && !isAdmin && !hasPendingRequest && (
-                <Button
-                  variant="light"
-                  size="sm"
-                  onClick={() => setShowRequestModal(true)}
-                >
-                  Request Queue Edit Access
-                </Button>
-              )}
-              {user && !canEdit && !isAdmin && hasPendingRequest && (
-                <Button variant="subtle" size="sm" disabled>
-                  Request Pending
-                </Button>
-              )}
-              {user && canActuallyEdit && isMallOpen && queue.length > 0 && (
-                <Button
-                  variant="outline"
-                  color="red"
-                  leftSection={<IconTrash size={16} />}
-                  onClick={clearQueue}
-                  disabled={isQueueDataLoading}
-                >
-                  Clear All
-                </Button>
-              )}
-            </Group>
-          </Group>
-        )}
-      </div>
+      {user && canActuallyEdit && isMallOpen && (
+        <div className="queue-primary-actions">
+          {!showForm && !editingId && (
+            <Button
+              leftSection={<IconPlus size={16} />}
+              onClick={() => setShowForm(true)}
+              variant="outline"
+              disabled={isQueueDataLoading}
+            >
+              Add Queue
+            </Button>
+          )}
+          {queue.length > 0 && (
+            <Button
+              variant="outline"
+              color="red"
+              leftSection={<IconTrash size={16} />}
+              onClick={clearQueue}
+              disabled={isQueueDataLoading}
+            >
+              Clear All
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Now Playing Section */}
       {queueLoading || scheduleLoading ? (
@@ -796,23 +785,39 @@ function QueueManager() {
         </Stack>
       ) : (
         isMallOpen && (
-          <QueueList
-            queue={filterQueue(queue)}
-            nowPlaying={nowPlaying}
-            onEdit={startEdit}
-            onRemove={handleRemoveWithAnimation}
-            onMoveUp={handleMoveUpWithAnimation}
-            onMoveDown={handleMoveDownWithAnimation}
-            onStartGame={startGame}
-            isMallOpen={isMallOpen}
-            isBusy={isQueueDataLoading}
-            loadingRoles={!actionsLoaded}
-            cabinetNum={selectedCabinet}
-            hasMultipleCabinets={hasMultipleCabinets}
-            addedIds={addedIds}
-            movedIds={movedIds}
-            removingId={removingId}
-          />
+          <>
+            <QueueList
+              queue={visibleQueue}
+              nowPlaying={nowPlaying}
+              onEdit={startEdit}
+              onRemove={handleRemoveWithAnimation}
+              onMoveUp={handleMoveUpWithAnimation}
+              onMoveDown={handleMoveDownWithAnimation}
+              onStartGame={startGame}
+              isMallOpen={isMallOpen}
+              isBusy={isQueueDataLoading}
+              loadingRoles={!actionsLoaded}
+              cabinetNum={selectedCabinet}
+              hasMultipleCabinets={hasMultipleCabinets}
+              addedIds={addedIds}
+              movedIds={movedIds}
+              removingId={removingId}
+            />
+
+            {user && !canEdit && !isAdmin && (
+              <div className="queue-action-bar">
+                {!hasPendingRequest ? (
+                  <Button variant="outline" size="sm" onClick={() => setShowRequestModal(true)}>
+                    Request edit access
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" disabled>
+                    Request pending
+                  </Button>
+                )}
+              </div>
+            )}
+          </>
         )
       )}
     </Stack>

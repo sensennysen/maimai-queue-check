@@ -74,7 +74,7 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
       {currentUser ? (
         <>
           <Divider variant="dotted" my="md" className="community-feed-comments-input-divider" />
-          <Group gap="xs" wrap="nowrap" align="flex-end">
+          <Group gap="xs" wrap="nowrap" align="flex-end" className="community-comment-composer">
             <Avatar src={getProfileImageUrl(profileData || currentUser)} size={28} radius="xl" color="primary" style={{ flexShrink: 0 }}>
               {(profileData?.display_name || currentUser?.display_name || '?').charAt(0)}
             </Avatar>
@@ -93,6 +93,7 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
               styles={{ input: { fontSize: '0.9rem' } }}
             />
             <ActionIcon
+              aria-label="Post comment"
               variant="filled"
               color="primary"
               size="md"

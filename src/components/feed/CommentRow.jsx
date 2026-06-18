@@ -1,4 +1,4 @@
-import { Group, Avatar, Box, Text, ActionIcon } from '@mantine/core';
+import { Group, Avatar, Box, Text, ActionIcon, UnstyledButton } from '@mantine/core';
 import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import IconThumbUp from '@tabler/icons-react/dist/esm/icons/IconThumbUp.mjs';
 import IconThumbDown from '@tabler/icons-react/dist/esm/icons/IconThumbDown.mjs';
@@ -101,47 +101,37 @@ export function CommentRow({
             </Box>
 
             <Group gap="sm" wrap="nowrap" className="community-comment-engagement-actions" style={{ flexShrink: 0 }}>
-              <Group
-                gap={6}
-                wrap="nowrap"
+              <UnstyledButton
+                type="button"
                 className="community-engagement-cluster"
-                style={{ cursor: 'pointer' }}
                 onClick={() => handleVote(c.id, 1)}
+                disabled={votingId === c.id}
+                aria-pressed={c.user_vote === 1}
+                aria-label={`Like comment. ${c.like_count || 0} likes`}
               >
-                <ActionIcon
-                  variant={c.user_vote === 1 ? 'light' : 'subtle'}
-                  color={c.user_vote === 1 ? 'blue' : 'gray'}
-                  size="lg"
-                  aria-label="Like"
-                  loading={votingId === c.id}
-                >
+                <span className="community-engagement-icon" aria-hidden="true">
                   {c.user_vote === 1 ? <IconThumbUpFilled size={18} /> : <IconThumbUp size={18} />}
-                </ActionIcon>
+                </span>
                 <Text size="sm" fw={500}>
                   Like
                 </Text>
-              </Group>
+              </UnstyledButton>
 
-              <Group
-                gap={6}
-                wrap="nowrap"
+              <UnstyledButton
+                type="button"
                 className="community-engagement-cluster"
-                style={{ cursor: 'pointer' }}
                 onClick={() => handleVote(c.id, -1)}
+                disabled={votingId === c.id}
+                aria-pressed={c.user_vote === -1}
+                aria-label={`Dislike comment. ${c.dislike_count || 0} dislikes`}
               >
-                <ActionIcon
-                  variant={c.user_vote === -1 ? 'light' : 'subtle'}
-                  color={c.user_vote === -1 ? 'red' : 'gray'}
-                  size="lg"
-                  aria-label="Dislike"
-                  loading={votingId === c.id}
-                >
+                <span className="community-engagement-icon" aria-hidden="true">
                   {c.user_vote === -1 ? <IconThumbDownFilled size={18} /> : <IconThumbDown size={18} />}
-                </ActionIcon>
+                </span>
                 <Text size="sm" fw={500}>
                   Dislike
                 </Text>
-              </Group>
+              </UnstyledButton>
             </Group>
           </Group>
         </Box>

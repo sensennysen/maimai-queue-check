@@ -8,6 +8,7 @@ import IconDisc from '@tabler/icons-react/dist/esm/icons/IconDisc.mjs';
 import { Link } from 'react-router-dom';
 import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty, BASE_JACKET_URL } from '../../../config/maimai-constants';
 import { AddToPlaylistModal } from '../../../components/modals/AddToPlaylistModal';
+import './SongDatabase.css';
 
 const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
 
@@ -62,7 +63,7 @@ function SongDetailModal({ song, opened, onClose }) {
       opened={opened}
       onClose={onClose}
       size="lg"
-      radius={24}
+      radius="md"
       centered
       padding={0}
       withCloseButton={false}
@@ -71,6 +72,7 @@ function SongDetailModal({ song, opened, onClose }) {
         backgroundOpacity: 0.55,
         blur: 3,
       }}
+      classNames={{ content: 'song-detail-modal' }}
       styles={{
         content: {
           overflow: 'hidden',
@@ -89,37 +91,20 @@ function SongDetailModal({ song, opened, onClose }) {
     >
       {/* ── Fixed Gradient Header ─────────────────────────────────── */}
       <Box
+        className="song-detail-header"
         style={{
-          background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
-          padding: '24px 24px 20px',
           position: 'relative',
-          overflow: 'hidden',
           flexShrink: 0,
         }}
       >
-        <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
-          <Box
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
-            }}
-          >
-            <IconDisc size={18} color="var(--theme-primary-contrast)" strokeWidth={2.2} />
-          </Box>
+        <Group gap="sm">
+          <IconDisc size={20} color="var(--theme-primary)" strokeWidth={2} />
           <Box>
             <Text
               size="lg"
-              fw={800}
+              fw={700}
               style={{
                 fontFamily: 'var(--font-heading)',
-                color: 'var(--theme-primary-contrast)',
-                letterSpacing: '-0.02em',
                 lineHeight: 1.1,
               }}
             >
@@ -130,20 +115,11 @@ function SongDetailModal({ song, opened, onClose }) {
 
         <UnstyledButton
           onClick={onClose}
-          className="header-close-pill"
+          className="song-detail-close"
           style={{
             position: 'absolute',
-            top: 20,
-            right: 20,
-            padding: '4px 12px',
-            borderRadius: 20,
-            background: 'rgba(255,255,255,0.2)',
-            color: 'var(--theme-primary-contrast)',
-            fontSize: 12,
-            fontWeight: 700,
-            backdropFilter: 'blur(4px)',
-            transition: 'all 0.2s ease',
-            zIndex: 10,
+            top: 10,
+            right: 12,
           }}
         >
           Close
@@ -162,7 +138,7 @@ function SongDetailModal({ song, opened, onClose }) {
               w={{ base: 160, xs: 200, sm: 240 }}
               h={{ base: 160, xs: 200, sm: 240 }}
               fallbackSrc="https://placehold.co/240x240?text=No+Image"
-              style={{ boxShadow: 'var(--mantine-shadow-md)' }}
+              className="song-detail-jacket"
             />
             <Stack gap="sm" style={{ flex: 1, minWidth: 0 }}>
               <Tooltip label="Click to copy title" withArrow position="top">
@@ -214,16 +190,14 @@ function SongDetailModal({ song, opened, onClose }) {
                   component={Link}
                   to={`/songs/${song.songId}`}
                   state={{ cardType: song.cardType }}
-                  variant="light"
-                  color="indigo"
+                  variant="default"
                   leftSection={<IconMessageCircle size={18} />}
                   fullWidth
                 >
                   Discuss
                 </Button>
                 <Button
-                  variant="light"
-                  color="teal"
+                  variant="default"
                   leftSection={<IconPlaylistAdd size={18} />}
                   onClick={() => setAddToPlaylistOpened(true)}
                   fullWidth

@@ -27,6 +27,16 @@ const RecentPlayRow = memo(({ play, globalIndex, onClick, isMobile, songMap }) =
   return (
     <Box
       onClick={() => onClick(play)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick(play);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Open play details for ${play.title}`}
+      className="profile-data-row"
       style={{
         display: 'grid',
         gridTemplateColumns: isMobile ? '36px 1fr auto' : '44px 1fr auto',
@@ -220,7 +230,7 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
   if (loading || plays.length === 0) return null;
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-500">
+    <Paper p="lg" radius="md" className="profile-surface animate-fade-in delay-500">
       <style>{`
         @keyframes recentSlideFromRight {
           from { transform: translateX(20px); opacity: 0; }
@@ -303,15 +313,21 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
       {totalPages > 1 && (
         <Group justify="center" gap={6} mt="md">
           {Array.from({ length: totalPages }).map((_, i) => (
-            <Box
+            <button
+              type="button"
               key={i}
               onClick={() => {
                 setDirection(i > currentPage ? 'next' : 'prev');
                 setCurrentPage(i);
               }}
+              className="profile-pagination-dot"
+              aria-label={`Show recent plays page ${i + 1}`}
+              aria-current={i === currentPage ? 'page' : undefined}
               style={{
                 width: i === currentPage ? 18 : 6,
                 height: 6,
+                padding: 0,
+                border: 0,
                 borderRadius: 999,
                 background: i === currentPage
                   ? 'var(--theme-secondary)'

@@ -69,7 +69,7 @@ export function MostPlayedSection({
   };
 
   return (
-    <Paper shadow="sm" p="lg" radius="md" withBorder className="animate-fade-in delay-400">
+    <Paper p="lg" radius="md" className="profile-surface animate-fade-in delay-400">
       {/* Animation keyframes */}
       <style>
         {`
@@ -156,6 +156,16 @@ export function MostPlayedSection({
             <Box
               key={globalIndex}
               onClick={() => canViewDetails && onSongClick(song, matchedSong)}
+              onKeyDown={(event) => {
+                if (canViewDetails && (event.key === 'Enter' || event.key === ' ')) {
+                  event.preventDefault();
+                  onSongClick(song, matchedSong);
+                }
+              }}
+              role={canViewDetails ? 'button' : undefined}
+              tabIndex={canViewDetails ? 0 : undefined}
+              aria-label={canViewDetails ? `Open details for ${song.title}` : undefined}
+              className="profile-data-row"
               style={{
                 display: 'grid',
                 gridTemplateColumns: '28px 44px 1fr auto',
@@ -290,15 +300,21 @@ export function MostPlayedSection({
       {totalPages > 1 && (
         <Group justify="center" gap={6} mt="md">
           {Array.from({ length: totalPages }).map((_, i) => (
-            <Box
+            <button
+              type="button"
               key={i}
               onClick={() => {
                 setDirection(i > currentPage ? 'next' : 'prev');
                 setCurrentPage(i);
               }}
+              className="profile-pagination-dot"
+              aria-label={`Show most played page ${i + 1}`}
+              aria-current={i === currentPage ? 'page' : undefined}
               style={{
                 width: i === currentPage ? 18 : 6,
                 height: 6,
+                padding: 0,
+                border: 0,
                 borderRadius: 999,
                 background: i === currentPage
                   ? 'var(--theme-primary)'

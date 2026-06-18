@@ -1,4 +1,4 @@
-import { Container, Stack, Text, Loader, Alert, Button, Paper, Box } from '@mantine/core';
+import { Container, Stack, Text, Loader, Alert, Button, Paper, Box, Title } from '@mantine/core';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
 import { useSharedPlaylists } from './hooks/useSharedPlaylists';
@@ -50,7 +50,7 @@ const SharedPlaylistsPage = () => {
   /* ── loading state ── */
   if (loading && posts.length === 0) {
     return (
-      <Container size="xl" py="lg" className="playlists-feed-page">
+      <Container size="xl" py={0} className="playlists-feed-page">
         <Stack align="center" py={100}>
           <Loader size="xl" variant="bars" color="var(--theme-primary)" />
           <Text size="lg" fw={500} c="dimmed">Loading community playlists...</Text>
@@ -62,7 +62,7 @@ const SharedPlaylistsPage = () => {
   /* ── error state ── */
   if (error) {
     return (
-      <Container size="xl" py="lg" className="playlists-feed-page">
+      <Container size="xl" py={0} className="playlists-feed-page">
         <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red">
           {error}
           <Button
@@ -82,12 +82,23 @@ const SharedPlaylistsPage = () => {
 
   /* ── main page ── */
   return (
-    <Container size="xl" py="lg" className="playlists-feed-page" {...touchHandlers} style={{ position: 'relative' }}>
-      <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshingByPull} />
+    <Container size="xl" py={0} pb="xl" className="playlists-feed-page" {...touchHandlers} style={{ position: 'relative' }}>
+      {(pullDistance > 0 || isRefreshingByPull) && (
+        <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshingByPull} />
+      )}
       <Stack gap="lg" mt={pullDistance > 0 || isRefreshingByPull ? 'sm' : 0}>
-        {/* Posts list */}
+        <header className="playlists-page-header">
+          <div>
+            <Text className="playlists-page-eyebrow">Community library</Text>
+            <Title order={1}>Shared Playlists</Title>
+            <Text c="dimmed" size="sm">
+              Discover {posts.length.toLocaleString()} playlist{posts.length === 1 ? '' : 's'} curated by players.
+            </Text>
+          </div>
+        </header>
+
         {posts.length === 0 ? (
-          <Paper p="md" radius="xl" withBorder className="community-panel">
+          <Paper p="md" radius="md" className="playlists-empty-panel">
             <Box className="playlists-empty-state">
               <Text size="xl" fw={600} c="dimmed">No playlists shared yet</Text>
               <Text c="dimmed" mt="xs">Be the first to share your playlist from your profile!</Text>

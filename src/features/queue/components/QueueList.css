@@ -1,88 +1,38 @@
-/* Show full sign-in message on desktop, only icon on mobile */
-.sign-in-message .sign-in-mobile {
-  display: none;
-}
-
-.sign-in-message .sign-in-desktop {
-  display: inline;
-}
-
-@media (max-width: 768px) {
-  .sign-in-message .sign-in-mobile {
-    display: inline;
-  }
-
-  .sign-in-message .sign-in-desktop {
-    display: none;
-  }
-}
-
 .queue-list {
-  background: var(--theme-surface);
-  border: 1px solid var(--theme-border);
-  border-radius: var(--radius-panel);
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.queue-list h3 {
-  margin: 0;
-  color: var(--theme-text-primary);
-  font-weight: 600;
-  font-size: 1.1rem;
+  border: 1px solid var(--theme-border) !important;
+  border-radius: var(--radius-panel) !important;
+  background: var(--theme-surface) !important;
+  box-shadow: none !important;
 }
 
 .queue-list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  min-height: 4.5rem;
   padding: 1rem 1.25rem;
-  background: var(--theme-surface-hover);
   border-bottom: 1px solid var(--theme-border);
 }
 
-.start-game-btn {
-  padding: 0.6rem 1.2rem;
-  background: var(--theme-success);
-  color: white;
-  border: none;
-  border-radius: var(--radius-control);
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-  min-height: 44px;
-  white-space: nowrap;
-}
-
-.start-game-btn:hover {
-  background: var(--theme-success);
-  filter: brightness(1.1);
-  transform: translateY(-1px);
-}
-
-.start-game-btn:active {
-  transform: translateY(0);
-}
-
-.start-game-btn:focus-visible {
-  outline: 2px solid var(--theme-primary);
-  outline-offset: 2px;
-  box-shadow: var(--focus-ring);
+.queue-list-header h3 {
+  margin: 0.25rem 0 0;
+  font-size: 1.125rem;
 }
 
 .queue-header-row {
   display: grid;
-  grid-template-columns: 80px 1fr 1fr 140px;
+  grid-template-columns: 6rem minmax(0, 1fr) minmax(0, 1fr) 9rem;
   gap: 1rem;
   padding: 0.75rem 1.25rem;
-  background: var(--theme-background);
   border-bottom: 1px solid var(--theme-border);
-  font-weight: 600;
+  background: var(--theme-background);
   color: var(--theme-text-muted);
-  text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.queue-header-row--mobile {
+  display: none;
 }
 
 .col-order {
@@ -94,124 +44,62 @@
 }
 
 .queue-items {
-  max-height: 500px;
+  max-height: 34rem;
   overflow-y: auto;
 }
 
 .empty-queue {
-  padding: 2.5rem 1.5rem;
+  min-height: 12rem;
+  color: var(--theme-text-muted);
   text-align: center;
-  color: var(--theme-text-muted);
 }
 
-.empty-queue h3 {
-  margin: 0 0 1rem 0;
-  color: var(--theme-text-muted);
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 1.1rem;
+.empty-queue .mantine-Text-root {
+  color: var(--theme-text-muted) !important;
 }
 
-.empty-queue p {
-  margin: 0 0 1.5rem 0;
-  font-size: 1rem;
-  line-height: 1.5;
+.sign-in-message .sign-in-mobile {
+  display: none;
 }
 
-.empty-icon {
-  font-size: 2.5rem;
-  opacity: 0.5;
+.sign-in-message .sign-in-desktop {
+  display: inline;
 }
 
 @media (max-width: 768px) {
-  .queue-header-row {
-    grid-template-columns: 50px 1fr 90px;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.8rem;
-  }
-
-  .col-player {
+  .queue-header-row--desktop {
     display: none;
   }
 
-  .queue-list-header {
-    flex-direction: column;
+  .queue-header-row--mobile {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr) 5.75rem;
     gap: 0.75rem;
-    align-items: stretch;
-    padding: 0.75rem 1rem;
+    padding: 0.625rem 0.75rem;
   }
 
-  .queue-list h3 {
-    text-align: center;
+  .queue-list-header {
+    min-height: auto;
+    align-items: flex-start !important;
+    padding: 1rem;
+  }
+
+  .queue-list-header h3 {
     font-size: 1rem;
   }
 
-  .start-game-btn {
-    width: 100%;
-    font-size: 0.9rem;
+  .sign-in-message .sign-in-mobile {
+    display: inline;
   }
 
-  .queue-items {
-    max-height: 400px;
-  }
-
-  .empty-queue {
-    padding: 2rem 1rem;
-  }
-
-  .empty-queue h3 {
-    font-size: 1rem;
-  }
-
-  .empty-queue p {
-    font-size: 0.9rem;
-  }
-
-  .empty-icon {
-    font-size: 2rem;
+  .sign-in-message .sign-in-desktop {
+    display: none;
   }
 }
 
 @media (max-width: 480px) {
-  .queue-header-row {
-    grid-template-columns: 40px 1fr 80px;
-    gap: 0.25rem;
-    padding: 0.4rem 0.75rem;
-    font-size: 0.75rem;
-  }
-
-  .queue-list-header {
-    padding: 0.5rem 0.75rem;
-  }
-
-  .queue-list h3 {
-    font-size: 0.95rem;
-  }
-
-  .start-game-btn {
-    padding: 0.6rem;
-    font-size: 0.85rem;
-  }
-
-  .queue-items {
-    max-height: 350px;
-  }
-
-  .empty-queue {
-    padding: 1.5rem 0.75rem;
-  }
-
-  .empty-queue h3 {
-    font-size: 0.95rem;
-  }
-
-  .empty-queue p {
-    font-size: 0.85rem;
-  }
-
-  .empty-icon {
-    font-size: 1.75rem;
+  .queue-header-row--mobile {
+    grid-template-columns: 3rem minmax(0, 1fr) 5.25rem;
+    padding-inline: 0.625rem;
   }
 }

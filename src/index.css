@@ -1,32 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', 'SF Pro Text', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  --font-heading: 'Space Grotesk', sans-serif;
-  --font-body: 'Outfit', sans-serif;
+  --font-heading: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+  --font-body: 'Inter', 'SF Pro Text', system-ui, sans-serif;
+
+  --background: 210 40% 98%;
+  --foreground: 222.2 47.4% 11.2%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 47.4% 11.2%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 47.4% 11.2%;
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 72.2% 50.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 53.3%;
+  --radius: 0.375rem;
 
   /* Default theme colors - Kawaii Tech (Light) */
-  --theme-background: #FFF5FA;
-  --theme-surface: rgba(255, 255, 255, 0.7);
-  --theme-primary: #FF28A9;
-  --theme-secondary: #00D2FF;
-  --theme-accent: #FFD200;
-  --theme-text-primary: #2D0A1F;
-  --theme-text-muted: #7B5A78;
+  --theme-background: #F8FAFC;
+  --theme-surface: #FFFFFF;
+  --theme-primary: #2563EB;
+  --theme-secondary: #DB2777;
+  --theme-accent: #475569;
+  --theme-text-primary: #0F172A;
+  --theme-text-muted: #64748B;
 
   /* Derived colors */
   --theme-primary-hover: color-mix(in srgb, var(--theme-primary), black 10%);
   --theme-secondary-hover: color-mix(in srgb, var(--theme-secondary), black 10%);
   --theme-accent-hover: color-mix(in srgb, var(--theme-accent), black 10%);
   --theme-surface-hover: color-mix(in srgb, var(--theme-surface), white 10%);
-  --theme-border: rgba(255, 168, 225, 0.5);
-  --theme-error: #D63352;
-  --theme-success: #2DA74F;
-  --theme-warning: #FFD200;
-  --radius-panel: 16px;
-  --radius-control: 12px;
-  --radius-chip: 16px;
-  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--theme-primary), transparent 75%);
+  --theme-border: #E2E8F0;
+  --theme-error: #DC2626;
+  --theme-success: #16A34A;
+  --theme-warning: #D97706;
+  --radius-panel: 6px;
+  --radius-control: 6px;
+  --radius-chip: 999px;
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--theme-primary), transparent 78%);
 
   color-scheme: light;
   color: var(--theme-text-primary);
@@ -69,7 +94,7 @@ body::after {
   height: 100%;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.3;
+  display: none;
 }
 
 body::before {
@@ -330,8 +355,19 @@ html {
 }
 
 /* Theme transition animations */
-* {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+body,
+button,
+input,
+textarea,
+select,
+a {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+@media (pointer: coarse) {
+  :where(button, [role="button"], a) {
+    touch-action: manipulation;
+  }
 }
 
 /* Theme toggle styles */
@@ -577,4 +613,144 @@ html {
 
 .delay-500 {
   animation-delay: 500ms;
+}
+
+/* Minimalist revamp compatibility layer.
+   Mantine remains active during migration, but its surfaces now follow the
+   same flat tokens as the generated Shadcn-compatible components. */
+[data-theme="dark"] {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 47.4% 11.2%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 47.4% 11.2%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 45%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 215 27.9% 24%;
+  --input: 215 27.9% 24%;
+  --ring: 224.3 76.3% 60%;
+}
+
+.hologram-card,
+.mantine-Paper-root,
+.mantine-Modal-content,
+.mantine-Card-root,
+.mantine-Menu-dropdown,
+[data-mantine-color-scheme="dark"] .hologram-card,
+[data-mantine-color-scheme="dark"] .mantine-Paper-root,
+[data-mantine-color-scheme="dark"] .mantine-Modal-content,
+[data-mantine-color-scheme="dark"] .mantine-Card-root,
+[data-mantine-color-scheme="dark"] .mantine-Menu-dropdown {
+  background: var(--theme-surface) !important;
+  border: 1px solid var(--theme-border) !important;
+  border-radius: var(--radius-panel) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+.hologram-card:hover,
+.mantine-Paper-root:hover,
+.mantine-Card-root:hover {
+  border-color: color-mix(in srgb, var(--theme-primary), var(--theme-border) 55%) !important;
+}
+
+.mantine-Button-root {
+  min-height: 2.5rem;
+  border: 1px solid transparent !important;
+  border-radius: var(--radius-control) !important;
+  padding-inline: 1rem !important;
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.mantine-Button-root[data-variant="filled"] {
+  background: var(--theme-primary) !important;
+  color: var(--theme-primary-contrast) !important;
+  box-shadow: none !important;
+}
+
+.mantine-Button-root[data-variant="outline"],
+.mantine-Button-root[data-variant="default"] {
+  background: var(--theme-surface) !important;
+  border-color: var(--theme-border) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+.mantine-Button-root[data-variant="light"] {
+  background: color-mix(in srgb, var(--theme-primary), transparent 90%) !important;
+  color: var(--theme-primary) !important;
+  box-shadow: none !important;
+}
+
+.mantine-Button-root:hover {
+  filter: none;
+  transform: none !important;
+}
+
+.mantine-Button-root[data-variant="filled"]:hover {
+  background: var(--theme-primary-hover) !important;
+  box-shadow: none !important;
+}
+
+.mantine-Button-root[data-variant="outline"]:hover,
+.mantine-Button-root[data-variant="default"]:hover,
+.mantine-Button-root[data-variant="subtle"]:hover {
+  background: var(--theme-surface-hover) !important;
+  border-color: color-mix(in srgb, var(--theme-primary), var(--theme-border) 55%) !important;
+  box-shadow: none !important;
+}
+
+.mantine-Button-root:active,
+.mantine-Button-root[data-variant="filled"]:active,
+[data-mantine-color-scheme="dark"] .mantine-Button-root[data-variant="filled"]:active {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.mantine-Input-input,
+.mantine-Textarea-input,
+.mantine-Select-input,
+.mantine-MultiSelect-input,
+.mantine-Autocomplete-input {
+  min-height: 2.5rem;
+  background: var(--theme-surface) !important;
+  border: 1px solid var(--theme-border) !important;
+  border-radius: var(--radius-control) !important;
+  color: var(--theme-text-primary) !important;
+  box-shadow: none !important;
+}
+
+.mantine-Input-input:focus,
+.mantine-Input-input:focus-within,
+.mantine-Textarea-input:focus,
+.mantine-Select-input:focus,
+.mantine-MultiSelect-input:focus-within,
+.mantine-Autocomplete-input:focus {
+  border-color: var(--theme-primary) !important;
+  box-shadow: var(--focus-ring) !important;
+}
+
+.mantine-Badge-filled {
+  box-shadow: none !important;
+}
+
+.mantine-Tabs-tab[data-active] {
+  border-bottom-width: 2px !important;
+  background: transparent !important;
+  font-weight: 600;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
 }

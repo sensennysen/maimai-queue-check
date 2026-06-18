@@ -141,7 +141,7 @@ export default function FeedPage() {
   );
 
   const newSongsBlock = (
-    <Paper p="lg" radius="xl" withBorder className="community-panel community-module-panel">
+    <Paper p="lg" radius="md" withBorder className="community-panel community-module-panel community-discovery-panel">
       <PanelHeader
         title="New Songs"
         rightSection={<Button variant="subtle" size="sm" rightSection={<IconChevronRight size={14} />} onClick={() => navigate('/songs')} style={{ marginTop: '0.5rem' }}  >View all</Button>}
@@ -154,7 +154,7 @@ export default function FeedPage() {
         <CommunityCarouselRow isDesktop={isDesktop} watchKey={newSongs.length}>
           <Group gap="sm" wrap="nowrap" className="community-release-row">
             {newSongs.slice(0, 12).map((song) => (
-              <Paper key={song.cardId || song.songId || song.id} p="xs" radius="lg" withBorder className="community-release-card" onClick={() => navigate(`/songs/${song.cardId || song.songId}`)}>
+              <Paper key={song.cardId || song.songId || song.id} p="xs" radius="md" withBorder className="community-release-card" onClick={() => navigate(`/songs/${song.cardId || song.songId}`)}>
                 <Box
                   className="community-release-image-wrap"
                 >
@@ -173,7 +173,7 @@ export default function FeedPage() {
   );
 
   const recentDiscussionsBlock = (
-    <Paper p="lg" radius="xl" withBorder className="community-panel community-trending-panel community-module-panel">
+    <Paper p="lg" radius="md" withBorder className="community-panel community-trending-panel community-module-panel community-discovery-panel">
       <PanelHeader
         title="Recent Song Discussions"
       />
@@ -207,7 +207,7 @@ export default function FeedPage() {
   );
 
   const playlistsBlock = (
-    <Paper p="lg" radius="xl" withBorder className="community-panel community-module-panel">
+    <Paper p="lg" radius="md" withBorder className="community-panel community-module-panel community-discovery-panel">
       <PanelHeader
         title="Shared Playlists"
         rightSection={
@@ -261,12 +261,14 @@ export default function FeedPage() {
   return (
     <Container
       size="xl"
-      py="lg"
+      py={0}
       className="community-feed-page animate-fade-in"
       {...touchHandlers}
     >
       <Stack gap="lg">
-        <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshingByPull} />
+        {(pullDistance > 0 || isRefreshingByPull) && (
+          <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshingByPull} />
+        )}
 
         <Grid gutter="xl" className="community-feed-layout">
           <Grid.Col span={{ base: 12, md: 7 }}>
@@ -279,9 +281,10 @@ export default function FeedPage() {
                 />
               )}
 
-              <Paper p="md" radius="xl" withBorder className="community-panel">
+              <Paper p={0} radius="md" withBorder className="community-panel community-posts-panel">
                 <PanelHeader
                   title="Posts"
+                  className="community-posts-header"
                 />
                 {loadingCommunityPosts ? (
                   <SectionSkeleton rows={3} height={100} />
@@ -290,7 +293,7 @@ export default function FeedPage() {
                     No posts yet. Be the first to share something!
                   </Text>
                 ) : (
-                  <Stack gap="sm">
+                    <Stack gap={0} className="community-post-stream">
                     {feedItems.map((item) => {
                       if (item.type === 'post') {
                         return (
@@ -301,7 +304,7 @@ export default function FeedPage() {
                             profileData={userRoles}
                             onDelete={(id) => setCommunityPosts(prev => prev.filter(p => p.id !== id))}
                             onUpdate={(id, content) => setCommunityPosts(prev => prev.map(p => p.id === id ? { ...p, content } : p))}
-                            className="community-trending-card"
+                            className="community-post-card"
                           />
                         );
                       }

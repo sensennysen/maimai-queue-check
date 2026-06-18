@@ -134,7 +134,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
   );
 
   return (
-    <Paper p="md" radius="xl" withBorder className="community-panel">
+    <Paper p="md" radius="md" withBorder className="community-panel community-composer">
       <Group gap="sm" wrap="nowrap" align="flex-start">
         <Avatar
           src={getProfileImageUrl(profileData || user)}
@@ -148,6 +148,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
 
         <div style={{ flex: 1 }}>
           <Textarea
+            className="community-composer-input"
             placeholder={`${placeholder}`}
             value={content}
             onChange={(e) => setContent(e.currentTarget.value)}
@@ -200,7 +201,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
             </Group>
           )}
 
-          <Stack gap="sm" mt="sm">
+          <Stack gap="sm" mt="sm" className="community-composer-controls">
             {isMobile ? (
               <Stack gap="xs">
                 <SegmentedControl
@@ -264,6 +265,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
                 />
 
                 <Group
+                  className="community-composer-attachments"
                   gap={2}
                   wrap="nowrap"
                   style={{
@@ -328,7 +330,8 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
               </Text>
               <Button
                 size={isMobile ? 'compact-sm' : 'sm'}
-                radius="xl"
+                radius="md"
+                className="community-composer-submit"
                 leftSection={<IconSend size={isMobile ? 14 : 16} />}
                 onClick={handleSubmit}
                 loading={loading}

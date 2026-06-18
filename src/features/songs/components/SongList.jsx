@@ -4,7 +4,7 @@ import SongCard from './SongCard';
 import SongDetailModal from './SongDetailModal';
 import { useState, useMemo } from 'react';
 
-const ITEMS_PER_PAGE = 25;
+const ITEMS_PER_PAGE = 24;
 
 function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs = [], onSelectionChange }) {
   const [activePage, setPage] = useState(1);
@@ -32,7 +32,7 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
 
   if (error) {
     return (
-      <Center p="xl" h={300} className="hologram-card" style={{ borderRadius: '16px', borderColor: 'var(--mantine-color-red-6)' }}>
+      <Center p="xl" h={300} className="song-list-state" data-error="true">
         <Stack align="center">
           <Text size="xl">❌</Text>
           <Text c="red" fw={500}>Failed to load song database.</Text>
@@ -44,7 +44,7 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
 
   if (loading) {
     return (
-      <Center p="xl" h={400}>
+      <Center p="xl" h={400} className="song-list-state" aria-busy="true">
         <Stack align="center" gap="md">
           <Loader size="xl" variant="bars" color="primary" />
           <Text c="secondary" size="sm" fw={500} className="animate-pulse">Loading Database...</Text>
@@ -55,7 +55,7 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
 
   if (songs.length === 0) {
     return (
-      <Center p="xl" h={300} className="hologram-card" style={{ borderRadius: '16px' }}>
+      <Center p="xl" h={300} className="song-list-state">
         <Stack align="center">
           <Text size="xl">🎵</Text>
           <Text c="secondary" fw={500}>No songs found matching your criteria.</Text>
@@ -69,19 +69,15 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
     <>
       <Stack align="center" gap="xl" w="100%">
         <SimpleGrid
-          cols={{ base: 2, xs: 2, sm: 3, md: 3, lg: 4, xl: 5 }}
+          cols={{ base: 2, sm: 2, md: 3, lg: 4 }}
           spacing="md"
-          verticalSpacing="lg"
+          verticalSpacing="md"
           w="100%"
         >
-          {paginatedSongs.map((song, index) => (
+          {paginatedSongs.map((song) => (
             <Box
               key={song.cardId || song.songId}
-              className="animate-fade-in"
-              style={{
-                animationDelay: `${index * 50}ms`, // Stagger effect
-                height: '100%'
-              }}
+              style={{ height: '100%' }}
             >
               <SongCard
                 song={song}
@@ -123,7 +119,7 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             size="md"
-            radius="xl"
+            radius="md"
             withEdges
             color="primary"
             siblings={1}

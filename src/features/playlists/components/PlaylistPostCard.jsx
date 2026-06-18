@@ -15,7 +15,6 @@ import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import IconWorld from '@tabler/icons-react/dist/esm/icons/IconWorld.mjs';
 import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
-import IconExternalLink from '@tabler/icons-react/dist/esm/icons/IconExternalLink.mjs';
 import IconThumbUp from '@tabler/icons-react/dist/esm/icons/IconThumbUp.mjs';
 import IconThumbDown from '@tabler/icons-react/dist/esm/icons/IconThumbDown.mjs';
 import IconThumbUpFilled from '@tabler/icons-react/dist/esm/icons/IconThumbUpFilled.mjs';
@@ -31,10 +30,12 @@ function PlaylistCover({ songs }) {
     .map((s) => s.imageUrl || s.image_url)
     .filter(Boolean)
     .slice(0, 4);
+  const overflowCount = Math.max((songs || []).length - 4, 0);
 
   if (covers.length === 0) {
     return (
       <Box
+        className="playlist-cover-placeholder"
         style={{
           width: 72,
           height: 72,
@@ -53,7 +54,7 @@ function PlaylistCover({ songs }) {
 
   if (covers.length === 1) {
     return (
-      <Box style={{ width: 72, height: 72, flexShrink: 0, borderRadius: 10, overflow: 'hidden' }}>
+      <Box className="playlist-cover-single" style={{ flexShrink: 0 }}>
         <img src={covers[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
       </Box>
     );
@@ -63,6 +64,7 @@ function PlaylistCover({ songs }) {
   const grid = covers.slice(0, 4);
   return (
     <Box
+      className="playlist-cover-mosaic"
       style={{
         width: 72,
         height: 72,
@@ -77,6 +79,11 @@ function PlaylistCover({ songs }) {
       {grid.map((src, i) => (
         <img key={i} src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
       ))}
+      {overflowCount > 0 && (
+        <span className="playlist-cover-overflow" aria-label={`${overflowCount} more songs`}>
+          +{overflowCount}
+        </span>
+      )}
     </Box>
   );
 }
@@ -177,18 +184,25 @@ export function PlaylistPostCard({
   return (
     <Card
       id={`playlist-post-${post.id}`}
-      p="md"
-      radius="xl"
-      withBorder
-      className="community-panel community-panel-card"
+      p={0}
+      radius="md"
+      className="playlist-post-card"
     >
-      <Stack gap="sm">
+      <Stack gap={0}>
         {/* Author row */}
-        <Group justify="space-between" align="flex-start" wrap="nowrap">
+        <Group justify="space-between" align="flex-start" wrap="nowrap" className="playlist-post-header">
           <Group
             gap="sm"
             style={{ cursor: 'pointer' }}
             onClick={() => navigate(`/p/${post.author.slug}`)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                navigate(`/p/${post.author.slug}`);
+              }
+            }}
+            role="link"
+            tabIndex={0}
             wrap="nowrap"
           >
             <Avatar src={getProfileImageUrl(post.author)} size={42} radius="xl" color="primary">
@@ -244,7 +258,7 @@ export function PlaylistPostCard({
 
         {/* Caption */}
         {editingPostId === post.id ? (
-          <Stack gap="xs">
+          <Stack gap="xs" className="playlist-post-caption">
             <Textarea
               value={editContent}
               onChange={(e) => setEditContent(e.currentTarget.value)}
@@ -275,7 +289,7 @@ export function PlaylistPostCard({
           </Stack>
         ) : (
           post.content && (
-            <Text size="md" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            <Text size="sm" className="playlist-post-caption" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
               {post.content}
             </Text>
           )
@@ -283,40 +297,48 @@ export function PlaylistPostCard({
 
         {/* Embedded playlist block */}
         <Paper
-          p="sm"
+          p="md"
           radius="md"
           withBorder
           className="playlist-embed-card"
           style={{ cursor: 'pointer' }}
           onClick={handleViewDetails}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              handleViewDetails();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label={`View ${post.playlist.title || post.playlist.name || 'playlist'} details`}
         >
-          <Group gap="sm" align="center" wrap="nowrap">
+          <Group gap="lg" align="stretch" wrap="nowrap" className="playlist-embed-layout">
             <PlaylistCover songs={hydratedSongs} />
 
-            <Box style={{ flex: 1, minWidth: 0 }}>
-              <Text fw={700} size="sm" lineClamp={2} style={{ lineHeight: 1.3 }}>
-                {post.playlist.name}
+            <Box className="playlist-embed-content">
+              <Text className="playlist-embed-label">Shared playlist</Text>
+              <Text fw={700} size="xl" lineClamp={2} className="playlist-embed-title">
+                {post.playlist.title || post.playlist.name || 'Untitled Playlist'}
               </Text>
-              <Text size="sm" c="dimmed" fw={500} mt={2}>
-                {hydratedSongs.length} song{hydratedSongs.length !== 1 ? 's' : ''}
-              </Text>
+              {post.playlist.comment && (
+                <Text size="sm" c="dimmed" lineClamp={3} mt="xs">
+                  {post.playlist.comment}
+                </Text>
+              )}
+              <Group gap="sm" mt="auto">
+                <Text size="sm" c="dimmed" fw={500}>
+                  {hydratedSongs.length} song{hydratedSongs.length !== 1 ? 's' : ''}
+                </Text>
+                <Text size="sm" className="playlist-view-link">View details</Text>
+              </Group>
             </Box>
 
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              size="sm"
-              style={{ flexShrink: 0 }}
-              aria-label="View playlist details"
-              onClick={(e) => { e.stopPropagation(); handleViewDetails(); }}
-            >
-              <IconExternalLink size={14} />
-            </ActionIcon>
           </Group>
         </Paper>
 
         {/* Engagement bar */}
-        <Box className="community-post-engagement" mt="md">
+        <Box className="community-post-engagement playlist-post-engagement">
           <Group
             justify="space-between"
             align="center"
@@ -400,83 +422,89 @@ export function PlaylistPostCard({
                 </Group>
               </UnstyledButton>
 
-              <Group
-                gap={6}
-                justify="center"
-                wrap="nowrap"
+              <UnstyledButton
+                type="button"
                 className="community-engagement-cluster"
-                style={{ cursor: 'pointer' }}
                 onClick={() => handleVote(1)}
+                aria-pressed={userVote === 1}
+                aria-label={`Like playlist${likes > 0 ? `, ${likes} likes` : ''}`}
               >
-                <ActionIcon
-                  variant={userVote === 1 ? 'light' : 'subtle'}
-                  color={userVote === 1 ? 'blue' : 'gray'}
-                  size="lg"
-                  aria-label="Like"
-                  loading={voting}
-                >
+                <Group gap={6} justify="center" wrap="nowrap">
                   {userVote === 1 ? <IconThumbUpFilled size={18} /> : <IconThumbUp size={18} />}
-                </ActionIcon>
-                <Text size="sm" fw={500}>
-                  Like
-                </Text>
-              </Group>
+                  <Text size="sm" fw={500}>Like</Text>
+                </Group>
+              </UnstyledButton>
 
-              <Group
-                gap={6}
-                justify="center"
-                wrap="nowrap"
+              <UnstyledButton
+                type="button"
                 className="community-engagement-cluster"
-                style={{ cursor: 'pointer' }}
                 onClick={() => handleVote(-1)}
+                aria-pressed={userVote === -1}
+                aria-label={`Dislike playlist${dislikes > 0 ? `, ${dislikes} dislikes` : ''}`}
               >
-                <ActionIcon
-                  variant={userVote === -1 ? 'light' : 'subtle'}
-                  color={userVote === -1 ? 'red' : 'gray'}
-                  size="lg"
-                  aria-label="Dislike"
-                  loading={voting}
-                >
+                <Group gap={6} justify="center" wrap="nowrap">
                   {userVote === -1 ? <IconThumbDownFilled size={18} /> : <IconThumbDown size={18} />}
-                </ActionIcon>
-                <Text size="sm" fw={500}>
-                  Dislike
-                </Text>
-              </Group>
+                  <Text size="sm" fw={500}>Dislike</Text>
+                </Group>
+              </UnstyledButton>
             </Group>
           </Group>
+        </Box>
 
+        <Box
+          id={`playlist-post-${post.id}-comments`}
+          className={[
+            'playlist-post-comments',
+            commentsOpen ? 'playlist-post-comments--open' : '',
+          ].filter(Boolean).join(' ')}
+        >
           {/* Latest comment preview */}
           {latestComment && !commentsOpen && (
-            <Paper p="xs" radius="md" withBorder mt="md">
-              <Group gap={8} align="flex-start" wrap="nowrap">
+            <UnstyledButton
+              className="playlist-latest-comment"
+              onClick={() => setCommentsOpen(true)}
+              aria-label="Open playlist comments"
+            >
+              <Group gap="sm" align="flex-start" wrap="nowrap">
                 <Avatar
                   src={getProfileImageUrl(latestComment.user_profiles)}
-                  size={22}
+                  size={30}
                   radius="xl"
                   color="blue"
                 >
                   {(latestComment.user_profiles?.display_name || '?').charAt(0)}
                 </Avatar>
-                <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
-                  <Text size="sm" c="dimmed" lineClamp={1}>
-                    <Text span fw={600} c="var(--mantine-color-text)">
+                <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
+                  <Group gap="xs" wrap="nowrap">
+                    <Text size="sm" fw={700} lineClamp={1}>
                       {latestComment.user_profiles?.display_name || 'Someone'}
                     </Text>
-                    {' commented '}
-                    {getRelativeTime(latestComment.created_at)}
-                  </Text>
-                  <Text size="md" lineClamp={2} fs="italic">
+                    <Text size="xs" c="dimmed">
+                      {getRelativeTime(latestComment.created_at)}
+                    </Text>
+                  </Group>
+                  <Text size="sm" lineClamp={2} className="playlist-latest-comment__content">
                     {latestComment.content}
+                  </Text>
+                  <Text size="xs" c="primary" fw={600}>
+                    View conversation
                   </Text>
                 </Stack>
               </Group>
-            </Paper>
+            </UnstyledButton>
           )}
 
           {/* Expanded comments thread */}
           {commentsOpen && (
-            <Box id={`playlist-post-${post.id}-comments`} mt="xs">
+            <Box className="playlist-comments-thread">
+              <Group justify="space-between" mb="sm">
+                <Text fw={700} size="sm">
+                  Comments {commentCount > 0 ? `(${commentCount})` : ''}
+                </Text>
+                <Button variant="subtle" size="compact-xs" onClick={() => setCommentsOpen(false)}>
+                  Hide
+                </Button>
+              </Group>
               <PlaylistComments
                 postId={post.id}
                 ownerId={post.author.id}
