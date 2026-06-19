@@ -302,19 +302,20 @@ const UserAccountMenu = ({
 
             <Divider />
 
-            {/* ── Primary Navigation ── */}
-            <Menu.Item
-              leftSection={<IconUser size={16} />}
-              onClick={() => {
-                if (userRoles?.slug) {
-                  navigate(`/p/${userRoles.slug}`);
-                } else {
-                  navigate('/profile');
-                }
-              }}
-            >
-              Profile
-            </Menu.Item>
+            {!isSidebar && (
+              <Menu.Item
+                leftSection={<IconUser size={16} />}
+                onClick={() => {
+                  if (userRoles?.slug) {
+                    navigate(`/p/${userRoles.slug}`);
+                  } else {
+                    navigate('/profile');
+                  }
+                }}
+              >
+                Profile
+              </Menu.Item>
+            )}
 
             {/* ── Settings ── */}
             <Menu.Item

@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react';
+import { Search, UserRound } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import BranchSelector from './BranchSelector';
@@ -10,9 +10,15 @@ import { getActiveNavigationPath, getVisibleNavigation } from './navigation';
 export default function AppSidebar({ onOpenSearch, onOpenPreferences }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, userRoles } = useAuth();
   const navigation = getVisibleNavigation(user);
   const activePath = getActiveNavigationPath(location.pathname);
+  const profilePath = userRoles?.slug ? `/p/${userRoles.slug}` : '/profile';
+  const isProfileActive = user && (
+    location.pathname === '/profile'
+    || location.pathname === profilePath
+    || location.pathname.startsWith(`${profilePath}/`)
+  );
 
   return (
     <aside className="app-sidebar" aria-label="Primary navigation">
@@ -49,6 +55,17 @@ export default function AppSidebar({ onOpenSearch, onOpenPreferences }) {
             </button>
           );
         })}
+        {user && (
+          <button
+            type="button"
+            onClick={() => navigate(profilePath)}
+            className={isProfileActive ? 'is-active' : undefined}
+            aria-current={isProfileActive ? 'page' : undefined}
+          >
+            <UserRound aria-hidden="true" />
+            <span>Profile</span>
+          </button>
+        )}
       </nav>
 
       <div className="app-sidebar-branch">
