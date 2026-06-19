@@ -1,4 +1,4 @@
-import { Container, Group, Stack, Text, Title } from '@mantine/core';
+import { Container, Group, Stack, Text } from '@mantine/core';
 import IconBrandGithub from '@tabler/icons-react/dist/esm/icons/IconBrandGithub.mjs';
 import IconBrandTwitter from '@tabler/icons-react/dist/esm/icons/IconBrandTwitter.mjs';
 import { useSongDatabase } from '../../../hooks/useSongDatabase';
@@ -25,14 +25,6 @@ function SongDatabase() {
     <Container size="xl" py={0} pb="xl" className="song-database-page">
       <Stack gap="md">
         <header className={styles.songDbHeader}>
-          <div>
-            <Text className={styles.eyebrow}>Song library</Text>
-            <Title order={1}>Songs</Title>
-            <Text c="dimmed" size="sm">
-              Browse {filteredSongs.length.toLocaleString()} matching charts and their difficulty data.
-            </Text>
-          </div>
-
           <Group gap="sm" className={styles.attribution}>
             <Text size="xs" c="dimmed">Data:</Text>
             <Text component="a" href="https://github.com/zetaraku" target="_blank" rel="noreferrer" size="xs">

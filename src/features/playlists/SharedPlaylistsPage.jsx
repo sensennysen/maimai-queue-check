@@ -1,4 +1,4 @@
-import { Container, Stack, Text, Loader, Alert, Button, Paper, Box, Title } from '@mantine/core';
+import { Container, Stack, Text, Loader, Alert, Button, Paper, Box } from '@mantine/core';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
 import { useSharedPlaylists } from './hooks/useSharedPlaylists';
@@ -87,16 +87,6 @@ const SharedPlaylistsPage = () => {
         <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshingByPull} />
       )}
       <Stack gap="lg" mt={pullDistance > 0 || isRefreshingByPull ? 'sm' : 0}>
-        <header className="playlists-page-header">
-          <div>
-            <Text className="playlists-page-eyebrow">Community library</Text>
-            <Title order={1}>Shared Playlists</Title>
-            <Text c="dimmed" size="sm">
-              Discover {posts.length.toLocaleString()} playlist{posts.length === 1 ? '' : 's'} curated by players.
-            </Text>
-          </div>
-        </header>
-
         {posts.length === 0 ? (
           <Paper p="md" radius="md" className="playlists-empty-panel">
             <Box className="playlists-empty-state">

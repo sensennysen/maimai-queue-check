@@ -4,19 +4,6 @@
   color: var(--theme-text);
 }
 
-.playlists-page-header {
-  padding-bottom: 0.25rem;
-}
-
-.playlists-page-eyebrow {
-  margin-bottom: 0.25rem;
-  color: var(--theme-primary);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .playlist-post-card,
 .playlists-empty-panel {
   overflow: hidden;

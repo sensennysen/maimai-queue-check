@@ -19,7 +19,7 @@ import { useMallSchedule } from '../../../hooks/useMallSchedule';
 import { usePageVisibility } from '../../../hooks/usePageVisibility';
 import { useBranch } from '../../../hooks/useBranch';
 import { useAuth } from '../../../hooks/useAuth';
-import { closedMessages, loadingMessages } from '../../../data/subtitleMessages';
+import { closedMessages } from '../../../data/subtitleMessages';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { notifications } from '@mantine/notifications';
 import { requestService, userService } from '../../../services/supabase';
@@ -302,12 +302,7 @@ function QueueManager() {
     }
   };
 
-  const [loadingMessage] = useState(() => loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
   const visibleQueue = isMallOpen ? filterQueue(queue) : [];
-  const creditCount = visibleQueue.reduce(
-    (sum, item) => sum + (item.player1?.trim() ? 1 : 0) + (item.player2?.trim() ? 1 : 0),
-    0,
-  );
 
   return (
     <Stack
@@ -343,16 +338,6 @@ function QueueManager() {
       />
 
       <header className="queue-page-header">
-        <div className="queue-page-heading">
-          <Text className="queue-page-eyebrow">Live branch queue</Text>
-          <Title order={1}>{selectedBranch?.short_name || selectedBranch?.arcade_name || 'Queue'}</Title>
-          <Text className="queue-page-summary">
-            {queueLoading || scheduleLoading
-              ? loadingMessage
-              : `${visibleQueue.length} waiting ${visibleQueue.length === 1 ? 'entry' : 'entries'} · ${creditCount} credits`}
-          </Text>
-        </div>
-
         <div className="queue-page-actions">
           {user && (
             <Button
