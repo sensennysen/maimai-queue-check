@@ -7,44 +7,27 @@ import { useMediaQuery } from '@mantine/hooks';
 import IconBell from '@tabler/icons-react/dist/esm/icons/IconBell.mjs';
 import IconUserPlus from '@tabler/icons-react/dist/esm/icons/IconUserPlus.mjs';
 import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
-import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
 import IconHeart from '@tabler/icons-react/dist/esm/icons/IconHeart.mjs';
 import IconInbox from '@tabler/icons-react/dist/esm/icons/IconInbox.mjs';
-import IconSparkles from '@tabler/icons-react/dist/esm/icons/IconSparkles.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../hooks/useNotifications';
 import { ActivityItem } from './ActivityItem';
-import { getRelativeTime } from '../../utils/formatters';
+import { getCompactRelativeTime } from '../../utils/formatters';
 import './NotificationCenter.css';
 
 const inboxViews = [
-  {
-    value: 'activity',
-    label: 'Activity',
-    icon: IconHeart,
-  },
-  {
-    value: 'system',
-    label: 'System',
-    icon: IconInbox,
-  },
+  { value: 'activity', label: 'Activity', icon: IconHeart },
+  { value: 'system', label: 'System', icon: IconInbox },
 ];
 
 const getSystemTone = (item) => {
   if (item.type === 'request') return 'admin';
-
-  switch (item.data.type) {
-    case 'success':
-      return 'success';
-    case 'warning':
-      return 'warning';
-    case 'error':
-      return 'danger';
-    default:
-      return 'info';
-  }
+  if (item.data.type === 'success') return 'success';
+  if (item.data.type === 'warning') return 'warning';
+  if (item.data.type === 'error') return 'danger';
+  return 'info';
 };
 
 const getSystemMeta = (item) => {
@@ -65,20 +48,9 @@ const getSystemMeta = (item) => {
   };
 };
 
-const handleItemKeyDown = (event, onActivate) => {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    onActivate();
-  }
-};
-
-const NotificationCenter = () => {
-  const { user, userRoles } = useAuth();
+export function NotificationPanel({ notificationState, onNavigate }) {
   const navigate = useNavigate();
-  const [opened, setOpened] = useState(false);
   const [activeTab, setActiveTab] = useState('activity');
-  const isMobile = useMediaQuery('(max-width: 768px)');
-
   const {
     activityNotifications,
     followedIds,
@@ -86,55 +58,196 @@ const NotificationCenter = () => {
     systemItems,
     unreadActivity,
     unreadSystem,
-    totalUnread,
-    handleMarkGeneralRead,
-    handleMarkActivityRead,
+    handleMarkSystemRead,
     handleMarkAllActivityRead,
     handleFollowBack,
-  } = useNotifications(user, userRoles);
-
-  const handleNavigateActivity = (item) => {
-    setOpened(false);
-    if (item.type === 'new_follower' && item.actor?.slug) {
-      navigate(`/p/${item.actor.slug}`);
-    } else if ((item.type === 'comment_upvote' || item.type === 'comment_downvote') && item.song_id) {
-      navigate(`/songs/${item.song_id}`);
-    } else if (item.type === 'playlist_comment_upvote' || item.type === 'playlist_comment_downvote') {
-      navigate('/shared-playlists');
-    } else if (item.type === 'post_like' || item.type === 'comment_like') {
-      navigate('/feed');
-    }
-    handleMarkActivityRead(item.id);
-  };
+  } = notificationState;
 
   const activeItems = activeTab === 'activity' ? activityNotifications : systemItems;
   const unreadCount = activeTab === 'activity' ? unreadActivity : unreadSystem;
-  const activeView = inboxViews.find((view) => view.value === activeTab);
+  const activeLabel = activeTab === 'activity' ? 'Activity' : 'System';
+
+  const handleOpenSystemItem = (item) => {
+    handleMarkSystemRead(item);
+    onNavigate?.();
+    navigate(item.type === 'request' ? '/admin?tab=requests' : '/feed');
+  };
+
+  return (
+    <div className="notification-center-shell">
+      <div className="notification-center-view-grid" role="tablist" aria-label="Notification categories">
+        {inboxViews.map((view) => {
+          const Icon = view.icon;
+          const unread = view.value === 'activity' ? unreadActivity : unreadSystem;
+          const isActive = activeTab === view.value;
+
+          return (
+            <button
+              key={view.value}
+              type="button"
+              className={`notification-center-view-card ${isActive ? 'is-active' : ''}`}
+              onClick={() => setActiveTab(view.value)}
+              role="tab"
+              aria-selected={isActive}
+              id={`notifications-${view.value}-tab`}
+              aria-controls={`notifications-${view.value}-panel`}
+            >
+              <Group justify="space-between" align="center" wrap="nowrap" gap={8}>
+                <Group align="center" wrap="nowrap" gap={8}>
+                  <ThemeIcon variant="light" radius="xl" size={26} className="notification-center-view-icon">
+                    <Icon size={16} />
+                  </ThemeIcon>
+                  <Text className="notification-center-view-label">{view.label}</Text>
+                </Group>
+                <Badge variant="light" radius="xl" className="notification-center-view-badge">
+                  {unread}
+                </Badge>
+              </Group>
+            </button>
+          );
+        })}
+      </div>
+
+      <Group justify="space-between" align="center" wrap="nowrap" className="notification-center-section-head">
+        <Text className="notification-center-section-meta">
+          {activeLabel} · {activeItems.length} item{activeItems.length === 1 ? '' : 's'}, {' '}
+          {unreadCount > 0 ? `${unreadCount} unread` : 'all read'}
+        </Text>
+        {activeTab === 'activity' && unreadActivity > 0 && (
+          <Button variant="subtle" size="compact-sm" onClick={handleMarkAllActivityRead} className="notification-center-section-action">
+            Mark all read
+          </Button>
+        )}
+      </Group>
+
+      <ScrollArea.Autosize
+        mah="min(26rem, 56vh)"
+        type="scroll"
+        offsetScrollbars
+        role="tabpanel"
+        id={`notifications-${activeTab}-panel`}
+        aria-labelledby={`notifications-${activeTab}-tab`}
+      >
+        {activeTab === 'activity' ? (
+          activityNotifications.length === 0 ? (
+            <Stack align="center" gap="xs" py="xl" className="notification-center-empty">
+              <ThemeIcon variant="light" radius="xl" size={44}>
+                <IconHeart size={20} />
+              </ThemeIcon>
+              <Text className="notification-center-empty-title">No activity yet</Text>
+              <Text className="notification-center-empty-copy" ta="center">
+                Follows, likes, and thread replies will appear here.
+              </Text>
+            </Stack>
+          ) : (
+            <Stack gap={0} className="notification-center-list" role="list">
+              {activityNotifications.map((item) => (
+                <ActivityItem
+                  key={item.id}
+                  item={item}
+                  isFollowingActor={followedIds.has(item.actor_id)}
+                  onFollowBack={handleFollowBack}
+                  followLoading={followLoadingMap[item.actor_id]}
+                />
+              ))}
+            </Stack>
+          )
+        ) : systemItems.length === 0 ? (
+          <Stack align="center" gap="xs" py="xl" className="notification-center-empty">
+            <ThemeIcon variant="light" radius="xl" size={44}>
+              <IconInbox size={20} />
+            </ThemeIcon>
+            <Text className="notification-center-empty-title">No system notifications</Text>
+            <Text className="notification-center-empty-copy" ta="center">
+              Branch requests and app-wide updates will appear here.
+            </Text>
+          </Stack>
+        ) : (
+          <Stack gap={0} className="notification-center-list" role="list">
+            {systemItems.map((item) => {
+              const meta = getSystemMeta(item);
+              const Icon = meta.icon;
+              const tone = getSystemTone(item);
+
+              return (
+                <Box
+                  key={item.id}
+                  component="button"
+                  type="button"
+                  className={`notification-feed-item notification-feed-item-system tone-${tone} ${item.read ? '' : 'is-unread'} is-clickable`}
+                  onClick={() => handleOpenSystemItem(item)}
+                  aria-label={`${meta.title}: ${meta.summary}${item.read ? '' : ', unread'}`}
+                >
+                  <div className="notification-feed-item-leading">
+                    <ThemeIcon variant="light" radius="xl" size={32} className="notification-feed-item-icon">
+                      <Icon size={16} />
+                    </ThemeIcon>
+                    {!item.read && <span className="notification-feed-item-dot" aria-hidden="true" />}
+                  </div>
+
+                  <div className="notification-feed-item-body">
+                    <Group gap={6} align="center" wrap="nowrap">
+                      <Text className="notification-feed-item-title">{meta.title}</Text>
+                      {meta.tag && (
+                        <Badge
+                          variant="light"
+                          radius="xl"
+                          className={`notification-feed-item-tag ${meta.tag === 'Admin' ? 'is-admin' : ''}`}
+                        >
+                          {meta.tag}
+                        </Badge>
+                      )}
+                    </Group>
+                    <Text className="notification-feed-item-summary" lineClamp={2}>{meta.summary}</Text>
+                    <Text className="notification-feed-item-meta">{item.date.toLocaleString()}</Text>
+                  </div>
+
+                  <div className="notification-system-trailing" aria-hidden="true">
+                    <Text className="notification-feed-item-time">
+                      {getCompactRelativeTime(item.date.toISOString())}
+                    </Text>
+                    <IconChevronRight size={14} />
+                  </div>
+                </Box>
+              );
+            })}
+          </Stack>
+        )}
+      </ScrollArea.Autosize>
+    </div>
+  );
+}
+
+export function NotificationCenterView({ position = 'bottom-end', notificationState }) {
+  const [opened, setOpened] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   return (
     <Popover
       opened={opened}
       onChange={setOpened}
-      width={isMobile ? 'calc(100vw - 1rem)' : 420}
-      position="bottom-end"
+      width={isMobile ? 'calc(100vw - 1rem)' : 360}
+      position={position}
       shadow="md"
-      offset={isMobile ? 10 : 14}
+      offset={10}
+      trapFocus
+      returnFocus
     >
       <Popover.Target>
         <Indicator
-          disabled={totalUnread === 0}
+          disabled={notificationState.totalUnread === 0}
           color="red"
           size={16}
           offset={4}
-          label={totalUnread > 9 ? '9+' : totalUnread}
+          label={notificationState.totalUnread > 9 ? '9+' : notificationState.totalUnread}
         >
           <ActionIcon
             variant="subtle"
             size="lg"
-            onClick={() => setOpened((o) => !o)}
+            onClick={() => setOpened((value) => !value)}
             className={`notification-bell-trigger ${opened ? 'is-open' : ''}`}
-            aria-label={totalUnread > 0
-              ? `${totalUnread} unread notification${totalUnread === 1 ? '' : 's'}`
+            aria-label={notificationState.totalUnread > 0
+              ? `${notificationState.totalUnread} unread notification${notificationState.totalUnread === 1 ? '' : 's'}`
               : 'Open notifications'}
           >
             <IconBell size={20} />
@@ -143,192 +256,16 @@ const NotificationCenter = () => {
       </Popover.Target>
 
       <Popover.Dropdown p={0} className="notification-center-dropdown">
-        <div className="notification-center-shell">
-          <Group justify="space-between" align="flex-start" wrap="nowrap" className="notification-center-header">
-            <div>
-              <Text className="notification-center-kicker">Signal Board</Text>
-              <Group gap="xs" align="center">
-                <Text className="notification-center-title">Notifications</Text>
-                {totalUnread > 0 && (
-                  <Badge size="lg" radius="xl" className="notification-center-total-badge">
-                    {totalUnread > 99 ? '99+' : totalUnread} new
-                  </Badge>
-                )}
-              </Group>
-              <Text className="notification-center-subtitle">
-                {totalUnread > 0
-                  ? `${unreadActivity} activity and ${unreadSystem} system items waiting`
-                  : 'Everything is caught up for now'}
-              </Text>
-            </div>
-            <ThemeIcon variant="light" radius="xl" size={34} className="notification-center-header-icon">
-              <IconSparkles size={18} />
-            </ThemeIcon>
-          </Group>
-
-          <div className="notification-center-view-grid">
-            {inboxViews.map((view) => {
-              const Icon = view.icon;
-              const unread = view.value === 'activity' ? unreadActivity : unreadSystem;
-              const isActive = activeTab === view.value;
-
-              return (
-                <button
-                  key={view.value}
-                  type="button"
-                  className={`notification-center-view-card ${isActive ? 'is-active' : ''}`}
-                  onClick={() => setActiveTab(view.value)}
-                >
-                  <Group justify="space-between" align="center" wrap="nowrap" gap={8}>
-                    <Group align="center" wrap="nowrap" gap={8}>
-                      <ThemeIcon variant={isActive ? 'filled' : 'light'} radius="xl" size={32} className="notification-center-view-icon">
-                        <Icon size={16} />
-                      </ThemeIcon>
-                      <Text className="notification-center-view-label">{view.label}</Text>
-                    </Group>
-                    <Badge variant={unread > 0 ? 'filled' : 'light'} radius="xl" className="notification-center-view-badge">
-                      {unread}
-                    </Badge>
-                  </Group>
-                </button>
-              );
-            })}
-          </div>
-
-          <Group justify="space-between" align="center" className="notification-center-section-head">
-            <div>
-              <Text className="notification-center-section-label">{activeView?.label}</Text>
-              <Text className="notification-center-section-meta">
-                {activeItems.length} item{activeItems.length === 1 ? '' : 's'}
-                {unreadCount > 0 ? ` - ${unreadCount} unread` : ' - All read'}
-              </Text>
-            </div>
-            {activeTab === 'activity' && unreadActivity > 0 && (
-              <Button variant="subtle" size="sm" onClick={handleMarkAllActivityRead} className="notification-center-section-action">
-                Mark all read
-              </Button>
-            )}
-          </Group>
-
-          <ScrollArea.Autosize mah="56vh" type="scroll" offsetScrollbars>
-            {activeTab === 'activity' ? (
-              activityNotifications.length === 0 ? (
-                <Stack align="center" gap="xs" py="xl" className="notification-center-empty">
-                  <ThemeIcon variant="light" radius="xl" size={44}>
-                    <IconHeart size={20} />
-                  </ThemeIcon>
-                  <Text className="notification-center-empty-title">No fresh activity</Text>
-                  <Text className="notification-center-empty-copy" ta="center">
-                    Follows, likes, and thread replies will light up here.
-                  </Text>
-                </Stack>
-              ) : (
-                <Stack gap="xs" className="notification-center-list">
-                  {activityNotifications.map((item) => (
-                    <ActivityItem
-                      key={item.id}
-                      item={item}
-                      onMarkRead={handleMarkActivityRead}
-                      onNavigate={handleNavigateActivity}
-                      isFollowingActor={followedIds.has(item.actor_id)}
-                      onFollowBack={handleFollowBack}
-                      followLoading={followLoadingMap[item.actor_id]}
-                    />
-                  ))}
-                </Stack>
-              )
-            ) : systemItems.length === 0 ? (
-              <Stack align="center" gap="xs" py="xl" className="notification-center-empty">
-                <ThemeIcon variant="light" radius="xl" size={44}>
-                  <IconInbox size={20} />
-                </ThemeIcon>
-                <Text className="notification-center-empty-title">No system alerts</Text>
-                <Text className="notification-center-empty-copy" ta="center">
-                  Branch requests and app-wide updates will land here.
-                </Text>
-              </Stack>
-            ) : (
-              <Stack gap="xs" className="notification-center-list">
-                {systemItems.map((item) => {
-                  const meta = getSystemMeta(item);
-                  const Icon = meta.icon;
-                  const tone = getSystemTone(item);
-                  const openRequestInbox = () => {
-                    setOpened(false);
-                    navigate('/admin?tab=requests');
-                  };
-
-                  return (
-                    <Box
-                      key={item.id}
-                      component="div"
-                      role={item.type === 'request' ? 'button' : undefined}
-                      tabIndex={item.type === 'request' ? 0 : undefined}
-                      className={`notification-feed-item notification-feed-item-system tone-${tone} ${item.read ? '' : 'is-unread'} ${item.type === 'request' ? 'is-clickable' : ''}`}
-                      onClick={() => {
-                        if (item.type === 'request') {
-                          openRequestInbox();
-                        }
-                      }}
-                      onKeyDown={(event) => {
-                        if (item.type === 'request') {
-                          handleItemKeyDown(event, openRequestInbox);
-                        }
-                      }}
-                    >
-                      <div className="notification-feed-item-leading">
-                        <ThemeIcon variant="light" radius="xl" size={36} className="notification-feed-item-icon">
-                          <Icon size={18} />
-                        </ThemeIcon>
-                        {!item.read && <span className="notification-feed-item-dot" aria-hidden="true" />}
-                      </div>
-
-                      <div className="notification-feed-item-body">
-                        <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-                          <div>
-                            <Group gap={8} align="center">
-                              <Text className="notification-feed-item-title">{meta.title}</Text>
-                              <Badge variant="light" radius="xl" className="notification-feed-item-tag">
-                                {meta.tag}
-                              </Badge>
-                            </Group>
-                            <Text className="notification-feed-item-summary">{meta.summary}</Text>
-                          </div>
-                          <Text className="notification-feed-item-time">{getRelativeTime(item.date.toISOString())}</Text>
-                        </Group>
-
-                        <Group justify="space-between" align="center" className="notification-feed-item-footer">
-                          <Text className="notification-feed-item-meta">{item.date.toLocaleString()}</Text>
-                          <Group gap={6} wrap="nowrap">
-                            {item.type === 'general' && !item.read && (
-                              <ActionIcon
-                                size="sm"
-                                variant="subtle"
-                                color="blue"
-                                onClick={(event) => handleMarkGeneralRead(event, item.data)}
-                                title="Mark as read"
-                              >
-                                <IconCheck size={14} />
-                              </ActionIcon>
-                            )}
-                            {item.type === 'request' && (
-                              <ThemeIcon variant="light" radius="xl" size={28} className="notification-feed-item-chevron">
-                                <IconChevronRight size={14} />
-                              </ThemeIcon>
-                            )}
-                          </Group>
-                        </Group>
-                      </div>
-                    </Box>
-                  );
-                })}
-              </Stack>
-            )}
-          </ScrollArea.Autosize>
-        </div>
+        <NotificationPanel notificationState={notificationState} onNavigate={() => setOpened(false)} />
       </Popover.Dropdown>
     </Popover>
   );
+}
+
+const NotificationCenter = ({ position = 'bottom-end' }) => {
+  const { user, userRoles } = useAuth();
+  const notificationState = useNotifications(user, userRoles);
+  return <NotificationCenterView position={position} notificationState={notificationState} />;
 };
 
 export default NotificationCenter;

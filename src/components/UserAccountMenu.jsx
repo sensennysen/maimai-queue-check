@@ -14,6 +14,7 @@ import IconFileText from '@tabler/icons-react/dist/esm/icons/IconFileText.mjs';
 import IconShieldCheck from '@tabler/icons-react/dist/esm/icons/IconShieldCheck.mjs';
 import IconPalette from '@tabler/icons-react/dist/esm/icons/IconPalette.mjs';
 import IconChevronUp from '@tabler/icons-react/dist/esm/icons/IconChevronUp.mjs';
+import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';
@@ -34,9 +35,15 @@ import './UserAccountMenu.css';
  * @param {Object}   props
  * @param {Function} props.onOpenPreferences        - Opens the app preferences modal.
  * @param {boolean}  [props.showThemeToggleInMenu]  - Renders the light/dark toggle inside the menu.
- * @param {'icon'|'sidebar'} [props.variant]         - Trigger presentation.
+ * @param {'icon'|'sidebar'|'mobile-page'} [props.variant] - Trigger presentation.
  */
-const UserAccountMenu = ({ onOpenPreferences, showThemeToggleInMenu = false, variant = 'icon' }) => {
+const UserAccountMenu = ({
+  onOpenPreferences,
+  showThemeToggleInMenu = false,
+  variant = 'icon',
+  mobileLeadingContent,
+  onMobileNavigate,
+}) => {
   const { user, loading, signInWithProvider, signOut, userRoles, refreshUserRoles } = useAuth();
   const { branches, allEnabledBranches } = useBranch();
   const { isDark, toggleTheme } = useTheme();
@@ -123,6 +130,132 @@ const UserAccountMenu = ({ onOpenPreferences, showThemeToggleInMenu = false, var
     const displayName = userRoles?.display_name || user.user_metadata?.full_name || 'User';
     const avatarUrl = userRoles?.display_photo_url || userRoles?.dx_display_photo_url;
     const isSidebar = variant === 'sidebar';
+    const isMobilePage = variant === 'mobile-page';
+    const navigateFromMobile = (path) => {
+      onMobileNavigate?.();
+      navigate(path);
+    };
+    const overlays = (
+      <>
+        <ChangelogModal
+          opened={changelogOpened}
+          onClose={() => setChangelogOpened(false)}
+        />
+        <ProfileSettingsModal
+          opened={profileSettingsOpen}
+          onClose={() => setProfileSettingsOpen(false)}
+          userId={user.id}
+          initialData={profileData}
+          allBranches={allEnabledBranches.length > 0 ? allEnabledBranches : branches}
+          onSuccess={refreshProfileData}
+        />
+        <PrivacySettingsModal
+          opened={privacySettingsOpen}
+          onClose={() => setPrivacySettingsOpen(false)}
+          userId={user.id}
+          initialData={profileData}
+          onSuccess={refreshProfileData}
+        />
+      </>
+    );
+
+    if (isMobilePage) {
+      return (
+        <>
+          <div className="mobile-more-account">
+            <div className="mobile-more-identity">
+              <Avatar src={avatarUrl} alt={displayName} size={40} radius="xl">
+                <IconUser size={20} />
+              </Avatar>
+              <div>
+                <Text className="mobile-more-name">{displayName}</Text>
+                <Text className="mobile-more-email">{user.email}</Text>
+              </div>
+            </div>
+
+            <div className="mobile-more-menu">
+              {mobileLeadingContent}
+              <button
+                type="button"
+                className="mobile-more-row"
+                onClick={() => navigateFromMobile(userRoles?.slug ? `/p/${userRoles.slug}` : '/profile')}
+              >
+                <IconUser aria-hidden="true" />
+                <span>Profile</span>
+                <IconChevronRight aria-hidden="true" />
+              </button>
+
+              <div className="mobile-more-divider" />
+
+              <button type="button" className="mobile-more-row" onClick={handleOpenProfileSettings} disabled={profileLoading}>
+                <IconSettings aria-hidden="true" />
+                <span>Profile settings</span>
+                <IconChevronRight aria-hidden="true" />
+              </button>
+              <button type="button" className="mobile-more-row" onClick={handleOpenPrivacySettings} disabled={profileLoading}>
+                <IconLock aria-hidden="true" />
+                <span>Privacy settings</span>
+                <IconChevronRight aria-hidden="true" />
+              </button>
+              <button type="button" className="mobile-more-row" onClick={onOpenPreferences}>
+                <IconPalette aria-hidden="true" />
+                <span>Select theme</span>
+                <IconChevronRight aria-hidden="true" />
+              </button>
+              <button type="button" className="mobile-more-row" onClick={toggleTheme}>
+                {isDark ? <IconSun aria-hidden="true" /> : <IconMoon aria-hidden="true" />}
+                <span>{isDark ? 'Light mode' : 'Dark mode'}</span>
+              </button>
+
+              {(userRoles?.is_admin || userRoles?.is_super_admin) && (
+                <>
+                  <div className="mobile-more-divider" />
+                  <button type="button" className="mobile-more-row is-admin" onClick={() => navigateFromMobile('/admin')}>
+                    <IconShieldCheck aria-hidden="true" />
+                    <span>Admin panel</span>
+                    <IconChevronRight aria-hidden="true" />
+                  </button>
+                </>
+              )}
+
+              <div className="mobile-more-divider" />
+
+              <button type="button" className="mobile-more-row" onClick={() => setChangelogOpened(true)}>
+                <IconHistory aria-hidden="true" />
+                <span>Changelogs</span>
+              </button>
+              <button type="button" className="mobile-more-row" onClick={() => navigateFromMobile('/contact')}>
+                <IconMail aria-hidden="true" />
+                <span>Contact</span>
+              </button>
+              <button type="button" className="mobile-more-row" onClick={() => navigateFromMobile('/privacy')}>
+                <IconShieldLock aria-hidden="true" />
+                <span>Privacy policy</span>
+              </button>
+              <button type="button" className="mobile-more-row" onClick={() => navigateFromMobile('/terms')}>
+                <IconFileText aria-hidden="true" />
+                <span>Terms of service</span>
+              </button>
+
+              <div className="mobile-more-divider" />
+
+              <button
+                type="button"
+                className="mobile-more-row is-danger"
+                onClick={() => {
+                  onMobileNavigate?.();
+                  handleLogout();
+                }}
+              >
+                <IconLogout aria-hidden="true" />
+                <span>Sign out</span>
+              </button>
+            </div>
+          </div>
+          {overlays}
+        </>
+      );
+    }
 
     return (
       <>
@@ -269,26 +402,7 @@ const UserAccountMenu = ({ onOpenPreferences, showThemeToggleInMenu = false, var
           </Menu.Dropdown>
         </Menu>
 
-        <ChangelogModal
-          opened={changelogOpened}
-          onClose={() => setChangelogOpened(false)}
-        />
-
-        <ProfileSettingsModal
-          opened={profileSettingsOpen}
-          onClose={() => setProfileSettingsOpen(false)}
-          userId={user.id}
-          initialData={profileData}
-          allBranches={allEnabledBranches.length > 0 ? allEnabledBranches : branches}
-          onSuccess={refreshProfileData}
-        />
-        <PrivacySettingsModal
-          opened={privacySettingsOpen}
-          onClose={() => setPrivacySettingsOpen(false)}
-          userId={user.id}
-          initialData={profileData}
-          onSuccess={refreshProfileData}
-        />
+        {overlays}
       </>
     );
   }

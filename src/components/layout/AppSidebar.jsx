@@ -61,7 +61,7 @@ export default function AppSidebar({ onOpenSearch, onOpenPreferences }) {
       <div className="app-sidebar-spacer" aria-hidden="true" />
 
       <div className="app-sidebar-utilities">
-        {user && <NotificationCenter />}
+        {user && <NotificationCenter position="top-start" />}
         <ThemeToggle />
         <span className="app-sidebar-utility-spacer" />
         <UserAccountMenu onOpenPreferences={onOpenPreferences} variant="sidebar" />

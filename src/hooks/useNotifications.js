@@ -16,6 +16,7 @@ export function useNotifications(user, userRoles) {
   const [activityNotifications, setActivityNotifications] = useState([]);
   const [followedIds, setFollowedIds] = useState(new Set());
   const [followLoadingMap, setFollowLoadingMap] = useState({});
+  const [viewedRequestIds, setViewedRequestIds] = useState(new Set());
 
   const adminBranch = userRoles?.admin_branch;
   const isSuperAdmin = userRoles?.is_super_admin;
@@ -131,6 +132,19 @@ export function useNotifications(user, userRoles) {
     }
   };
 
+  const handleMarkSystemRead = async (item) => {
+    if (!item || item.read) return;
+    if (item.type === 'request') {
+      setViewedRequestIds(prev => {
+        const next = new Set(prev);
+        next.add(item.originalId);
+        return next;
+      });
+      return;
+    }
+    await handleMarkGeneralRead(null, item.data);
+  };
+
   const handleMarkActivityRead = async (notifId) => {
     setActivityNotifications(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n));
     try {
@@ -169,12 +183,19 @@ export function useNotifications(user, userRoles) {
   };
 
   const systemItems = [
-    ...pendingRequests.map(r => ({ type: 'request', id: `req-${r.id}`, originalId: r.id, data: r, date: new Date(r.created_at), read: false })),
+    ...pendingRequests.map(r => ({
+      type: 'request',
+      id: `req-${r.id}`,
+      originalId: r.id,
+      data: r,
+      date: new Date(r.created_at),
+      read: viewedRequestIds.has(r.id),
+    })),
     ...generalNotifications.map(n => ({ type: 'general', id: `notif-${n.id}`, originalId: n.id, data: n, date: new Date(n.created_at), read: n.read }))
   ].sort((a, b) => b.date - a.date);
 
   const unreadActivity = activityNotifications.filter(n => !n.read).length;
-  const unreadSystem = pendingRequests.length + generalNotifications.filter(n => !n.read).length;
+  const unreadSystem = systemItems.filter(item => !item.read).length;
   const totalUnread = unreadActivity + unreadSystem;
 
   return {
@@ -188,6 +209,7 @@ export function useNotifications(user, userRoles) {
     unreadSystem,
     totalUnread,
     handleMarkGeneralRead,
+    handleMarkSystemRead,
     handleMarkActivityRead,
     handleMarkAllActivityRead,
     handleFollowBack,
