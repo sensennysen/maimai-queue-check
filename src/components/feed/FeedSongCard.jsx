@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Paper, Group, Text, Avatar, Badge, Stack, Box } from '@mantine/core';
+import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
 import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
 import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
-import { getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
+import { getCompactRelativeTime, getRelativeTime, getProfileImageUrl } from '../../utils/formatters';
 
 const CATEGORY_COLORS = {
   'POPS & ANIME': 'pink',
@@ -20,6 +23,111 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
   const categoryColor = CATEGORY_COLORS[category] || 'gray';
   const isTrending = variant === 'trending';
   const isDiscussion = variant === 'discussion' || isTrending;
+  const [artworkFailed, setArtworkFailed] = useState(false);
+  const categories = (Array.isArray(song?.categories) ? song.categories : [category]).filter(Boolean);
+  const visibleCategories = categories.slice(0, 2);
+  const hiddenCategoryCount = Math.max(0, categories.length - visibleCategories.length);
+  const authorName = latestComment?.author?.display_name || 'Someone';
+
+  useEffect(() => {
+    setArtworkFailed(false);
+  }, [song?.imageUrl]);
+
+  const handleKeyDown = (event) => {
+    if (!onClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+    event.preventDefault();
+    onClick();
+  };
+
+  const songArtwork = song?.imageUrl && !artworkFailed ? (
+    <img
+      src={song.imageUrl}
+      alt={`${displayTitle} jacket`}
+      className="community-activity-cover-image"
+      onError={() => setArtworkFailed(true)}
+    />
+  ) : (
+    <Box className="community-activity-cover-placeholder" aria-label={`${displayTitle} jacket unavailable`}>
+      <IconMusic size={24} />
+    </Box>
+  );
+
+  if (isTrending) {
+    return (
+      <Paper
+        component={Link}
+        to={`/songs/${songId}`}
+        p={0}
+        radius="md"
+        withBorder
+        aria-label={`Open discussion for ${displayTitle}`}
+        className={`community-trending-card community-discussion-card ${className || ''}`.trim()}
+      >
+        <Box className="community-discussion-info-zone">
+          <Box className="community-discussion-jacket">
+            {songArtwork}
+          </Box>
+
+          <Box className="community-discussion-song-copy">
+            <Text fw={600} size="md" className="community-discussion-title" title={displayTitle}>
+              {displayTitle}
+            </Text>
+            <Text component="div" size="sm" className="community-discussion-metadata">
+              <Text component="span" inherit className="community-discussion-artist">
+                {displayArtist || 'Unknown artist'}
+              </Text>
+              {visibleCategories.length > 0 && (
+                <>
+                  <Text component="span" inherit className="community-discussion-separator"> · </Text>
+                  <Text component="span" inherit className="community-discussion-categories">
+                    {visibleCategories.join(' · ')}
+                    {hiddenCategoryCount > 0 ? ` +${hiddenCategoryCount}` : ''}
+                  </Text>
+                </>
+              )}
+            </Text>
+          </Box>
+
+          <IconChevronRight size={18} stroke={1.8} className="community-discussion-chevron" aria-hidden="true" />
+        </Box>
+
+        <Box className="community-discussion-activity-strip">
+          {latestComment ? (
+            <Group gap="xs" wrap="nowrap" align="flex-start" className="community-discussion-activity-row">
+              <Avatar
+                src={getProfileImageUrl(latestComment.author)}
+                alt={authorName}
+                size={22}
+                radius="xl"
+                color="blue"
+                className="community-discussion-avatar"
+              >
+                {authorName.charAt(0).toUpperCase()}
+              </Avatar>
+              <Text
+                component="p"
+                size="sm"
+                className="community-discussion-reply-copy"
+                title={latestComment.content || `${authorName} replied`}
+              >
+                <Text component="span" inherit fw={600} className="community-discussion-reply-author">
+                  {authorName}
+                </Text>
+                {latestComment.content ? ` ${latestComment.content}` : ' replied'}
+              </Text>
+              <Text component="time" size="xs" className="community-discussion-timestamp">
+                {getCompactRelativeTime(latestComment.createdAt)}
+              </Text>
+            </Group>
+          ) : (
+            <Text size="sm" className="community-discussion-empty-reply">
+              No replies yet
+            </Text>
+          )}
+        </Box>
+      </Paper>
+    );
+  }
 
   return (
     <Paper
@@ -27,6 +135,9 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
       radius="md"
       withBorder
       onClick={onClick}
+      onKeyDown={handleKeyDown}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
       style={{
         cursor: 'pointer',
         transition: 'all 0.15s ease',
@@ -109,7 +220,7 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
                     "{latestComment.content}"
                   </Text>
                 )}
-               </Stack>
+              </Stack>
             </Group>
           )}
 

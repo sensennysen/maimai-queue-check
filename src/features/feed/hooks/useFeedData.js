@@ -283,17 +283,46 @@ export function useFeedData(user, userRoles, songs, songMapById) {
   }, [songDiscussions, songMapById]);
 
   const playlistRows = useMemo(() => {
-    return playlistDiscussions.length > 0
-      ? playlistDiscussions.map((item) => ({
-        key: `discussion-${item.post_id}`,
-        post: item.post,
+    const rowsByPostId = new Map();
+
+    newPosts.forEach((post) => {
+      if (!post?.id) return;
+
+      rowsByPostId.set(post.id, {
+        key: `playlist-${post.id}`,
+        post,
+        latestComment: null,
+        eventType: 'new',
+        eventTimestamp: post.created_at,
+      });
+    });
+
+    playlistDiscussions.forEach((item) => {
+      const post = item.post;
+      const postId = item.post_id || post?.id;
+      if (!postId || !post) return;
+
+      rowsByPostId.set(postId, {
+        key: `playlist-${postId}`,
+        post,
         latestComment: {
           content: item.content,
           author: item.user_profiles,
           createdAt: item.created_at,
         },
-      }))
-      : newPosts.map((post) => ({ key: post.id, post }));
+        eventType: 'activity',
+        eventTimestamp: item.created_at,
+      });
+    });
+
+    return Array.from(rowsByPostId.values()).sort((a, b) => {
+      const timeDifference = new Date(b.eventTimestamp || 0).getTime()
+        - new Date(a.eventTimestamp || 0).getTime();
+      if (timeDifference !== 0) return timeDifference;
+
+      if (a.eventType === b.eventType) return 0;
+      return a.eventType === 'new' ? -1 : 1;
+    });
   }, [playlistDiscussions, newPosts]);
 
   return {

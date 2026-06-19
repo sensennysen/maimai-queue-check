@@ -19,7 +19,7 @@ export function PanelHeader({ title, subtitle, onRefresh, loading, rightSection,
         <Title order={3} className="community-panel-title">{title}</Title>
         {subtitle && <Text size="sm" c="dimmed">{subtitle}</Text>}
       </Stack>
-      <Group gap="xs">
+      <Group gap="xs" className="community-panel-header-actions">
         {rightSection}
         {onRefresh && (
           <ActionIcon variant="subtle" size="sm" onClick={onRefresh} loading={loading}>

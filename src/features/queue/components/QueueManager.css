@@ -204,6 +204,18 @@
 
 .cabinet-toggles .mantine-Button-root {
   border-radius: calc(var(--radius-control) - 1px) !important;
+  border: 1px solid color-mix(in srgb, var(--mantine-color-blue-filled), var(--theme-border) 60%) !important;
+  background: var(--mantine-color-blue-light) !important;
+  color: var(--mantine-color-blue-light-color) !important;
+}
+
+.cabinet-toggles .cabinet-toggle-btn.is-active {
+  background: var(--mantine-color-blue-filled) !important;
+  color: var(--mantine-color-white) !important;
+}
+
+.cabinet-toggle-btn:hover {
+  background: var(--mantine-color-blue-light-hover) !important;
 }
 
 .queue-manager-root .mantine-Modal-content {

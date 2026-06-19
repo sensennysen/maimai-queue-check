@@ -144,14 +144,22 @@ export default function FeedPage() {
     <Paper p="lg" radius="md" withBorder className="community-panel community-module-panel community-discovery-panel">
       <PanelHeader
         title="New Songs"
-        rightSection={<Button variant="subtle" size="sm" rightSection={<IconChevronRight size={14} />} onClick={() => navigate('/songs')} style={{ marginTop: '0.5rem' }}  >View all</Button>}
+        rightSection={<Button className="community-panel-view-all" variant="subtle" size="sm" rightSection={<IconChevronRight size={14} />} onClick={() => navigate('/songs')}>View all</Button>}
       />
       {songsLoading ? (
         <SectionSkeleton rows={1} height={180} />
       ) : newSongs.length === 0 ? (
         <Text c="dimmed" size="md" ta="center" py="md">No songs found</Text>
       ) : (
-        <CommunityCarouselRow isDesktop={isDesktop} watchKey={newSongs.length}>
+        <CommunityCarouselRow
+          isDesktop={isDesktop}
+          watchKey={newSongs.length}
+          itemCount={Math.min(newSongs.length, 12)}
+          showIndicators
+          centerItems
+          draggable
+          ariaLabel="New songs"
+        >
           <Group gap="sm" wrap="nowrap" className="community-release-row">
             {newSongs.slice(0, 12).map((song) => (
               <Paper key={song.cardId || song.songId || song.id} p="xs" radius="md" withBorder className="community-release-card" onClick={() => navigate(`/songs/${song.cardId || song.songId}`)}>
@@ -176,6 +184,7 @@ export default function FeedPage() {
     <Paper p="lg" radius="md" withBorder className="community-panel community-trending-panel community-module-panel community-discovery-panel">
       <PanelHeader
         title="Recent Song Discussions"
+        rightSection={<Button className="community-panel-view-all" variant="subtle" size="sm" rightSection={<IconChevronRight size={14} />} onClick={() => navigate('/songs')}>View all</Button>}
       />
       {loadingDiscussions ? (
         <SectionSkeleton rows={5} height={146} />
@@ -186,6 +195,11 @@ export default function FeedPage() {
           isDesktop={isDesktop}
           rowClassName="community-module-carousel-scroll"
           watchKey={trendingRows.length}
+          itemCount={trendingRows.length}
+          showIndicators
+          centerItems
+          draggable
+          ariaLabel="Recent song discussions"
         >
           <Group gap="sm" wrap="nowrap" className="community-module-carousel-row">
             {trendingRows.map((item) => (
@@ -212,11 +226,11 @@ export default function FeedPage() {
         title="Shared Playlists"
         rightSection={
           <Button
+            className="community-panel-view-all"
             variant="subtle"
             size="sm"
             rightSection={<IconChevronRight size={14} />}
             onClick={() => navigate('/shared-playlists')}
-            style={{ marginTop: '0.5rem' }}
           >
             View feed
           </Button>
@@ -231,6 +245,11 @@ export default function FeedPage() {
           isDesktop={isDesktop}
           rowClassName="community-module-carousel-scroll"
           watchKey={playlistRows.length}
+          itemCount={Math.min(playlistRows.length, 8)}
+          showIndicators
+          centerItems
+          draggable
+          ariaLabel="Shared playlists"
         >
           <Group gap="sm" wrap="nowrap" className="community-module-carousel-row">
             {playlistRows.slice(0, 8).map((item) => (

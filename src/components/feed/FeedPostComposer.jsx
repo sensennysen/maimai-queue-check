@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Paper, Group, Avatar, Textarea, Button, Text, SegmentedControl, Center, Box, Stack, SimpleGrid } from '@mantine/core';
+import { Paper, Group, Avatar, Textarea, Button, Text, SegmentedControl, Center, Box, Stack } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import IconSend from '@tabler/icons-react/dist/esm/icons/IconSend.mjs';
 import IconWorld from '@tabler/icons-react/dist/esm/icons/IconWorld.mjs';
@@ -104,6 +104,14 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
   const remaining = APP_CONFIG.MAX_POST_LENGTH - content.length;
   const isOver = remaining < 0;
   const isDisabled = !content.trim() || isOver || loading;
+  const characterCountClass = [
+    'community-composer-count',
+    content.length > 480
+      ? 'community-composer-count--danger'
+      : content.length > 400
+        ? 'community-composer-count--warning'
+        : '',
+  ].filter(Boolean).join(' ');
 
   const placeholder = useMemo(() => {
     return FEED_PLACEHOLDERS[Math.floor(Math.random() * FEED_PLACEHOLDERS.length)];
@@ -141,6 +149,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
           size={38}
           radius="xl"
           color="primary"
+          className="community-composer-avatar"
           style={{ flexShrink: 0, marginTop: 2 }}
         >
           {(profileData?.display_name || user?.display_name || '?').charAt(0)}
@@ -150,6 +159,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
           <Textarea
             className="community-composer-input"
             placeholder={`${placeholder}`}
+            aria-label="Create a feed post"
             value={content}
             onChange={(e) => setContent(e.currentTarget.value)}
             onKeyDown={handleKeyDown}
@@ -191,6 +201,7 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
                     color="red" 
                     variant="filled" 
                     radius="xl"
+                    aria-label="Remove uploaded image"
                     onClick={() => { setImageFile(null); setImagePreview(null); }}
                     style={{ position: 'absolute', top: -5, right: -5, zIndex: 1 }}
                   >
@@ -202,77 +213,23 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
           )}
 
           <Stack gap="sm" mt="sm" className="community-composer-controls">
-            {isMobile ? (
-              <Stack gap="xs">
-                <SegmentedControl
-                  fullWidth
-                  size="sm"
-                  value={visibility}
-                  onChange={setVisibility}
-                  disabled={loading}
-                  data={visibilitySegmentData}
-                />
-                <SimpleGrid cols={3} spacing={6} verticalSpacing={6}>
-                  <Button
-                    type="button"
-                    variant="light"
-                    color="gray"
-                    size="sm"
-                    radius="md"
-                    leftSection={<IconMusic size={16} />}
-                    onClick={() => setSongPickerOpened(true)}
-                    disabled={loading || !!attachedSong}
-                  >
-                    Song
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="light"
-                    color="gray"
-                    size="sm"
-                    radius="md"
-                    leftSection={<IconPlaylist size={16} />}
-                    onClick={() => setPlaylistPickerOpened(true)}
-                    disabled={loading || !!attachedPlaylist}
-                  >
-                    Playlist
-                  </Button>
-                  <FileButton onChange={handleImageSelect} accept="image/png,image/jpeg,image/webp">
-                    {(props) => (
-                      <Button
-                        {...props}
-                        variant="light"
-                        color="gray"
-                        size="sm"
-                        radius="md"
-                        leftSection={<IconPhoto size={16} />}
-                        disabled={loading || !!imageFile}
-                      >
-                        Photo
-                      </Button>
-                    )}
-                  </FileButton>
-                </SimpleGrid>
-              </Stack>
-            ) : (
-              <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-                <SegmentedControl
-                  size="sm"
-                  value={visibility}
-                  onChange={setVisibility}
-                  disabled={loading}
-                  data={visibilitySegmentData}
-                />
+            <Group justify="space-between" align="center" wrap="wrap" gap="sm" className="community-composer-footer">
+              <SegmentedControl
+                fullWidth={isMobile}
+                size="sm"
+                value={visibility}
+                onChange={setVisibility}
+                disabled={loading}
+                data={visibilitySegmentData}
+                className="community-composer-visibility"
+              />
 
+              <Group className="community-composer-actions" gap="xs" wrap="nowrap">
                 <Group
                   className="community-composer-attachments"
-                  gap={2}
+                  gap="xs"
                   wrap="nowrap"
-                  style={{
-                    padding: '2px 4px',
-                    borderRadius: 8,
-                    border: '1px solid var(--mantine-color-default-border)',
-                  }}
+                  aria-label="Post attachments"
                 >
                   <Tooltip label="Attach Song" withArrow>
                     <ActionIcon
@@ -317,28 +274,29 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
                     )}
                   </FileButton>
                 </Group>
-              </Group>
-            )}
 
-            <Group justify="space-between" align="center" wrap="nowrap" gap="md">
-              <Text
-                size="sm"
-                ff="monospace"
-                c={isOver ? 'red' : remaining <= 50 ? 'yellow' : 'dimmed'}
-              >
-                {content.length} / {APP_CONFIG.MAX_POST_LENGTH}
-              </Text>
-              <Button
-                size={isMobile ? 'compact-sm' : 'sm'}
-                radius="md"
-                className="community-composer-submit"
-                leftSection={<IconSend size={isMobile ? 14 : 16} />}
-                onClick={handleSubmit}
-                loading={loading}
-                disabled={isDisabled}
-              >
-                Post
-              </Button>
+                <Group className="community-composer-submit-group" gap={0} wrap="nowrap">
+                  <Text
+                    size="sm"
+                    ff="monospace"
+                    className={characterCountClass}
+                    aria-live="polite"
+                  >
+                    {content.length} / {APP_CONFIG.MAX_POST_LENGTH}
+                  </Text>
+                  <Button
+                    size={isMobile ? 'compact-sm' : 'sm'}
+                    radius="md"
+                    className="community-composer-submit"
+                    leftSection={<IconSend size={isMobile ? 14 : 16} />}
+                    onClick={handleSubmit}
+                    loading={loading}
+                    disabled={isDisabled}
+                  >
+                    Post
+                  </Button>
+                </Group>
+              </Group>
             </Group>
           </Stack>
         </div>

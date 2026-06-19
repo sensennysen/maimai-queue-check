@@ -126,7 +126,7 @@
     container-type: inline-size;
     container-name: community-rail-carousel;
     scroll-snap-type: x mandatory;
-    scroll-padding-inline: 0;
+    scroll-padding-inline: 50%;
   }
 
   .community-sidebar-scroll-area .community-module-carousel-scroll .community-module-carousel-item {
@@ -135,7 +135,7 @@
     min-width: 100cqi !important;
     max-width: 100cqi !important;
     box-sizing: border-box;
-    scroll-snap-align: start;
+    scroll-snap-align: center;
     scroll-snap-stop: always;
   }
 
@@ -171,6 +171,37 @@
   margin: -1rem 0;
 }
 
+.community-carousel-scroll-row--centered {
+  padding-inline: 2px;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 50%;
+}
+
+.community-carousel-scroll-row--centered > .mantine-Group-root > * {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+.community-carousel-scroll-row--draggable {
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-x pan-y;
+}
+
+.community-carousel-scroll-row--dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}
+
+.community-carousel-scroll-row--draggable img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.community-carousel-scroll-row--draggable a {
+  -webkit-user-drag: none;
+}
+
 /* Hard reset for webkit scrollbar artifacts that sometimes paint track backgrounds */
 .community-carousel-scroll-row::-webkit-scrollbar {
   display: none !important;
@@ -186,57 +217,86 @@
 }
 
 /* Overlay controls on top of cards (no side fades — buttons only) */
-.community-carousel-wrap--desktop {
-  isolation: isolate;
+.community-carousel-wrap--with-indicators {
+  padding-bottom: 1.375rem;
+}
+
+.community-carousel-indicators {
+  position: absolute;
+  right: 0;
+  bottom: 0.125rem;
+  left: 0;
+  display: flex;
+  justify-content: safe center;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 1rem;
+  max-width: 100%;
+  padding-inline: 0.25rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.community-carousel-indicators::-webkit-scrollbar {
+  display: none;
+}
+
+.community-carousel-indicator {
+  flex: 0 0 auto;
+  width: 0.375rem !important;
+  height: 0.375rem !important;
+  min-width: 0.375rem !important;
+  min-height: 0.375rem !important;
+  max-width: 0.375rem !important;
+  max-height: 0.375rem !important;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-text-muted) 42%, transparent);
+  cursor: pointer;
+  transition: width 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+
+.community-carousel-indicator:hover {
+  background: color-mix(in srgb, var(--theme-text-muted) 72%, transparent);
+  transform: scale(1.2);
+}
+
+.community-carousel-indicator--active {
+  width: 1rem !important;
+  min-width: 1rem !important;
+  max-width: 1rem !important;
+  background: var(--theme-primary);
+}
+
+@media (max-width: 48em) {
+  .community-carousel-indicators {
+    gap: 0.3125rem;
+  }
+
+  .community-carousel-indicator {
+    width: 0.3125rem !important;
+    height: 0.3125rem !important;
+    min-width: 0.3125rem !important;
+    min-height: 0.3125rem !important;
+    max-width: 0.3125rem !important;
+    max-height: 0.3125rem !important;
+  }
+
+  .community-carousel-indicator--active {
+    width: 0.875rem !important;
+    min-width: 0.875rem !important;
+    max-width: 0.875rem !important;
+  }
+}
+
+.community-carousel-indicator:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 3px;
 }
 
 /* Fine pointer + hover: hide arrows until hover or keyboard focus inside strip */
-@media (hover: hover) and (pointer: fine) {
-  .community-carousel-wrap--desktop .community-carousel-nav-wrap {
-    opacity: 0;
-    transition: opacity 0.18s ease;
-  }
-
-  .community-carousel-wrap--desktop:hover .community-carousel-nav-wrap,
-  .community-carousel-wrap--desktop:focus-within .community-carousel-nav-wrap {
-    opacity: 1;
-  }
-}
-
-/* Wrapper centers the control; ActionIcon keeps its own :active transform without fighting translateY(-50%). */
-.community-carousel-nav-wrap {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 4;
-}
-
-.community-carousel-nav-wrap--left {
-  left: 0.5rem;
-}
-
-.community-carousel-nav-wrap--right {
-  right: 0.5rem;
-}
-
-.community-carousel-nav {
-  box-shadow: 0 2px 14px color-mix(in srgb, var(--theme-text-primary) 18%, transparent);
-  background: color-mix(in srgb, var(--theme-surface) 88%, var(--theme-background) 12%) !important;
-  border: 1px solid color-mix(in srgb, var(--theme-border) 65%, transparent) !important;
-  color: var(--theme-text-primary) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: background 0.12s ease, filter 0.12s ease;
-}
-
-.community-carousel-nav:hover {
-  background: color-mix(in srgb, var(--theme-surface) 78%, var(--theme-primary) 22%) !important;
-}
-
-.community-carousel-nav:active {
-  filter: brightness(0.92);
-}
-
 /* Mantine ScrollArea elsewhere on feed (e.g. nested in post tooling) */
 .community-feed-page .mantine-ScrollArea-viewport {
   scrollbar-width: none;
@@ -298,7 +358,10 @@
 }
 
 .community-module-carousel-row {
+  width: 100%;
+  min-width: 100%;
   padding: 2px 2px 6px;
+  box-sizing: border-box;
 }
 
 .community-module-carousel-item {
@@ -556,8 +619,8 @@
   }
 
   .community-release-card {
-    width: 130px;
-    min-width: 130px;
+    width: clamp(7.5rem, 42vw, 8.125rem);
+    min-width: clamp(7.5rem, 42vw, 8.125rem);
   }
 
   .community-suggested-carousel .community-player-carousel-item {
@@ -570,10 +633,11 @@
     min-height: 86px;
   }
 
-  .community-module-carousel-item {
-    min-width: 260px;
-    width: 260px;
-    max-width: 260px;
+  .community-module-carousel-scroll .community-module-carousel-item {
+    flex: 0 0 calc(100% - 0.5rem);
+    min-width: calc(100% - 0.5rem);
+    width: calc(100% - 0.5rem);
+    max-width: calc(100% - 0.5rem);
   }
 
   .community-player-follow-label {
@@ -599,6 +663,19 @@
 
   .community-feed-page::before {
     content: none;
+  }
+}
+
+@media (max-width: 30em) {
+  .community-discovery-panel {
+    padding-inline: 0.75rem !important;
+  }
+
+  .community-module-carousel-scroll .community-module-carousel-item {
+    flex-basis: calc(100% - 0.5rem);
+    min-width: calc(100% - 0.5rem);
+    width: calc(100% - 0.5rem);
+    max-width: calc(100% - 0.5rem);
   }
 }
 
@@ -661,6 +738,31 @@
   background: var(--theme-background);
 }
 
+.community-composer-footer {
+  min-height: 2.5rem;
+}
+
+.community-composer-actions {
+  margin-left: auto;
+}
+
+.community-composer-count {
+  min-width: 4.5rem;
+  margin-right: 1rem;
+  color: var(--theme-text-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.2s ease;
+}
+
+.community-composer-count--warning {
+  color: var(--mantine-color-orange-filled) !important;
+}
+
+.community-composer-count--danger {
+  color: var(--mantine-color-red-filled) !important;
+}
+
 .community-composer-attachments .mantine-ActionIcon-root {
   min-width: 2.25rem;
   min-height: 2.25rem;
@@ -669,6 +771,19 @@
 
 .community-composer-submit {
   min-width: 5.5rem;
+}
+
+.community-panel-header-actions {
+  margin-left: auto;
+  align-self: flex-start;
+}
+
+.community-panel-view-all {
+  margin-left: auto;
+  min-height: 2rem !important;
+  padding-inline: 0.5rem !important;
+  color: var(--theme-primary) !important;
+  font-size: 0.8125rem !important;
 }
 
 .community-attachment-preview {
@@ -716,6 +831,35 @@
 
 .community-feed-post > .mantine-Stack-root {
   gap: 0.875rem;
+}
+
+.community-post-author {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.community-post-author:disabled {
+  cursor: default;
+}
+
+.community-post-author:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-control);
+}
+
+.community-post-metadata {
+  color: color-mix(in srgb, var(--theme-text-primary) 62%, var(--theme-text-muted)) !important;
+}
+
+.community-post-body {
+  font-size: 0.95rem !important;
+  line-height: 1.6 !important;
 }
 
 .community-feed-post .clay-sub-card {
@@ -794,6 +938,18 @@
   background: var(--theme-background);
 }
 
+.community-latest-comment {
+  border-color: color-mix(in srgb, var(--theme-border) 80%, var(--theme-primary) 20%) !important;
+  background: var(--theme-background) !important;
+}
+
+.community-trending-card:focus-visible,
+.community-playlist-strip:focus-visible,
+.community-release-card:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+}
+
 .community-comment-composer .mantine-Textarea-input {
   min-height: 2.5rem;
   background: var(--theme-surface) !important;
@@ -808,12 +964,34 @@
 }
 
 .community-discovery-panel {
-  padding: 1rem !important;
+  padding: 0.75rem 1rem !important;
 }
 
 .community-discovery-panel .community-panel-title {
   font-size: 1rem;
   letter-spacing: -0.01em;
+}
+
+.community-discovery-panel > .mantine-Group-root {
+  margin-bottom: 0.375rem;
+}
+
+.community-discovery-panel .community-carousel-scroll-row {
+  padding-block: 0.625rem;
+  margin-block: -0.625rem;
+}
+
+.community-discovery-panel .community-carousel-wrap--with-indicators {
+  padding-bottom: 1rem;
+}
+
+.community-discovery-panel .community-carousel-indicators {
+  bottom: 0;
+}
+
+.community-discovery-panel .community-release-row,
+.community-discovery-panel .community-module-carousel-row {
+  padding-bottom: 0.125rem;
 }
 
 .community-release-card {
@@ -853,14 +1031,289 @@
   box-shadow: none !important;
 }
 
-.community-carousel-nav {
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
-  backdrop-filter: none;
+.community-activity-card {
+  width: 100%;
+  height: 16rem;
+  min-height: 16rem !important;
+  max-height: 16rem;
+  padding: 0.875rem !important;
+  text-align: left;
+  overflow: hidden;
+}
+
+.community-activity-card-content {
+  width: 100%;
+  height: 100%;
+  margin-top: 0 !important;
+}
+
+.community-activity-summary {
+  width: 100%;
+  min-height: 4.5rem;
+  min-width: 0;
+}
+
+.community-activity-primary {
+  min-width: 0;
+  flex: 1;
+  margin-top: 0 !important;
+}
+
+.community-activity-title {
+  min-height: 2.6em;
+  color: var(--theme-text-primary) !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.01em;
+}
+
+.community-activity-cover,
+.community-playlist-cover {
+  width: 4.5rem !important;
+  height: 4.5rem !important;
+  min-width: 4.5rem !important;
+  flex: 0 0 4.5rem !important;
+  overflow: hidden;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--radius-panel) !important;
+  background: var(--theme-background);
+}
+
+.community-activity-cover-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.community-activity-cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--theme-primary);
+  background: var(--theme-background);
+}
+
+.community-activity-category {
+  align-self: flex-start;
+  max-width: 100%;
+  text-transform: none;
+}
+
+.community-playlist-cover {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+}
+
+.community-playlist-cover--1 {
+  display: block;
+}
+
+.community-playlist-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: cover;
+}
+
+.community-playlist-cover--2 img {
+  grid-row: 1 / 3;
+}
+
+.community-playlist-cover--3 img:first-child {
+  grid-row: 1 / 3;
+}
+
+.community-playlist-byline {
+  min-width: 0;
+}
+
+.community-playlist-song-count {
+  white-space: nowrap;
+}
+
+.community-playlist-note-slot {
+  height: 2.75rem;
+  min-height: 2.75rem;
+  overflow: hidden;
+}
+
+.community-playlist-note-slot--empty {
+  visibility: hidden;
+}
+
+.community-playlist-note {
+  height: 100%;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--theme-border);
+  color: color-mix(in srgb, var(--theme-text-primary) 78%, var(--theme-text-muted)) !important;
+  line-height: 1.45 !important;
+}
+
+.community-activity-comment {
+  height: 4.75rem;
+  min-height: 4.75rem;
+  margin-top: auto;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--radius-panel);
+  background: var(--theme-background);
+  overflow: hidden;
+}
+
+.community-activity-comment--empty {
+  visibility: hidden;
+}
+
+.community-activity-comment-header {
+  min-width: 0;
+}
+
+.community-activity-comment-author {
+  min-width: 0;
+  color: var(--theme-text-primary) !important;
+}
+
+.community-activity-comment-time {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.community-activity-comment-icon {
+  flex: 0 0 auto;
+  color: var(--theme-text-muted);
+}
+
+.community-activity-comment-copy {
+  margin-top: 0.375rem;
+  padding-left: 2rem;
+  color: color-mix(in srgb, var(--theme-text-primary) 84%, var(--theme-text-muted)) !important;
+  line-height: 1.45 !important;
+}
+
+.community-trending-card .community-activity-comment {
+  height: 6rem;
+  min-height: 6rem;
+  margin-top: 0;
+}
+
+.community-song-discussion-content {
+  justify-content: flex-start;
+}
+
+.community-discussion-label-row {
+  min-width: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.community-discussion-label {
+  color: var(--theme-text-muted) !important;
+  letter-spacing: 0.02em;
+}
+
+.community-discussion-reply {
+  margin-top: 0.5rem;
+  min-width: 0;
+}
+
+.community-discussion-reply-body {
+  min-width: 0;
+  flex: 1;
+  margin-top: 0 !important;
+}
+
+.community-discussion-reply .community-activity-comment-copy {
+  margin-top: 0;
+  padding-left: 0;
+}
+
+.community-module-carousel-item .community-activity-cover.community-trending-jacket {
+  width: 4.5rem !important;
+  height: 4.5rem !important;
+  min-width: 4.5rem !important;
+  max-height: none;
+  aspect-ratio: 1;
+  margin: 0;
+}
+
+.community-sidebar-scroll-area .community-module-carousel-item .community-activity-cover.community-trending-jacket {
+  width: 4.5rem !important;
+  height: 4.5rem !important;
+  min-width: 4.5rem !important;
+  max-height: none;
+  aspect-ratio: 1;
+}
+
+.community-feed-post .community-post-engagement-actions {
+  gap: 1rem !important;
+}
+
+.community-feed-post .community-post-engagement-btn,
+.community-feed-post .community-engagement-cluster {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
 }
 
 @media (max-width: 48em) {
   .community-composer {
     padding: 0.875rem !important;
+  }
+
+  .community-composer-footer {
+    align-items: stretch !important;
+  }
+
+  .community-composer-visibility {
+    flex-basis: 100%;
+  }
+
+  .community-composer-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .community-composer-submit {
+    min-width: 4.75rem;
+  }
+
+  .community-composer-count {
+    min-width: 3.75rem;
+    margin-right: 0.5rem;
+    font-size: 0.75rem !important;
+  }
+
+  .community-composer-attachments .mantine-ActionIcon-root {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+  }
+
+  .community-activity-card {
+    height: 16rem;
+    min-height: 16rem !important;
+    max-height: 16rem;
+    padding: 0.75rem !important;
+  }
+
+  .community-activity-cover,
+  .community-playlist-cover {
+    width: 4rem !important;
+    height: 4rem !important;
+    min-width: 4rem !important;
+    flex-basis: 4rem !important;
+  }
+
+  .community-module-carousel-item .community-activity-cover.community-trending-jacket {
+    width: 4rem !important;
+    height: 4rem !important;
+    min-width: 4rem !important;
+  }
+
+  .community-activity-comment-copy {
+    padding-left: 0;
   }
 
   .community-feed-post {
@@ -900,5 +1353,256 @@
 
   .community-comment-engagement-actions .community-engagement-cluster {
     width: auto;
+  }
+}
+
+@media (max-width: 23em) {
+  .community-composer-avatar {
+    display: none;
+  }
+}
+
+/* Recent song discussion: unified card with a distinct latest-activity strip. */
+.community-module-carousel-item .community-discussion-card {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  background: var(--theme-surface) !important;
+}
+
+.community-discussion-card:hover {
+  background: var(--theme-surface-hover) !important;
+}
+
+.community-discussion-card:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+}
+
+.community-discussion-info-zone {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.875rem;
+}
+
+.community-discussion-jacket {
+  width: 3rem;
+  height: 3rem;
+  min-width: 3rem;
+  overflow: hidden;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--radius-panel);
+  background: var(--theme-background);
+}
+
+.community-discussion-jacket .community-activity-cover-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.community-discussion-song-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-discussion-title,
+.community-discussion-metadata {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.community-discussion-title {
+  color: var(--theme-text-primary) !important;
+  line-height: 1.35 !important;
+  letter-spacing: -0.01em;
+}
+
+.community-discussion-metadata {
+  margin-top: 0.1875rem;
+  line-height: 1.35 !important;
+}
+
+.community-discussion-artist {
+  color: color-mix(in srgb, var(--theme-text-primary) 72%, var(--theme-text-muted)) !important;
+}
+
+.community-discussion-separator,
+.community-discussion-categories {
+  color: var(--theme-text-muted) !important;
+}
+
+.community-discussion-chevron {
+  flex: 0 0 auto;
+  color: var(--theme-text-muted);
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.community-discussion-card:hover .community-discussion-chevron {
+  color: var(--theme-text-primary);
+  transform: translateX(2px);
+}
+
+.community-discussion-activity-strip {
+  min-height: 4rem;
+  padding: 0.75rem 0.875rem;
+  border-top: 1px solid var(--theme-border);
+  background: color-mix(in srgb, var(--theme-background) 72%, var(--theme-surface));
+}
+
+.community-discussion-card:hover .community-discussion-activity-strip {
+  background: color-mix(in srgb, var(--theme-background) 58%, var(--theme-surface-hover));
+}
+
+.community-discussion-activity-row {
+  min-width: 0;
+}
+
+.community-discussion-avatar {
+  flex: 0 0 auto;
+  margin-top: 0.0625rem;
+}
+
+.community-discussion-reply-copy {
+  display: -webkit-box;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--theme-text-primary) 78%, var(--theme-text-muted)) !important;
+  line-height: 1.4 !important;
+  overflow-wrap: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.community-discussion-reply-author {
+  color: var(--theme-text-primary) !important;
+}
+
+.community-discussion-timestamp {
+  flex: 0 0 auto;
+  margin-left: 0.25rem;
+  color: var(--theme-text-muted) !important;
+  line-height: 1.4 !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.community-discussion-empty-reply {
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  color: var(--theme-text-muted) !important;
+}
+
+@media (max-width: 48em) {
+  .community-discussion-info-zone {
+    padding: 0.75rem;
+  }
+
+  .community-discussion-activity-strip {
+    padding: 0.6875rem 0.75rem;
+  }
+}
+
+/* Shared playlist card: mirrors the song discussion card's two-zone structure. */
+.community-module-carousel-item .community-playlist-strip {
+  display: grid;
+  grid-template-rows: 5.5rem 4rem;
+  height: 9.5rem;
+  min-height: 9.5rem;
+  max-height: 9.5rem;
+  align-items: initial;
+}
+
+.community-playlist-info-zone {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+  min-height: 0;
+  padding: 0.75rem;
+  overflow: hidden;
+}
+
+.community-playlist-info-zone .community-playlist-cover {
+  width: 3.25rem !important;
+  height: 3.25rem !important;
+  min-width: 3.25rem !important;
+  flex: 0 0 3.25rem !important;
+}
+
+.community-playlist-info-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-playlist-title {
+  display: block;
+  margin: 0;
+  overflow: hidden;
+  color: var(--theme-text-primary) !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.community-playlist-metadata {
+  min-width: 0;
+  max-height: 1.5em;
+  margin-top: 0.25rem;
+  row-gap: 0.1875rem;
+  color: var(--theme-text-muted);
+  overflow: hidden;
+}
+
+.community-playlist-strip .community-discussion-activity-strip {
+  height: 4rem;
+  min-height: 4rem;
+  overflow: hidden;
+}
+
+.community-playlist-creator-avatar {
+  flex: 0 0 auto;
+}
+
+.community-playlist-creator {
+  color: var(--theme-text-primary) !important;
+  overflow-wrap: anywhere;
+}
+
+.community-playlist-metadata-detail {
+  color: var(--theme-text-muted) !important;
+}
+
+.community-playlist-cover--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: 1fr;
+}
+
+.community-playlist-cover--2 img {
+  grid-row: auto;
+}
+
+.community-playlist-cover--3 img:first-child {
+  grid-row: auto;
+}
+
+.community-playlist-cover--3 img:last-child {
+  grid-column: 1 / 3;
+}
+
+@media (max-width: 48em) {
+  .community-playlist-info-zone {
+    padding: 0.75rem;
   }
 }

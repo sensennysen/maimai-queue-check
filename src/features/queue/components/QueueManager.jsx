@@ -572,14 +572,14 @@ function QueueManager() {
 
       {/* Cabinet Tabs - Only show when there are multiple cabinets */}
       {hasMultipleCabinets && (
-        <Group gap="sm" mb="md" className="cabinet-toggles">
+        <Group gap="sm" mb="md" className="cabinet-toggles" aria-label="Select cabinet">
           {Array.from({ length: cabinetCount }, (_, i) => i + 1).map((cabNum) => {
             const isActive = selectedCabinet === cabNum;
             return (
               <Button
                 key={cabNum}
                 variant={isActive ? "filled" : "light"}
-                color={isActive ? "primary" : "gray"}
+                color={isActive ? "primary" : "blue"}
                 onClick={() => setSelectedCabinet(cabNum)}
                 className={`cabinet-toggle-btn ${isActive ? 'is-active' : ''}`}
                 size="md"

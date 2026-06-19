@@ -155,8 +155,11 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
         <Group justify="space-between" align="flex-start">
           <Group
             gap="sm"
-            style={{ cursor: 'pointer' }}
+            component="button"
+            type="button"
+            className="community-post-author"
             onClick={() => post.author?.slug && navigate(`/p/${post.author.slug}`)}
+            disabled={!post.author?.slug}
           >
             <Avatar src={getProfileImageUrl(post.author)} size={36} radius="xl" color="primary">
               {(post.author?.display_name || '?').charAt(0)}
@@ -173,7 +176,12 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
                 />
               </Group>
               <Group gap={4} align="center">
-                <Text size="sm" c="dimmed" title={new Date(post.created_at).toLocaleString()}>
+                <Text
+                  size="sm"
+                  c="dimmed"
+                  className="community-post-metadata"
+                  title={new Date(post.created_at).toLocaleString()}
+                >
                   {getRelativeTime(post.created_at)}
                   {post.updated_at && <> &middot; edited</>}
                 </Text>
@@ -190,7 +198,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
           {isOwn && (
             <Menu shadow="md" width={170} position="bottom-end">
               <Menu.Target>
-                <ActionIcon variant="subtle" color="gray" size="sm">
+                <ActionIcon variant="subtle" color="gray" size="sm" aria-label="Manage post">
                   <IconDotsVertical size={16} />
                 </ActionIcon>
               </Menu.Target>
@@ -245,7 +253,11 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
             </Group>
           </Stack>
         ) : (
-          <Text size="md" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+          <Text
+            size="md"
+            className="community-post-body"
+            style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+          >
             {post.content}
           </Text>
         )}
@@ -416,7 +428,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
           </Group>
 
           {latestComment && !commentsOpen && (
-            <Paper p="xs" radius="md" withBorder mt="md">
+            <Paper p="xs" radius="md" withBorder mt="md" className="community-latest-comment">
               <Group gap={8} align="flex-start" wrap="nowrap">
                 <Avatar
                   src={getProfileImageUrl(latestComment.author)}
