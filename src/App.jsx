@@ -15,7 +15,6 @@ import { FeatureFlagProvider } from './contexts/FeatureFlagContext';
 import { theme as mantineTheme, themes } from './config/theme';
 import { ProtectedRoute, ProfileRedirect } from './components/routing/RoutingComponents';
 import QueueManager from './features/queue/components/QueueManager';
-import Footer from './components/layout/Footer';
 import BranchSelector from './components/layout/BranchSelector';
 import AppShell from './components/layout/AppShell';
 import ErrorBoundary from './components/layout/ErrorBoundary';
@@ -124,7 +123,6 @@ function MantineAppShell() {
             </Routes>
           </Suspense>
         </AppShell>
-        <Footer />
         <ConsentBanner />
         {!isOptedOut && <Analytics />}
       </ErrorBoundary>
