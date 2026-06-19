@@ -1,4 +1,4 @@
-import { MapPin, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import BranchSelector from './BranchSelector';
@@ -10,11 +10,9 @@ import { getActiveNavigationPath, getVisibleNavigation } from './navigation';
 export default function AppSidebar({ onOpenSearch, onOpenPreferences }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, userRoles } = useAuth();
+  const { user } = useAuth();
   const navigation = getVisibleNavigation(user);
   const activePath = getActiveNavigationPath(location.pathname);
-  const displayName = userRoles?.display_name || user?.user_metadata?.full_name || 'Guest player';
-  const profileImage = userRoles?.display_photo_url || userRoles?.dx_display_photo_url;
 
   return (
     <aside className="app-sidebar" aria-label="Primary navigation">
@@ -25,16 +23,6 @@ export default function AppSidebar({ onOpenSearch, onOpenPreferences }) {
           <small>Philippines</small>
         </span>
       </button>
-
-      <div className="app-mini-profile">
-        <div className="app-mini-avatar" aria-hidden={!profileImage}>
-          {profileImage ? <img src={profileImage} alt="" /> : displayName.charAt(0).toUpperCase()}
-        </div>
-        <div>
-          <strong>{displayName}</strong>
-          <span>{userRoles?.slug ? `@${userRoles.slug}` : user ? 'Player profile' : 'Browse public queues'}</span>
-        </div>
-      </div>
 
       {user && (
         <button type="button" className="app-search-trigger" onClick={onOpenSearch}>
@@ -65,16 +53,18 @@ export default function AppSidebar({ onOpenSearch, onOpenPreferences }) {
 
       <div className="app-sidebar-branch">
         <div className="app-sidebar-label">
-          <MapPin aria-hidden="true" />
           <span>Current branch</span>
         </div>
         <BranchSelector />
       </div>
 
+      <div className="app-sidebar-spacer" aria-hidden="true" />
+
       <div className="app-sidebar-utilities">
         {user && <NotificationCenter />}
         <ThemeToggle />
-        <UserAccountMenu onOpenPreferences={onOpenPreferences} />
+        <span className="app-sidebar-utility-spacer" />
+        <UserAccountMenu onOpenPreferences={onOpenPreferences} variant="sidebar" />
       </div>
     </aside>
   );

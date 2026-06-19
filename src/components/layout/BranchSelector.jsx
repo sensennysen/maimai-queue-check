@@ -89,10 +89,11 @@ function BranchSelector() {
     >
       <Menu.Target>
         <Button
-          variant="light"
+          variant="default"
           leftSection={<IconMapPin size={16} />}
-          rightSection={<IconChevronDown size={14} />}
+          rightSection={<IconChevronDown size={14} className={menuOpened ? 'is-open' : undefined} />}
           className="branch-selector-button"
+          aria-label={`Current branch: ${selectedBranch.short_name || selectedBranch.arcade_name}. Select another branch`}
           styles={() => ({
             root: {
               paddingRight: 8,

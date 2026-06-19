@@ -4,8 +4,8 @@
   margin: 0 auto;
   padding-top: 1rem;
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  gap: 1.25rem;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: 1rem;
   align-items: start;
 }
 
@@ -57,8 +57,8 @@
 }
 
 .app-brand-mark {
-  width: 2rem;
-  height: 2rem;
+  width: 1.875rem;
+  height: 1.875rem;
   border-radius: var(--radius-control);
   display: inline-flex;
   align-items: center;
@@ -78,6 +78,9 @@
 .app-brand strong {
   font-size: 0.875rem;
   letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .app-brand small {
@@ -85,54 +88,6 @@
   color: var(--theme-text-muted);
   font-size: 0.6875rem;
   font-weight: 500;
-}
-
-.app-mini-profile {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border: 1px solid var(--theme-border);
-  border-radius: var(--radius-panel);
-}
-
-.app-mini-avatar {
-  width: 2.5rem;
-  height: 2.5rem;
-  flex: 0 0 auto;
-  overflow: hidden;
-  border-radius: 50%;
-  background: var(--theme-surface-hover);
-  color: var(--theme-text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-}
-
-.app-mini-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.app-mini-profile strong,
-.app-mini-profile span {
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.app-mini-profile strong {
-  font-size: 0.8125rem;
-}
-
-.app-mini-profile span {
-  margin-top: 0.125rem;
-  color: var(--theme-text-muted);
-  font-size: 0.6875rem;
 }
 
 .app-search-trigger {
@@ -184,7 +139,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-weight: 500;
+  font-weight: 400;
   text-align: left;
   cursor: pointer;
 }
@@ -195,45 +150,84 @@
 }
 
 .app-sidebar-nav button.is-active {
-  border-color: color-mix(in srgb, var(--theme-primary), transparent 72%);
+  border-color: transparent;
   background: color-mix(in srgb, var(--theme-primary), transparent 90%);
   color: var(--theme-primary);
   font-weight: 600;
 }
 
 .app-sidebar-branch {
-  padding-top: 1rem;
-  border-top: 1px solid var(--theme-border);
+  padding-top: 0.875rem;
+  border-top: 0.5px solid color-mix(in srgb, var(--theme-border) 72%, transparent);
 }
 
 .app-sidebar-label {
-  margin-bottom: 0.625rem;
+  margin-bottom: 0.5rem;
   color: var(--theme-text-muted);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
 }
 
 .app-sidebar .branch-selector-button {
   width: 100%;
   max-width: none;
+  min-height: 2.625rem;
+  padding-inline: 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--radius-control);
+  background: var(--theme-surface);
+  color: var(--theme-text-primary);
+  box-shadow: none;
+}
+
+.app-sidebar .branch-selector-button:hover {
+  background: var(--theme-surface-hover);
+  filter: none;
+}
+
+.app-sidebar .branch-selector-button:focus-visible,
+.app-profile-trigger:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+}
+
+.app-sidebar-spacer {
+  min-height: 1rem;
+  flex: 1 1 auto;
 }
 
 .app-sidebar-utilities {
-  margin-top: auto;
-  padding-top: 1rem;
-  border-top: 1px solid var(--theme-border);
+  padding-top: 0.875rem;
+  border-top: 0.5px solid color-mix(in srgb, var(--theme-border) 72%, transparent);
   display: flex;
   align-items: center;
   gap: 0.375rem;
 }
 
+.app-sidebar-utility-spacer {
+  flex: 1 1 auto;
+}
+
 .app-sidebar-utilities .login-button-container {
   flex: 1;
+}
+
+.app-sidebar-utilities .notification-bell-trigger,
+.app-sidebar-utilities .theme-toggle {
+  width: 2rem;
+  min-width: 2rem;
+  height: 2rem;
+  border: 0 !important;
+  border-radius: var(--radius-control) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.app-sidebar-utilities .notification-bell-trigger:hover,
+.app-sidebar-utilities .theme-toggle:hover {
+  transform: none;
+  background: var(--theme-surface-hover) !important;
 }
 
 .app-mobile-header,

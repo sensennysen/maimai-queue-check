@@ -11,8 +11,9 @@ import IconHistory from '@tabler/icons-react/dist/esm/icons/IconHistory.mjs';
 import IconMail from '@tabler/icons-react/dist/esm/icons/IconMail.mjs';
 import IconShieldLock from '@tabler/icons-react/dist/esm/icons/IconShieldLock.mjs';
 import IconFileText from '@tabler/icons-react/dist/esm/icons/IconFileText.mjs';
-import IconLayoutDashboard from '@tabler/icons-react/dist/esm/icons/IconLayoutDashboard.mjs';
+import IconShieldCheck from '@tabler/icons-react/dist/esm/icons/IconShieldCheck.mjs';
 import IconPalette from '@tabler/icons-react/dist/esm/icons/IconPalette.mjs';
+import IconChevronUp from '@tabler/icons-react/dist/esm/icons/IconChevronUp.mjs';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useBranch } from '../hooks/useBranch';
@@ -33,8 +34,9 @@ import './UserAccountMenu.css';
  * @param {Object}   props
  * @param {Function} props.onOpenPreferences        - Opens the app preferences modal.
  * @param {boolean}  [props.showThemeToggleInMenu]  - Renders the light/dark toggle inside the menu.
+ * @param {'icon'|'sidebar'} [props.variant]         - Trigger presentation.
  */
-const UserAccountMenu = ({ onOpenPreferences, showThemeToggleInMenu = false }) => {
+const UserAccountMenu = ({ onOpenPreferences, showThemeToggleInMenu = false, variant = 'icon' }) => {
   const { user, loading, signInWithProvider, signOut, userRoles, refreshUserRoles } = useAuth();
   const { branches, allEnabledBranches } = useBranch();
   const { isDark, toggleTheme } = useTheme();
@@ -45,6 +47,7 @@ const UserAccountMenu = ({ onOpenPreferences, showThemeToggleInMenu = false }) =
   const [profileSettingsOpen, setProfileSettingsOpen] = useState(false);
   const [privacySettingsOpen, setPrivacySettingsOpen] = useState(false);
   const [changelogOpened, setChangelogOpened] = useState(false);
+  const [menuOpened, setMenuOpened] = useState(false);
 
   const handleSocialLogin = async (provider) => {
     try {
@@ -117,34 +120,52 @@ const UserAccountMenu = ({ onOpenPreferences, showThemeToggleInMenu = false }) =
 
   // ── Authenticated: avatar + dropdown ────────────────────────────────────────
   if (user) {
+    const displayName = userRoles?.display_name || user.user_metadata?.full_name || 'User';
+    const avatarUrl = userRoles?.display_photo_url || userRoles?.dx_display_photo_url;
+    const isSidebar = variant === 'sidebar';
+
     return (
       <>
-        <Menu shadow="md" width={280} position="bottom-end">
+        <Menu
+          opened={menuOpened}
+          onChange={setMenuOpened}
+          shadow="md"
+          width={292}
+          position={isSidebar ? 'top-end' : 'bottom-end'}
+          offset={10}
+          trapFocus
+          closeOnEscape
+          classNames={{ dropdown: 'profile-menu-dropdown', item: 'profile-menu-item' }}
+        >
           <Menu.Target>
-            <ActionIcon variant="subtle" size="xl" className="login-icon">
-              <Avatar
-                src={userRoles?.display_photo_url || userRoles?.dx_display_photo_url}
-                alt={userRoles?.display_name || user.user_metadata?.full_name || user.email}
-                size={40}
-                radius="xl"
-              >
-                <IconUser size={24} />
-              </Avatar>
-            </ActionIcon>
+            {isSidebar ? (
+              <button type="button" className="app-profile-trigger" aria-label={`Open profile menu for ${displayName}`}>
+                <Avatar src={avatarUrl} alt={displayName} size={24} radius="xl">
+                  <IconUser size={14} />
+                </Avatar>
+                <span>{displayName}</span>
+                <IconChevronUp className={menuOpened ? 'is-open' : undefined} aria-hidden="true" />
+              </button>
+            ) : (
+              <ActionIcon variant="subtle" size="xl" className="login-icon" aria-label={`Open profile menu for ${displayName}`}>
+                <Avatar src={avatarUrl} alt={displayName} size={40} radius="xl">
+                  <IconUser size={24} />
+                </Avatar>
+              </ActionIcon>
+            )}
           </Menu.Target>
 
           <Menu.Dropdown>
             {/* ── Identity ── */}
-            <Menu.Label>
-              <Stack gap={2}>
-                <Text size="sm" fw={500}>
-                  {userRoles?.display_name || user.user_metadata?.full_name || 'User'}
-                </Text>
-                <Text size="sm" c="secondary">
-                  {user.email}
-                </Text>
+            <div className="profile-menu-identity">
+              <Avatar src={avatarUrl} alt={displayName} size={36} radius="xl">
+                <IconUser size={20} />
+              </Avatar>
+              <Stack gap={1} className="profile-menu-identity-copy">
+                <Text className="profile-menu-name">{displayName}</Text>
+                <Text className="profile-menu-email">{user.email}</Text>
               </Stack>
-            </Menu.Label>
+            </div>
 
             <Divider />
 
@@ -162,10 +183,7 @@ const UserAccountMenu = ({ onOpenPreferences, showThemeToggleInMenu = false }) =
               Profile
             </Menu.Item>
 
-            <Divider />
-
             {/* ── Settings ── */}
-            <Menu.Label>Settings</Menu.Label>
             <Menu.Item
               leftSection={<IconSettings size={16} />}
               onClick={handleOpenProfileSettings}
@@ -199,20 +217,18 @@ const UserAccountMenu = ({ onOpenPreferences, showThemeToggleInMenu = false }) =
             {(userRoles?.is_admin || userRoles?.is_super_admin) && (
               <>
                 <Divider />
-                <Menu.Label>Administration</Menu.Label>
                 <Menu.Item
-                  leftSection={<IconLayoutDashboard size={16} />}
+                  leftSection={<IconShieldCheck size={16} />}
                   onClick={() => navigate('/admin')}
+                  className="profile-menu-admin"
                 >
                   Admin Panel
                 </Menu.Item>
+                <Divider />
               </>
             )}
 
-            <Divider />
-
             {/* ── Support / Info ── */}
-            <Menu.Label>Info</Menu.Label>
             <Menu.Item
               leftSection={<IconHistory size={16} />}
               onClick={() => setChangelogOpened(true)}
@@ -225,8 +241,6 @@ const UserAccountMenu = ({ onOpenPreferences, showThemeToggleInMenu = false }) =
             >
               Contact
             </Menu.Item>
-
-            <Divider />
 
             {/* ── Legal ── */}
             <Menu.Item
@@ -248,7 +262,7 @@ const UserAccountMenu = ({ onOpenPreferences, showThemeToggleInMenu = false }) =
             <Menu.Item
               leftSection={<IconLogout size={16} />}
               onClick={handleLogout}
-              color="red"
+              className="profile-menu-signout"
             >
               Sign Out
             </Menu.Item>

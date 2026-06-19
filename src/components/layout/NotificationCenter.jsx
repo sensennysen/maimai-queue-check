@@ -133,7 +133,9 @@ const NotificationCenter = () => {
             size="lg"
             onClick={() => setOpened((o) => !o)}
             className={`notification-bell-trigger ${opened ? 'is-open' : ''}`}
-            aria-label="Open notifications"
+            aria-label={totalUnread > 0
+              ? `${totalUnread} unread notification${totalUnread === 1 ? '' : 's'}`
+              : 'Open notifications'}
           >
             <IconBell size={20} />
           </ActionIcon>
