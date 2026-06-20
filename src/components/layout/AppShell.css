@@ -20,6 +20,12 @@
   padding-inline: 0;
 }
 
+@media (min-width: 1180px) {
+  .app-shell:has(.community-feed-page) {
+    gap: 2rem;
+  }
+}
+
 .app-sidebar {
   position: sticky;
   top: 1rem;
