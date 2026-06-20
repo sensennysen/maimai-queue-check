@@ -334,27 +334,105 @@
   margin-top: 0.35rem;
 }
 
-.community-suggested-carousel .community-player-carousel-item {
-  min-width: 300px;
-  width: 300px;
-  max-width: 300px;
+.community-suggested-panel .community-panel-title {
+  font-size: 1.05rem;
 }
 
-.community-suggested-carousel .community-player-carousel-item .community-player-row {
-  min-height: 96px;
+.community-player-card {
+  position: relative;
+  min-width: 0;
+  transition: background-color 150ms ease;
 }
 
-.community-player-tags-row {
-  align-items: center;
-  row-gap: 4px;
+.community-player-card--sidebar {
+  padding: 0.75rem 0.875rem;
+  border-radius: var(--radius-panel);
+  background: color-mix(in srgb, var(--theme-surface-hover) 38%, transparent);
 }
 
-.community-player-tag {
-  white-space: nowrap;
+.community-player-card--sidebar:hover {
+  background: color-mix(in srgb, var(--theme-surface-hover) 58%, transparent);
+}
+
+.community-player-copy,
+.community-player-preview-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-player-avatar-button {
+  flex: 0 0 auto;
+  border-radius: 999px;
+}
+
+.community-player-avatar-button:hover {
+  transform: scale(1.04);
+}
+
+.community-player-name-button {
+  min-width: 0;
+  color: var(--theme-text-primary);
+  text-align: left;
+}
+
+.community-player-name-button:hover {
+  color: var(--theme-primary);
+}
+
+.community-player-main-branch {
+  min-width: 0;
+  color: var(--theme-text-muted) !important;
 }
 
 .community-player-follow-button {
-  min-width: 96px;
+  flex: 0 0 auto;
+  min-width: 5.5rem;
+}
+
+.community-player-card--carousel {
+  min-height: 9rem;
+  padding: 1rem 1.125rem;
+  border-radius: var(--radius-panel);
+  background: color-mix(in srgb, var(--theme-surface-hover) 55%, transparent);
+}
+
+.community-suggested-carousel .community-player-carousel-item {
+  flex: 0 0 15rem;
+  width: 15rem;
+  min-width: 15rem;
+  max-width: 15rem;
+}
+
+.community-suggested-player-row {
+  padding: 0.125rem;
+}
+
+.community-suggested-panel .community-carousel-wrap--with-indicators {
+  padding-bottom: 0.5rem;
+}
+
+.community-suggested-panel .community-carousel-indicators {
+  bottom: -0.125rem;
+  min-height: 0.5rem;
+}
+
+@media (min-width: 62em) {
+  .community-suggested-sidebar-scroll {
+    scroll-snap-type: x mandatory;
+  }
+
+  .community-suggested-sidebar-scroll .community-player-carousel-item {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    scroll-snap-align: center;
+  }
+
+}
+
+.community-player-preview-modal {
+  border-top: 3px solid var(--theme-secondary) !important;
 }
 
 .community-module-carousel-row {
@@ -599,12 +677,6 @@
     font-size: 1.4rem;
   }
 
-  .community-suggested-carousel .community-player-carousel-item {
-    min-width: 250px;
-    width: 250px;
-    max-width: 250px;
-  }
-
   .community-module-carousel-item {
     min-width: 300px;
     width: 300px;
@@ -623,16 +695,6 @@
     min-width: clamp(7.5rem, 42vw, 8.125rem);
   }
 
-  .community-suggested-carousel .community-player-carousel-item {
-    min-width: 200px;
-    width: 200px;
-    max-width: 200px;
-  }
-
-  .community-suggested-carousel .community-player-carousel-item .community-player-row {
-    min-height: 86px;
-  }
-
   .community-module-carousel-scroll .community-module-carousel-item {
     flex: 0 0 calc(100% - 0.5rem);
     min-width: calc(100% - 0.5rem);
@@ -640,20 +702,9 @@
     max-width: calc(100% - 0.5rem);
   }
 
-  .community-player-follow-label {
-    display: none;
-  }
-
   .community-player-follow-button {
-    min-width: 34px;
-    width: 34px;
-    height: 34px;
-    padding: 0;
-  }
-
-  .community-player-follow-mobile {
-    min-width: 34px;
-    min-height: 34px;
+    min-width: 5.5rem;
+    min-height: 2.75rem;
   }
 
   .community-module-carousel-item .community-trending-jacket {
@@ -1793,7 +1844,6 @@
 
 .community-post-conversation {
   margin: 0.125rem -1rem -1rem;
-  border-top: 1px solid var(--theme-border);
 }
 
 .community-post-reaction-summary {
@@ -1828,10 +1878,6 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   transition: background-color 150ms ease, color 150ms ease;
-}
-
-.community-post-action + .community-post-action {
-  border-left: 1px solid var(--theme-border);
 }
 
 .community-post-action:hover:not(:disabled) {

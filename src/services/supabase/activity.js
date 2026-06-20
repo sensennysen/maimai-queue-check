@@ -227,7 +227,7 @@ export const activityService = {
 
     const { data, error } = await supabase
       .from(TABLES.USER_PROFILES)
-      .select(`id, display_name, slug, display_photo_url, dx_display_photo_url, user_attributions(attributions), main_branch, preferred_branches, is_public, user_roles:${TABLES.USER_ROLES}(queue_name)`)
+      .select(`id, display_name, slug, display_photo_url, dx_display_photo_url, main_branch, preferred_branches, maimai_best_scores, privacy_settings, is_public`)
       .neq('id', userId)
       .eq('is_public', true)
       .not('slug', 'is', null)
@@ -239,12 +239,30 @@ export const activityService = {
       let score = 0;
       const profileMainBranch = profile.main_branch ? String(profile.main_branch) : null;
       const profilePreferredBranches = (profile.preferred_branches || []).map(String);
+      const sharedPreferredBranch = profilePreferredBranches.find(branchId => userPreferredBranches.includes(branchId));
+      let suggestionReason = 'A player from the maiMai community';
+      let suggestionBranchId = profile.main_branch || null;
 
-      if (mainBranch && profileMainBranch === String(mainBranch)) score += 100;
+      if (mainBranch && profileMainBranch === String(mainBranch)) {
+        score += 100;
+        suggestionReason = 'Shares your home arcade';
+        suggestionBranchId = profile.main_branch;
+      }
       if (profilePreferredBranches.some(b => userPreferredBranches.includes(b)) || (profileMainBranch && userPreferredBranches.includes(profileMainBranch))) {
         score += 50;
+        if (suggestionReason === 'A player from the maiMai community') {
+          suggestionReason = 'Plays at one of your preferred arcades';
+          suggestionBranchId = sharedPreferredBranch || profile.main_branch;
+        }
       }
-      return { profile, score };
+      return {
+        profile: {
+          ...profile,
+          suggestion_reason: suggestionReason,
+          suggestion_branch_id: suggestionBranchId,
+        },
+        score,
+      };
     });
 
     return scored

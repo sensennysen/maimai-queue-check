@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   Container, Stack, Group, Text, Button, Paper,
   Grid, Box
@@ -26,16 +26,16 @@ import { SuggestedPlayersCarousel } from '../features/feed/components/SuggestedP
 import { CommunityCarouselRow } from '../features/feed/components/CommunityCarouselRow';
 
 const POSTS_PER_INSERTION = 4;
+const SUGGESTED_PLAYERS_INSERTION_INDEX = 7;
 const SUGGESTED_PLAYER_COUNT = 5;
 
-function pickRandomPlayers(players, count) {
-  if (!players?.length) return [];
+function shufflePlayers(players) {
   const pool = [...players];
   for (let i = pool.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  return pool.slice(0, count);
+  return pool;
 }
 
 export default function FeedPage() {
@@ -44,6 +44,7 @@ export default function FeedPage() {
   const { loading: songsLoading, songMapById, songs } = useSongDatabaseContext();
   const { branches } = useBranch();
   const [suggestedPool, setSuggestedPool] = useState([]);
+  const suggestedQueueRef = useRef([]);
   const isDesktop = useMediaQuery('(min-width: 62em)');
   const loadMoreRef = useRef(null);
 
@@ -82,8 +83,18 @@ export default function FeedPage() {
 
 
   useEffect(() => {
-    setSuggestedPool(pickRandomPlayers(suggestedPlayers, SUGGESTED_PLAYER_COUNT));
+    const shuffledPlayers = shufflePlayers(suggestedPlayers);
+    setSuggestedPool(shuffledPlayers.slice(0, SUGGESTED_PLAYER_COUNT));
+    suggestedQueueRef.current = shuffledPlayers.slice(SUGGESTED_PLAYER_COUNT);
   }, [suggestedPlayers]);
+
+  const loadMoreSuggestedPlayers = useCallback(() => {
+    const nextPlayers = suggestedQueueRef.current.slice(0, SUGGESTED_PLAYER_COUNT);
+    if (nextPlayers.length === 0) return;
+
+    suggestedQueueRef.current = suggestedQueueRef.current.slice(SUGGESTED_PLAYER_COUNT);
+    setSuggestedPool((currentPlayers) => [...currentPlayers, ...nextPlayers]);
+  }, []);
 
   useEffect(() => {
     const sentinel = loadMoreRef.current;
@@ -105,9 +116,8 @@ export default function FeedPage() {
 
 
   const moduleCycle = useMemo(() => {
-    const modules = ['suggested'];
-    if (!isDesktop) modules.push('newSongs', 'recentDiscussions', 'communityPlaylists');
-    return modules;
+    if (isDesktop) return [];
+    return ['newSongs', 'recentDiscussions', 'communityPlaylists'];
   }, [isDesktop]);
 
   const feedItems = useMemo(() => {
@@ -117,7 +127,13 @@ export default function FeedPage() {
 
     communityPosts.forEach((post, index) => {
       items.push({ type: 'post', key: `post-${post.id}`, post });
-      const shouldInsertModule = (index + 1) % POSTS_PER_INSERTION === 0;
+      const postNumber = index + 1;
+
+      if (!isDesktop && postNumber === SUGGESTED_PLAYERS_INSERTION_INDEX) {
+        items.push({ type: 'module', moduleType: 'suggested', key: 'module-suggested-players' });
+      }
+
+      const shouldInsertModule = !isDesktop && postNumber % POSTS_PER_INSERTION === 0;
       if (shouldInsertModule) {
         const moduleType = moduleCycle[moduleCursor % moduleCycle.length];
         items.push({ type: 'module', moduleType, key: `module-${moduleType}-${index}` });
@@ -126,7 +142,7 @@ export default function FeedPage() {
     });
 
     return items;
-  }, [communityPosts, moduleCycle]);
+  }, [communityPosts, isDesktop, moduleCycle]);
 
   const suggestedBlock = (
     <SuggestedPlayersCarousel
@@ -136,6 +152,7 @@ export default function FeedPage() {
       loading={loadingPlayers}
       onFollow={toggleFollow}
       onPlayerClick={(player) => player.slug && navigate(`/p/${player.slug}`)}
+      onLoadMore={loadMoreSuggestedPlayers}
       className="community-suggested-carousel"
     />
   );
@@ -356,6 +373,7 @@ export default function FeedPage() {
                   {newSongsBlock}
                   {recentDiscussionsBlock}
                   {playlistsBlock}
+                  {suggestedBlock}
                 </Stack>
               </Box>
             )}

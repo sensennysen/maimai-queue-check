@@ -187,7 +187,7 @@ export function useFeedData(user, userRoles, songs, songMapById) {
   const toggleFollow = useCallback(async (targetId) => {
     if (!user) {
       notifications.show({ title: 'Login required', message: 'Please log in to follow players.', color: 'blue' });
-      return;
+      return false;
     }
 
     const isCurrentlyFollowing = followedIds.has(targetId);
@@ -215,6 +215,7 @@ export function useFeedData(user, userRoles, songs, songMapById) {
         });
         notifications.show({ title: 'Followed!', message: 'You are now following this player.', color: 'green', autoClose: 2000 });
       }
+      return true;
     } catch {
       setFollowedIds((prev) => {
         const next = new Set(prev);
@@ -223,6 +224,7 @@ export function useFeedData(user, userRoles, songs, songMapById) {
         return next;
       });
       notifications.show({ title: 'Error', message: 'Failed to update follow status.', color: 'red' });
+      return false;
     }
   }, [user, followedIds]);
 

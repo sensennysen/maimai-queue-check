@@ -13,9 +13,12 @@ export function CommunityCarouselRow({
   showIndicators = false,
   centerItems = false,
   draggable = false,
+  onEndReached,
+  preserveScrollOnWatchChange = false,
   ariaLabel = 'Carousel',
 }) {
   const scrollRef = useRef(null);
+  const endReachedItemCountRef = useRef(0);
   const dragRef = useRef({
     active: false,
     captured: false,
@@ -43,11 +46,23 @@ export function CommunityCarouselRow({
     if (items.length > 0) {
       if (scrollLeft <= 2) {
         setActiveIndex(0);
+        if (
+          onEndReached
+          && el.scrollWidth <= clientWidth + 2
+          && endReachedItemCountRef.current !== items.length
+        ) {
+          endReachedItemCountRef.current = items.length;
+          onEndReached();
+        }
         return;
       }
 
       if (scrollLeft >= el.scrollWidth - clientWidth - 2) {
         setActiveIndex(items.length - 1);
+        if (onEndReached && endReachedItemCountRef.current !== items.length) {
+          endReachedItemCountRef.current = items.length;
+          onEndReached();
+        }
         return;
       }
 
@@ -66,7 +81,7 @@ export function CommunityCarouselRow({
 
       setActiveIndex(closestIndex);
     }
-  }, [getItems]);
+  }, [getItems, onEndReached]);
 
   const scrollToIndex = useCallback((index, behavior = 'smooth') => {
     const el = scrollRef.current;
@@ -83,10 +98,12 @@ export function CommunityCarouselRow({
   }, [getItems]);
 
   useLayoutEffect(() => {
-    setActiveIndex(0);
-    if (scrollRef.current) scrollRef.current.scrollLeft = 0;
+    if (!preserveScrollOnWatchChange) {
+      setActiveIndex(0);
+      if (scrollRef.current) scrollRef.current.scrollLeft = 0;
+    }
     updateScrollState();
-  }, [updateScrollState, watchKey]);
+  }, [preserveScrollOnWatchChange, updateScrollState, watchKey]);
 
   useEffect(() => {
     const el = scrollRef.current;
