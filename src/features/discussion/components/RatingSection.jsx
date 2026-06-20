@@ -1,4 +1,4 @@
-import { Paper, Title, Stack, Group, Text, Loader, Rating } from '@mantine/core';
+import { Divider, Paper, Title, Stack, Group, Text, Loader, Rating } from '@mantine/core';
 
 /**
  * RatingSection component to show global stats and user rating input
@@ -11,43 +11,43 @@ import { Paper, Title, Stack, Group, Text, Loader, Rating } from '@mantine/core'
 export function RatingSection({ discussionData, loading, user, isRatingLoading, onRatingChange }) {
   const averageRating = discussionData.ratings.length > 0
     ? discussionData.ratings.reduce((acc, r) => acc + r.rating, 0) / discussionData.ratings.length
-    : 0;
+    : null;
 
-  const userRating = discussionData.ratings.find(r => r.user_id === user?.id)?.rating || 0;
+  const userRating = discussionData.ratings.find(r => r.user_id === user?.id)?.rating ?? 0;
 
   return (
-    <Paper p="md" radius="md" withBorder>
-      <Title order={4} mb="sm">Rating</Title>
+    <Paper p="md" radius="md" withBorder className="song-community-card">
+      <Title order={4}>Rating</Title>
       {loading ? <Loader size="sm" /> : (
-        <Stack gap="sm">
-          <Group justify="space-between">
-            <Text size="sm" fw={500}>Global Average</Text>
-            <Group gap="xs">
-              <Rating
-                value={averageRating}
-                fractions={2}
-                readOnly
-              />
-              <Text size="sm" c="dimmed">({discussionData.ratings.length})</Text>
-            </Group>
+        <Stack gap="md" mt="sm">
+          <Group justify="space-between" align="center" wrap="nowrap">
+            <Text size="sm" fw={600}>Community avg.</Text>
+            {averageRating === null ? (
+              <Text size="sm" c="dimmed" fs="italic">No ratings yet</Text>
+            ) : (
+              <Group gap="xs" wrap="nowrap">
+                <Rating value={averageRating} fractions={2} readOnly size="sm" />
+                <Text size="sm" c="dimmed">({discussionData.ratings.length})</Text>
+              </Group>
+            )}
           </Group>
 
+          <Divider />
+
           {user ? (
-            <Stack gap={4} mt="xs">
-              <Text size="sm" fw={700} c="blue">How do you like this song?</Text>
-              <Group justify="space-between">
-                <Text size="sm" fw={500} c="dimmed" tt="uppercase">Your Rating</Text>
-                {isRatingLoading ? <Loader size="sm" /> : (
-                  <Rating
-                    size="lg"
-                    value={userRating}
-                    onChange={onRatingChange}
-                  />
-                )}
-              </Group>
+            <Stack gap="xs">
+              <Text size="sm" fw={600}>Rate this song</Text>
+              {isRatingLoading ? <Loader size="sm" /> : (
+                <Rating
+                  size="lg"
+                  value={userRating}
+                  onChange={onRatingChange}
+                  aria-label={`Your rating: ${userRating || 'not rated'} out of 5`}
+                />
+              )}
             </Stack>
           ) : (
-            <Text size="sm" c="dimmed" fs="italic" ta="center" mt="sm">
+            <Text size="sm" c="dimmed" fs="italic">
               Sign in to rate this song.
             </Text>
           )}

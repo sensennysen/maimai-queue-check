@@ -1,239 +1,385 @@
-import { useState } from 'react';
-import { Modal, Image, Text, Group, Stack, Badge, Table, ScrollArea, Tooltip, SimpleGrid, Button, Box, UnstyledButton } from '@mantine/core';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ActionIcon,
+  Alert,
+  Badge,
+  Box,
+  Button,
+  Grid,
+  Group,
+  Image,
+  Loader,
+  Modal,
+  Paper,
+  ScrollArea,
+  Stack,
+  Tabs,
+  Text,
+  Tooltip,
+  UnstyledButton,
+} from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
+import IconBook from '@tabler/icons-react/dist/esm/icons/IconBook.mjs';
 import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
+import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
 import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
 import IconPlaylistAdd from '@tabler/icons-react/dist/esm/icons/IconPlaylistAdd.mjs';
-import IconDisc from '@tabler/icons-react/dist/esm/icons/IconDisc.mjs';
-import { Link } from 'react-router-dom';
-import { DIFFICULTY_COLORS, VERSION_MAPPING, CATEGORY_TRANSLATION, normalizeDifficulty, BASE_JACKET_URL } from '../../../config/maimai-constants';
+import IconRefresh from '@tabler/icons-react/dist/esm/icons/IconRefresh.mjs';
+import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 import { AddToPlaylistModal } from '../../../components/modals/AddToPlaylistModal';
+import { VoterListModal } from '../../../components/common/VoterListModal';
+import {
+  BASE_JACKET_URL,
+  CATEGORY_TRANSLATION,
+  VERSION_MAPPING,
+} from '../../../config/maimai-constants';
+import { useAuth } from '../../../hooks/useAuth';
+import { discussionService } from '../../../services/supabase';
+import { getRelativeTime } from '../../../utils/formatters';
+import { CommentSection } from '../../discussion/components/CommentSection';
+import { RatingSection } from '../../discussion/components/RatingSection';
+import { TagSection } from '../../discussion/components/TagSection';
+import { useSongDiscussion } from '../../discussion/hooks/useSongDiscussion';
+import { useTagManagement } from '../../discussion/hooks/useTagManagement';
+import { normalizeSongModalTab } from '../utils/songModalNavigation';
+import SongOverview from './SongOverview';
 import './SongDatabase.css';
 
-const DIFFICULTY_ORDER = ['Basic', 'Advanced', 'Expert', 'Master', 'Re:Master'];
-
-function SongDetailModal({ song, opened, onClose }) {
+function SongDetailModal({ song, opened, onClose, activeTab, onTabChange }) {
+  const { user, userRoles } = useAuth();
+  const isMobile = useMediaQuery('(max-width: 48em)');
+  const songId = song?.songId;
+  const [internalTab, setInternalTab] = useState('overview');
   const [addToPlaylistOpened, setAddToPlaylistOpened] = useState(false);
+  const [glossaryOpened, setGlossaryOpened] = useState(false);
+  const [votersOpened, setVotersOpened] = useState(false);
+  const [selectedCommentId, setSelectedCommentId] = useState(null);
+  const [initialVoterTab, setInitialVoterTab] = useState('likes');
+  const dragStartRef = useRef({ y: 0, time: 0 });
+  const [dragOffset, setDragOffset] = useState(0);
+  const [dragging, setDragging] = useState(false);
 
-  if (!song) return null;
+  const {
+    discussionData,
+    setDiscussionData,
+    availableTags,
+    loading: discussionLoading,
+    error,
+    isRatingLoading,
+    isSubmittingComment,
+    loadDiscussion,
+    handleRatingChange,
+    postComment,
+    deleteComment,
+    voteComment,
+  } = useSongDiscussion(songId, user, userRoles);
 
-  const handleTitleClick = () => {
+  const {
+    isTaggingLoading,
+    newTagValue,
+    setNewTagValue,
+    addTag,
+    removeTag,
+    createAndAddTag,
+  } = useTagManagement(songId, user, userRoles, availableTags, setDiscussionData);
+
+  const selectedTab = normalizeSongModalTab(activeTab, internalTab);
+  const jacketUrl = song?.imageUrl || (song?.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null);
+  const typeImage = song?.cardType === 'dx'
+    ? new URL('../../../assets/music_dx.png', import.meta.url).href
+    : new URL('../../../assets/music_standard.png', import.meta.url).href;
+
+  useEffect(() => {
+    if (songId) setInternalTab('overview');
+  }, [songId]);
+
+  const handleTabChange = (value) => {
+    const nextTab = normalizeSongModalTab(value);
+    setInternalTab(nextTab);
+    onTabChange?.(nextTab);
+  };
+
+  const handleCopyTitle = () => {
+    if (!song?.title) return;
     navigator.clipboard.writeText(song.title).then(() => {
       notifications.show({
-        title: 'Copied!',
+        title: 'Copied',
         message: `${song.title} copied to clipboard`,
         color: 'green',
         icon: <IconCheck size={16} />,
         autoClose: 2000,
         withCloseButton: false,
       });
-    }).catch(err => console.error('Failed to copy:', err));
+    }).catch(() => {
+      notifications.show({ title: 'Copy failed', message: 'Could not copy the song title.', color: 'red' });
+    });
   };
 
-  const typeImage = song.cardType === 'dx'
-    ? new URL('../../../assets/music_dx.png', import.meta.url).href
-    : new URL('../../../assets/music_standard.png', import.meta.url).href;
+  const getRelativeTimeCb = useCallback((dateString) => getRelativeTime(dateString), []);
 
-  // Sort sheets
-  const sortedSheets = [...(song.sheets || [])].sort((a, b) => {
-    const diffA = DIFFICULTY_ORDER.indexOf(normalizeDifficulty(a.difficulty));
-    const diffB = DIFFICULTY_ORDER.indexOf(normalizeDifficulty(b.difficulty));
-    return diffA - diffB;
-  });
+  const handleShowVoters = (commentId, tab) => {
+    setSelectedCommentId(commentId);
+    setInitialVoterTab(tab);
+    setVotersOpened(true);
+  };
 
-  const rows = sortedSheets.map((sheet) => {
-    const difficultyKey = normalizeDifficulty(sheet.difficulty);
-    const color = DIFFICULTY_COLORS[difficultyKey] || 'gray';
+  const handlePullStart = (event) => {
+    const touch = event.touches[0];
+    dragStartRef.current = { y: touch.clientY, time: performance.now() };
+    setDragging(true);
+  };
 
-    return (
-      <Table.Tr key={sheet.type + sheet.difficulty}>
-        <Table.Td>
-          <Badge color={color} variant="filled" size="md" w={100} style={{ fontFamily: 'var(--font-heading)' }}>
-            {difficultyKey}
-          </Badge>
-        </Table.Td>
-        <Table.Td style={{ fontWeight: 700, fontSize: '1.1rem' }}>{sheet.internalLevel || '-'}</Table.Td>
-        <Table.Td style={{ fontSize: '0.9rem' }}>{sheet.noteDesigner || '-'}</Table.Td>
-      </Table.Tr>
-    );
-  });
+  const handlePullMove = (event) => {
+    const touch = event.touches[0];
+    const distance = Math.max(0, touch.clientY - dragStartRef.current.y);
+    setDragOffset(Math.min(distance, 240));
+  };
+
+  const handlePullEnd = () => {
+    const elapsed = Math.max(1, performance.now() - dragStartRef.current.time);
+    const velocity = dragOffset / elapsed;
+    setDragging(false);
+
+    if (dragOffset >= 88 || (dragOffset >= 36 && velocity >= 0.45)) {
+      setDragOffset(0);
+      onClose();
+      return;
+    }
+
+    setDragOffset(0);
+  };
+
+  if (!song) return null;
 
   return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      size="lg"
-      radius="md"
-      centered
-      padding={0}
-      withCloseButton={false}
-      transitionProps={{ transition: 'fade', duration: 200 }}
-      overlayProps={{
-        backgroundOpacity: 0.55,
-        blur: 3,
-      }}
-      classNames={{ content: 'song-detail-modal' }}
-      styles={{
-        content: {
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          maxHeight: 'calc(100vh - 40px)'
-        },
-        body: {
-          padding: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          flex: 1,
-          overflow: 'hidden'
-        },
-      }}
-    >
-      {/* ── Fixed Gradient Header ─────────────────────────────────── */}
-      <Box
-        className="song-detail-header"
-        style={{
-          position: 'relative',
-          flexShrink: 0,
+    <>
+      <Modal
+        opened={opened}
+        onClose={onClose}
+        size={isMobile ? 'lg' : 'min(1120px, calc(100vw - 32px))'}
+        fullScreen={isMobile}
+        radius={isMobile ? 0 : 'md'}
+        centered
+        padding={0}
+        withCloseButton={false}
+        transitionProps={{ transition: isMobile ? 'slide-up' : 'fade', duration: 180 }}
+        overlayProps={{ backgroundOpacity: 0.62, blur: 3 }}
+        classNames={{
+          content: `song-detail-modal${isMobile ? ' song-detail-modal--mobile' : ''}`,
+          body: 'song-detail-modal__body',
+        }}
+        styles={{
+          content: {
+            height: isMobile ? '100dvh' : 'auto',
+            maxHeight: isMobile ? '100dvh' : 'calc(100dvh - 32px)',
+            transform: isMobile ? `translateY(${dragOffset}px)` : undefined,
+            transition: isMobile && dragging ? 'none' : 'transform 180ms ease',
+          },
         }}
       >
-        <Group gap="sm">
-          <IconDisc size={20} color="var(--theme-primary)" strokeWidth={2} />
-          <Box>
-            <Text
-              size="lg"
-              fw={700}
-              style={{
-                fontFamily: 'var(--font-heading)',
-                lineHeight: 1.1,
-              }}
-            >
-              Song Details
-            </Text>
-          </Box>
-        </Group>
+        {isMobile && (
+          <UnstyledButton
+            type="button"
+            aria-label="Pull down to close song details"
+            className="song-detail-modal__pull-handle"
+            onClick={(event) => {
+              if (event.detail === 0) onClose();
+            }}
+            onTouchStart={handlePullStart}
+            onTouchMove={handlePullMove}
+            onTouchEnd={handlePullEnd}
+            onTouchCancel={() => {
+              setDragging(false);
+              setDragOffset(0);
+            }}
+          >
+            <span aria-hidden="true" />
+          </UnstyledButton>
+        )}
 
-        <UnstyledButton
-          onClick={onClose}
-          className="song-detail-close"
-          style={{
-            position: 'absolute',
-            top: 10,
-            right: 12,
-          }}
-        >
-          Close
-        </UnstyledButton>
-      </Box>
-
-      {/* ── Scrollable Body ───────────────────────────────────────── */}
-      <Box style={{ flex: 1, overflowY: 'auto' }}>
-        <Stack gap="md" p="xl">
-          {/* Header Section with Image and Basic Info */}
-          <Group align="center" justify="center" gap="xl" wrap="nowrap" style={{ paddingBottom: '1rem' }}>
+        <Box className="song-detail-hero">
+          <Group align="center" wrap="nowrap" gap="md">
             <Image
-              src={song.imageUrl || (song.imageName ? `${BASE_JACKET_URL}${song.imageName}` : null)}
-              alt={song.title}
-              radius="md"
-              w={{ base: 160, xs: 200, sm: 240 }}
-              h={{ base: 160, xs: 200, sm: 240 }}
-              fallbackSrc="https://placehold.co/240x240?text=No+Image"
-              className="song-detail-jacket"
+              src={jacketUrl}
+              alt=""
+              radius="sm"
+              w={100}
+              h={100}
+              fallbackSrc="https://placehold.co/160x160?text=No+Image"
+              className="song-detail-hero__jacket"
             />
-            <Stack gap="sm" style={{ flex: 1, minWidth: 0 }}>
-              <Tooltip label="Click to copy title" withArrow position="top">
-                <Text
-                  size="xl"
-                  fw={700}
-                  style={{ fontFamily: 'var(--font-heading)', lineHeight: 1.2, cursor: 'pointer' }}
-                  onClick={handleTitleClick}
-                >
-                  {song.title}
-                </Text>
+
+            <Box className="song-detail-hero__identity">
+              <Tooltip label="Copy title" withArrow>
+                <button type="button" className="song-detail-title-button" onClick={handleCopyTitle}>
+                  <Text fw={700} className="song-detail-hero__title" lineClamp={2}>
+                    {song.title}
+                  </Text>
+                </button>
               </Tooltip>
+              <Text size="sm" c="dimmed" lineClamp={1}>{song.artist}</Text>
 
-              <Stack gap={2}>
-                <Text size="sm" c="secondary" fw={700} tt="uppercase">Artist</Text>
-                <Text size="md" lineClamp={2} title={song.artist}>{song.artist}</Text>
-              </Stack>
+              <Group gap="xs" mt="xs" className="song-detail-hero__pills">
+                <Badge variant="light" color="blue">{CATEGORY_TRANSLATION[song.category] || song.category}</Badge>
+                <Badge variant="light" color="gray">{VERSION_MAPPING[song.version] || song.version}</Badge>
+                {song.bpm && <Badge variant="light" color="gray">{song.bpm} BPM</Badge>}
+                <img
+                  src={typeImage}
+                  alt={song.cardType === 'dx' ? 'DX chart' : 'Standard chart'}
+                  className="song-detail-format-image"
+                />
+              </Group>
+            </Box>
 
-              <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm" mt="xs">
-                <Stack gap={2}>
-                  <Text size="sm" c="secondary" fw={700} tt="uppercase">Category</Text>
-                  <Text size="md" lineClamp={1} title={CATEGORY_TRANSLATION[song.category] || song.category}>
-                    {CATEGORY_TRANSLATION[song.category] || song.category}
-                  </Text>
-                </Stack>
-
-                <Stack gap={2}>
-                  <Text size="sm" c="secondary" fw={700} tt="uppercase">Version</Text>
-                  <Text size="md" lineClamp={1} title={VERSION_MAPPING[song.version] || song.version}>
-                    {VERSION_MAPPING[song.version] || song.version}
-                  </Text>
-                </Stack>
-
-                <Stack gap={2}>
-                  <Text size="sm" c="secondary" fw={700} tt="uppercase">Type</Text>
-                  <img src={typeImage} alt={song.cardType} style={{ height: 20, maxWidth: '100%', objectFit: 'contain', alignSelf: 'flex-start' }} />
-                </Stack>
-
-                {song.bpm && (
-                  <Stack gap={2}>
-                    <Text size="sm" c="secondary" fw={700} tt="uppercase">BPM</Text>
-                    <Text size="md">{song.bpm}</Text>
-                  </Stack>
-                )}
-              </SimpleGrid>
-
-              <Stack gap="sm" mt="md">
-                <Button
-                  component={Link}
-                  to={`/songs/${song.songId}`}
-                  state={{ cardType: song.cardType }}
-                  variant="default"
-                  leftSection={<IconMessageCircle size={18} />}
-                  fullWidth
+            <Group gap="xs" wrap="nowrap" className="song-detail-hero__actions">
+              <Button
+                leftSection={<IconPlaylistAdd size={18} />}
+                onClick={() => setAddToPlaylistOpened(true)}
+                size={isMobile ? 'compact-sm' : 'sm'}
+                className="song-detail-playlist-button"
+              >
+                {isMobile ? 'Add' : 'Add to Playlist'}
+              </Button>
+              {!isMobile && (
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="lg"
+                  onClick={onClose}
+                  aria-label="Close"
                 >
-                  Discuss
-                </Button>
-                <Button
-                  variant="default"
-                  leftSection={<IconPlaylistAdd size={18} />}
-                  onClick={() => setAddToPlaylistOpened(true)}
-                  fullWidth
-                >
-                  Add to Playlist
-                </Button>
-              </Stack>
-            </Stack>
+                  <IconX size={22} />
+                </ActionIcon>
+              )}
+            </Group>
           </Group>
+        </Box>
 
-          {/* Charts Table */}
-          <ScrollArea>
-            <Table highlightOnHover horizontalSpacing="xs" verticalSpacing={4}>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Difficulty</Table.Th>
-                  <Table.Th>Constant</Table.Th>
-                  <Table.Th>Notes Designer</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>{rows}</Table.Tbody>
-            </Table>
-          </ScrollArea>
-        </Stack>
-      </Box>
+        <Tabs
+          value={selectedTab}
+          onChange={handleTabChange}
+          className="song-detail-tabs"
+          keepMounted={false}
+        >
+          <Tabs.List grow={isMobile} className="song-detail-tabs__list">
+            <Tabs.Tab value="overview" leftSection={<IconInfoCircle size={16} />}>
+              Overview
+            </Tabs.Tab>
+            <Tabs.Tab value="community" leftSection={<IconMessageCircle size={16} />}>
+              Community
+            </Tabs.Tab>
+          </Tabs.List>
+
+          <Box className="song-detail-tabs__content">
+            {error && (
+              <Alert icon={<IconAlertCircle size={16} />} title="Could not load community data" color="red" mb="md">
+                <Group justify="space-between">
+                  <Text size="sm">Ratings, comments, and tags may be unavailable.</Text>
+                  <Button
+                    size="compact-sm"
+                    color="red"
+                    variant="light"
+                    leftSection={<IconRefresh size={14} />}
+                    onClick={loadDiscussion}
+                  >
+                    Retry
+                  </Button>
+                </Group>
+              </Alert>
+            )}
+
+            <Tabs.Panel value="overview">
+              <SongOverview song={song} />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="community">
+              <Grid gutter="lg" className="song-community-layout">
+                <Grid.Col span={{ base: 12, md: 4 }}>
+                  <Stack gap="md">
+                    <RatingSection
+                      discussionData={discussionData}
+                      loading={discussionLoading}
+                      user={user}
+                      isRatingLoading={isRatingLoading}
+                      onRatingChange={handleRatingChange}
+                    />
+                    <TagSection
+                      discussionData={discussionData}
+                      loading={discussionLoading}
+                      user={user}
+                      userRoles={userRoles}
+                      availableTags={availableTags}
+                      isTaggingLoading={isTaggingLoading}
+                      newTagValue={newTagValue}
+                      setNewTagValue={setNewTagValue}
+                      onAddTag={addTag}
+                      onRemoveTag={removeTag}
+                      onCreateAndAddTag={createAndAddTag}
+                      onOpenGlossary={() => setGlossaryOpened(true)}
+                      isMobile={isMobile}
+                    />
+                  </Stack>
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, md: 8 }}>
+                  <CommentSection
+                    comments={discussionData.comments}
+                    loading={discussionLoading}
+                    user={user}
+                    userRoles={userRoles}
+                    isSubmittingComment={isSubmittingComment}
+                    onAddComment={postComment}
+                    onDeleteComment={deleteComment}
+                    onVoteComment={voteComment}
+                    onShowVoters={handleShowVoters}
+                    getRelativeTimeCb={getRelativeTimeCb}
+                    isMobile={isMobile}
+                  />
+                </Grid.Col>
+              </Grid>
+            </Tabs.Panel>
+          </Box>
+        </Tabs>
+      </Modal>
 
       <AddToPlaylistModal
         opened={addToPlaylistOpened}
         onClose={() => setAddToPlaylistOpened(false)}
         songData={song}
-        onSuccess={() => {
-          setAddToPlaylistOpened(false);
-          onClose();
-        }}
       />
-    </Modal>
+
+      <Modal
+        opened={glossaryOpened}
+        onClose={() => setGlossaryOpened(false)}
+        title={<Group gap="xs"><IconBook size={18} /> Tag Glossary</Group>}
+        size="lg"
+        zIndex={310}
+      >
+        <ScrollArea h={400}>
+          <Stack gap="md">
+            {availableTags.map((tag) => (
+              <Paper key={tag.id} p="sm" withBorder>
+                <Text fw={700}>{tag.tag_name}</Text>
+                <Text size="sm" c="dimmed">{tag.description || 'No description available.'}</Text>
+              </Paper>
+            ))}
+            {!discussionLoading && availableTags.length === 0 && (
+              <Text c="dimmed" ta="center" py="xl">No tags are available yet.</Text>
+            )}
+            {discussionLoading && <Loader size="sm" />}
+          </Stack>
+        </ScrollArea>
+      </Modal>
+
+      <VoterListModal
+        opened={votersOpened}
+        onClose={() => setVotersOpened(false)}
+        title="Comment Voters"
+        fetchVoters={() => discussionService.getSongCommentVoters(selectedCommentId)}
+        initialTab={initialVoterTab}
+      />
+    </>
   );
 }
 

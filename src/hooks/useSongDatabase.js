@@ -62,6 +62,9 @@ export function useSongDatabase() {
           level: override.level || sheet.level,
           levelValue: override.levelValue || sheet.levelValue,
           internalLevel: override.internalLevel != null ? String(override.internalLevel) : (override.internalLevelValue != null ? String(override.internalLevelValue) : sheet.internalLevel),
+          publishedInternalLevel: override.internalLevel != null
+            ? String(override.internalLevel)
+            : (Object.prototype.hasOwnProperty.call(override, 'internalLevel') ? null : sheet.publishedInternalLevel),
           internalLevelValue: override.internalLevelValue || sheet.internalLevelValue,
           version: override.version || sheet.version
         };

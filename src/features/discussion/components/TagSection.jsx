@@ -1,8 +1,9 @@
-import { Paper, Group, Title, Tooltip, ActionIcon, Stack, Loader, Badge, HoverCard, Text, Center, Autocomplete, Avatar, Box, Modal, Button } from '@mantine/core';
+import { Paper, Group, Title, Tooltip, ActionIcon, Stack, Loader, Badge, HoverCard, Text, Autocomplete, Avatar, Box, Modal, Button } from '@mantine/core';
 import { useState } from 'react';
 import IconBook from '@tabler/icons-react/dist/esm/icons/IconBook.mjs';
 import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
+import IconTag from '@tabler/icons-react/dist/esm/icons/IconTag.mjs';
 import { getProfileImageUrl } from '../../../utils/formatters';
 
 /**
@@ -84,11 +85,14 @@ export function TagSection({
 
   return (
     <>
-      <Paper p="md" radius="md" withBorder>
+      <Paper p="md" radius="md" withBorder className="song-community-card">
         <Group justify="space-between" align="center" mb="sm">
-          <Title order={4}>Tags</Title>
+          <Group gap="xs">
+            <Title order={4}>Tags</Title>
+            <IconTag size={16} color="var(--theme-text-secondary)" aria-hidden="true" />
+          </Group>
           <Tooltip label="Tag Glossary">
-            <ActionIcon variant="light" color="blue" onClick={onOpenGlossary}>
+            <ActionIcon variant="subtle" color="gray" onClick={onOpenGlossary} aria-label="Open tag glossary">
               <IconBook size={18} />
             </ActionIcon>
           </Tooltip>
@@ -97,7 +101,7 @@ export function TagSection({
         {loading ? <Loader size="sm" /> : (
           <Stack gap="sm">
             {tagSummary.length > 0 ? (
-              <Group gap="xs">
+              <Group gap="xs" className="song-community-tags">
                 {tagSummary.map((tagObj) => (
                   isMobile ? (
                     <Badge
@@ -159,18 +163,14 @@ export function TagSection({
                 ))}
               </Group>
             ) : (
-              <Paper p="sm" bg="var(--mantine-color-default-hover)" radius="md">
-                <Center>
-                  <Text size="sm" c="dimmed" fs="italic">No tags yet. Be the first!</Text>
-                </Center>
-              </Paper>
+              <Text size="sm" c="dimmed" fs="italic">No tags yet — be the first!</Text>
             )}
 
             {user ? (
               <Stack gap="xs" mt="xs">
-                <Group wrap={isMobile ? 'wrap' : 'nowrap'} align="flex-end">
+                <Group wrap="nowrap" align="flex-end">
                   <Autocomplete
-                    label="Add Tag"
+                    aria-label="Select or type a tag"
                     placeholder="Select or type..."
                     data={availableTags.map(t => t.tag_name)}
                     value={newTagValue}
@@ -181,11 +181,12 @@ export function TagSection({
                   />
                   <ActionIcon
                     variant="filled"
-                    color="blue"
+                    color="var(--theme-primary)"
                     size="input-sm"
                     loading={isTaggingLoading}
+                    disabled={!newTagValue.trim()}
                     onClick={() => onCreateAndAddTag(newTagValue)}
-                    style={isMobile ? { width: '100%', height: 36 } : undefined}
+                    aria-label="Add tag"
                   >
                     <IconPlus size={16} />
                   </ActionIcon>

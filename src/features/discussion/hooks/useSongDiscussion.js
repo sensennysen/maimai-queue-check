@@ -99,18 +99,16 @@ export function useSongDiscussion(songId, user, userRoles) {
 
   const deleteComment = async (commentId) => {
     if (!user) return;
-    if (window.confirm("Are you sure you want to delete this comment?")) {
-      try {
-        await discussionService.deleteComment(commentId, user.id);
-        setDiscussionData(prev => ({
-          ...prev,
-          comments: prev.comments.filter(c => c.id !== commentId)
-        }));
-        notifications.show({ title: 'Comment Deleted', message: 'Comment has been removed.', color: 'green' });
-      } catch (err) {
-        console.error('Failed to delete comment', err);
-        notifications.show({ title: 'Error', message: 'Failed to delete comment.', color: 'red' });
-      }
+    try {
+      await discussionService.deleteComment(commentId, user.id);
+      setDiscussionData(prev => ({
+        ...prev,
+        comments: prev.comments.filter(c => c.id !== commentId)
+      }));
+      notifications.show({ title: 'Comment Deleted', message: 'Comment has been removed.', color: 'green' });
+    } catch (err) {
+      console.error('Failed to delete comment', err);
+      notifications.show({ title: 'Error', message: 'Failed to delete comment.', color: 'red' });
     }
   };
 

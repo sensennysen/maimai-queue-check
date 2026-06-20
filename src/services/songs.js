@@ -46,6 +46,9 @@ export const songsService = {
 
             const mappedSheets = sheets.map(sheet => ({
               ...sheet,
+              publishedInternalLevel: sheet.internalLevel != null
+                ? String(sheet.internalLevel)
+                : null,
               internalLevel: sheet.internalLevel != null
                 ? String(sheet.internalLevel)
                 : String(sheet.internalLevelValue),

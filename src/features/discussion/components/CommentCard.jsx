@@ -1,4 +1,4 @@
-import { Paper, Group, Avatar, Stack, Text, ActionIcon } from '@mantine/core';
+import { Box, Group, Avatar, Text, ActionIcon, Tooltip, UnstyledButton } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import IconThumbUpFilled from '@tabler/icons-react/dist/esm/icons/IconThumbUpFilled.mjs';
@@ -23,20 +23,20 @@ export function CommentCard({
   const myVote = comment.song_comment_votes?.find(v => v.user_id === user?.id)?.vote_type || 0;
 
   return (
-    <Paper p="sm" radius="md" withBorder bg="var(--mantine-color-default-hover)">
-      <Group justify="space-between" align="flex-start" mb="xs">
-        <Group gap="xs">
-          <Avatar
-            src={getProfileImageUrl(comment.user_profiles)}
-            size={40}
-            radius="xl"
-            component={Link}
-            to={`/p/${comment.user_profiles?.slug || comment.user_id}`}
-            style={{ cursor: 'pointer' }}
-          />
-          <Stack gap={0}>
+    <Box component="article" className="song-comment">
+      <Avatar
+        src={getProfileImageUrl(comment.user_profiles)}
+        size={30}
+        radius="md"
+        component={Link}
+        to={`/p/${comment.user_profiles?.slug || comment.user_id}`}
+        className="song-comment__avatar"
+      />
+      <Box className="song-comment__content">
+        <Group justify="space-between" align="flex-start" wrap="nowrap">
+          <Group gap={6} align="center" wrap="nowrap" className="song-comment__header">
             <Text
-              fw={500}
+              fw={650}
               size="sm"
               component={Link}
               to={`/p/${comment.user_profiles?.slug || comment.user_id}`}
@@ -44,74 +44,63 @@ export function CommentCard({
             >
               {comment.user_profiles?.display_name || 'Unknown User'}
             </Text>
-            <Text c="dimmed" size="sm" title={new Date(comment.created_at).toLocaleString()}>
+            <Text c="dimmed" size="xs" title={new Date(comment.created_at).toLocaleString()}>
               {getRelativeTimeCb(comment.created_at)}
             </Text>
-          </Stack>
+          </Group>
+          {user && user.id === comment.user_id && (
+            <Tooltip label="Delete your comment">
+              <ActionIcon
+                color="red"
+                variant="subtle"
+                size="xs"
+                aria-label="Delete your comment"
+                onClick={() => onDelete(comment.id)}
+              >
+                <IconTrash size={13} />
+              </ActionIcon>
+            </Tooltip>
+          )}
         </Group>
-        {user && user.id === comment.user_id && (
-          <ActionIcon
-            color="red"
-            variant="subtle"
-            size="sm"
-            title="Delete comment"
-            onClick={() => onDelete(comment.id)}
-          >
-            <IconTrash size={16} />
-          </ActionIcon>
-        )}
-      </Group>
-      <Text size="sm" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-        {comment.content}
-      </Text>
 
-      <Group gap={8} mt="sm">
-        <Group gap={4}>
-          <ActionIcon
-            variant={myVote === 1 ? 'light' : 'subtle'}
-            color={myVote === 1 ? 'blue' : 'gray'}
-            size="md"
+        <Text size="sm" className="song-comment__body">{comment.content}</Text>
+
+        <Group gap="md" mt={6}>
+          <UnstyledButton
+            type="button"
+            className="song-comment__reaction"
             disabled={!user}
             onClick={() => onVote(comment.id, myVote === 1 ? 0 : 1)}
+            aria-pressed={myVote === 1}
+            aria-label={`Like comment, ${upvotes.length} likes`}
           >
-            {myVote === 1 ? <IconThumbUpFilled size={20} /> : <IconThumbUp size={20} />}
-          </ActionIcon>
-          {upvotes.length > 0 && (
-            <Text
-              size="sm"
-              c="dimmed"
-              fw={myVote === 1 ? 700 : 400}
-              onClick={() => onShowVoters(comment.id, 'likes')}
-              style={{ cursor: 'pointer' }}
-            >
-              {upvotes.length}
-            </Text>
-          )}
-        </Group>
+            {myVote === 1 ? <IconThumbUpFilled size={14} /> : <IconThumbUp size={14} />}
+            <span>{myVote === 1 ? 'Liked' : 'Like'}{upvotes.length > 0 ? ` · ${upvotes.length}` : ''}</span>
+          </UnstyledButton>
 
-        <Group gap={4}>
-          <ActionIcon
-            variant={myVote === -1 ? 'light' : 'subtle'}
-            color={myVote === -1 ? 'red' : 'gray'}
-            size="md"
+          <UnstyledButton
+            type="button"
+            className="song-comment__reaction song-comment__reaction--dislike"
             disabled={!user}
             onClick={() => onVote(comment.id, myVote === -1 ? 0 : -1)}
+            aria-pressed={myVote === -1}
+            aria-label={`Dislike comment, ${downvotes.length} dislikes`}
           >
-            {myVote === -1 ? <IconThumbDownFilled size={20} /> : <IconThumbDown size={20} />}
-          </ActionIcon>
-          {downvotes.length > 0 && (
-            <Text
-              size="sm"
-              c="dimmed"
-              fw={myVote === -1 ? 700 : 400}
-              onClick={() => onShowVoters(comment.id, 'dislikes')}
-              style={{ cursor: 'pointer' }}
+            {myVote === -1 ? <IconThumbDownFilled size={14} /> : <IconThumbDown size={14} />}
+            <span>{myVote === -1 ? 'Disliked' : 'Dislike'}{downvotes.length > 0 ? ` · ${downvotes.length}` : ''}</span>
+          </UnstyledButton>
+
+          {(upvotes.length > 0 || downvotes.length > 0) && (
+            <UnstyledButton
+              className="song-comment__voters"
+              onClick={() => onShowVoters(comment.id, 'likes')}
+              aria-label="View comment voters"
             >
-              {downvotes.length}
-            </Text>
+              View voters
+            </UnstyledButton>
           )}
         </Group>
-      </Group>
-    </Paper>
+      </Box>
+    </Box>
   );
 }

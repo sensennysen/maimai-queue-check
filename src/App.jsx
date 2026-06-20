@@ -6,7 +6,7 @@ import '@mantine/notifications/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/tiptap/styles.css';
 import { Analytics } from '@vercel/analytics/react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { BranchProvider } from './contexts/BranchContext';
@@ -21,6 +21,7 @@ import ErrorBoundary from './components/layout/ErrorBoundary';
 import './App.css';
 import ConsentBanner from './components/legal/ConsentBanner';
 import { useAuth } from './hooks/useAuth';
+import { buildSongModalUrl } from './features/songs/utils/songModalNavigation';
 
 // Lazy load pages
 const AdminPage = lazy(() => import('./pages/AdminPage'));
@@ -31,7 +32,6 @@ const SongsPage = lazy(() => import('./pages/SongsPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
 const ProfileBest50Page = lazy(() => import('./pages/ProfileBest50Page'));
-const SongDiscussionPage = lazy(() => import('./pages/SongDiscussionPage'));
 const SharedPlaylistsPage = lazy(() => import('./features/playlists/SharedPlaylistsPage'));
 const FeedPage = lazy(() => import('./pages/FeedPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
@@ -62,6 +62,17 @@ function HomeRoute() {
   if (user) return <Navigate to="/feed" replace />;
 
   return <Navigate to="/queue" replace />;
+}
+
+function LegacySongRoute() {
+  const { id } = useParams();
+  const location = useLocation();
+  return (
+    <Navigate
+      to={buildSongModalUrl(id, { cardType: location.state?.cardType, tab: 'community' })}
+      replace
+    />
+  );
 }
 
 // Mantine must wrap ErrorBoundary so the boundary fallback (Mantine components) still has a provider.
@@ -106,7 +117,7 @@ function MantineAppShell() {
               <Route path="/queue" element={<QueuePage />} />
               <Route path="/view" element={<ViewPage />} />
               <Route path="/songs" element={<SongsPage />} />
-              <Route path="/songs/:id" element={<SongDiscussionPage />} />
+              <Route path="/songs/:id" element={<LegacySongRoute />} />
               <Route path="/search" element={<Navigate to="/feed" replace />} />
               <Route path="/shared-playlists" element={<ProtectedRoute><SharedPlaylistsPage /></ProtectedRoute>} />
               <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />

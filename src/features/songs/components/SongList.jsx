@@ -3,13 +3,43 @@ import { DIFFICULTY_COLORS, normalizeDifficulty } from '../../../config/maimai-c
 import SongCard from './SongCard';
 import SongDetailModal from './SongDetailModal';
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import {
+  closeSongModalParams,
+  openSongModalParams,
+  setSongModalTabParams,
+} from '../utils/songModalNavigation';
 
 const ITEMS_PER_PAGE = 24;
 
 function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs = [], onSelectionChange }) {
   const [activePage, setPage] = useState(1);
-  const [selectedSong, setSelectedSong] = useState(null);
   const [songToSelectLevel, setSongToSelectLevel] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const selectedSong = useMemo(() => {
+    if (multiple || onSongSelect) return null;
+    const selectedSongId = searchParams.get('song');
+    const selectedCardType = searchParams.get('chart');
+    if (!selectedSongId) return null;
+
+    return songs.find((song) => (
+      String(song.songId) === selectedSongId
+      && (!selectedCardType || song.cardType === selectedCardType)
+    )) || songs.find((song) => String(song.songId) === selectedSongId) || null;
+  }, [multiple, onSongSelect, searchParams, songs]);
+
+  const openSong = (song) => {
+    setSearchParams(openSongModalParams(searchParams, song), { replace: false });
+  };
+
+  const closeSong = () => {
+    setSearchParams(closeSongModalParams(searchParams), { replace: true });
+  };
+
+  const changeSongTab = (tab) => {
+    setSearchParams(setSongModalTabParams(searchParams, tab), { replace: true });
+  };
 
   const toggleSongLevel = (song, level) => {
     const getSongKey = (s) => (s.cardId || s.songId) + '__' + (s.level || '');
@@ -87,7 +117,7 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
                   } else if (onSongSelect) {
                     onSongSelect(song);
                   } else {
-                    setSelectedSong(song);
+                    openSong(song);
                   }
                 }}
                 style={(() => {
@@ -130,7 +160,9 @@ function SongList({ songs, loading, error, onSongSelect, multiple, selectedSongs
       <SongDetailModal
         song={selectedSong}
         opened={!!selectedSong}
-        onClose={() => setSelectedSong(null)}
+        onClose={closeSong}
+        activeTab={searchParams.get('tab') || 'overview'}
+        onTabChange={changeSongTab}
       />
 
       <Modal
