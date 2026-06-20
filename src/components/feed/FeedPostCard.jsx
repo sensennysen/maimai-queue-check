@@ -11,6 +11,7 @@ import IconArrowRight from '@tabler/icons-react/dist/esm/icons/IconArrowRight.mj
 import { feedService } from '../../services/supabase';
 import { getProfileImageUrl, getRelativeTime } from '../../utils/formatters';
 import { ImagePreviewModal } from '../common/ImagePreviewModal';
+import DeleteConfirmDialog from '../modals/DeleteConfirmDialog';
 import { FeedPostDetailModal } from './FeedPostDetailModal';
 import { FeedPostSurface } from './FeedPostSurface';
 import '../../pages/FeedPage.css';
@@ -21,6 +22,8 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content || '');
   const [saving, setSaving] = useState(false);
+  const [deleteConfirmOpened, setDeleteConfirmOpened] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [detailOpened, setDetailOpened] = useState(false);
   const [likes, setLikes] = useState(post.like_count ?? 0);
   const [dislikes, setDislikes] = useState(post.dislike_count ?? 0);
@@ -53,15 +56,20 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
   }, [currentUser?.id, editContent, onUpdate, post.id, saving]);
 
   const handleDelete = useCallback(async () => {
-    if (!window.confirm('Delete this post?')) return;
+    if (deleting) return;
+    setDeleting(true);
     try {
       await feedService.deleteFeedPost(post.id, currentUser.id);
+      setDeleteConfirmOpened(false);
+      setDetailOpened(false);
       onDelete?.(post.id);
       notifications.show({ title: 'Deleted', message: 'Post removed.', color: 'blue', autoClose: 2000 });
     } catch {
       notifications.show({ title: 'Error', message: 'Failed to delete post.', color: 'red' });
+    } finally {
+      setDeleting(false);
     }
-  }, [currentUser?.id, onDelete, post.id]);
+  }, [currentUser?.id, deleting, onDelete, post.id]);
 
   const handleVote = useCallback(async (type) => {
     if (!currentUser) {
@@ -175,7 +183,7 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
     },
     onCancelEdit: () => setEditing(false),
     onSaveEdit: handleSaveEdit,
-    onDelete: handleDelete,
+    onDelete: () => setDeleteConfirmOpened(true),
     onOpenImage: openImagePreview,
     likes,
     dislikes,
@@ -190,7 +198,6 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
     editContent,
     editRemaining,
     editing,
-    handleDelete,
     handleSaveEdit,
     handleVote,
     isOwn,
@@ -284,6 +291,18 @@ export function FeedPostCard({ post, currentUser, profileData, onDelete, onUpdat
           }
           setThreadVersion((version) => version + 1);
         }}
+      />
+
+      <DeleteConfirmDialog
+        opened={deleteConfirmOpened}
+        onClose={() => {
+          if (!deleting) setDeleteConfirmOpened(false);
+        }}
+        onConfirm={handleDelete}
+        title="Delete post?"
+        message="This post and its comments will be permanently removed."
+        loading={deleting}
+        confirmLabel="Delete post"
       />
 
       {imagePreviewOpened && (
