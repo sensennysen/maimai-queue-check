@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { notifications } from '@mantine/notifications';
 import { feedService } from '../../../services/supabase';
 
-export function usePostComments(postId, currentUser, onCountChange) {
+export function usePostComments(postId, currentUser, onCountChange, refreshKey = 0, enabled = true) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -21,7 +21,9 @@ export function usePostComments(postId, currentUser, onCountChange) {
     }
   }, [postId, currentUser?.id, onCountChange]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (enabled) load();
+  }, [enabled, load, refreshKey]);
 
   const addComment = async (content) => {
     const trimmed = content.trim();
@@ -31,7 +33,7 @@ export function usePostComments(postId, currentUser, onCountChange) {
       const added = await feedService.addFeedPostComment(postId, currentUser.id, trimmed);
       setComments(prev => [...prev, added]);
       onCountChange?.(c => c + 1);
-      return true;
+      return added;
     } catch {
       notifications.show({ title: 'Error', message: 'Failed to post comment.', color: 'red' });
       return false;

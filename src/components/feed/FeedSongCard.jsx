@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Paper, Group, Text, Avatar, Badge, Stack, Box } from '@mantine/core';
+import { Paper, Group, Text, Avatar, Badge, Stack, Box, UnstyledButton } from '@mantine/core';
 import IconChevronRight from '@tabler/icons-react/dist/esm/icons/IconChevronRight.mjs';
 import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
 import IconMusic from '@tabler/icons-react/dist/esm/icons/IconMusic.mjs';
@@ -51,6 +51,44 @@ export function FeedSongCard({ song, songId, latestComment, onClick, variant = '
       <IconMusic size={24} />
     </Box>
   );
+
+  if (variant === 'attachment') {
+    return (
+      <UnstyledButton
+        type="button"
+        onClick={onClick}
+        aria-label={`Open song reference for ${displayTitle}`}
+        className={`community-post-song-attachment ${className || ''}`.trim()}
+      >
+        <Box className="community-post-song-jacket">
+          {songArtwork}
+        </Box>
+
+        <Box className="community-post-song-copy">
+          <Group gap={6} wrap="nowrap">
+            <Text fw={650} size="sm" lineClamp={1} className="community-post-song-title">
+              {displayTitle}
+            </Text>
+            {category && (
+              <Badge size="xs" color={categoryColor} variant="light" className="community-post-song-tag">
+                {category}
+              </Badge>
+            )}
+          </Group>
+          <Text size="xs" c="dimmed" lineClamp={1} className="community-post-song-subtitle">
+            {displayArtist || 'Unknown artist'}
+          </Text>
+        </Box>
+
+        <IconChevronRight
+          size={18}
+          stroke={1.8}
+          className="community-post-song-chevron"
+          aria-hidden="true"
+        />
+      </UnstyledButton>
+    );
+  }
 
   if (isTrending) {
     return (

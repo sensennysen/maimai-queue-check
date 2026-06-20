@@ -15,7 +15,14 @@ import { feedService } from '../../services/supabase';
  * Inline comment thread for a FeedPostCard.
  * Loads on first open, supports add + delete (own) comments.
  */
-export function FeedPostComments({ postId, currentUser, profileData, onCountChange }) {
+export function FeedPostComments({
+  postId,
+  currentUser,
+  profileData,
+  onCountChange,
+  hideComposer = false,
+  refreshKey = 0,
+}) {
   const navigate = useNavigate();
   const {
     comments,
@@ -25,7 +32,7 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
     addComment,
     deleteComment,
     voteComment
-  } = usePostComments(postId, currentUser, onCountChange);
+  } = usePostComments(postId, currentUser, onCountChange, refreshKey);
 
   const [newComment, setNewComment] = useState('');
   const [votersOpened, setVotersOpened] = useState(false);
@@ -71,7 +78,7 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
         ))
       )}
 
-      {currentUser ? (
+      {!hideComposer && (currentUser ? (
         <>
           <Divider variant="dotted" my="md" className="community-feed-comments-input-divider" />
           <Group gap="xs" wrap="nowrap" align="flex-end" className="community-comment-composer">
@@ -108,7 +115,7 @@ export function FeedPostComments({ postId, currentUser, profileData, onCountChan
         </>
       ) : (
         <Text size="sm" c="dimmed" ta="center">Log in to comment.</Text>
-      )}
+      ))}
 
       <VoterListModal
         opened={votersOpened}
