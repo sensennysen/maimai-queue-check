@@ -29,7 +29,6 @@ const ExportBest50Page = lazy(() => import('./pages/ExportBest50Page'));
 const ViewPage = lazy(() => import('./pages/ViewPage'));
 const SongsPage = lazy(() => import('./pages/SongsPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
-const SearchPage = lazy(() => import('./pages/SearchPage'));
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
 const ProfileBest50Page = lazy(() => import('./pages/ProfileBest50Page'));
 const SongDiscussionPage = lazy(() => import('./pages/SongDiscussionPage'));
@@ -108,7 +107,7 @@ function MantineAppShell() {
               <Route path="/view" element={<ViewPage />} />
               <Route path="/songs" element={<SongsPage />} />
               <Route path="/songs/:id" element={<SongDiscussionPage />} />
-              <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
+              <Route path="/search" element={<Navigate to="/feed" replace />} />
               <Route path="/shared-playlists" element={<ProtectedRoute><SharedPlaylistsPage /></ProtectedRoute>} />
               <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
               <Route path="/contact" element={<ContactPage />} />
