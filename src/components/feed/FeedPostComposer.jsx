@@ -1,6 +1,17 @@
-import { useState, useMemo } from 'react';
-import { Paper, Group, Avatar, Textarea, Button, Text, SegmentedControl, Center, Box, Stack } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
+import { useId, useMemo, useState } from 'react';
+import {
+  ActionIcon,
+  Avatar,
+  Box,
+  Button,
+  FileButton,
+  Group,
+  Image as MantineImage,
+  Paper,
+  Text,
+  Textarea,
+  Tooltip,
+} from '@mantine/core';
 import IconSend from '@tabler/icons-react/dist/esm/icons/IconSend.mjs';
 import IconWorld from '@tabler/icons-react/dist/esm/icons/IconWorld.mjs';
 import IconUsers from '@tabler/icons-react/dist/esm/icons/IconUsers.mjs';
@@ -10,7 +21,6 @@ import IconPhoto from '@tabler/icons-react/dist/esm/icons/IconPhoto.mjs';
 import IconX from '@tabler/icons-react/dist/esm/icons/IconX.mjs';
 import { getProfileImageUrl } from '../../utils/formatters';
 import { SongPicker, PlaylistPicker, AttachmentPreview } from './AttachmentPickers';
-import { Tooltip, ActionIcon, FileButton, Image as MantineImage } from '@mantine/core';
 import { feedService } from '../../services/supabase';
 import { APP_CONFIG } from '../../constants/config';
 import { FEED_PLACEHOLDERS } from '../../constants/placeholders';
@@ -21,7 +31,7 @@ import { FEED_PLACEHOLDERS } from '../../constants/placeholders';
  * @param {{ user: object, profileData: object, onSubmit: (content: string, visibility: string, songId: string, playlistId: string) => Promise<void> }} props
  */
 export function FeedPostComposer({ user, profileData, onSubmit }) {
-  const isMobile = useMediaQuery('(max-width: 48em)');
+  const characterCountId = useId();
   const [content, setContent] = useState('');
   const [visibility, setVisibility] = useState(APP_CONFIG.DEFAULT_VISIBILITY);
   const [loading, setLoading] = useState(false);
@@ -95,20 +105,15 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
     }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      handleSubmit();
-    }
-  };
-
-  const remaining = APP_CONFIG.MAX_POST_LENGTH - content.length;
-  const isOver = remaining < 0;
+  const maxLength = APP_CONFIG.MAX_POST_LENGTH;
+  const warningThreshold = Math.floor(maxLength * 0.85);
+  const isOver = content.length > maxLength;
   const isDisabled = !content.trim() || isOver || loading;
   const characterCountClass = [
     'community-composer-count',
-    content.length > 480
+    content.length >= maxLength
       ? 'community-composer-count--danger'
-      : content.length > 400
+      : content.length >= warningThreshold
         ? 'community-composer-count--warning'
         : '',
   ].filter(Boolean).join(' ');
@@ -117,33 +122,19 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
     return FEED_PLACEHOLDERS[Math.floor(Math.random() * FEED_PLACEHOLDERS.length)];
   }, []);
 
-  const visibilitySegmentData = useMemo(
-    () => [
-      {
-        value: 'public',
-        label: (
-          <Center style={{ gap: 6 }}>
-            <IconWorld size={14} />
-            <span>Public</span>
-          </Center>
-        ),
-      },
-      {
-        value: 'followers',
-        label: (
-          <Center style={{ gap: 6 }}>
-            <IconUsers size={14} />
-            <span>Followers</span>
-          </Center>
-        ),
-      },
-    ],
-    []
-  );
+  const visibilityOptions = useMemo(() => [
+    { value: 'public', label: 'Public', icon: IconWorld },
+    { value: 'followers', label: 'Followers', icon: IconUsers },
+  ], []);
+
+  const attachmentButtonClass = (isActive) => [
+    'community-composer-attachment-button',
+    isActive ? 'community-composer-attachment-button--active' : '',
+  ].filter(Boolean).join(' ');
 
   return (
-    <Paper p="md" radius="md" withBorder className="community-panel community-composer">
-      <Group gap="sm" wrap="nowrap" align="flex-start">
+    <Paper p={0} radius="md" withBorder className="community-panel community-composer">
+      <div className="community-composer-input-section">
         <Avatar
           src={getProfileImageUrl(profileData || user)}
           size={38}
@@ -155,24 +146,23 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
           {(profileData?.display_name || user?.display_name || '?').charAt(0)}
         </Avatar>
 
-        <div style={{ flex: 1 }}>
+        <div className="community-composer-input-column">
           <Textarea
             className="community-composer-input"
-            placeholder={`${placeholder}`}
-            aria-label="Create a feed post"
+            placeholder={placeholder}
+            aria-label="Write a post"
+            aria-describedby={characterCountId}
+            aria-invalid={isOver}
             value={content}
             onChange={(e) => setContent(e.currentTarget.value)}
-            onKeyDown={handleKeyDown}
             minRows={2}
             autosize
             maxRows={6}
-            radius="md"
-            styles={{ input: { fontSize: '1rem' } }}
             disabled={loading}
           />
 
           {(attachedSong || attachedPlaylist || imagePreview) && (
-            <Group gap="xs" mt="xs" align="flex-start">
+            <Group gap="xs" mt="sm" align="flex-start" className="community-composer-previews">
               {attachedSong && (
                 <AttachmentPreview 
                   type="song" 
@@ -211,96 +201,109 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
               )}
             </Group>
           )}
-
-          <Stack gap="sm" mt="sm" className="community-composer-controls">
-            <Group justify="space-between" align="center" wrap="wrap" gap="sm" className="community-composer-footer">
-              <SegmentedControl
-                fullWidth={isMobile}
-                size="sm"
-                value={visibility}
-                onChange={setVisibility}
-                disabled={loading}
-                data={visibilitySegmentData}
-                className="community-composer-visibility"
-              />
-
-              <Group className="community-composer-actions" gap="xs" wrap="nowrap">
-                <Group
-                  className="community-composer-attachments"
-                  gap="xs"
-                  wrap="nowrap"
-                  aria-label="Post attachments"
-                >
-                  <Tooltip label="Attach Song" withArrow>
-                    <ActionIcon
-                      variant="subtle"
-                      color="gray"
-                      size="sm"
-                      aria-label="Attach song"
-                      onClick={() => setSongPickerOpened(true)}
-                      disabled={loading || !!attachedSong}
-                    >
-                      <IconMusic size={18} />
-                    </ActionIcon>
-                  </Tooltip>
-
-                  <Tooltip label="Attach Playlist" withArrow>
-                    <ActionIcon
-                      variant="subtle"
-                      color="gray"
-                      size="sm"
-                      aria-label="Attach playlist"
-                      onClick={() => setPlaylistPickerOpened(true)}
-                      disabled={loading || !!attachedPlaylist}
-                    >
-                      <IconPlaylist size={18} />
-                    </ActionIcon>
-                  </Tooltip>
-
-                  <FileButton onChange={handleImageSelect} accept="image/png,image/jpeg,image/webp">
-                    {(props) => (
-                      <Tooltip label="Upload Image" withArrow>
-                        <ActionIcon
-                          {...props}
-                          variant="subtle"
-                          color="gray"
-                          size="sm"
-                          aria-label="Upload image"
-                          disabled={loading || !!imageFile}
-                        >
-                          <IconPhoto size={18} />
-                        </ActionIcon>
-                      </Tooltip>
-                    )}
-                  </FileButton>
-                </Group>
-
-                <Group className="community-composer-submit-group" gap={0} wrap="nowrap">
-                  <Text
-                    size="sm"
-                    ff="monospace"
-                    className={characterCountClass}
-                    aria-live="polite"
-                  >
-                    {content.length} / {APP_CONFIG.MAX_POST_LENGTH}
-                  </Text>
-                  <Button
-                    size={isMobile ? 'compact-sm' : 'sm'}
-                    radius="md"
-                    className="community-composer-submit"
-                    leftSection={<IconSend size={isMobile ? 14 : 16} />}
-                    onClick={handleSubmit}
-                    loading={loading}
-                    disabled={isDisabled}
-                  >
-                    Post
-                  </Button>
-                </Group>
-              </Group>
-            </Group>
-          </Stack>
         </div>
-      </Group>
+      </div>
+
+      <div className="community-composer-toolbar">
+        <div
+          className="community-composer-visibility"
+          role="radiogroup"
+          aria-label="Post visibility"
+        >
+          {visibilityOptions.map(({ value, label, icon: VisibilityIcon }) => {
+            const isSelected = visibility === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                className={`community-composer-visibility-option${isSelected ? ' is-selected' : ''}`}
+                onClick={() => setVisibility(value)}
+                disabled={loading}
+              >
+                <VisibilityIcon size={15} aria-hidden="true" />
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <Group
+          className="community-composer-attachments"
+          gap={4}
+          wrap="nowrap"
+          aria-label="Post attachments"
+        >
+          <Tooltip label="Attach a song" withArrow>
+            <ActionIcon
+              variant="subtle"
+              size="md"
+              className={attachmentButtonClass(!!attachedSong)}
+              aria-label="Attach a song"
+              aria-pressed={!!attachedSong}
+              onClick={() => setSongPickerOpened(true)}
+              disabled={loading}
+            >
+              <IconMusic size={18} />
+            </ActionIcon>
+          </Tooltip>
+
+          <Tooltip label="Attach a playlist" withArrow>
+            <ActionIcon
+              variant="subtle"
+              size="md"
+              className={attachmentButtonClass(!!attachedPlaylist)}
+              aria-label="Attach a playlist"
+              aria-pressed={!!attachedPlaylist}
+              onClick={() => setPlaylistPickerOpened(true)}
+              disabled={loading}
+            >
+              <IconPlaylist size={18} />
+            </ActionIcon>
+          </Tooltip>
+
+          <FileButton onChange={handleImageSelect} accept="image/png,image/jpeg,image/webp">
+            {(props) => (
+              <Tooltip label="Attach a photo" withArrow>
+                <ActionIcon
+                  {...props}
+                  variant="subtle"
+                  size="md"
+                  className={attachmentButtonClass(!!imageFile)}
+                  aria-label="Attach a photo"
+                  aria-pressed={!!imageFile}
+                  disabled={loading}
+                >
+                  <IconPhoto size={18} />
+                </ActionIcon>
+              </Tooltip>
+            )}
+          </FileButton>
+        </Group>
+      </div>
+
+      <div className="community-composer-action-row">
+        <Text
+          id={characterCountId}
+          component="span"
+          className={characterCountClass}
+          aria-live="polite"
+        >
+          {content.length} / {maxLength}
+        </Text>
+        <Button
+          size="sm"
+          radius="xl"
+          className="community-composer-submit"
+          leftSection={<IconSend size={16} />}
+          onClick={handleSubmit}
+          loading={loading}
+          disabled={isDisabled}
+        >
+          Post
+        </Button>
+      </div>
 
       <SongPicker 
         opened={songPickerOpened} 

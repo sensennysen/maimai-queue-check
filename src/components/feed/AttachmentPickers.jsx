@@ -182,7 +182,13 @@ export function AttachmentPreview({ type, item, onClear }) {
             </Stack>
           </>
         )}
-        <ActionIcon variant="subtle" color="gray" size="sm" onClick={onClear}>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          size="sm"
+          aria-label={`Remove attached ${type}`}
+          onClick={onClear}
+        >
           <IconX size={14} />
         </ActionIcon>
       </Group>

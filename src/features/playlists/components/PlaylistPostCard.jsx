@@ -351,23 +351,8 @@ export function PlaylistPostCard({
               className="community-post-engagement-stats-slot"
               style={{ flex: '1 1 0', minWidth: 0 }}
             >
-              {(likes > 0 || dislikes > 0) && (
+              {dislikes > 0 && (
                 <div className="community-post-engagement-stats" style={{ display: 'flex', alignItems: 'center', gap: 0, lineHeight: 1 }}>
-                  {likes > 0 && (
-                    <button
-                      type="button"
-                      className="community-post-engagement-stat"
-                      onClick={() => onViewVoters(post.id, 'likes')}
-                      style={{ padding: 0, margin: 0, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', minWidth: 0 }}
-                    >
-                      <span style={{ fontSize: 'var(--mantine-font-size-sm)', color: 'var(--mantine-color-dimmed)', whiteSpace: 'nowrap' }}>
-                        {likes} {likes === 1 ? 'like' : 'likes'}
-                      </span>
-                    </button>
-                  )}
-                  {likes > 0 && dislikes > 0 && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '1rem', color: 'var(--mantine-color-dimmed)', fontSize: 'var(--mantine-font-size-xs)', userSelect: 'none' }} aria-hidden>·</span>
-                  )}
                   {dislikes > 0 && (
                     <button
                       type="button"
@@ -412,13 +397,10 @@ export function PlaylistPostCard({
                 <Group gap={6} justify="center" wrap="nowrap">
                   <IconMessage size={18} stroke={1.5} />
                   <Text size="sm" fw={500}>
-                    Comments
+                    {commentCount > 0
+                      ? `${commentCount} ${commentCount === 1 ? 'Comment' : 'Comments'}`
+                      : 'Comments'}
                   </Text>
-                  {commentCount > 0 && (
-                    <Text component="span" size="sm" c="dimmed" fw={500}>
-                      {commentCount}
-                    </Text>
-                  )}
                 </Group>
               </UnstyledButton>
 
@@ -431,7 +413,9 @@ export function PlaylistPostCard({
               >
                 <Group gap={6} justify="center" wrap="nowrap">
                   {userVote === 1 ? <IconThumbUpFilled size={18} /> : <IconThumbUp size={18} />}
-                  <Text size="sm" fw={500}>Like</Text>
+                  <Text size="sm" fw={500}>
+                    {likes > 0 ? `${likes} ${likes === 1 ? 'Like' : 'Likes'}` : 'Like'}
+                  </Text>
                 </Group>
               </UnstyledButton>
 
@@ -444,7 +428,11 @@ export function PlaylistPostCard({
               >
                 <Group gap={6} justify="center" wrap="nowrap">
                   {userVote === -1 ? <IconThumbDownFilled size={18} /> : <IconThumbDown size={18} />}
-                  <Text size="sm" fw={500}>Dislike</Text>
+                  <Text size="sm" fw={500}>
+                    {dislikes > 0
+                      ? `${dislikes} ${dislikes === 1 ? 'Dislike' : 'Dislikes'}`
+                      : 'Dislike'}
+                  </Text>
                 </Group>
               </UnstyledButton>
             </Group>
