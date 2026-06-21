@@ -6,11 +6,21 @@
 
 .queue-page-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--theme-border);
+}
+
+.queue-page-branch-desktop {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.queue-page-branch-desktop .branch-selector-button {
+  min-height: 2.125rem;
 }
 
 .queue-list-eyebrow {
@@ -278,6 +288,12 @@
 
 .now-playing.now-playing-updated {
   animation: now-playing-pulse 0.6s ease-out;
+}
+
+@media (max-width: 1179px) {
+  .queue-page-branch-desktop {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {

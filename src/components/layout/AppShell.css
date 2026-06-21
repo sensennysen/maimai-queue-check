@@ -447,6 +447,12 @@
   display: none;
 }
 
+@media (min-width: 1180px) {
+  .app-shell:has(.queue-page) .app-sidebar-branch {
+    display: none;
+  }
+}
+
 @media (max-width: 1179px) {
   .app-shell {
     width: min(100% - 2rem, 960px);
@@ -540,7 +546,7 @@
   }
 
   .queue-page-branch {
-    display: block;
+    display: flex;
     width: 100%;
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;

@@ -67,7 +67,7 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
           <Stack align="center" gap="xs">
             <Text size="lg" fw={700}>No one in the queue yet</Text>
             {user && (
-              <Text c="secondary" size="sm">Use Add Queue to create the first matchup.</Text>
+              <Text c="secondary" size="sm">Use Add Queue to add one</Text>
             )}
           </Stack>
         </Center>

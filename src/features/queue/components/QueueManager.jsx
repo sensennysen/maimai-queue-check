@@ -26,6 +26,7 @@ import AccessRequestModal from '../../../components/modals/AccessRequestModal';
 import DeleteConfirmDialog from '../../../components/modals/DeleteConfirmDialog';
 import QueueRulesModal from './QueueRulesModal';
 import QueueLogsModal from './QueueLogsModal';
+import BranchSelector from '../../../components/layout/BranchSelector';
 import './QueueManager.css';
 
 
@@ -338,6 +339,9 @@ function QueueManager() {
       />
 
       <header className="queue-page-header">
+        <div className="queue-page-branch-desktop">
+          <BranchSelector />
+        </div>
         <div className="queue-page-actions">
           {user && (
             <Button
