@@ -81,8 +81,8 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
         <>
           <div className="queue-header-row queue-header-row--desktop" aria-hidden="true">
             <span className="col-order">Position</span>
-            <span>Player 1 (P1)</span>
-            <span>Player 2 (P2)</span>
+            <span>Player 1</span>
+            <span>Player 2</span>
             <span className="col-actions">Actions</span>
           </div>
           <div className="queue-header-row queue-header-row--mobile" aria-hidden="true">

@@ -87,8 +87,9 @@
   min-width: 0;
   overflow: hidden;
   color: var(--theme-text-primary);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  font-weight: 600;
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -205,7 +206,7 @@
   }
 
   .player-name {
-    font-size: 0.9375rem;
+    font-size: 1rem;
     font-weight: 600;
   }
 

@@ -52,12 +52,10 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
 
       <div className="players-section">
         <div className={`item-player player-1 ${!item.player1?.trim() ? 'is-empty' : ''}`}>
-          <span className="player-side player-side-1">P1</span>
           <span className="player-name">{item.player1?.trim() || 'Open side'}</span>
         </div>
 
         <div className={`item-player player-2 ${!item.player2?.trim() ? 'is-empty' : ''}`}>
-          <span className="player-side player-side-2">P2</span>
           <span className="player-name">{item.player2?.trim() || 'Open side'}</span>
         </div>
       </div>

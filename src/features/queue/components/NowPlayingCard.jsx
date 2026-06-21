@@ -30,7 +30,6 @@ function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isL
 
       <div className="now-playing-grid">
         <div className={`now-playing-player now-playing-player--p1 ${!hasPlayer1 ? 'is-empty' : ''}`}>
-          <span className="player-side-indicator player-side-1">P1</span>
           <div>
             <small>Player 1</small>
             <strong>{hasPlayer1 ? nowPlaying.player1 : 'Open side'}</strong>
@@ -54,7 +53,6 @@ function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isL
         </div>
 
         <div className={`now-playing-player now-playing-player--p2 ${!hasPlayer2 ? 'is-empty' : ''}`}>
-          <span className="player-side-indicator player-side-2">P2</span>
           <div>
             <small>Player 2</small>
             <strong>{hasPlayer2 ? nowPlaying.player2 : 'Open side'}</strong>
