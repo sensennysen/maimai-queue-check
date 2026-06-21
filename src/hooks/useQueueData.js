@@ -1,7 +1,55 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { queueService, subscribeToQueueChanges } from '../services/supabase';
 import { useBranch } from './useBranch';
 import { QUEUE_STATUSES } from '../constants/queue';
+
+const areRecordsEqual = (left, right) => {
+  if (Object.is(left, right)) return true;
+  if (!left || !right || typeof left !== 'object' || typeof right !== 'object') return false;
+
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+
+  return leftKeys.length === rightKeys.length
+    && leftKeys.every((key) => Object.is(left[key], right[key]));
+};
+
+const areQueueEntriesEqual = (left, right) => {
+  if (Object.is(left, right)) return true;
+  if (!left || !right) return false;
+
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+
+  return leftKeys.length === rightKeys.length
+    && leftKeys.every((key) => {
+      const leftValue = left[key];
+      const rightValue = right[key];
+
+      if (Object.is(leftValue, rightValue)) return true;
+      return areRecordsEqual(leftValue, rightValue);
+    });
+};
+
+const reconcileQueueEntries = (previousQueue, nextQueue) => {
+  const previousById = new Map(previousQueue.map((entry) => [entry.id, entry]));
+  let changed = previousQueue.length !== nextQueue.length;
+
+  const reconciledQueue = nextQueue.map((entry, index) => {
+    const previousEntry = previousById.get(entry.id);
+    const reconciledEntry = previousEntry && areQueueEntriesEqual(previousEntry, entry)
+      ? previousEntry
+      : entry;
+
+    if (reconciledEntry !== previousQueue[index]) {
+      changed = true;
+    }
+
+    return reconciledEntry;
+  });
+
+  return changed ? reconciledQueue : previousQueue;
+};
 
 /**
  * Hook for managing queue data fetching and real-time subscriptions
@@ -16,12 +64,17 @@ export const useQueueData = (selectedCabinet = 1) => {
   const [isConnected, setIsConnected] = useState(false);
   const requestIdRef = useRef(0);
 
-  // Derived state
-  const nowPlaying = (queue || []).find(item => item?.status === QUEUE_STATUSES.PLAYING) || null;
-  const waitingQueue = (queue || []).filter(item => item?.status === QUEUE_STATUSES.WAITING);
+  // Keep derived references stable when unrelated UI state changes.
+  const nowPlaying = useMemo(
+    () => queue.find(item => item?.status === QUEUE_STATUSES.PLAYING) || null,
+    [queue]
+  );
+  const waitingQueue = useMemo(
+    () => queue.filter(item => item?.status === QUEUE_STATUSES.WAITING),
+    [queue]
+  );
 
-  // Load initial data
-  const loadInitialData = useCallback(async () => {
+  const loadQueueData = useCallback(async ({ showLoading = false } = {}) => {
     if (!selectedBranch?.id) {
       return;
     }
@@ -29,14 +82,17 @@ export const useQueueData = (selectedCabinet = 1) => {
     const currentRequestId = ++requestIdRef.current;
 
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
+
       const queueData = await queueService.getQueueEntries(selectedBranch.id, selectedCabinet);
       
       if (currentRequestId !== requestIdRef.current) {
         return;
       }
 
-      setQueue(queueData);
+      setQueue((previousQueue) => reconcileQueueEntries(previousQueue, queueData));
       setError(null);
       setIsConnected(true);
     } catch (err) {
@@ -52,12 +108,12 @@ export const useQueueData = (selectedCabinet = 1) => {
     }
   }, [selectedBranch?.id, selectedCabinet]);
 
-  // Load initial data when branch changes
+  // Use a blocking loading state only when the branch/cabinet scope changes.
   useEffect(() => {
     if (selectedBranch?.id) {
-      loadInitialData();
+      loadQueueData({ showLoading: true });
     }
-  }, [loadInitialData, selectedBranch?.id]);
+  }, [loadQueueData, selectedBranch?.id]);
 
   // Subscribe to real-time changes using postgres_changes (Supabase built-in)
   useEffect(() => {
@@ -74,7 +130,8 @@ export const useQueueData = (selectedCabinet = 1) => {
         (oldRow && oldRow.branch_id === selectedBranch.id && oldRow.cabinet_num === selectedCabinet);
       
       if (isRelevant) {
-        loadInitialData();
+        // Keep the current queue mounted while fresh data is fetched.
+        loadQueueData();
       }
     };
 
@@ -86,7 +143,7 @@ export const useQueueData = (selectedCabinet = 1) => {
       }
       setIsConnected(false);
     };
-  }, [selectedBranch?.id, selectedCabinet, loadInitialData]);
+  }, [selectedBranch?.id, selectedCabinet, loadQueueData]);
 
   // Generate next order number
   const getNextOrder = useCallback(() => {
@@ -103,6 +160,6 @@ export const useQueueData = (selectedCabinet = 1) => {
     setQueue,
     setError,
     getNextOrder,
-    refreshData: loadInitialData
+    refreshData: loadQueueData
   };
 };

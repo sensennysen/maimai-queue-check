@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
-import { Stack, Title, Group, Text, Button, Paper, Flex, Alert, Modal, Skeleton, LoadingOverlay, TextInput, Box, UnstyledButton } from '@mantine/core';
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
+import { Stack, Title, Group, Text, Button, Paper, Flex, Alert, Modal, Skeleton, TextInput, Box, UnstyledButton } from '@mantine/core';
 import IconTrash from '@tabler/icons-react/dist/esm/icons/IconTrash.mjs';
 import IconPlus from '@tabler/icons-react/dist/esm/icons/IconPlus.mjs';
 import IconEdit from '@tabler/icons-react/dist/esm/icons/IconEdit.mjs';
@@ -186,7 +186,7 @@ function QueueManager() {
   }, [isMallOpen]);
 
   // Action handlers
-  const addQueueEntry = async (player1, player2) => {
+  const addQueueEntry = useCallback(async (player1, player2) => {
     try {
       const newEntry = await addEntry(player1, player2);
       setShowForm(false);
@@ -198,9 +198,9 @@ function QueueManager() {
     } catch {
       // Error handled by hook
     }
-  };
+  }, [addEntry]);
 
-  const updateQueueEntry = async (id, player1, player2) => {
+  const updateQueueEntry = useCallback(async (id, player1, player2) => {
     try {
       await updateEntry(id, player1, player2);
       setEditingId(null);
@@ -208,9 +208,9 @@ function QueueManager() {
     } catch {
       // Error handled by hook
     }
-  };
+  }, [updateEntry]);
 
-  const clearQueue = async () => {
+  const clearQueue = useCallback(async () => {
     try {
       await clearAllQueue();
       setEditingId(null);
@@ -218,19 +218,19 @@ function QueueManager() {
     } catch {
       // Error handled by hook
     }
-  };
+  }, [clearAllQueue]);
 
-  const startEdit = (id) => {
+  const startEdit = useCallback((id) => {
     setEditingId(id);
     setShowForm(true);
-  };
+  }, []);
 
-  const cancelEdit = () => {
+  const cancelEdit = useCallback(() => {
     setEditingId(null);
     setShowForm(false);
-  };
+  }, []);
 
-  const finishGame = async () => {
+  const finishGame = useCallback(async () => {
     try {
       await endGame();
       // Trigger now-playing pulse
@@ -239,9 +239,9 @@ function QueueManager() {
     } catch {
       // Error handled by hook
     }
-  };
+  }, [endGame]);
 
-  const startGame = async () => {
+  const startGame = useCallback(async () => {
     try {
       await startNextGame();
       // Trigger now-playing pulse
@@ -250,11 +250,17 @@ function QueueManager() {
     } catch {
       // Error handled by hook
     }
-  };
+  }, [startNextGame]);
 
+  const visibleQueue = useMemo(
+    () => (isMallOpen ? filterQueue(queue) : []),
+    [filterQueue, isMallOpen, queue]
+  );
+  const visibleQueueRef = useRef(visibleQueue);
+  visibleQueueRef.current = visibleQueue;
 
   // Animation wrappers
-  const handleRemoveWithAnimation = async (id) => {
+  const handleRemoveWithAnimation = useCallback(async (id) => {
     setRemovingId(id);
     // Wait for exit animation to play
     await new Promise(resolve => setTimeout(resolve, 400));
@@ -263,12 +269,12 @@ function QueueManager() {
     } finally {
       setRemovingId(null);
     }
-  };
+  }, [removeQueueEntry]);
 
-  const handleMoveUpWithAnimation = async (id) => {
+  const handleMoveUpWithAnimation = useCallback(async (id) => {
     try {
       // Find the item being moved and the one above it
-      const waitingItems = filterQueue(queue);
+      const waitingItems = visibleQueueRef.current;
       const index = waitingItems.findIndex(item => item.id === id);
       const swappedId = index > 0 ? waitingItems[index - 1].id : null;
 
@@ -282,12 +288,12 @@ function QueueManager() {
     } catch {
       // Error handled by hook
     }
-  };
+  }, [moveUp]);
 
-  const handleMoveDownWithAnimation = async (id) => {
+  const handleMoveDownWithAnimation = useCallback(async (id) => {
     try {
       // Find the item being moved and the one below it
-      const waitingItems = filterQueue(queue);
+      const waitingItems = visibleQueueRef.current;
       const index = waitingItems.findIndex(item => item.id === id);
       const swappedId = index < waitingItems.length - 1 ? waitingItems[index + 1].id : null;
 
@@ -301,9 +307,7 @@ function QueueManager() {
     } catch {
       // Error handled by hook
     }
-  };
-
-  const visibleQueue = isMallOpen ? filterQueue(queue) : [];
+  }, [moveDown]);
 
   return (
     <Stack
@@ -318,11 +322,6 @@ function QueueManager() {
         }
       }}
     >
-      <LoadingOverlay
-        visible={isQueueDataLoading}
-        zIndex={190}
-        overlayProps={{ blur: 2 }}
-      />
       {/* Location Permission Modal - shown based on consent flow */}
       <LocationPermissionModal
         opened={showConsentModal}

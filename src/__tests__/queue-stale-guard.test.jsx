@@ -77,5 +77,42 @@ describe('useQueueData stale-request guard', () => {
     // Assert that the state STAYS at the fast request's data
     expect(result.current.queue).toEqual([{ id: 'entry-fast', status: 'WAITING' }]);
   });
+
+  it('refreshes realtime changes without returning to the blocking loading state', async () => {
+    const { queueService, subscribeToQueueChanges } = await import('../services/supabase');
+    const initialQueue = [
+      { id: 'entry-1', player1: 'Alice', status: 'waiting' },
+      { id: 'entry-2', player1: 'Bob', status: 'waiting' },
+    ];
+
+    useBranch.mockReturnValue({ selectedBranch: { id: 'branch-1' } });
+    queueService.getQueueEntries.mockResolvedValueOnce(initialQueue);
+
+    const { result } = renderHook(() => useQueueData(1));
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    const firstEntryReference = result.current.queue[0];
+    const secondEntryReference = result.current.queue[1];
+
+    queueService.getQueueEntries.mockResolvedValueOnce([
+      { id: 'entry-1', player1: 'Alice', status: 'waiting' },
+      { id: 'entry-2', player1: 'Bobby', status: 'waiting' },
+    ]);
+
+    const realtimeHandler = subscribeToQueueChanges.mock.calls[0][0];
+
+    await act(async () => {
+      realtimeHandler({
+        new: { branch_id: 'branch-1', cabinet_num: 1 },
+        old: null,
+      });
+    });
+
+    expect(result.current.loading).toBe(false);
+
+    await waitFor(() => expect(result.current.queue[1].player1).toBe('Bobby'));
+    expect(result.current.queue[0]).toBe(firstEntryReference);
+    expect(result.current.queue[1]).not.toBe(secondEntryReference);
+  });
 });
 

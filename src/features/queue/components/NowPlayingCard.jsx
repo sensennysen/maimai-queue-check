@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import IconPlayerStop from '@tabler/icons-react/dist/esm/icons/IconPlayerStop.mjs';
 import { Button, Title } from '@mantine/core';
 import PlayTimer from './PlayTimer';
@@ -14,7 +15,7 @@ import './QueueManager.css';
  * @param {boolean} [props.justUpdated=false] - Whether the card was recently updated (triggers animation).
  * @returns {JSX.Element} The rendered active session or idle state.
  */
-function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isLoggedIn, justUpdated = false }) {
+const NowPlayingCard = memo(function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isLoggedIn, justUpdated = false }) {
   const hasPlayer1 = nowPlaying?.player1?.trim();
   const hasPlayer2 = nowPlaying?.player2?.trim();
 
@@ -64,6 +65,6 @@ function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isL
       )}
     </div>
   );
-}
+});
 
 export default NowPlayingCard;

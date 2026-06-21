@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { queueService } from '../services/supabase';
 import { useAuth } from './useAuth';
 import { useBranch } from './useBranch';
@@ -32,6 +32,8 @@ export const useQueueActions = ({
   const { user } = useAuth();
   const { selectedBranch } = useBranch();
   const [isMutating, setIsMutating] = useState(false);
+  const queueRef = useRef(queue);
+  queueRef.current = queue;
 
   const { requireLocationVerification } = useLocationGuard({
     locationVerified,
@@ -107,7 +109,7 @@ export const useQueueActions = ({
     requireLocationVerification();
 
     try {
-      const waitingItems = queue.filter((item) => item.status === 'waiting');
+      const waitingItems = queueRef.current.filter((item) => item.status === 'waiting');
       const index = waitingItems.findIndex((item) => item.id === id);
 
       if (index > 0) {
@@ -142,14 +144,14 @@ export const useQueueActions = ({
       await refreshData();
       throw err;
     }
-  }, [requireLocationVerification, queue, setQueue, refreshData, setError]);
+  }, [requireLocationVerification, setQueue, refreshData, setError]);
 
   // Move entry down in queue
   const moveDown = useCallback(async (id) => {
     requireLocationVerification();
 
     try {
-      const waitingItems = queue.filter((item) => item.status === 'waiting');
+      const waitingItems = queueRef.current.filter((item) => item.status === 'waiting');
       const index = waitingItems.findIndex((item) => item.id === id);
 
       if (index < waitingItems.length - 1) {
@@ -184,7 +186,7 @@ export const useQueueActions = ({
       await refreshData();
       throw err;
     }
-  }, [requireLocationVerification, queue, setQueue, refreshData, setError]);
+  }, [requireLocationVerification, setQueue, refreshData, setError]);
 
   // Clear entire queue
   const clearQueue = useCallback(async () => {
@@ -192,7 +194,7 @@ export const useQueueActions = ({
 
     try {
       setIsMutating(true);
-      if (queue.length > 0) {
+      if (queueRef.current.length > 0) {
         await queueService.clearQueue(selectedBranch.id, selectedCabinet);
         setQueue([]);
       }
@@ -202,15 +204,15 @@ export const useQueueActions = ({
     } finally {
       setIsMutating(false);
     }
-  }, [requireLocationVerification, queue.length, selectedBranch?.id, setQueue, setError, selectedCabinet]);
+  }, [requireLocationVerification, selectedBranch?.id, setQueue, setError, selectedCabinet]);
 
   // End current game and start next
   const endGame = useCallback(async () => {
     try {
       setIsMutating(true);
       
-      const currentPlaying = queue.find(item => item.status === 'playing');
-      const nextWaiting = queue.find(item => item.status === 'waiting');
+      const currentPlaying = queueRef.current.find(item => item.status === 'playing');
+      const nextWaiting = queueRef.current.find(item => item.status === 'waiting');
 
       await queueService.finishGame(currentPlaying?.id, nextWaiting?.id);
       await refreshData();
@@ -221,7 +223,7 @@ export const useQueueActions = ({
     } finally {
       setIsMutating(false);
     }
-  }, [queue, refreshData, setError]);
+  }, [refreshData, setError]);
 
   // Start next game (calls endGame internally)
   const startNextGame = useCallback(async () => {

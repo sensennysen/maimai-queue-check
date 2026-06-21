@@ -174,18 +174,21 @@ function QueueForm({ onSubmit, onCancel, editingId, editingData, isBusy = false,
                 }}
               />
 
-              <Checkbox
-                label="Playing solo"
-                checked={playingSolo}
-                color="var(--theme-primary)"
-                onChange={(e) => {
-                  setPlayingSolo(e.currentTarget.checked);
-                  if (e.currentTarget.checked) {
-                    setPlayer2('');
-                  }
-                }}
-                disabled={isBusy || (!locationVerified && !isSuperAdmin)}
-              />
+              <Group justify="flex-end">
+                <Checkbox
+                  className="queue-solo-checkbox"
+                  label="Playing solo"
+                  checked={playingSolo}
+                  color="var(--theme-primary)"
+                  onChange={(e) => {
+                    setPlayingSolo(e.currentTarget.checked);
+                    if (e.currentTarget.checked) {
+                      setPlayer2('');
+                    }
+                  }}
+                  disabled={isBusy || (!locationVerified && !isSuperAdmin)}
+                />
+              </Group>
 
               {!playingSolo && (
                 <Autocomplete
