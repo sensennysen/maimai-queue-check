@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 0.25rem;
 }
 
@@ -16,7 +17,7 @@
 .timer-display {
   color: var(--theme-text-primary);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.04em;

@@ -22,6 +22,8 @@ function PlayTimer({ startTime }) {
   useEffect(() => {
     if (!startTime) return;
 
+    setElapsed(calculateElapsed());
+
     // Update every second
     const interval = setInterval(() => {
       setElapsed(calculateElapsed());
@@ -37,10 +39,12 @@ function PlayTimer({ startTime }) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const formattedElapsed = formatTime(Math.max(0, elapsed));
+
   return (
-    <div className="play-timer">
+    <div className="play-timer" aria-live="off" aria-label={`Playing for ${formattedElapsed}`}>
       <div className="timer-label">Playing for</div>
-      <div className="timer-display">{formatTime(elapsed)}</div>
+      <div className="timer-display" aria-hidden="true">{formattedElapsed}</div>
     </div>
   );
 }

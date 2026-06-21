@@ -1,11 +1,10 @@
-import { useState, memo } from 'react';
+import { memo } from 'react';
 import { Paper, Title, Group, Button, Stack, Text, Center } from '@mantine/core';
 import IconPlayerPlay from '@tabler/icons-react/dist/esm/icons/IconPlayerPlay.mjs';
 import IconLock from '@tabler/icons-react/dist/esm/icons/IconLock.mjs';
 import QueueItem from './QueueItem';
 import { useAuth } from '../../../hooks/useAuth';
 import { usePermissions } from '../../../hooks/usePermissions';
-import { emptyQueueMessages } from '../../../data/subtitleMessages';
 import './QueueList.css';
 
 /**
@@ -17,10 +16,6 @@ import './QueueList.css';
 const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove, onMoveUp, onMoveDown, onStartGame, isMallOpen, isBusy = false, loadingRoles = false, cabinetNum = null, hasMultipleCabinets = false, addedIds = null, movedIds = null, removingId = null }) {
   const { user, userRoles } = useAuth();
 
-  // Lazy initialization - the function is only called once on mount, not during render
-  const [emptyMessageIndex] = useState(() => Math.floor(Math.random() * emptyQueueMessages.length));
-  const emptyMessage = queue.length === 0 ? emptyQueueMessages[emptyMessageIndex] : '';
-
   const { canActuallyEdit, canEdit } = usePermissions();
 
   // Determine header title based on cabinet
@@ -29,8 +24,7 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
   return (
     <Paper withBorder className="queue-list">
       <Group justify="space-between" className="queue-list-header">
-        <div>
-          <Text className="queue-list-eyebrow">Waiting list</Text>
+        <div className="queue-list-heading">
           <Title order={3}>{queueTitle}</Title>
         </div>
         {!user && (
@@ -70,10 +64,10 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
       )}
       {queue.length === 0 ? (
         <Center p="xl" className="empty-queue">
-          <Stack align="center" gap="md">
-            <Text size="xl" fw={600} c="secondary">{emptyMessage}</Text>
+          <Stack align="center" gap="xs">
+            <Text size="lg" fw={700}>No one in the queue yet</Text>
             {user && (
-              <Text c="secondary" size="sm">Add to queue by pressing the Add to Queue button above</Text>
+              <Text c="secondary" size="sm">Use Add Queue to create the first matchup.</Text>
             )}
           </Stack>
         </Center>
@@ -86,11 +80,10 @@ const QueueList = memo(function QueueList({ queue, nowPlaying, onEdit, onRemove,
             <span className="col-actions">Actions</span>
           </div>
           <div className="queue-header-row queue-header-row--mobile" aria-hidden="true">
-            <span className="col-order">Pos.</span>
-            <span>Players</span>
+            <span>Queue entry</span>
             <span className="col-actions">Actions</span>
           </div>
-          <Stack gap={0} className="queue-items">
+          <Stack gap={0} className="queue-items" role="list" aria-label={queueTitle}>
             {queue.map((item, index) => (
               <QueueItem
                 key={item.id}

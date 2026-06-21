@@ -13,6 +13,10 @@ import './QueueItem.css';
  * @returns {JSX.Element} The rendered queue item.
  */
 const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMoveUp, onMoveDown, isFirst, isLast, isNextUp, canActuallyEdit, isBusy = false, loadingRoles = false, readOnly = false, isAdded = false, isMoved = false, isRemoving = false }) {
+  const player1Name = item.player1?.trim() || 'Open side';
+  const player2Name = item.player2?.trim() || 'Open side';
+  const matchupLabel = `${player1Name} and ${player2Name}`;
+
   const handleEdit = () => {
     if (readOnly) return;
     onEdit(item.id);
@@ -41,6 +45,8 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
   return (
     <div
       className={`queue-item ${isNextUp ? 'next-up' : ''} ${readOnly ? 'read-only' : ''} ${animClass}`}
+      role="listitem"
+      aria-label={`Queue position ${order}: ${matchupLabel}${isNextUp ? ', next up' : ''}`}
     >
       <div className="item-order">
         <span className="order-number">#{order}</span>
@@ -52,11 +58,11 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
 
       <div className="players-section">
         <div className={`item-player player-1 ${!item.player1?.trim() ? 'is-empty' : ''}`}>
-          <span className="player-name">{item.player1?.trim() || 'Open side'}</span>
+          <span className="player-name" title={player1Name}>{player1Name}</span>
         </div>
 
         <div className={`item-player player-2 ${!item.player2?.trim() ? 'is-empty' : ''}`}>
-          <span className="player-name">{item.player2?.trim() || 'Open side'}</span>
+          <span className="player-name" title={player2Name}>{player2Name}</span>
         </div>
       </div>
 
@@ -74,6 +80,7 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
                   size="sm"
                   onClick={handleMoveUp}
                   disabled={!canActuallyEdit || isFirst || isBusy}
+                  aria-label={`Move ${matchupLabel} up`}
                 >
                   <IconChevronUp size={16} />
                 </ActionIcon>
@@ -84,6 +91,7 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
                   size="sm"
                   onClick={handleMoveDown}
                   disabled={!canActuallyEdit || isLast || isBusy}
+                  aria-label={`Move ${matchupLabel} down`}
                 >
                   <IconChevronDown size={16} />
                 </ActionIcon>
@@ -96,6 +104,7 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
                   color="blue"
                   onClick={handleEdit}
                   disabled={!canActuallyEdit || isBusy}
+                  aria-label={`Edit ${matchupLabel}`}
                 >
                   <IconEdit size={16} />
                 </ActionIcon>
@@ -106,6 +115,7 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
                   color="red"
                   onClick={handleRemove}
                   disabled={!canActuallyEdit || isBusy}
+                  aria-label={`Remove ${matchupLabel} from queue`}
                 >
                   <IconTrash size={16} />
                 </ActionIcon>
