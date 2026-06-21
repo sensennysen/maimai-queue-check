@@ -27,7 +27,6 @@ import { buildSongModalUrl } from './features/songs/utils/songModalNavigation';
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 const AuditLogsPage = lazy(() => import('./features/admin/pages/AuditLogsPage'));
 const ExportBest50Page = lazy(() => import('./pages/ExportBest50Page'));
-const ViewPage = lazy(() => import('./pages/ViewPage'));
 const SongsPage = lazy(() => import('./pages/SongsPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
@@ -115,7 +114,7 @@ function MantineAppShell() {
               <Route path="/profile/export" element={<ExportBest50Page />} />
               <Route path="/profile" element={<ProfileRedirect />} />
               <Route path="/queue" element={<QueuePage />} />
-              <Route path="/view" element={<ViewPage />} />
+              <Route path="/view" element={<Navigate to="/queue" replace />} />
               <Route path="/songs" element={<SongsPage />} />
               <Route path="/songs/:id" element={<LegacySongRoute />} />
               <Route path="/search" element={<Navigate to="/feed" replace />} />

@@ -7,7 +7,6 @@ import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
 import IconAlertTriangle from '@tabler/icons-react/dist/esm/icons/IconAlertTriangle.mjs';
 import IconMapPin from '@tabler/icons-react/dist/esm/icons/IconMapPin.mjs';
-import IconExternalLink from '@tabler/icons-react/dist/esm/icons/IconExternalLink.mjs';
 import IconFileText from '@tabler/icons-react/dist/esm/icons/IconFileText.mjs';
 const QueueForm = lazy(() => import('./QueueForm'));
 import QueueList from './QueueList';
@@ -346,7 +345,7 @@ function QueueManager() {
               size="sm"
               variant="outline"
             >
-              Queue Name
+              Edit Your Queue Name
             </Button>
           )}
           <Button
@@ -360,16 +359,6 @@ function QueueManager() {
           {(canEdit || isAdmin || isSuperAdmin) && (
             <Button variant="outline" size="sm" onClick={() => setShowLogsModal(true)}>
               Logs
-            </Button>
-          )}
-          {user && (
-            <Button
-              variant="outline"
-              size="sm"
-              leftSection={<IconExternalLink size={15} />}
-              onClick={() => window.open('/view', '_blank')}
-            >
-              View
             </Button>
           )}
         </div>

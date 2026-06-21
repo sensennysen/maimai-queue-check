@@ -7,7 +7,7 @@ import GlobalSearchDialog from './GlobalSearchDialog';
 import MobileNavigation from './MobileNavigation';
 import './AppShell.css';
 
-const unframedRoutes = ['/view', '/profile/export'];
+const unframedRoutes = ['/profile/export'];
 
 export default function AppShell({ children }) {
   const location = useLocation();

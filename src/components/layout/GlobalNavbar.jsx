@@ -82,7 +82,7 @@ export default function GlobalNavbar() {
     setSuggestionsOpen(false);
   };
 
-  if (location.pathname === '/view' || location.pathname === '/profile/export') return null;
+  if (location.pathname === '/profile/export') return null;
 
   return (
     <>
