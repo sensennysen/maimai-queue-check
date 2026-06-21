@@ -83,6 +83,7 @@ export function GlobalSharePlaylistModal({
     <Modal
       opened={opened}
       onClose={onClose}
+      aria-label="Share to Community"
       size="md"
       centered
       padding={0}
@@ -108,6 +109,7 @@ export function GlobalSharePlaylistModal({
 
       {/* ── Fixed Header ─────────────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
@@ -169,6 +171,7 @@ export function GlobalSharePlaylistModal({
             opacity: sharing ? 0.5 : 1,
             cursor: sharing ? 'not-allowed' : 'pointer'
           }}
+          aria-label="Close"
           className="header-close-pill"
         >
           Cancel

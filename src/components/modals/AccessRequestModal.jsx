@@ -128,6 +128,7 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
     <Modal
       opened={opened}
       onClose={onClose}
+      aria-label="Request Access"
       size="lg"
       centered
       padding={0}
@@ -153,6 +154,7 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
 
       {/* ── Fixed Header ─────────────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
@@ -161,39 +163,7 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
           flexShrink: 0,
         }}
       >
-        <Group gap="sm" style={{ position: 'relative', zIndex: 1 }}>
-          <Box
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)',
-            }}
-          >
-            <IconSend size={18} color="var(--theme-primary-contrast)" strokeWidth={2.2} />
-          </Box>
-          <Box>
-            <Text
-              size="lg"
-              fw={800}
-              style={{
-                fontFamily: 'var(--font-heading)',
-                color: 'var(--theme-primary-contrast)',
-                letterSpacing: '-0.02em',
-                lineHeight: 1.1,
-              }}
-            >
-              Request Access
-            </Text>
-            <Text size="xs" style={{ color: 'var(--theme-primary-contrast)', opacity: 0.8, marginTop: 2 }}>
-              Get permission to manage queues
-            </Text>
-          </Box>
-        </Group>
+        <Text fw={650}>Request Access</Text>
 
         <UnstyledButton
           onClick={onClose}
@@ -211,6 +181,7 @@ const AccessRequestModal = ({ opened, onClose, onSuccess }) => {
             transition: 'all 0.2s ease',
             zIndex: 10,
           }}
+          aria-label="Close"
           className="header-close-pill"
         >
           Close

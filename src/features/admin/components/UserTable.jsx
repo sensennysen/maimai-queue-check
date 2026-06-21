@@ -508,12 +508,7 @@ const UserTable = ({ isSuperAdmin, currentUserRoles }) => {
       <Modal
         opened={editModalOpen}
         onClose={handleCloseModal}
-        title={
-          <Group gap="xs">
-            <IconEdit size={20} />
-            <Text fw={600}>Edit User</Text>
-          </Group>
-        }
+        title="Edit User"
         centered
         size="lg"
       >

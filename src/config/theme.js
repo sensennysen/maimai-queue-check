@@ -395,7 +395,10 @@ export const theme = createTheme({
     },
     Modal: {
       defaultProps: {
+        centered: true,
+        radius: 'lg',
         removeScrollProps: { allowPinchZoom: true },
+        overlayProps: { backgroundOpacity: 0.58, blur: 2 },
       },
     },
     Paper: {

@@ -194,6 +194,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
     <Modal
       opened={opened}
       onClose={handleClose}
+      aria-label="Import Scores"
       size="lg"
       radius={24}
       padding={0}
@@ -219,6 +220,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
 
       {/* ── Fixed Header ─────────────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
@@ -277,6 +279,7 @@ const MaimaiImportModal = ({ opened, onClose, userId, onSuccess }) => {
             backdropFilter: 'blur(4px)',
             transition: 'all 0.2s ease',
           }}
+          aria-label="Close"
           className="header-close-pill"
         >
           Close

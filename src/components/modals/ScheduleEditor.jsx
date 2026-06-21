@@ -149,6 +149,7 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
     <Modal
       opened={opened}
       onClose={onClose}
+      aria-label="Edit Schedule"
       size="lg"
       radius={24}
       padding={0}
@@ -172,6 +173,7 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
     >
       {/* ── Fixed Header ─────────────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
@@ -230,6 +232,7 @@ const ScheduleEditor = ({ opened, onClose, branch }) => {
             transition: 'all 0.2s ease',
             zIndex: 10,
           }}
+          aria-label="Close"
           className="header-close-pill"
         >
           Cancel

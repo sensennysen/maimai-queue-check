@@ -146,6 +146,7 @@ export function AddToPlaylistModal({
     <Modal
       opened={opened}
       onClose={onClose}
+      aria-label="Add to Playlist"
       size="md"
       centered
       padding={0}
@@ -171,6 +172,7 @@ export function AddToPlaylistModal({
 
       {/* ── Fixed Header ─────────────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
@@ -229,6 +231,7 @@ export function AddToPlaylistModal({
             transition: 'all 0.2s ease',
             zIndex: 10,
           }}
+          aria-label="Close"
           className="header-close-pill"
         >
           Close

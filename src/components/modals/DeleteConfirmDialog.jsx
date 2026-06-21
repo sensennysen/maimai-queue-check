@@ -7,6 +7,7 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loadi
     <Modal
       opened={opened}
       onClose={onClose}
+      aria-label={title || 'Confirm Deletion'}
       size="sm"
       centered
       padding={0}
@@ -30,6 +31,7 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loadi
     >
       {/* ── Fixed Theme Header ─────────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
@@ -88,6 +90,7 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loadi
             transition: 'all 0.2s ease',
             zIndex: 10,
           }}
+          aria-label="Close"
           className="header-close-pill"
         >
           Cancel
@@ -128,11 +131,11 @@ const DeleteConfirmDialog = ({ opened, onClose, onConfirm, title, message, loadi
             <Button
               onClick={onConfirm}
               loading={loading}
-              color="primary"
+              color="red"
               variant="filled"
+              className="app-modal-action--danger"
               style={{
-                background: 'var(--theme-primary)',
-                boxShadow: '0 4px 12px color-mix(in srgb, var(--theme-primary), transparent 70%)',
+                background: 'var(--theme-error)',
               }}
             >
               {confirmLabel || 'Delete'}

@@ -23,7 +23,7 @@ import { useBranch } from '../../../hooks/useBranch';
  * @param {Object|null} [props.nowPlaying=null] - The currently playing entry.
  * @returns {JSX.Element} The rendered queue form.
  */
-function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationVerified = false, locationError = null, isSuperAdmin = false, queue = [], nowPlaying = null }) {
+function QueueForm({ onSubmit, onCancel, editingId, editingData, isBusy = false, locationVerified = false, locationError = null, isSuperAdmin = false, queue = [], nowPlaying = null }) {
   const initialPlayer1 = editingId && editingData && editingData.player1 ? String(editingData.player1).trim() : '';
   const initialPlayer2 = editingId && editingData && editingData.player2 ? String(editingData.player2).trim() : '';
 
@@ -47,9 +47,12 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
       return false;
     }
 
-    // At least one player is required
-    if (!player1.trim() && !player2.trim()) {
-      newErrors.general = 'At least one player is required';
+    if (!player1.trim()) {
+      newErrors.player1 = 'Player 1 is required';
+    }
+
+    if (!playingSolo && !player2.trim()) {
+      newErrors.player2 = 'Player 2 is required unless playing solo';
     }
 
     setErrors(newErrors);
@@ -141,19 +144,10 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
             </Alert>
           )}
 
-          <Box
-            className="queue-form-panel"
-            style={{
-              borderRadius: 6,
-              padding: '16px',
-              background: 'var(--theme-surface)',
-              boxShadow: 'none',
-              border: '1px solid var(--theme-border)',
-            }}
-          >
-            <Stack gap="md">
+          <Box className="queue-form-panel">
+            <Stack gap="sm">
               <Autocomplete
-                label={<Text size="sm" fw={700} style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.02em' }}>Player 1 Side</Text>}
+                label="Player 1 Side"
                 placeholder="Enter Player 1 name"
                 data={player1.trim().length > 0 && !loading ? suggestions : []}
                 value={player1}
@@ -181,7 +175,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               />
 
               <Checkbox
-                label={<Text size="sm" fw={600}>Playing Solo</Text>}
+                label="Playing solo"
                 checked={playingSolo}
                 color="var(--theme-primary)"
                 onChange={(e) => {
@@ -195,7 +189,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
 
               {!playingSolo && (
                 <Autocomplete
-                  label={<Text size="sm" fw={700} style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.02em' }}>Player 2 Side</Text>}
+                  label="Player 2 Side"
                   placeholder="Enter Player 2 name"
                   data={player2.trim().length > 0 && !loading ? suggestions : []}
                   value={player2}
@@ -224,15 +218,29 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
             </Stack>
           </Box>
 
-          <Group justify="flex-end" gap="sm" pt={4}>
+          <Group className="queue-form-actions" gap="sm" pt={4}>
+            <Button
+              type="button"
+              variant="default"
+              onClick={onCancel}
+              disabled={isBusy}
+              style={{ flex: 1 }}
+            >
+              Cancel
+            </Button>
             <Button
               type="submit"
               leftSection={editingId ? <IconEdit size={16} /> : <IconPlus size={16} />}
               variant="filled"
               size="md"
               radius="lg"
-              disabled={isBusy || (!locationVerified && !isSuperAdmin)}
-              style={{ flex: 1 }}
+              disabled={
+                isBusy
+                || (!locationVerified && !isSuperAdmin)
+                || !player1.trim()
+                || (!playingSolo && !player2.trim())
+              }
+              style={{ flex: 2 }}
             >
               {editingId ? 'Update Entry' : 'Join Queue'}
             </Button>
@@ -243,6 +251,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
       <Modal
         opened={showSimilarityModal}
         onClose={() => setShowSimilarityModal(false)}
+        aria-label="Similar Name"
         centered
         padding={0}
         radius={24}
@@ -254,7 +263,7 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
       >
         {/* ── Fixed Warning Header ─────────────────────────────────────────── */}
         <Box
-          className="queue-modal-header queue-modal-header--warning"
+          className="queue-modal-header queue-modal-header--warning app-modal-header"
           style={{
             background: 'linear-gradient(135deg, var(--theme-warning), color-mix(in srgb, var(--theme-warning), #fff 20%))',
             padding: '24px 24px 20px',
@@ -295,6 +304,12 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
               </Text>
             </Box>
           </Group>
+          <button
+            type="button"
+            className="header-close-pill"
+            aria-label="Close"
+            onClick={() => setShowSimilarityModal(false)}
+          />
         </Box>
 
         <Stack gap="md" p="lg">
@@ -314,12 +329,11 @@ function QueueForm({ onSubmit, editingId, editingData, isBusy = false, locationV
           </Box>
 
           <Group justify="flex-end" gap="sm">
-            <Button variant="subtle" onClick={() => setShowSimilarityModal(false)} color="gray">
+            <Button variant="default" onClick={() => setShowSimilarityModal(false)}>
               Cancel
             </Button>
             <Button
               onClick={executeSubmit}
-              color="orange"
               radius="md"
             >
               Proceed Anyway

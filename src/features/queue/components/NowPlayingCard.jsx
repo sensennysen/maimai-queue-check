@@ -26,8 +26,8 @@ function NowPlayingCard({ nowPlaying, canActuallyEdit, isBusy, onFinishGame, isL
 
       {!nowPlaying ? (
         <div className="now-playing-idle" role="status">
-          <strong>No match in progress</strong>
-          <span>Start the next matchup from the waiting list when the cabinet is ready.</span>
+          <strong>No games in progress</strong>
+          <span>Queue up now!</span>
         </div>
       ) : (
         <div className="now-playing-grid">

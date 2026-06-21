@@ -253,6 +253,20 @@
   border-top: 3px solid var(--theme-warning);
 }
 
+.queue-form-panel {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.queue-form-actions {
+  align-items: stretch;
+}
+
+.queue-form-actions .mantine-Button-root {
+  min-width: 0;
+}
+
 @keyframes now-playing-pulse {
   0% {
     border-color: var(--theme-primary);

@@ -19,6 +19,7 @@ function LocationPermissionModal({ opened, onClose, onRequestLocation, onDecline
     <Modal
       opened={opened}
       onClose={handleDecline}
+      aria-label="Enable Location Services"
       size="lg"
       radius={24}
       padding={0}
@@ -42,6 +43,7 @@ function LocationPermissionModal({ opened, onClose, onRequestLocation, onDecline
     >
       {/* ── Fixed Header ─────────────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
@@ -101,6 +103,7 @@ function LocationPermissionModal({ opened, onClose, onRequestLocation, onDecline
               transition: 'all 0.2s ease',
               zIndex: 10,
             }}
+            aria-label="Close"
             className="header-close-pill"
           >
             Not Now

@@ -21,7 +21,6 @@ import {
 import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import IconAlertCircle from '@tabler/icons-react/dist/esm/icons/IconAlertCircle.mjs';
-import IconBook from '@tabler/icons-react/dist/esm/icons/IconBook.mjs';
 import IconCheck from '@tabler/icons-react/dist/esm/icons/IconCheck.mjs';
 import IconInfoCircle from '@tabler/icons-react/dist/esm/icons/IconInfoCircle.mjs';
 import IconMessageCircle from '@tabler/icons-react/dist/esm/icons/IconMessageCircle.mjs';
@@ -158,6 +157,7 @@ function SongDetailModal({ song, opened, onClose, activeTab, onTabChange }) {
       <Modal
         opened={opened}
         onClose={onClose}
+        aria-label={`${song.title} details`}
         size={isMobile ? 'lg' : 'min(1120px, calc(100vw - 32px))'}
         fullScreen={isMobile}
         radius={isMobile ? 0 : 'md'}
@@ -352,7 +352,7 @@ function SongDetailModal({ song, opened, onClose, activeTab, onTabChange }) {
       <Modal
         opened={glossaryOpened}
         onClose={() => setGlossaryOpened(false)}
-        title={<Group gap="xs"><IconBook size={18} /> Tag Glossary</Group>}
+        title="Tag Glossary"
         size="lg"
         zIndex={310}
       >

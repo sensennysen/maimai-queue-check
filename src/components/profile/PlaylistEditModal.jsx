@@ -68,6 +68,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
     <Modal
       opened={opened}
       onClose={onClose}
+      aria-label={initialPlaylist ? 'Edit Playlist' : 'New Playlist'}
       size="lg"
       radius={24}
       padding={0}
@@ -91,6 +92,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
     >
       {/* ── Fixed Header ─────────────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
@@ -157,6 +159,7 @@ export function PlaylistEditModal({ opened, onClose, userId, initialPlaylist, on
             opacity: isSaving ? 0.5 : 1,
             cursor: isSaving ? 'not-allowed' : 'pointer'
           }}
+          aria-label="Close"
           className="header-close-pill"
         >
           Cancel

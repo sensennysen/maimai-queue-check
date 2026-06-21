@@ -104,7 +104,7 @@ export const RecentPlayDetails = memo(({ play, isMobile, songMap }) => {
               <Table.Tr>
                 <Table.Th w={70}>Type</Table.Th>
                 <Table.Th style={{ color: 'var(--mantine-color-orange-7)' }}>CPf</Table.Th>
-                <Table.Th style={{ color: 'var(--mantine-color-yellow-7)' }}>Pf</Table.Th>
+                <Table.Th style={{ color: 'var(--theme-primary)' }}>Pf</Table.Th>
                 <Table.Th style={{ color: 'var(--mantine-color-green-7)' }}>Gr</Table.Th>
                 <Table.Th style={{ color: 'var(--mantine-color-blue-7)' }}>Gd</Table.Th>
                 <Table.Th style={{ color: 'var(--mantine-color-red-7)' }}>Ms</Table.Th>

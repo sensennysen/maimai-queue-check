@@ -147,6 +147,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
     <Modal
       opened={opened}
       onClose={onClose}
+      aria-label="Profile Settings"
       size="lg"
       centered
       padding={0}
@@ -170,6 +171,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
     >
       {/* ── Fixed Header ─────────────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
@@ -228,6 +230,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
             transition: 'all 0.2s ease',
             zIndex: 10,
           }}
+          aria-label="Close"
           className="header-close-pill"
         >
           Cancel
@@ -285,7 +288,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
           </SettingsCard>
 
           {/* Vanity URL / Slug */}
-          <SettingsCard icon={IconLink} label="Custom Profile Link" accent="#FFD200">
+          <SettingsCard icon={IconLink} label="Custom Profile Link" accent="var(--theme-secondary)">
             <Box style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
               <TextInput
                 label="Vanity URL"
@@ -300,7 +303,7 @@ const ProfileSettingsModal = ({ opened, onClose, userId, initialData, allBranche
               />
               <Button
                 variant="light"
-                color="yellow"
+                color="primary"
                 onClick={handleSaveSlug}
                 loading={isSavingSlug}
                 radius="md"

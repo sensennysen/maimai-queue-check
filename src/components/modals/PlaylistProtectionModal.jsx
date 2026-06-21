@@ -11,6 +11,7 @@ export function PlaylistProtectionModal({ opened, onClose, onConfirm, type = 'de
     <Modal
       opened={opened}
       onClose={onClose}
+      aria-label={isDelete ? 'Delete playlist' : 'Make playlist private'}
       size="md"
       centered
       padding={0}
@@ -35,6 +36,7 @@ export function PlaylistProtectionModal({ opened, onClose, onConfirm, type = 'de
     >
       {/* ── Fixed Red Header ─────────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-error), color-mix(in srgb, var(--theme-error), var(--theme-primary) 35%))',
           padding: '24px 24px 20px',
@@ -69,13 +71,19 @@ export function PlaylistProtectionModal({ opened, onClose, onConfirm, type = 'de
                 lineHeight: 1.1,
               }}
             >
-              Irreversible Action
+              {isDelete ? 'Delete playlist' : 'Make playlist private'}
             </Text>
             <Text size="xs" style={{ color: 'var(--theme-error-contrast)', opacity: 0.8, marginTop: 2 }}>
               Review action
             </Text>
           </Box>
         </Group>
+        <button
+          type="button"
+          className="header-close-pill"
+          aria-label="Close"
+          onClick={onClose}
+        />
       </Box>
 
       {/* ── Body ─────────────────────────────────────────────────── */}
@@ -118,6 +126,7 @@ export function PlaylistProtectionModal({ opened, onClose, onConfirm, type = 'de
               onClick={onConfirm}
               loading={loading}
               leftSection={<Icon size={18} />}
+              className="app-modal-action--danger"
               style={{
                 background: 'var(--theme-error)',
                 boxShadow: '0 4px 12px color-mix(in srgb, var(--theme-error), transparent 70%)',

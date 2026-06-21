@@ -63,6 +63,7 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
       <Modal
         opened={opened}
         onClose={onClose}
+        aria-label="Playlist Details"
         size="xl"
         radius={24}
         padding={0}
@@ -86,6 +87,7 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
       >
         {/* ── Header ──────────────────────────────────────────────── */}
         <Box
+          className="app-modal-header"
           style={{
             background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
             padding: '24px 24px 20px',
@@ -144,6 +146,7 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
               transition: 'all 0.2s ease',
               zIndex: 10,
             }}
+            aria-label="Close"
             className="header-close-pill"
           >
             Close
@@ -277,6 +280,7 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
           setIsSharing(false);
           setShareMessage('');
         }}
+        aria-label="Share Playlist"
         size="md"
         radius={24}
         padding={0}
@@ -285,6 +289,7 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
         zIndex={250}
       >
         <Box
+          className="app-modal-header"
           style={{
             background: 'linear-gradient(135deg, var(--theme-teal, #0ca678), var(--theme-primary))',
             padding: '20px 24px',
@@ -310,6 +315,15 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
               Share Playlist
             </Text>
           </Group>
+          <button
+            type="button"
+            className="header-close-pill"
+            aria-label="Close"
+            onClick={() => {
+              setIsSharing(false);
+              setShareMessage('');
+            }}
+          />
         </Box>
 
         <Stack gap="md" p="lg">
@@ -390,6 +404,7 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
       <Modal
         opened={!!selectedSongDetails}
         onClose={() => setSelectedSongDetails(null)}
+        aria-label="Chart Details"
         size="sm"
         radius={24}
         padding={0}
@@ -401,6 +416,7 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
         {chartDetails && (
           <>
             <Box
+              className="app-modal-header"
               style={{
                 background: `linear-gradient(135deg, ${DIFFICULTY_COLORS[chartDetails.level] || 'var(--theme-primary)'}, color-mix(in srgb, ${DIFFICULTY_COLORS[chartDetails.level] || 'var(--theme-primary)'}, #000 20%))`,
                 padding: '20px 24px',
@@ -428,6 +444,8 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
                <ActionIcon 
                 variant="transparent" 
                 onClick={() => setSelectedSongDetails(null)} 
+                aria-label="Close"
+                className="header-close-pill"
                 style={{ color: '#fff', position: 'absolute', top: 18, right: 18 }}
               >
                 <IconX size={18} />
@@ -516,8 +534,7 @@ export function PlaylistDetailModal({ playlist, songs = [], opened, onClose, isO
               )}
 
               <Button
-                variant="gradient"
-                gradient={{ from: 'blue', to: 'cyan' }}
+                variant="filled"
                 leftSection={<IconMessageCircle size={18} />}
                 mt="sm"
                 w="100%"

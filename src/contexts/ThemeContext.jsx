@@ -136,7 +136,7 @@ export const ThemeProvider = ({ children }) => {
     // Let's set some reasonable defaults.
     root.style.setProperty('--theme-error', isDark ? '#FF6B6B' : '#D63352');
     root.style.setProperty('--theme-success', isDark ? '#88FF00' : '#2DA74F'); // Lime Digital / Green
-    root.style.setProperty('--theme-warning', '#FFD200');
+    root.style.setProperty('--theme-warning', isDark ? '#F59E0B' : '#D97706');
 
     // Player specific
     root.style.setProperty('--theme-player1', cssVars.primary);

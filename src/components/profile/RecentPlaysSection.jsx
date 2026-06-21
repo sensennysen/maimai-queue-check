@@ -344,6 +344,7 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
       <Modal
         opened={opened}
         onClose={close}
+        aria-label="Play Details"
         centered
         size="lg"
         radius={24}
@@ -373,6 +374,7 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
         {selectedPlay && (
           <>
             <Box
+              className="app-modal-header"
               style={{
                 background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
                 padding: '24px 24px 20px',
@@ -418,6 +420,7 @@ export const RecentPlaysSection = memo(({ userId, initialData }) => {
 
               <UnstyledButton
                 onClick={close}
+                aria-label="Close"
                 className="header-close-pill"
                 style={{
                   position: 'absolute',

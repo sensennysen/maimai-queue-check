@@ -760,3 +760,238 @@ a {
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
 }
+
+/* App-wide modal system */
+.mantine-Modal-overlay,
+.app-dialog-overlay {
+  background: color-mix(in srgb, #020617 58%, transparent) !important;
+  backdrop-filter: blur(2px);
+}
+
+.mantine-Modal-content,
+.app-dialog-content {
+  overflow: hidden;
+  border: 1px solid var(--theme-border) !important;
+  border-radius: var(--radius-panel) !important;
+  background: var(--theme-surface) !important;
+  color: var(--theme-text-primary);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.18) !important;
+}
+
+[data-mantine-color-scheme="dark"] .mantine-Modal-content,
+[data-theme="dark"] .app-dialog-content {
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.48) !important;
+}
+
+.mantine-Modal-header,
+.app-dialog-header {
+  min-height: 3.25rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--theme-border);
+  background: var(--theme-surface) !important;
+}
+
+.mantine-Modal-title,
+.app-dialog-header [role="heading"] {
+  color: var(--theme-text-primary);
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.mantine-Modal-close,
+.app-dialog-close,
+.header-close-pill {
+  width: 2rem !important;
+  min-width: 2rem !important;
+  height: 2rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: var(--radius-control) !important;
+  background: transparent !important;
+  color: var(--theme-text-muted) !important;
+  box-shadow: none !important;
+}
+
+.mantine-Modal-close:hover,
+.app-dialog-close:hover,
+.header-close-pill:hover {
+  background: var(--theme-surface-hover) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+.mantine-Modal-close:focus-visible,
+.app-dialog-close:focus-visible,
+.header-close-pill:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring) !important;
+}
+
+.header-close-pill {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 0 !important;
+}
+
+.header-close-pill::before {
+  content: "×";
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.mantine-Modal-body {
+  padding: 1rem;
+}
+
+.app-modal-header {
+  min-height: 3.25rem;
+  padding: 0.75rem 1rem !important;
+  border-bottom: 1px solid var(--theme-border);
+  background: var(--theme-surface) !important;
+  display: flex;
+  align-items: center;
+}
+
+.app-modal-header > .mantine-Group-root {
+  min-width: 0;
+  width: 100%;
+}
+
+.app-modal-header > .mantine-Group-root > div:first-child {
+  display: none !important;
+}
+
+.app-modal-header > .mantine-Group-root > div:last-child {
+  min-width: 0;
+}
+
+.app-modal-header > .mantine-Group-root > div:last-child > .mantine-Text-root:first-child {
+  color: var(--theme-text-primary) !important;
+  font-size: 0.9375rem !important;
+  font-weight: 650 !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.app-modal-header > .mantine-Group-root > .mantine-Text-root,
+.app-modal-header > .mantine-Text-root {
+  color: var(--theme-text-primary) !important;
+  font-size: 0.9375rem !important;
+  font-weight: 650 !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.app-modal-header > .mantine-Group-root > div:last-child > :not(:first-child) {
+  display: none !important;
+}
+
+.app-modal-header .header-close-pill {
+  top: 0.625rem !important;
+  right: 0.75rem !important;
+}
+
+.mantine-Modal-body:has(> .app-modal-header) > .mantine-Stack-root,
+.mantine-Modal-body:has(> .app-modal-header) > div > .mantine-Stack-root {
+  padding: 1rem !important;
+}
+
+.mantine-Modal-content .mantine-Input-input,
+.mantine-Modal-content .mantine-Textarea-input,
+.mantine-Modal-content .mantine-Select-input,
+.mantine-Modal-content .mantine-MultiSelect-input,
+.mantine-Modal-content .mantine-Autocomplete-input,
+.app-dialog-content input {
+  min-height: 2.625rem;
+  padding-inline: 0.75rem;
+  border: 1px solid var(--theme-border) !important;
+  border-radius: var(--radius-control) !important;
+  background: var(--theme-bg-soft) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+.mantine-Modal-content .mantine-InputWrapper-label {
+  margin-bottom: 0.375rem;
+  color: var(--theme-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mantine-Modal-content .mantine-Checkbox-root {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--radius-control);
+  background: var(--theme-bg-soft);
+}
+
+.mantine-Modal-content .mantine-Checkbox-input {
+  border-color: var(--theme-border);
+  border-radius: calc(var(--radius-control) - 2px);
+}
+
+.mantine-Modal-content .mantine-Checkbox-input:checked {
+  border-color: var(--theme-primary);
+  background: var(--theme-primary);
+}
+
+.mantine-Modal-content .mantine-Button-root[data-variant="subtle"][data-color="gray"],
+.mantine-Modal-content .mantine-Button-root[data-variant="default"],
+.mantine-Modal-content .mantine-Button-root[data-variant="outline"] {
+  border: 1px solid var(--theme-border) !important;
+  background: var(--theme-surface) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+.mantine-Modal-content .mantine-Button-root[data-variant="filled"][data-color="red"],
+.mantine-Modal-content .app-modal-action--danger {
+  border-color: var(--theme-error) !important;
+  background: var(--theme-error) !important;
+  color: var(--theme-error-contrast) !important;
+}
+
+.mantine-Modal-content .app-modal-action--danger:hover {
+  background: color-mix(in srgb, var(--theme-error), black 12%) !important;
+}
+
+.app-dialog-content {
+  padding: 0;
+}
+
+.app-dialog-content > :not(.app-dialog-header, .app-dialog-close) {
+  margin-inline: 1rem;
+}
+
+.app-dialog-content > :last-child:not(.app-dialog-close) {
+  margin-bottom: 1rem;
+}
+
+.app-dialog-header {
+  padding-right: 3.5rem;
+}
+
+.app-dialog-header h2,
+.app-dialog-header [role="heading"] {
+  margin: 0;
+  color: var(--theme-text-primary);
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+
+.app-dialog-header > p {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mantine-Modal-content:not(.song-detail-modal--mobile),
+  .app-dialog-content {
+    width: min(calc(100vw - 1rem), 40rem);
+    max-height: calc(100dvh - 1rem) !important;
+    border-radius: var(--radius-panel) !important;
+  }
+}

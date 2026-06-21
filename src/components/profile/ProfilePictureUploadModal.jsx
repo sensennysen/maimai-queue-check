@@ -172,6 +172,7 @@ const ProfilePictureUploadModal = ({ opened, onClose, userId, currentPhotoUrl, o
     <Modal
       opened={opened}
       onClose={handleClose}
+      aria-label="Profile Picture"
       size="md"
       radius={24}
       padding={0}
@@ -195,6 +196,7 @@ const ProfilePictureUploadModal = ({ opened, onClose, userId, currentPhotoUrl, o
 
       {/* ── Fixed Header ─────────────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
@@ -253,6 +255,7 @@ const ProfilePictureUploadModal = ({ opened, onClose, userId, currentPhotoUrl, o
             transition: 'all 0.2s ease',
             zIndex: 10,
           }}
+          aria-label="Close"
           className="header-close-pill"
         >
           Cancel

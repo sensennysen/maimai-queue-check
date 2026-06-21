@@ -83,6 +83,7 @@ function MaimaiSongDetailModal({
     <Modal
       opened={opened}
       onClose={onClose}
+      aria-label="Song Details"
       size="lg"
       radius={24}
       padding={0}
@@ -111,6 +112,7 @@ function MaimaiSongDetailModal({
     >
       {/* ── Fixed Gradient Header ─────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
@@ -152,6 +154,7 @@ function MaimaiSongDetailModal({
 
         <UnstyledButton
           onClick={onClose}
+          aria-label="Close"
           className="header-close-pill"
           style={{
             position: 'absolute',
@@ -302,7 +305,7 @@ function MaimaiSongDetailModal({
                   <Text size="xs" c="dimmed" fw={800} tt="uppercase" mb={4}>DX Stars</Text>
                   <Group gap={2}>
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <IconStarFilled key={i} size={14} style={{ color: i < (b50DxStar || 0) ? '#fcc419' : 'var(--theme-border)' }} />
+                      <IconStarFilled key={i} size={14} style={{ color: i < (b50DxStar || 0) ? 'var(--theme-primary)' : 'var(--theme-border)' }} />
                     ))}
                   </Group>
                 </Box>

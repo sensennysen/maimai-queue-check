@@ -144,7 +144,7 @@ export const RecentPlayItem = memo(({ play, isOpened, onToggle, index, isMobile,
                     <Table.Tr>
                       <Table.Th w={60}>Type</Table.Th>
                       <Table.Th style={{ color: 'var(--mantine-color-orange-7)', fontSize: '10px' }}>Critical Perfect</Table.Th>
-                      <Table.Th style={{ color: 'var(--mantine-color-yellow-7)', fontSize: '10px' }}>Perfect</Table.Th>
+                      <Table.Th style={{ color: 'var(--theme-primary)', fontSize: '10px' }}>Perfect</Table.Th>
                       <Table.Th style={{ color: 'var(--mantine-color-green-7)', fontSize: '10px' }}>Great</Table.Th>
                       <Table.Th style={{ color: 'var(--mantine-color-blue-7)', fontSize: '10px' }}>Good</Table.Th>
                       <Table.Th style={{ color: 'var(--mantine-color-red-7)', fontSize: '10px' }}>Miss</Table.Th>

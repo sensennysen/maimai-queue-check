@@ -70,6 +70,7 @@ export function PlaylistManageModal({ opened, onClose, userId, playlists: initia
     <Modal
       opened={opened}
       onClose={onClose}
+      aria-label="Manage Display Order"
       size="md"
       radius={24}
       padding={0}
@@ -93,6 +94,7 @@ export function PlaylistManageModal({ opened, onClose, userId, playlists: initia
     >
       {/* ── Fixed Header ─────────────────────────────────────────── */}
       <Box
+        className="app-modal-header"
         style={{
           background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
           padding: '24px 24px 20px',
@@ -154,6 +156,7 @@ export function PlaylistManageModal({ opened, onClose, userId, playlists: initia
             opacity: isSaving ? 0.5 : 1,
             cursor: isSaving ? 'not-allowed' : 'pointer'
           }}
+          aria-label="Close"
           className="header-close-pill"
         >
           Close

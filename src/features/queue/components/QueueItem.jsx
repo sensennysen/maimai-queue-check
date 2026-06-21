@@ -24,9 +24,7 @@ const QueueItem = memo(function QueueItem({ item, order, onEdit, onRemove, onMov
 
   const handleRemove = () => {
     if (readOnly) return;
-    if (window.confirm(`Remove ${item.player1} vs ${item.player2} from queue?`)) {
-      onRemove(item.id);
-    }
+    onRemove(item.id);
   };
 
   const handleMoveUp = () => {

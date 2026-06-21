@@ -23,6 +23,7 @@ import { usePermissions } from '../../../hooks/usePermissions';
 import { notifications } from '@mantine/notifications';
 import { requestService, userService } from '../../../services/supabase';
 import AccessRequestModal from '../../../components/modals/AccessRequestModal';
+import DeleteConfirmDialog from '../../../components/modals/DeleteConfirmDialog';
 import QueueRulesModal from './QueueRulesModal';
 import QueueLogsModal from './QueueLogsModal';
 import './QueueManager.css';
@@ -138,6 +139,8 @@ function QueueManager() {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [showLogsModal, setShowLogsModal] = useState(false);
+  const [clearQueueConfirmOpen, setClearQueueConfirmOpen] = useState(false);
+  const [pendingRemovalId, setPendingRemovalId] = useState(null);
 
   // Animation state
   const [addedIds, setAddedIds] = useState(new Set());
@@ -208,13 +211,12 @@ function QueueManager() {
   };
 
   const clearQueue = async () => {
-    if (queue.length > 0 && window.confirm('Are you sure you want to clear the entire queue?')) {
-      try {
-        await clearAllQueue();
-        setEditingId(null);
-      } catch {
-        // Error handled by hook
-      }
+    try {
+      await clearAllQueue();
+      setEditingId(null);
+      setClearQueueConfirmOpen(false);
+    } catch {
+      // Error handled by hook
     }
   };
 
@@ -424,6 +426,7 @@ function QueueManager() {
           <Modal
             opened={queueNameModalOpen}
             onClose={() => setQueueNameModalOpen(false)}
+            aria-label="Queue Name"
             centered
             size="sm"
             padding={0}
@@ -436,7 +439,7 @@ function QueueManager() {
           >
             {/* ── Fixed Header ─────────────────────────────────────────── */}
             <Box
-              className="queue-modal-header"
+              className="queue-modal-header app-modal-header"
               style={{
                 background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
                 padding: '24px 24px 20px',
@@ -480,6 +483,7 @@ function QueueManager() {
 
               <UnstyledButton
                 onClick={() => setQueueNameModalOpen(false)}
+                aria-label="Close"
                 style={{
                   position: 'absolute',
                   top: 20,
@@ -570,6 +574,7 @@ function QueueManager() {
       <Modal
         opened={user && !scheduleLoading && isMallOpen && (showForm || editingId)}
         onClose={cancelEdit}
+        aria-label={editingId ? 'Edit Queue Entry' : 'Add to Queue'}
         centered
         padding={0}
         radius={24}
@@ -592,7 +597,7 @@ function QueueManager() {
       >
         {/* ── Fixed Header ─────────────────────────────────────────── */}
         <Box
-          className="queue-modal-header"
+          className="queue-modal-header app-modal-header"
           style={{
             background: 'linear-gradient(135deg, var(--theme-primary), color-mix(in srgb, var(--theme-primary), var(--theme-secondary) 40%))',
             padding: '24px 24px 20px',
@@ -641,6 +646,7 @@ function QueueManager() {
 
           <UnstyledButton
             onClick={cancelEdit}
+            aria-label="Close"
             style={{
               position: 'absolute',
               top: 20,
@@ -699,6 +705,29 @@ function QueueManager() {
         branchId={selectedBranch?.id}
       />
 
+      <DeleteConfirmDialog
+        opened={clearQueueConfirmOpen}
+        onClose={() => setClearQueueConfirmOpen(false)}
+        onConfirm={clearQueue}
+        loading={isMutating}
+        title="Clear entire queue?"
+        message="Every waiting entry will be removed. This action cannot be undone."
+        confirmLabel="Clear queue"
+      />
+
+      <DeleteConfirmDialog
+        opened={Boolean(pendingRemovalId)}
+        onClose={() => setPendingRemovalId(null)}
+        onConfirm={async () => {
+          await handleRemoveWithAnimation(pendingRemovalId);
+          setPendingRemovalId(null);
+        }}
+        loading={isMutating}
+        title="Remove queue entry?"
+        message="This matchup will be removed from the waiting list."
+        confirmLabel="Remove entry"
+      />
+
       {user && canActuallyEdit && isMallOpen && (
         <div className="queue-primary-actions">
           {!showForm && !editingId && (
@@ -716,7 +745,7 @@ function QueueManager() {
               variant="outline"
               color="red"
               leftSection={<IconTrash size={16} />}
-              onClick={clearQueue}
+              onClick={() => setClearQueueConfirmOpen(true)}
               disabled={isQueueDataLoading}
             >
               Clear All
@@ -764,7 +793,7 @@ function QueueManager() {
               queue={visibleQueue}
               nowPlaying={nowPlaying}
               onEdit={startEdit}
-              onRemove={handleRemoveWithAnimation}
+              onRemove={setPendingRemovalId}
               onMoveUp={handleMoveUpWithAnimation}
               onMoveDown={handleMoveDownWithAnimation}
               onStartGame={startGame}
