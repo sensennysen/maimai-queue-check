@@ -26,7 +26,7 @@ const toLevelLabel = (val) => {
 
 function SongFilters({ filters, onFilterChange, categories, versions, levels = [], internalLevels = [], artists = [] }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [desktopOpen, setDesktopOpen] = useState(true);
+  const [desktopOpen, setDesktopOpen] = useState(false);
   const isInternal = filters.showInternalLevels;
 
   const levelOptions = useMemo(() => levels.map(l => ({ value: l, label: l })), [levels]);

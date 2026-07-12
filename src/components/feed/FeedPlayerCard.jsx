@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Avatar, Box, Button, Group, Stack, Text, UnstyledButton } from '@mantine/core';
+import { Avatar, Box, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 import IconUserPlus from '@tabler/icons-react/dist/esm/icons/IconUserPlus.mjs';
 import IconUserCheck from '@tabler/icons-react/dist/esm/icons/IconUserCheck.mjs';
 import { getProfileImageUrl } from '../../utils/formatters';
@@ -102,33 +102,48 @@ export function FeedPlayerCard({
           </Stack>
 
           {layout === 'sidebar' && (
-            <Button
-              size="compact-sm"
-              variant={isFollowing ? 'light' : 'filled'}
-              color={isFollowing ? 'gray' : 'primary'}
-              leftSection={isFollowing ? <IconUserCheck size={14} /> : <IconUserPlus size={14} />}
-              onClick={handleFollow}
-              loading={followPending}
-              className="community-player-follow-button"
-            >
-              {isFollowing ? 'Following' : 'Follow'}
-            </Button>
+            isFollowing ? (
+              <span className="community-player-follow-button community-player-follow-button--following">
+                <IconUserCheck size={14} aria-hidden="true" />
+                <span>Following</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleFollow}
+                disabled={followPending}
+                aria-busy={followPending ? 'true' : undefined}
+                className="community-player-follow-button app-flat-primary-button app-flat-primary-button--compact"
+              >
+                <span className="app-flat-primary-button__icon" aria-hidden="true">
+                  <IconUserPlus size={14} />
+                </span>
+                <span>{followPending ? 'Following...' : 'Follow'}</span>
+              </button>
+            )
           )}
         </Group>
 
         {layout !== 'sidebar' && (
-          <Button
-            fullWidth
-            size="sm"
-            variant={isFollowing ? 'light' : 'filled'}
-            color={isFollowing ? 'gray' : 'primary'}
-            leftSection={isFollowing ? <IconUserCheck size={16} /> : <IconUserPlus size={16} />}
-            onClick={handleFollow}
-            loading={followPending}
-            className="community-player-follow-button"
-          >
-            {isFollowing ? 'Following' : 'Follow'}
-          </Button>
+          isFollowing ? (
+            <span className="community-player-follow-button community-player-follow-button--following community-player-follow-button--full">
+              <IconUserCheck size={16} aria-hidden="true" />
+              <span>Following</span>
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={handleFollow}
+              disabled={followPending}
+              aria-busy={followPending ? 'true' : undefined}
+              className="community-player-follow-button app-flat-primary-button app-flat-primary-button--full"
+            >
+              <span className="app-flat-primary-button__icon" aria-hidden="true">
+                <IconUserPlus size={16} />
+              </span>
+              <span>{followPending ? 'Following...' : 'Follow'}</span>
+            </button>
+          )
         )}
       </Stack>
     </Box>

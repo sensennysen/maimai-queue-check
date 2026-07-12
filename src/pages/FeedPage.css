@@ -389,6 +389,32 @@
   min-width: 5.5rem;
 }
 
+.community-player-follow-button--full {
+  width: 100%;
+}
+
+.community-player-follow-button--following {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4375rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--theme-primary), transparent 90%);
+  color: var(--theme-primary);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.community-player-card--sidebar .community-player-follow-button--following {
+  min-height: 2rem;
+  padding: 0.4375rem 0.75rem;
+  font-size: 0.875rem;
+}
+
 .community-player-card--carousel {
   min-height: 9rem;
   padding: 1rem 1.125rem;

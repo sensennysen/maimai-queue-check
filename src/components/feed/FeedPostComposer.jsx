@@ -3,7 +3,6 @@ import {
   ActionIcon,
   Avatar,
   Box,
-  Button,
   FileButton,
   Group,
   Image as MantineImage,
@@ -292,17 +291,18 @@ export function FeedPostComposer({ user, profileData, onSubmit }) {
         >
           {content.length} / {maxLength}
         </Text>
-        <Button
-          size="sm"
-          radius="xl"
-          className="community-composer-submit"
-          leftSection={<IconSend size={16} />}
+        <button
+          type="button"
+          className="community-composer-submit app-flat-primary-button"
           onClick={handleSubmit}
-          loading={loading}
           disabled={isDisabled}
+          aria-busy={loading ? 'true' : undefined}
         >
-          Post
-        </Button>
+          <span className="app-flat-primary-button__icon" aria-hidden="true">
+            <IconSend size={16} />
+          </span>
+          <span>{loading ? 'Posting...' : 'Post'}</span>
+        </button>
       </div>
 
       <SongPicker 

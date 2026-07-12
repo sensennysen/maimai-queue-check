@@ -231,22 +231,23 @@ function QueueForm({ onSubmit, onCancel, editingId, editingData, isBusy = false,
             >
               Cancel
             </Button>
-            <Button
+            <button
               type="submit"
-              leftSection={editingId ? <IconEdit size={16} /> : <IconPlus size={16} />}
-              variant="filled"
-              size="md"
-              radius="lg"
+              className="app-flat-primary-button"
               disabled={
                 isBusy
                 || (!locationVerified && !isSuperAdmin)
                 || !player1.trim()
                 || (!playingSolo && !player2.trim())
               }
+              aria-busy={isBusy ? 'true' : undefined}
               style={{ flex: 2 }}
             >
-              {editingId ? 'Update Entry' : 'Join Queue'}
-            </Button>
+              <span className="app-flat-primary-button__icon" aria-hidden="true">
+                {editingId ? <IconEdit size={16} /> : <IconPlus size={16} />}
+              </span>
+              <span>{isBusy ? 'Saving...' : editingId ? 'Update Entry' : 'Join Queue'}</span>
+            </button>
           </Group>
         </Stack>
       </form>
@@ -335,12 +336,13 @@ function QueueForm({ onSubmit, onCancel, editingId, editingData, isBusy = false,
             <Button variant="default" onClick={() => setShowSimilarityModal(false)}>
               Cancel
             </Button>
-            <Button
+            <button
+              type="button"
               onClick={executeSubmit}
-              radius="md"
+              className="app-flat-primary-button"
             >
               Proceed Anyway
-            </Button>
+            </button>
           </Group>
         </Stack>
       </Modal>

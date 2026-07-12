@@ -226,13 +226,25 @@ const PublicProfilePage = () => {
               )}
 
               {user && profile.id !== user.id && (
-                <Button
-                  variant={isFollowing ? 'default' : 'filled'}
-                  loading={followLoading}
-                  onClick={toggleFollow}
-                >
-                  {isFollowing ? 'Following' : 'Follow'}
-                </Button>
+                isFollowing ? (
+                  <Button
+                    variant="default"
+                    onClick={toggleFollow}
+                    disabled={followLoading}
+                  >
+                    {followLoading ? 'Updating...' : 'Following'}
+                  </Button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={toggleFollow}
+                    disabled={followLoading}
+                    aria-busy={followLoading ? 'true' : undefined}
+                    className="app-flat-primary-button"
+                  >
+                    {followLoading ? 'Following...' : 'Follow'}
+                  </button>
+                )
               )}
             </>
           }
